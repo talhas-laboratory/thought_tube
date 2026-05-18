@@ -1,0 +1,1 @@
+window.INNER_WORLD_CONFIG = window.INNER_WORLD_CONFIG || {};

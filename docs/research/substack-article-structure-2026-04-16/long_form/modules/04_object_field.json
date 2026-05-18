@@ -1,0 +1,20 @@
+{
+  "id": "object-field",
+  "title": "Object Field",
+  "role": "Lay out the key concepts, actors, systems, or moving parts when the topic has real structural complexity.",
+  "required_by_default": false,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "object-model-projection"
+  ],
+  "outputs": [
+    "object_map",
+    "named_components",
+    "relationship_overview"
+  ],
+  "adjustable_knobs": [
+    "density",
+    "diagrammatic_clarity",
+    "terminology_depth"
+  ]
+}

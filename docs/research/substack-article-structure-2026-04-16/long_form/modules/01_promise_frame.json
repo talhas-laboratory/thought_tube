@@ -1,0 +1,22 @@
+{
+  "id": "promise-frame",
+  "title": "Promise Frame",
+  "role": "Establish the article's specific promise before the body expands.",
+  "required_by_default": true,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "signal-frame-extractor",
+    "guardrail-antigoal-extractor"
+  ],
+  "outputs": [
+    "headline",
+    "subtitle",
+    "scope_boundary"
+  ],
+  "adjustable_knobs": [
+    "specificity",
+    "search_intent",
+    "poeticness",
+    "compression"
+  ]
+}

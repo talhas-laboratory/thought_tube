@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>World Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./world-studio.css" />
+  </head>
+  <body class="world-studio-page">
+    <div class="studio-app">
+      <header class="studio-header">
+        <div class="studio-brand">
+          <a class="studio-brand-mark" href="./index.html" aria-label="Return to feed">IW</a>
+          <div class="studio-brand-copy">
+            <p class="studio-overline">worldbuilding studio</p>
+            <h1 class="studio-title">World Studio</h1>
+          </div>
+        </div>
+        <div class="studio-header-actions">
+          <button id="toggle-guide" class="studio-text-button" type="button">Guide</button>
+          <a class="studio-text-button" href="./index.html">Feed</a>
+          <button id="refresh-world-studio" class="studio-text-button" type="button">Refresh</button>
+        </div>
+      </header>
+
+      <main class="studio-layout">
+        <aside class="world-rail">
+          <section class="rail-section rail-section--new">
+            <div class="rail-section-head">
+              <p class="rail-label">New world</p>
+              <p class="rail-caption">Start with one name and one sentence.</p>
+            </div>
+            <form id="new-world-form" class="world-form">
+              <label class="field-block">
+                <span class="field-label">Name</span>
+                <input id="world-name" class="field-input" name="name" placeholder="Ash Harbor" required />
+              </label>
+              <label class="field-block">
+                <span class="field-label">Summary</span>
+                <textarea
+                  id="world-summary"
+                  class="field-textarea field-textarea--compact"
+                  name="summary"
+                  placeholder="A coastal city built on rituals and concealment."
+                ></textarea>
+              </label>
+              <button class="primary-button" type="submit">Begin world</button>
+            </form>
+          </section>
+
+          <section class="rail-section">
+            <div class="rail-section-head">
+              <p class="rail-label">Worlds</p>
+              <p id="world-count" class="rail-caption"></p>
+            </div>
+            <div id="world-list" class="world-list"></div>
+          </section>
+        </aside>
+
+        <section class="studio-stage">
+          <div class="stage-head">
+            <div id="stage-world" class="stage-world"></div>
+            <div id="stage-status" class="stage-status"></div>
+          </div>
+
+          <div class="canvas-shell">
+            <div id="canvas-empty" class="canvas-empty" hidden></div>
+            <div id="graph-canvas" class="graph-canvas" aria-live="polite">
+              <svg id="graph-edges" class="graph-edges" viewBox="0 0 1040 840" preserveAspectRatio="none"></svg>
+              <div id="graph-nodes" class="graph-nodes"></div>
+            </div>
+          </div>
+
+          <section id="question-dock" class="question-dock"></section>
+          <section id="scene-dock" class="scene-dock" hidden></section>
+        </section>
+
+        <aside id="inspector" class="inspector"></aside>
+      </main>
+
+      <section id="guide-sheet" class="guide-sheet" hidden></section>
+    </div>
+
+    <script src="./runtime-config.js"></script>
+    <script src="./world-studio.js" defer></script>
+  </body>
+</html>

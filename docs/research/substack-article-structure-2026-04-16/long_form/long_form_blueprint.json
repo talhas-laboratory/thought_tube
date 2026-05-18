@@ -1,0 +1,105 @@
+{
+  "id": "inner-world-long-form-expanded-content",
+  "title": "Inner World Long-Form Expanded Content Blueprint",
+  "version": "v1",
+  "default_profile": "explainer_default",
+  "style_posture": "structured_explainer_with_optional_narrative_opening",
+  "user_adjustable": true,
+  "reorderable": true,
+  "selected_algorithms": [
+    "signal-frame-extractor",
+    "object-model-projection",
+    "transformation-path-extractor",
+    "decision-commitment-extractor",
+    "guardrail-antigoal-extractor",
+    "tension-map-extractor",
+    "evidence-confidence-scaffold",
+    "open-question-missingness-extractor",
+    "reasoning-primitive-detector"
+  ],
+  "conditional_algorithms": [
+    "contradiction-pair-extractor"
+  ],
+  "modules": [
+    {
+      "id": "promise-frame",
+      "default_position": 1,
+      "required_by_default": true,
+      "adjustable": true,
+      "spec_path": "./modules/01_promise_frame.md",
+      "manifest_path": "./modules/01_promise_frame.json"
+    },
+    {
+      "id": "entry-vector",
+      "default_position": 2,
+      "required_by_default": false,
+      "adjustable": true,
+      "spec_path": "./modules/02_entry_vector.md",
+      "manifest_path": "./modules/02_entry_vector.json"
+    },
+    {
+      "id": "thesis-and-reader-map",
+      "default_position": 3,
+      "required_by_default": true,
+      "adjustable": true,
+      "spec_path": "./modules/03_thesis_and_reader_map.md",
+      "manifest_path": "./modules/03_thesis_and_reader_map.json"
+    },
+    {
+      "id": "object-field",
+      "default_position": 4,
+      "required_by_default": false,
+      "adjustable": true,
+      "spec_path": "./modules/04_object_field.md",
+      "manifest_path": "./modules/04_object_field.json"
+    },
+    {
+      "id": "tension-and-stakes",
+      "default_position": 5,
+      "required_by_default": true,
+      "adjustable": true,
+      "spec_path": "./modules/05_tension_and_stakes.md",
+      "manifest_path": "./modules/05_tension_and_stakes.json"
+    },
+    {
+      "id": "evidence-ladder",
+      "default_position": 6,
+      "required_by_default": true,
+      "adjustable": true,
+      "spec_path": "./modules/06_evidence_ladder.md",
+      "manifest_path": "./modules/06_evidence_ladder.json"
+    },
+    {
+      "id": "pattern-and-transfer",
+      "default_position": 7,
+      "required_by_default": true,
+      "adjustable": true,
+      "spec_path": "./modules/07_pattern_and_transfer.md",
+      "manifest_path": "./modules/07_pattern_and_transfer.json"
+    },
+    {
+      "id": "decisions-and-implications",
+      "default_position": 8,
+      "required_by_default": false,
+      "adjustable": true,
+      "spec_path": "./modules/08_decisions_and_implications.md",
+      "manifest_path": "./modules/08_decisions_and_implications.json"
+    },
+    {
+      "id": "open-questions-and-boundaries",
+      "default_position": 9,
+      "required_by_default": false,
+      "adjustable": true,
+      "spec_path": "./modules/09_open_questions_and_boundaries.md",
+      "manifest_path": "./modules/09_open_questions_and_boundaries.json"
+    },
+    {
+      "id": "close-and-next-move",
+      "default_position": 10,
+      "required_by_default": true,
+      "adjustable": true,
+      "spec_path": "./modules/10_close_and_next_move.md",
+      "manifest_path": "./modules/10_close_and_next_move.json"
+    }
+  ]
+}

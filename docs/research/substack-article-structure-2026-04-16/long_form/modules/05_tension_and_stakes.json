@@ -1,0 +1,21 @@
+{
+  "id": "tension-and-stakes",
+  "title": "Tension and Stakes",
+  "role": "Show what is pulling against what and why the topic matters now.",
+  "required_by_default": true,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "tension-map-extractor",
+    "guardrail-antigoal-extractor"
+  ],
+  "outputs": [
+    "tension_pairs",
+    "stakes_statement",
+    "live_pressure"
+  ],
+  "adjustable_knobs": [
+    "sharpness",
+    "conflict_visibility",
+    "urgency"
+  ]
+}

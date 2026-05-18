@@ -1,0 +1,30 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.python-version
+.venv/
+venv/
+
+# Local agent and tool metadata
+.claude/
+.gitnexus/
+.vendor/
+.git.abandoned-*
+
+# Generated Conversation OS state
+context/
+memory/
+mobile_artifacts/
+output/
+tmp/
+vaults/
+
+# Generated product state
+product/inner_world_v1/data/
+product/inner_world_v1/exports/
+product/personal_interface_v1/data/
+
+# Local ops/runtime files
+ops/*.log
+ops/*.pid

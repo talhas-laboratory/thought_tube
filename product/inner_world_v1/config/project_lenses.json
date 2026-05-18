@@ -1,0 +1,127 @@
+[
+  {
+    "lens_key": "interaction_model",
+    "label": "Interaction Model",
+    "thesis_hint": "How the system should reveal, structure, and navigate thought over time.",
+    "keywords": [
+      "interface",
+      "fragment",
+      "article",
+      "chat",
+      "feed",
+      "twitter",
+      "substack",
+      "entry",
+      "depth",
+      "surface",
+      "interaction",
+      "reveal"
+    ]
+  },
+  {
+    "lens_key": "cognitive_fidelity",
+    "label": "Cognitive Fidelity",
+    "thesis_hint": "How the system preserves ambiguity, signal texture, and non-flattened thought.",
+    "keywords": [
+      "ambiguity",
+      "fidelity",
+      "preserve",
+      "structure",
+      "flattening",
+      "signal",
+      "texture",
+      "survive",
+      "literal",
+      "thought"
+    ]
+  },
+  {
+    "lens_key": "context_bubble_organization",
+    "label": "Context Bubble Organization",
+    "thesis_hint": "How fragments and signals should cluster into larger coherent wholes.",
+    "keywords": [
+      "bubble",
+      "puzzle",
+      "cluster",
+      "organize",
+      "context",
+      "whole",
+      "pressure",
+      "group",
+      "cohere"
+    ]
+  },
+  {
+    "lens_key": "reasoning_routing",
+    "label": "Reasoning Routing",
+    "thesis_hint": "How material should route across reasoning paths, branches, or domain overlays.",
+    "keywords": [
+      "route",
+      "routing",
+      "pipeline",
+      "reasoning",
+      "domain",
+      "worker",
+      "branch",
+      "mechanism",
+      "flow"
+    ]
+  },
+  {
+    "lens_key": "user_model_and_taste",
+    "label": "User Model And Taste",
+    "thesis_hint": "How the system models preference, judgment, style, and personal reasoning tendencies.",
+    "keywords": [
+      "taste",
+      "preference",
+      "judgment",
+      "user",
+      "style",
+      "model",
+      "pattern",
+      "behavior",
+      "alignment"
+    ]
+  },
+  {
+    "lens_key": "interface_expression",
+    "label": "Interface Expression",
+    "thesis_hint": "How visual, compositional, and expressive design choices should feel.",
+    "keywords": [
+      "color",
+      "palette",
+      "composition",
+      "visual",
+      "illustration",
+      "design",
+      "layout",
+      "typography",
+      "expression",
+      "style"
+    ]
+  },
+  {
+    "lens_key": "answer_shape_governance",
+    "label": "Answer Shape Governance",
+    "thesis_hint": "How answers should be framed, constrained, and shaped to match user expectations.",
+    "keywords": [
+      "literal",
+      "precise",
+      "concise",
+      "short",
+      "answer",
+      "language",
+      "direct",
+      "step",
+      "true",
+      "speak",
+      "shape"
+    ]
+  },
+  {
+    "lens_key": "emergent_misc",
+    "label": "Emergent Misc",
+    "thesis_hint": "Material that does not yet fit a stable project lens but may still matter later.",
+    "keywords": []
+  }
+]

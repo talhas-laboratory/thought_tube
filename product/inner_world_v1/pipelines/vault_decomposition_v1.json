@@ -1,0 +1,12 @@
+{
+  "pipeline_id": "vault_decomposition_v1",
+  "description": "Turn one vault chunk into a reviewable meta-layer packet.",
+  "steps": [
+    "normalize_capture",
+    "infer_capture_context",
+    "clarify_core_meaning",
+    "separate_layers",
+    "detect_shared_primitive",
+    "build_why_it_matters"
+  ]
+}

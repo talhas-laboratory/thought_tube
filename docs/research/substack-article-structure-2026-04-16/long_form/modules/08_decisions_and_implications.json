@@ -1,0 +1,20 @@
+{
+  "id": "decisions-and-implications",
+  "title": "Decisions and Implications",
+  "role": "Turn the article's movement into defaults, implications, or practical commitments.",
+  "required_by_default": false,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "decision-commitment-extractor"
+  ],
+  "outputs": [
+    "default_position",
+    "implications",
+    "practical_commitment"
+  ],
+  "adjustable_knobs": [
+    "operationalness",
+    "prescriptiveness",
+    "decision_strength"
+  ]
+}

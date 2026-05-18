@@ -1,0 +1,22 @@
+{
+  "id": "thesis-and-reader-map",
+  "title": "Thesis and Reader Map",
+  "role": "State the central claim early and show the reader how the article will move.",
+  "required_by_default": true,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "signal-frame-extractor",
+    "transformation-path-extractor",
+    "decision-commitment-extractor"
+  ],
+  "outputs": [
+    "thesis_statement",
+    "reader_map",
+    "section_expectation"
+  ],
+  "adjustable_knobs": [
+    "explicitness",
+    "outline_density",
+    "thesis_strength"
+  ]
+}

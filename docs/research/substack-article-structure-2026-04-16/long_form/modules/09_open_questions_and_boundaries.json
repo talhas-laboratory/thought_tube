@@ -1,0 +1,21 @@
+{
+  "id": "open-questions-and-boundaries",
+  "title": "Open Questions and Boundaries",
+  "role": "Keep the article honest about uncertainty, incompleteness, and scope limits.",
+  "required_by_default": false,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "open-question-missingness-extractor",
+    "guardrail-antigoal-extractor"
+  ],
+  "outputs": [
+    "open_questions",
+    "scope_limits",
+    "what_remains_unsettled"
+  ],
+  "adjustable_knobs": [
+    "uncertainty_visibility",
+    "review_pressure",
+    "scope_strictness"
+  ]
+}

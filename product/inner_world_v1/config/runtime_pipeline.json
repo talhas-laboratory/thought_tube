@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "selection_mode": "dependency_weighted",
+  "components": [
+    {
+      "component_id": "bootstrap_legacy_sources",
+      "label": "Bootstrap Legacy Sources",
+      "enabled": true,
+      "order": 10,
+      "weight": 1.0
+    },
+    {
+      "component_id": "ensure_pipeline_specs",
+      "label": "Ensure Pipeline Specs",
+      "enabled": true,
+      "order": 10,
+      "weight": 0.9
+    },
+    {
+      "component_id": "analysis_units",
+      "label": "Build Analysis Units",
+      "enabled": true,
+      "order": 20,
+      "weight": 1.0
+    },
+    {
+      "component_id": "conversation_deltas",
+      "label": "Build Conversation Deltas",
+      "enabled": true,
+      "order": 20,
+      "weight": 1.1
+    },
+    {
+      "component_id": "meta_layer",
+      "label": "Extract Meta Layer",
+      "enabled": true,
+      "order": 30,
+      "weight": 1.2
+    },
+    {
+      "component_id": "conversation_threads",
+      "label": "Build Conversation Threads",
+      "enabled": true,
+      "order": 30,
+      "weight": 1.0
+    },
+    {
+      "component_id": "thread_abstractions",
+      "label": "Build Thread Abstractions",
+      "enabled": true,
+      "order": 40,
+      "weight": 1.1
+    },
+    {
+      "component_id": "conversation_concepts",
+      "label": "Build Conversation Concepts",
+      "enabled": true,
+      "order": 45,
+      "weight": 1.1
+    },
+    {
+      "component_id": "context_bubbles",
+      "label": "Build Context Bubbles",
+      "enabled": true,
+      "order": 50,
+      "weight": 1.0
+    },
+    {
+      "component_id": "knowledge_layer",
+      "label": "Build Knowledge Layer",
+      "enabled": true,
+      "order": 60,
+      "weight": 1.15
+    },
+    {
+      "component_id": "plugin_primitives",
+      "label": "Materialize Plugin Primitives",
+      "enabled": true,
+      "order": 70,
+      "weight": 0.8
+    },
+    {
+      "component_id": "concept_nodes",
+      "label": "Materialize Concept Nodes",
+      "enabled": true,
+      "order": 80,
+      "weight": 0.85
+    },
+    {
+      "component_id": "connections",
+      "label": "Materialize Connections",
+      "enabled": true,
+      "order": 80,
+      "weight": 0.85
+    }
+  ]
+}

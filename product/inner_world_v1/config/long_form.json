@@ -1,0 +1,44 @@
+{
+  "profile": "explainer_default",
+  "profiles": {
+    "explainer_default": {
+      "modules": {
+        "entry-vector": { "enabled": true, "weight": "light" },
+        "object-field": { "enabled": true, "weight": "medium" },
+        "evidence-ladder": { "enabled": true, "weight": "heavy" },
+        "decisions-and-implications": { "enabled": true, "weight": "medium" },
+        "open-questions-and-boundaries": { "enabled": true, "weight": "medium" }
+      }
+    },
+    "narrative_leaning": {
+      "modules": {
+        "entry-vector": { "enabled": true, "weight": "heavy" },
+        "object-field": { "enabled": true, "weight": "light" },
+        "tension-and-stakes": { "enabled": true, "weight": "medium" },
+        "evidence-ladder": { "enabled": true, "weight": "medium" },
+        "decisions-and-implications": { "enabled": true, "weight": "light" },
+        "open-questions-and-boundaries": { "enabled": true, "weight": "light" },
+        "close-and-next-move": { "enabled": true, "weight": "heavy" }
+      }
+    },
+    "research_heavy": {
+      "modules": {
+        "entry-vector": { "enabled": true, "weight": "light" },
+        "object-field": { "enabled": true, "weight": "medium" },
+        "evidence-ladder": { "enabled": true, "weight": "heavy" },
+        "decisions-and-implications": { "enabled": true, "weight": "medium" },
+        "open-questions-and-boundaries": { "enabled": true, "weight": "heavy" }
+      }
+    },
+    "pattern_transfer": {
+      "modules": {
+        "entry-vector": { "enabled": true, "weight": "light" },
+        "tension-and-stakes": { "enabled": true, "weight": "medium" },
+        "pattern-and-transfer": { "enabled": true, "weight": "heavy" },
+        "decisions-and-implications": { "enabled": true, "weight": "medium" },
+        "open-questions-and-boundaries": { "enabled": true, "weight": "medium" }
+      }
+    }
+  },
+  "modules": {}
+}

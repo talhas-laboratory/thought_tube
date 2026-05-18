@@ -1,0 +1,11 @@
+{
+  "pipeline_id": "thought_surfacing_v1",
+  "description": "Judge whether a connection deserves to become a surfaced thought.",
+  "steps": [
+    "fidelity_check",
+    "genericity_filter",
+    "confidence_calibration",
+    "relevance_check",
+    "review_gate"
+  ]
+}

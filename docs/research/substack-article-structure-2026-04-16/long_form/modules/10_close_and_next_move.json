@@ -1,0 +1,21 @@
+{
+  "id": "close-and-next-move",
+  "title": "Close and Next Move",
+  "role": "End with synthesis and a coherent next move instead of tapering off.",
+  "required_by_default": true,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "decision-commitment-extractor",
+    "reasoning-primitive-detector"
+  ],
+  "outputs": [
+    "closing_synthesis",
+    "next_move",
+    "lightweight_cta"
+  ],
+  "adjustable_knobs": [
+    "reflectiveness",
+    "actionability",
+    "cta_intensity"
+  ]
+}

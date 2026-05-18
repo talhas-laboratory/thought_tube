@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "source_id": "chat_converter_saved_conversations",
+      "kind": "filesystem",
+      "enabled": true,
+      "remote_host": "talha@192.168.0.102",
+      "source_type": "chat_converter_conversation",
+      "source_family": "chat_converter",
+      "roots": [
+        "/home/talha/apps/chat_converter/output"
+      ],
+      "include_globs": [
+        "*.md",
+        "*.markdown",
+        "*.txt"
+      ]
+    },
+    {
+      "source_id": "openclaw_workspace_histories",
+      "kind": "filesystem",
+      "enabled": true,
+      "remote_host": "talha@192.168.0.102",
+      "source_type": "openclaw_conversation",
+      "source_family": "openclaw_conversations",
+      "roots": [
+        "/home/talha/.openclaw/workspace/transcripts",
+        "/home/talha/.openclaw/workspace/casts",
+        "/home/talha/.openclaw/workspace/brain-vomits/entries",
+        "/home/talha/.openclaw/workspace/brain-vomits/inputs/raw-transcripts",
+        "/home/talha/.openclaw/workspace/brain-vomits/discovery/transcripts",
+        "/home/talha/.openclaw/workspace/meta-observatory/artifacts/session_packets",
+        "/home/talha/.openclaw/workspace/meta-observatory/artifacts/decision_attachments",
+        "/home/talha/.openclaw/workspace/meta-observatory/artifacts/session_syntheses",
+        "/home/talha/.openclaw/workspace/meta-observatory/artifacts/fragment_observations",
+        "/home/talha/.openclaw/workspace/containers/thought-tube/knowledge"
+      ],
+      "include_globs": [
+        "*.md",
+        "*.markdown",
+        "*.txt",
+        "*.json"
+      ]
+    },
+    {
+      "source_id": "openclaw_memory_db",
+      "kind": "sqlite",
+      "enabled": true,
+      "remote_host": "talha@192.168.0.102",
+      "source_type": "openclaw_memory_record",
+      "source_family": "openclaw_memory",
+      "db_paths": [
+        "/home/talha/.openclaw/memory/main.sqlite"
+      ],
+      "exclude_tables": [
+        "embeddings",
+        "vectors",
+        "cache"
+      ]
+    },
+    {
+      "source_id": "server_content",
+      "kind": "filesystem",
+      "enabled": true,
+      "remote_host": "talha@192.168.0.102",
+      "source_type": "server_content",
+      "source_family": "server_content",
+      "roots": [
+        "/home/talha/.openclaw/workspace/.thought-tube/seeds/active",
+        "/home/talha/.openclaw/workspace/.thought-tube/seeds/archive",
+        "/home/talha/.openclaw/workspace/.thought-tube/backend/sessions",
+        "/home/talha/.openclaw/workspace/containers/thought-tube/legacy_sources",
+        "/home/talha/.openclaw/workspace/containers/thought-tube/session_context"
+      ],
+      "include_globs": [
+        "*.md",
+        "*.markdown",
+        "*.txt",
+        "*.json"
+      ],
+      "notes": "Add any extra server roots here."
+    }
+  ]
+}

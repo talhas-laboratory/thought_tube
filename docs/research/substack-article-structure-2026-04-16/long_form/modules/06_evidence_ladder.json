@@ -1,0 +1,20 @@
+{
+  "id": "evidence-ladder",
+  "title": "Evidence Ladder",
+  "role": "Build support in ascending layers so the article feels grounded without becoming clumsy.",
+  "required_by_default": true,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "evidence-confidence-scaffold"
+  ],
+  "outputs": [
+    "examples",
+    "evidence_layers",
+    "confidence_posture"
+  ],
+  "adjustable_knobs": [
+    "evidence_density",
+    "citation_visibility",
+    "example_count"
+  ]
+}

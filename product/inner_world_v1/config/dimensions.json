@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "updated_at": null,
+  "dimensions": [
+    {
+      "dimension_id": "source_family",
+      "label": "Source Family",
+      "description": "Library source family for structural provenance and filtering.",
+      "applies_to": [
+        "chunk",
+        "source"
+      ],
+      "derive_mode": "deterministic",
+      "enabled": true,
+      "requires_model": false,
+      "preferred_role": "",
+      "fallback_mode": "deterministic",
+      "comparison_strategy": "exact",
+      "search_weight_default": 0.35,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "structural",
+        "owner": "library_tracker"
+      }
+    },
+    {
+      "dimension_id": "source_type",
+      "label": "Source Type",
+      "description": "Normalized source type describing the substrate origin.",
+      "applies_to": [
+        "chunk",
+        "source"
+      ],
+      "derive_mode": "deterministic",
+      "enabled": true,
+      "requires_model": false,
+      "preferred_role": "",
+      "fallback_mode": "deterministic",
+      "comparison_strategy": "exact",
+      "search_weight_default": 0.3,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "structural",
+        "owner": "library_tracker"
+      }
+    },
+    {
+      "dimension_id": "semantic_role",
+      "label": "Semantic Role",
+      "description": "High-level role of the source or chunk within the knowledge ocean.",
+      "applies_to": [
+        "chunk",
+        "source"
+      ],
+      "derive_mode": "heuristic",
+      "enabled": true,
+      "requires_model": false,
+      "preferred_role": "",
+      "fallback_mode": "deterministic",
+      "comparison_strategy": "exact",
+      "search_weight_default": 0.75,
+      "cache_version": "v1",
+      "allowed_values": [
+        "conversation",
+        "memory",
+        "reference",
+        "scaffolding",
+        "source"
+      ],
+      "attributes": {
+        "kind": "semantic",
+        "owner": "library_tracker"
+      }
+    },
+    {
+      "dimension_id": "normalization_profile",
+      "label": "Normalization Profile",
+      "description": "Cleaning mode applied to the runtime chunk view before reasoning.",
+      "applies_to": [
+        "chunk",
+        "source"
+      ],
+      "derive_mode": "deterministic",
+      "enabled": true,
+      "requires_model": false,
+      "preferred_role": "",
+      "fallback_mode": "deterministic",
+      "comparison_strategy": "exact",
+      "search_weight_default": 0.25,
+      "cache_version": "v1",
+      "allowed_values": [
+        "default",
+        "raw",
+        "strict",
+        "aggressive",
+        "off",
+        "verbatim"
+      ],
+      "attributes": {
+        "kind": "runtime",
+        "owner": "library_tracker"
+      }
+    },
+    {
+      "dimension_id": "section_path",
+      "label": "Section Path",
+      "description": "Document or conversation section ancestry for local structural linking.",
+      "applies_to": [
+        "chunk"
+      ],
+      "derive_mode": "deterministic",
+      "enabled": true,
+      "requires_model": false,
+      "preferred_role": "",
+      "fallback_mode": "deterministic",
+      "comparison_strategy": "path_overlap",
+      "search_weight_default": 0.4,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "structural",
+        "owner": "library_tracker"
+      }
+    },
+    {
+      "dimension_id": "collection_tags",
+      "label": "Collection Tags",
+      "description": "Operator-assigned collection tags used for curation and bundle shaping.",
+      "applies_to": [
+        "chunk",
+        "source"
+      ],
+      "derive_mode": "manual",
+      "enabled": true,
+      "requires_model": false,
+      "preferred_role": "",
+      "fallback_mode": "deterministic",
+      "comparison_strategy": "overlap",
+      "search_weight_default": 0.6,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "governance",
+        "owner": "library_tracker"
+      }
+    },
+    {
+      "dimension_id": "intent_family",
+      "label": "Intent Family",
+      "description": "Primary intent cluster expressed by a chunk after semantic enrichment.",
+      "applies_to": [
+        "chunk"
+      ],
+      "derive_mode": "assisted",
+      "enabled": true,
+      "requires_model": true,
+      "preferred_role": "dimension_local_semantic",
+      "fallback_mode": "heuristic",
+      "comparison_strategy": "semantic_overlap",
+      "search_weight_default": 0.95,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "semantic",
+        "owner": "dimension_engine"
+      }
+    },
+    {
+      "dimension_id": "tension_family",
+      "label": "Tension Family",
+      "description": "Dominant tension or unresolved pressure carried by a chunk.",
+      "applies_to": [
+        "chunk"
+      ],
+      "derive_mode": "assisted",
+      "enabled": true,
+      "requires_model": true,
+      "preferred_role": "dimension_local_semantic",
+      "fallback_mode": "heuristic",
+      "comparison_strategy": "semantic_overlap",
+      "search_weight_default": 0.9,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "semantic",
+        "owner": "dimension_engine"
+      }
+    },
+    {
+      "dimension_id": "project_lens",
+      "label": "Project Lens",
+      "description": "Project or build lens through which a chunk should be interpreted.",
+      "applies_to": [
+        "chunk"
+      ],
+      "derive_mode": "assisted",
+      "enabled": true,
+      "requires_model": true,
+      "preferred_role": "dimension_local_semantic",
+      "fallback_mode": "heuristic",
+      "comparison_strategy": "semantic_overlap",
+      "search_weight_default": 0.8,
+      "cache_version": "v1",
+      "allowed_values": [],
+      "attributes": {
+        "kind": "semantic",
+        "owner": "dimension_engine"
+      }
+    },
+    {
+      "dimension_id": "evidence_posture",
+      "label": "Evidence Posture",
+      "description": "Whether a chunk is presenting direct evidence, synthesis, speculation, or scaffolding.",
+      "applies_to": [
+        "chunk"
+      ],
+      "derive_mode": "assisted",
+      "enabled": true,
+      "requires_model": true,
+      "preferred_role": "dimension_local_fast",
+      "fallback_mode": "heuristic",
+      "comparison_strategy": "exact",
+      "search_weight_default": 0.7,
+      "cache_version": "v1",
+      "allowed_values": [
+        "evidence",
+        "synthesis",
+        "speculation",
+        "instruction",
+        "scaffolding"
+      ],
+      "attributes": {
+        "kind": "semantic",
+        "owner": "dimension_engine"
+      }
+    }
+  ]
+}

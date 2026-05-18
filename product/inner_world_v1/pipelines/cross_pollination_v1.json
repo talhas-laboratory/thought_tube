@@ -1,0 +1,11 @@
+{
+  "pipeline_id": "cross_pollination_v1",
+  "description": "Find a meaningful connection between two knowledge-layer regions.",
+  "steps": [
+    "clarify_connection_context",
+    "detect_connection_primitive",
+    "detect_connection_tension",
+    "build_connection_why_it_matters",
+    "build_connection_candidate"
+  ]
+}

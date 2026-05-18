@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inner-space-conversation-os"
+version = "0.1.0"
+description = "Conversation OS foundation and Inner World v1 for conversation-built product development."
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.27,<2",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

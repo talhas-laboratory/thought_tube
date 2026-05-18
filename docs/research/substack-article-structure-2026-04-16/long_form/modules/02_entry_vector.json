@@ -1,0 +1,21 @@
+{
+  "id": "entry-vector",
+  "title": "Entry Vector",
+  "role": "Create the first movement into the article through story, question, scene, or data.",
+  "required_by_default": false,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "signal-frame-extractor",
+    "transformation-path-extractor"
+  ],
+  "outputs": [
+    "opening_scene",
+    "hook_type",
+    "entry_pressure"
+  ],
+  "adjustable_knobs": [
+    "narrative_level",
+    "speed_of_entry",
+    "question_vs_anecdote_vs_data"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "auto_merge_threshold": 0.78,
+  "review_threshold": 0.58,
+  "minimum_threshold": 0.34,
+  "max_concepts_per_session": 8,
+  "neighbor_boost": 0.18,
+  "always_review_touch_types": [
+    "contradicts"
+  ],
+  "prefer_review_touch_types": [
+    "reframes",
+    "changes_priority"
+  ],
+  "status_weights": {
+    "active": 1.0,
+    "provisional": 0.82,
+    "needs_review": 0.72,
+    "archived": 0.48
+  }
+}

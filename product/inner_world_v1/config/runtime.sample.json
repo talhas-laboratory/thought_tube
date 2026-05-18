@@ -1,0 +1,15 @@
+{
+  "chat_backend": "heuristic",
+  "world_studio": {
+    "visual_embeddings": {
+      "model": "google/gemini-embedding-2-preview",
+      "api_key": ""
+    }
+  },
+  "openclaw": {
+    "agent": "main",
+    "thinking": "minimal",
+    "timeout_seconds": 90,
+    "deliver": false
+  }
+}

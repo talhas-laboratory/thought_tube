@@ -1,0 +1,21 @@
+{
+  "id": "pattern-and-transfer",
+  "title": "Pattern and Transfer",
+  "role": "Reveal the reusable pattern inside the article so the piece becomes more than a one-off explanation.",
+  "required_by_default": true,
+  "user_adjustable": true,
+  "driven_by_algorithms": [
+    "reasoning-primitive-detector",
+    "object-model-projection"
+  ],
+  "outputs": [
+    "reasoning_primitive",
+    "pattern_name",
+    "transfer_layer"
+  ],
+  "adjustable_knobs": [
+    "abstraction_level",
+    "explicit_pattern_naming",
+    "cross-domain_transfer"
+  ]
+}

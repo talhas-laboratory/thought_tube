@@ -1,0 +1,80 @@
+{
+  "chat_backend": "openclaw_gateway",
+  "openclaw": {
+    "agent": "thought_tube_router",
+    "thinking": "low",
+    "timeout_seconds": 60,
+    "deliver": false
+  },
+  "model_roles": {
+    "dimension_local_fast": {
+      "backend": "openclaw_gateway",
+      "model_id": "moonshot/kimi-k2.5",
+      "enabled": true,
+      "fallback_role_id": "",
+      "endpoint": "",
+      "attributes": {
+        "purpose": "Fast evidence-posture classification routed through an OpenClaw agent.",
+        "agent": "inner_world_dimension_fast",
+        "thinking": "off",
+        "timeout_seconds": 20
+      }
+    },
+    "dimension_local_semantic": {
+      "backend": "openclaw_gateway",
+      "model_id": "moonshot/kimi-k2.5",
+      "enabled": true,
+      "fallback_role_id": "dimension_local_fast",
+      "endpoint": "",
+      "attributes": {
+        "purpose": "Semantic enrichment for intent, tension, and lens extraction through OpenClaw.",
+        "agent": "inner_world_dimension_semantic",
+        "thinking": "low",
+        "timeout_seconds": 30
+      }
+    },
+    "dimension_remote_judge": {
+      "backend": "openclaw_gateway",
+      "model_id": "moonshot/kimi-k2.5",
+      "enabled": true,
+      "fallback_role_id": "dimension_local_semantic",
+      "endpoint": "",
+      "attributes": {
+        "purpose": "Escalation-only arbitration and difficult semantic judgment through OpenClaw.",
+        "agent": "inner_world_dimension_judge",
+        "thinking": "low",
+        "timeout_seconds": 45
+      }
+    },
+    "pond_router_local": {
+      "backend": "",
+      "model_id": "",
+      "enabled": false,
+      "fallback_role_id": "",
+      "endpoint": "",
+      "attributes": {
+        "purpose": "Local-first pond router for chunk/project/domain basin classification."
+      }
+    },
+    "pond_router_judge": {
+      "backend": "",
+      "model_id": "",
+      "enabled": false,
+      "fallback_role_id": "pond_router_local",
+      "endpoint": "",
+      "attributes": {
+        "purpose": "Escalation-only pond routing judge for ambiguous or multi-pond chunks."
+      }
+    }
+  },
+  "pond_router": {
+    "enabled": true,
+    "mode": "heuristic",
+    "assisted_on_ambiguity": true,
+    "allow_manual_override": true,
+    "ambiguity_threshold": 0.72,
+    "local_role_id": "pond_router_local",
+    "judge_role_id": "pond_router_judge",
+    "router_version": "v1"
+  }
+}
