@@ -5,6 +5,18 @@ import shutil
 from pathlib import Path
 
 
+MODULE_ID = "surface.inner_world.openclaw_miniapp"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "default_bundle_dir",
+    "build_openclaw_bundle",
+    "install_openclaw_bundle",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _miniapp_source_dir(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "miniapp"
 

@@ -4,6 +4,48 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
 
 
+MODULE_ID = "kernel.foundation.models"
+CONTRACT_VERSION = "1.0"
+PUBLIC_MODELS = (
+    "ConversationEvent",
+    "SessionManifest",
+    "TaskContextPack",
+    "DevelopmentIdeaRecord",
+    "DevelopmentProposal",
+    "MemoryCard",
+    "InsightCandidate",
+    "SurfacedInsight",
+    "ThoughtFeedItem",
+    "ThoughtThreadMessage",
+    "ThoughtThread",
+    "SourceRegistryEntry",
+    "ChunkRecord",
+    "MetaLayerRecord",
+    "ConversationThread",
+    "ConversationThreadLink",
+    "ProjectLens",
+    "ThreadAbstraction",
+    "ThreadAbstractionLink",
+    "KnowledgeNode",
+    "KnowledgeEdge",
+    "ContextBubble",
+    "BubbleMembership",
+    "BubbleEdge",
+    "BubbleTransition",
+    "LLMCostEvent",
+    "ThoughtPacket",
+    "ConceptNode",
+    "ConceptEdge",
+    "TouchOperation",
+    "SynthesisPacket",
+    "DimensionSpec",
+    "ModelRoleBinding",
+    "ChunkDimensionProfile",
+    "DimensionRun",
+)
+__all__ = ["MODULE_ID", "CONTRACT_VERSION", *PUBLIC_MODELS]
+
+
 @dataclass
 class ConversationEvent:
     event_id: str
@@ -51,6 +93,45 @@ class TaskContextPack:
     next_actions: List[str]
     reference_docs: Dict[str, str] = field(default_factory=dict)
     relevant_concepts: List[Dict[str, Any]] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class DevelopmentIdeaRecord:
+    idea_id: str
+    created_at: str
+    raw_idea: str
+    desired_effect: str
+    intent_kind: str
+    surface_hints: List[str] = field(default_factory=list)
+    source_session_id: Optional[str] = None
+    source_refs: List[str] = field(default_factory=list)
+    translated_framing: Dict[str, Any] = field(default_factory=dict)
+    development_signals: Dict[str, Any] = field(default_factory=dict)
+    status: str = "recorded"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class DevelopmentProposal:
+    proposal_id: str
+    idea_id: str
+    created_at: str
+    route_kind: str
+    target_module_ids: List[str] = field(default_factory=list)
+    target_surface_family: str = ""
+    rationale: str = ""
+    confidence: float = 0.0
+    version_plan: Dict[str, Any] = field(default_factory=dict)
+    recipe_plan: Dict[str, Any] = field(default_factory=dict)
+    scope_in: List[str] = field(default_factory=list)
+    scope_out: List[str] = field(default_factory=list)
+    open_questions: List[str] = field(default_factory=list)
+    approval_status: str = "proposed"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

@@ -6,6 +6,17 @@ from typing import Dict, List
 from ..vault_ingest import ingest_source_file
 
 
+MODULE_ID = "assembly.adapters.openclaw_conversations"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "SUPPORTED_SUFFIXES",
+    "ingest_openclaw_directory",
+)
+__all__ = list(PUBLIC_API)
+
+
 SUPPORTED_SUFFIXES = {".md", ".txt", ".json"}
 
 

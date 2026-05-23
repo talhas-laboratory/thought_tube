@@ -1,3 +1,16 @@
+"""Worldbuilding Studio surface.
+
+This module remains a concrete surface family in the layered architecture.
+Future development-layer workflows may target it when an idea maps to
+worldbuilding-specific evidence ingestion, canon generation, scene compilation,
+or visual execution. The development layer should compose or variant this
+surface without pulling provider-specific execution into the kernel.
+
+Higgsfield and other generation-provider integrations therefore stay owned by
+this surface boundary and its adapters, while reusable routing, synthesis, and
+governance primitives remain in the kernel and builder-support layers.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -20,6 +33,58 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from .storage import ensure_dir, make_id, read_json, read_jsonl, slugify, utc_now, write_json, write_jsonl
+
+
+MODULE_ID = "surface.worldbuilding.worldbuilding_studio"
+CONTRACT_VERSION = "1.0"
+_WORLD_WORKFLOW_API = (
+    "WORLD_STUDIO_VERSION",
+    "WORLD_STUDIO_OPERATOR_MANUSCRIPT_VERSION",
+    "create_world",
+    "create_demo_world",
+    "list_worlds",
+    "get_world",
+    "ingest_evidence",
+    "inspect_world_evidence",
+    "ingest_visual_reference",
+    "inspect_visual_world",
+    "compile_visual_context",
+    "create_motion_object",
+    "bind_motion_object",
+    "inspect_motion_system",
+    "compile_motion_plan",
+    "create_character_feature_object",
+    "create_character_profile",
+    "inspect_character_system",
+    "update_character_profile_section",
+    "update_character_feature_object",
+    "next_worldbuilding_question",
+    "generate_canon",
+    "compile_scene_from_canon",
+    "start_population_session",
+    "answer_population_question",
+    "get_population_session",
+    "inspect_world_knowledge",
+    "project_world_graph",
+    "get_world_studio_guide",
+    "compile_scene",
+    "run_demo",
+)
+_EXECUTION_SURFACE_API = (
+    "get_packet_bundle",
+    "list_execution_runs",
+    "get_execution_run",
+    "execute_higgsfield_packet",
+    "record_generation_asset",
+    "evaluate_output",
+)
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    *_WORLD_WORKFLOW_API,
+    *_EXECUTION_SURFACE_API,
+)
+__all__ = list(PUBLIC_API)
 
 
 DEFAULT_DEMO_WORLD_ID = "world-demo-fractured-trust"

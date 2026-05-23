@@ -9,6 +9,33 @@ from .models import ChunkRecord, SourceRegistryEntry
 from .storage import ensure_dir, read_jsonl, utc_now, write_jsonl
 
 
+MODULE_ID = "kernel.ingest.vault_ingest"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "tokenize",
+    "shorten",
+    "_runtime_chunk_view",
+    "infer_speaker_role",
+    "speaker_role_weight",
+    "chunk_source_text",
+    "load_source_registry_raw",
+    "load_chunk_index_raw",
+    "load_source_registry",
+    "load_chunk_index",
+    "write_vault_files",
+    "infer_source_family",
+    "infer_sensitivity_tier",
+    "ingest_text_content",
+    "ingest_text_items_batch",
+    "ingest_source_file",
+    "remove_source_by_ref",
+    "bootstrap_legacy_source_items",
+)
+__all__ = list(PUBLIC_API)
+
+
 STOPWORDS = {
     "the",
     "and",

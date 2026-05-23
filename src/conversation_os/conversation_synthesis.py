@@ -13,6 +13,41 @@ from .storage import read_json, read_jsonl, session_dir, session_events_path, so
 from .vault_ingest import shorten, tokenize
 
 
+MODULE_ID = "kernel.synthesis.conversation_synthesis"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "FormationCandidate",
+    "ShapeMatch",
+    "OperatorDecision",
+    "SynthesisCandidate",
+    "StressTestResult",
+    "load_concept_nodes",
+    "load_concept_edges",
+    "load_synthesis_packets",
+    "load_touch_operations",
+    "load_concept_review_queue",
+    "ensure_concept_alias_registry",
+    "load_concept_alias_registry",
+    "ensure_concept_merge_policy",
+    "load_concept_merge_policy",
+    "canonicalize_concept_identity",
+    "rebuild_conversation_concepts",
+    "search_concepts",
+    "derive_development_signals",
+    "load_formation_synthesis_reviews",
+    "retrieve_candidates",
+    "match_shapes",
+    "choose_operator",
+    "synthesize_candidate",
+    "stress_test_candidate",
+    "emit_thought_packet",
+    "record_formation_synthesis_review",
+)
+__all__ = list(PUBLIC_API)
+
+
 DEFAULT_MERGE_POLICY = {
     "version": 1,
     "auto_merge_threshold": 0.78,
@@ -975,6 +1010,43 @@ def search_concepts(root: Path, query: str, limit: int = 6) -> List[Dict[str, An
         fallback = sorted(nodes, key=lambda row: (-float(row.get("confidence", 0.0)), row["label"]))[:limit]
         return [{**row, "_score": round(float(row.get("confidence", 0.0)), 2), "_reasons": ["confidence"]} for row in fallback]
     return scored[:limit]
+
+
+def derive_development_signals(root: Path, query_text: str, limit: int = 6) -> Dict[str, Any]:
+    normalized_query = str(query_text or "").strip()
+    if not normalized_query:
+        return {
+            "query_text": "",
+            "query_tokens": [],
+            "concept_matches": [],
+            "formation_candidates": [],
+            "shape_matches": [],
+            "synthesis_candidates": [],
+        }
+
+    concept_matches = search_concepts(root, normalized_query, limit=limit)
+    candidates = retrieve_candidates(
+        root,
+        {
+            "query_text": normalized_query,
+            "meta_refs": [],
+            "source_refs": [],
+        },
+        limit=max(limit * 2, 8),
+    )
+
+    anchor = candidates[0] if candidates else None
+    shape_matches = match_shapes(anchor, candidates[1:])[:limit] if anchor and len(candidates) > 1 else []
+    synthesized = [synthesize_candidate(match, choose_operator(match)).to_dict() for match in shape_matches[: min(3, len(shape_matches))]]
+
+    return {
+        "query_text": normalized_query,
+        "query_tokens": [token for token in tokenize(normalized_query) if token not in _GENERIC_TOKENS][:12],
+        "concept_matches": concept_matches,
+        "formation_candidates": [candidate.to_dict() for candidate in candidates[:limit]],
+        "shape_matches": [match.to_dict() for match in shape_matches],
+        "synthesis_candidates": synthesized,
+    }
 
 
 def _formation_review_queue_path(root: Path) -> Path:

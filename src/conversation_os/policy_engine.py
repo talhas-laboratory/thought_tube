@@ -6,6 +6,18 @@ from typing import Dict, List
 from .storage import read_json, write_json
 
 
+MODULE_ID = "kernel.policy.policy_engine"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "policy_snapshot_path",
+    "update_policy_snapshot",
+    "load_policy_snapshot",
+)
+__all__ = list(PUBLIC_API)
+
+
 def policy_snapshot_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "data" / "policy_snapshot.json"
 

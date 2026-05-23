@@ -4,6 +4,18 @@ import re
 from typing import Any, Dict, List
 
 
+MODULE_ID = "kernel.analysis.conversation_learning"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "parse_conversation_transcript",
+    "classify_user_question",
+    "analyze_conversation_turns",
+)
+__all__ = list(PUBLIC_API)
+
+
 ROLE_ALIASES = {
     "human": "user",
     "agent": "assistant",

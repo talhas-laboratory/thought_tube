@@ -9,6 +9,17 @@ from .storage import read_jsonl, write_jsonl
 from .vault_ingest import load_chunk_index, speaker_role_weight, tokenize
 
 
+MODULE_ID = "kernel.analysis.analysis_units"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_analysis_units",
+    "build_analysis_units",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _analysis_units_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "data" / "analysis_units.jsonl"
 

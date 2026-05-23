@@ -1,3 +1,17 @@
+"""Personal Interface surface.
+
+This module remains a concrete surface family in the layered architecture.
+Future development-layer workflows may target it when an idea maps to
+calibration, communication-profile shaping, learning from rewrite feedback, or
+surface-specific adaptation behavior. The development layer should compose or
+variant this surface without moving rewrite or calibration behavior into the
+kernel.
+
+Personal Interface-specific adaptation therefore stays owned by this surface
+boundary and its adapters, while reusable analysis, synthesis, routing, and
+governance primitives remain in the kernel and builder-support layers.
+"""
+
 from __future__ import annotations
 
 import json
@@ -29,6 +43,37 @@ from .storage import (
     utc_now,
     write_json,
 )
+
+
+MODULE_ID = "surface.personal.personal_interface"
+CONTRACT_VERSION = "1.0"
+_CALIBRATION_AND_PROFILE_API = (
+    "CALIBRATION_INTERVIEW",
+    "PersonalInterfaceError",
+    "ensure_surface_recipe",
+    "load_surface_recipe",
+    "build_personal_interface_profile",
+    "translate_idea_to_technical_framing",
+    "start_calibration_interview",
+    "answer_calibration_question",
+    "get_profile_snapshot",
+    "identify_communication_mode",
+    "compile_turn_policy",
+)
+_LEARNING_AND_REWRITE_API = (
+    "ingest_learning_conversation",
+    "doctor_personal_interface",
+    "rewrite_conversation_turn",
+    "rewrite_outgoing_message",
+    "record_rewrite_feedback",
+)
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    *_CALIBRATION_AND_PROFILE_API,
+    *_LEARNING_AND_REWRITE_API,
+)
+__all__ = list(PUBLIC_API)
 
 
 FLOW_MODES = [
@@ -410,6 +455,10 @@ def _runtime_path(root: Path) -> Path:
     return _data_dir(root) / "runtime.json"
 
 
+def _surface_recipe_path(root: Path) -> Path:
+    return _product_dir(root) / "config" / "surface_recipe.v1.json"
+
+
 def _rewrite_events_path(root: Path) -> Path:
     return _data_dir(root) / "rewrite_events.jsonl"
 
@@ -432,6 +481,101 @@ def _bridge_state_path(root: Path) -> Path:
 
 def _calibration_state_path(root: Path, session_id: str) -> Path:
     return _data_dir(root) / "calibration" / f"{session_id}.json"
+
+
+def _default_surface_recipe(root: Path) -> Dict[str, Any]:
+    return {
+        "recipe_id": "recipe.personal_interface.v1",
+        "surface_id": "surface.personal_interface",
+        "name": "Personal Interface v1 Reference Surface",
+        "status": "transitional",
+        "version": "0.1.0",
+        "target_layer": "surface",
+        "purpose": (
+            "Adapt outgoing assistant replies through a calibrated local-first "
+            "personalization surface over the conversation substrate."
+        ),
+        "module_refs": [
+            {
+                "module_id": "kernel.foundation.storage",
+                "version_range": ">=0.1.0",
+                "required": True,
+                "notes": "Persists profile, calibration, and rewrite artifacts.",
+            },
+            {
+                "module_id": "kernel.foundation.models",
+                "version_range": ">=0.1.0",
+                "required": True,
+                "notes": "Provides shared conversation record shapes.",
+            },
+            {
+                "module_id": "kernel.analysis.conversation_learning",
+                "version_range": ">=0.1.0",
+                "required": False,
+                "notes": "Learns user explanation and follow-up preferences from conversation input.",
+            },
+        ],
+        "adapter_refs": [
+            {
+                "adapter_id": "surface.personal.runtime_payloads",
+                "repo_paths": ["src/conversation_os/personal_interface.py"],
+                "purpose": (
+                    "Drive calibration, profile compilation, learning ingestion, "
+                    "and rewrite behavior for outgoing messages."
+                ),
+                "depends_on": [
+                    "kernel.foundation.storage",
+                    "kernel.foundation.models",
+                    "kernel.analysis.conversation_learning",
+                ],
+            },
+            {
+                "adapter_id": "surface.personal.mcp_surface",
+                "repo_paths": [
+                    "src/conversation_os/personal_interface_mcp.py",
+                    "tools/run_personal_interface_mcp.py",
+                ],
+                "purpose": "Expose Personal Interface rewrite operations to host chat systems.",
+                "depends_on": ["surface.personal.runtime_payloads"],
+            },
+        ],
+        "policy_defaults": {
+            "rewrite_mode": "governed",
+            "feedback_learning": "explicit_only",
+        },
+        "runtime_dependencies": [
+            "product/personal_interface_v1/data/runtime.json",
+        ],
+        "state_dependencies": [
+            "memory/events",
+            "memory/sessions",
+            "product/personal_interface_v1/data",
+        ],
+        "entrypoints": [
+            "python3 tools/conversation_os.py personal-interface calibrate-start",
+            "python3 tools/conversation_os.py personal-interface rewrite-turn --draft-text \"...\" --conversation-json \"[...]\"",
+            "python3 tools/run_personal_interface_mcp.py",
+        ],
+        "config_path": str(_surface_recipe_path(root)),
+    }
+
+
+def ensure_surface_recipe(root: Path) -> Path:
+    path = _surface_recipe_path(root)
+    ensure_dir(path.parent)
+    if not path.exists():
+        write_json(path, _default_surface_recipe(root))
+    return path
+
+
+def load_surface_recipe(root: Path) -> Dict[str, Any]:
+    path = ensure_surface_recipe(root)
+    payload = read_json(path, default={}) or {}
+    default_payload = _default_surface_recipe(root)
+    recipe = dict(default_payload)
+    recipe.update(payload)
+    recipe["config_path"] = str(path)
+    return recipe
 
 
 def ensure_personal_interface_runtime(root: Path) -> None:
@@ -829,6 +973,94 @@ def load_personal_interface_profile(root: Path) -> Dict[str, Any]:
 
 def load_personal_interface_policy_snapshot(root: Path) -> Dict[str, Any]:
     return read_json(_policy_snapshot_path(root), default={"feedback_count": 0, "tactic_penalties": {}})
+
+
+def _default_personal_interface_profile() -> Dict[str, Any]:
+    return build_personal_interface_profile({})
+
+
+def translate_idea_to_technical_framing(
+    root: Path,
+    idea_text: str,
+    desired_effect: str = "",
+    caller_hints: Dict[str, Any] | None = None,
+    context_notes: List[str] | None = None,
+) -> Dict[str, Any]:
+    normalized_idea = str(idea_text or "").strip()
+    if not normalized_idea:
+        raise PersonalInterfaceError("idea_missing", "Idea text is required for technical framing.")
+
+    try:
+        profile = load_personal_interface_profile(root)
+        profile_source = "saved_profile"
+    except PersonalInterfaceError as exc:
+        if exc.code != "profile_missing":
+            raise
+        profile = _default_personal_interface_profile()
+        profile_source = "default_profile"
+
+    merged_hints = dict(caller_hints or {})
+    merged_hints.setdefault("goal", "translate_concepts_to_technical")
+    merged_hints.setdefault("allow_branching", False)
+    merged_hints.setdefault("desired_depth", "short")
+
+    draft_text = str(desired_effect or normalized_idea)
+    mode, confidence, inference_source = _infer_mode(normalized_idea, draft_text, merged_hints, profile)
+    communication = identify_communication_mode(
+        user_message=normalized_idea,
+        draft_text=draft_text,
+        flow_mode=mode,
+        caller_hints=merged_hints,
+        profile=profile,
+    )
+    compiled_turn_policy = compile_turn_policy(
+        profile=profile,
+        mode=mode,
+        confidence=confidence,
+        communication_mode=communication["mode"],
+        communication_axes=communication["axes"],
+        caller_hints=merged_hints,
+        policy_snapshot=load_personal_interface_policy_snapshot(root),
+    )
+
+    translation_preferences = profile.get("translation_preferences", {})
+    confirmed_intent = [normalized_idea]
+    if desired_effect.strip():
+        confirmed_intent.append(f"Desired effect: {desired_effect.strip()}")
+
+    open_questions: List[str] = []
+    if not desired_effect.strip():
+        open_questions.append("What concrete user or system effect should this idea produce?")
+    if not context_notes:
+        open_questions.append("What existing surface, workflow, or module family does this idea seem closest to?")
+
+    inferred_mapping_guidance = [
+        {
+            "artifact_type": artifact_type,
+            "reason": "Preferred by the Personal Interface concept-translation profile for technical framing.",
+        }
+        for artifact_type in translation_preferences.get("target_artifacts", [])
+    ]
+
+    return {
+        "idea_text": normalized_idea,
+        "desired_effect": desired_effect.strip(),
+        "profile_source": profile_source,
+        "mode": mode,
+        "mode_confidence": round(confidence, 2),
+        "mode_inference_source": inference_source,
+        "communication_mode": communication["mode"],
+        "communication_axes": communication["axes"],
+        "compiled_turn_policy": compiled_turn_policy,
+        "confirmed_intent": confirmed_intent,
+        "inferred_mapping_guidance": inferred_mapping_guidance,
+        "target_artifacts": list(translation_preferences.get("target_artifacts", [])),
+        "output_contract": list(translation_preferences.get("output_contract", [])),
+        "preserve_uncertainty": bool(translation_preferences.get("preserve_uncertainty")),
+        "domain_anchor": str(translation_preferences.get("domain_anchor", "") or ""),
+        "context_notes": list(context_notes or []),
+        "open_questions": open_questions,
+    }
 
 
 def _extract_text_from_html(text: str) -> str:

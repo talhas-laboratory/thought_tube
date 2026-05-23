@@ -6,16 +6,40 @@ import sys
 from pathlib import Path
 
 from .analysis import analyze_session, materialize_cards, materialize_transcript, refresh_indexes, update_manifest
-from .codebase_overview import lookup_codebase, refresh_codebase_overview
+from .codebase_overview import lookup_codebase, refresh_codebase_overview, validate_codebase_index, watch_codebase_overview
 from .conversation_learning import parse_conversation_transcript
-from .cost_tracker import ensure_cost_tracker_bootstrap
+from .cost_tracker import ensure_cost_tracker_bootstrap, get_cost_summary, list_cost_events
+from .development_intake import (
+    _summarize_development_idea,
+    _summarize_development_proposal,
+    approve_development_proposal,
+    build_development_proposal,
+    build_proposal_task_pack,
+    get_development_idea,
+    get_development_proposal,
+    list_development_ideas,
+    list_development_proposals,
+    record_development_idea,
+)
+from .development_router import route_development_idea
 from .engineering_guard import assess_change_request
 from .library_tracker import (
+    apply_pond_router_preset as apply_pond_router_preset_admin,
     apply_prune_candidates,
+    derive_graph,
     ensure_library_tracker_bootstrap,
     filter_governed_chunks,
+    filter_library_sources as filter_library_sources_admin,
     get_chunk_status,
+    get_pond_router_status as get_pond_router_status_admin,
+    govern_library_family as govern_library_family_admin,
+    govern_library_source as govern_library_source_admin,
+    get_library_status as get_library_tracker_status,
     preview_prune_candidates,
+    rederive_library as rederive_library_admin,
+    scan_library_sources,
+    sync_library_sources,
+    update_pond_router_config as update_pond_router_config_admin,
     update_chunk_governance,
     update_chunk_link,
 )
@@ -35,39 +59,27 @@ from .personal_interface import (
 )
 from .conversation_synthesis import rebuild_conversation_concepts
 from .product_inner_world import (
-    apply_pond_router_preset,
     build_thought_archive,
     build_thought_feed,
     chat_with_thought,
-    get_cost_events,
-    get_cost_report,
     delete_thread,
-    derive_graph,
     export_state,
-    filter_library_sources,
     filter_knowledge_components,
-    govern_library_family,
-    govern_library_source,
     get_bubble_detail,
-    get_library_status,
-    get_pond_router_status,
-    get_runtime_pipeline,
     get_runtime_status,
     generate_daily_batch,
     list_bubbles,
-    scan_library,
     get_source_item_detail,
     get_thread_detail,
     get_thought_detail,
     record_feedback,
     save_thread,
-    seed_sources,
-    sync_library,
-    rederive_library,
-    update_pond_router_config,
-    update_runtime_pipeline_component,
 )
-from .routing import build_task_pack, enrich_task_pack_with_workspace
+from .routing import TaskPackRoutingError, build_task_pack, enrich_task_pack_with_workspace
+from .runtime_pipeline import (
+    get_runtime_pipeline_status,
+    update_runtime_pipeline_component as update_runtime_pipeline_component_config,
+)
 from .storage import (
     append_jsonl,
     ensure_dir,
@@ -98,6 +110,7 @@ from .storage import (
     write_json,
     write_markdown,
 )
+from .vault_ingest import ingest_source_file
 from .worldbuilding_studio import (
     answer_population_question as worldstudio_answer_population_question,
     bind_motion_object as worldstudio_bind_motion_object,
@@ -132,6 +145,24 @@ from .worldbuilding_studio import (
     update_character_feature_object as worldstudio_update_character_feature_object,
     update_character_profile_section as worldstudio_update_character_profile_section,
 )
+
+
+MODULE_ID = "assembly.bootstrap.cli"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "init_repo",
+    "session_start",
+    "session_append",
+    "session_checkpoint",
+    "session_close",
+    "session_import",
+    "build_parser",
+    "main",
+    "guarded_main",
+)
+__all__ = list(PUBLIC_API)
 
 
 
@@ -186,6 +217,13 @@ def _parse_dimension_overrides(value: str | None) -> dict[str, list[str] | str]:
     return parsed
 
 
+def _sync_library_admin(root: Path, *, max_items: int | None = None, portion: float | None = None) -> dict:
+    result = sync_library_sources(root, max_items=max_items, portion=portion)
+    result["rebuild_required"] = bool(result["ingested_item_count"] or result["purged_item_count"])
+    result["runtime"] = None
+    return result
+
+
 def _extract_frontmatter_block(text: str) -> str:
     match = re.match(r"(?s)\A(---\n.*?\n---)\s*", text)
     return match.group(1).strip() if match else ""
@@ -198,6 +236,14 @@ def _import_actor_and_kind(role: str) -> tuple[str, str]:
     if normalized == "assistant":
         return "assistant", "response"
     return normalized, "note"
+
+
+def _summarize_development_ideas(rows: list[dict]) -> list[dict]:
+    return [_summarize_development_idea(row) for row in rows]
+
+
+def _summarize_development_proposals(rows: list[dict]) -> list[dict]:
+    return [_summarize_development_proposal(row) for row in rows]
 
 
 def init_repo(root: Path) -> dict:
@@ -218,7 +264,8 @@ def init_repo(root: Path) -> dict:
         ensure_dir(path)
     ensure_library_tracker_bootstrap(root)
     ensure_cost_tracker_bootstrap(root)
-    return {"initialized": [str(path) for path in paths]}
+    overview = refresh_codebase_overview(root)
+    return {"initialized": [str(path) for path in paths], "repo_overview": overview}
 
 
 def session_start(root: Path, args: argparse.Namespace) -> dict:
@@ -519,9 +566,56 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("--domains", default="")
     build.add_argument("--constraints", default="")
 
+    development = sub.add_parser("development")
+    development_sub = development.add_subparsers(dest="development_command", required=True)
+
+    development_record = development_sub.add_parser("record")
+    development_record.add_argument("--idea-text", required=True)
+    development_record.add_argument("--desired-effect", default="")
+    development_record.add_argument("--intent-kind", default="")
+    development_record.add_argument("--surface-hints", default="")
+    development_record.add_argument("--source-session-id", default="")
+    development_record.add_argument("--source-refs", default="")
+    development_record.add_argument("--context-notes", default="")
+
+    development_route = development_sub.add_parser("route")
+    development_route.add_argument("--idea-id", required=True)
+    development_route.add_argument("--limit", type=int, default=6)
+
+    development_ideas = development_sub.add_parser("ideas")
+    development_ideas.add_argument("--status", default="")
+    development_ideas.add_argument("--limit", type=int, default=20)
+
+    development_idea = development_sub.add_parser("idea")
+    development_idea.add_argument("--idea-id", required=True)
+
+    development_propose = development_sub.add_parser("propose")
+    development_propose.add_argument("--idea-id", required=True)
+    development_propose.add_argument("--open-questions", default="")
+
+    development_proposals = development_sub.add_parser("proposals")
+    development_proposals.add_argument("--approval-status", default="")
+    development_proposals.add_argument("--limit", type=int, default=20)
+
+    development_proposal = development_sub.add_parser("proposal")
+    development_proposal.add_argument("--proposal-id", required=True)
+
+    development_approve = development_sub.add_parser("approve")
+    development_approve.add_argument("--proposal-id", required=True)
+    development_approve.add_argument("--decision", choices=["approved", "rejected"], required=True)
+    development_approve.add_argument("--notes", default="")
+    development_approve.add_argument("--reviewer", default="user")
+    development_approve.add_argument("--build-task-pack", action="store_true")
+    development_approve.add_argument("--task-type", default="implementation")
+    development_approve.add_argument("--constraints", default="")
+
     repo_overview = sub.add_parser("repo-overview")
     repo_overview_sub = repo_overview.add_subparsers(dest="overview_command", required=True)
     repo_overview_sub.add_parser("refresh")
+    repo_overview_sub.add_parser("validate")
+    overview_watch = repo_overview_sub.add_parser("watch")
+    overview_watch.add_argument("--interval", type=float, default=2.0)
+    overview_watch.add_argument("--max-iterations", type=int)
     overview_lookup = repo_overview_sub.add_parser("lookup")
     overview_lookup.add_argument("--query", required=True)
     overview_lookup.add_argument("--limit", type=int, default=8)
@@ -1337,9 +1431,81 @@ def main(argv: list[str] | None = None) -> int:
             domain_overlays=_split_csv(args.domains),
             constraints=_split_csv(args.constraints),
         )
+    elif args.command == "development":
+        if args.development_command == "record":
+            result = record_development_idea(
+                root,
+                raw_idea=args.idea_text,
+                desired_effect=args.desired_effect,
+                intent_kind=args.intent_kind,
+                surface_hints=_split_csv(args.surface_hints),
+                source_session_id=args.source_session_id or None,
+                source_refs=_split_csv(args.source_refs),
+                context_notes=_split_csv(args.context_notes),
+            )
+        elif args.development_command == "route":
+            result = route_development_idea(root, args.idea_id, limit=args.limit)
+        elif args.development_command == "ideas":
+            rows = list_development_ideas(
+                root,
+                status=args.status or None,
+                limit=args.limit,
+            )
+            result = {
+                "idea_count": len(rows),
+                "ideas": _summarize_development_ideas(rows),
+            }
+        elif args.development_command == "idea":
+            result = get_development_idea(root, args.idea_id)
+            if result is None:
+                raise FileNotFoundError(f"Development idea not found: {args.idea_id}")
+        elif args.development_command == "propose":
+            result = build_development_proposal(
+                root,
+                args.idea_id,
+                open_questions=_split_csv(args.open_questions),
+            )
+        elif args.development_command == "proposals":
+            rows = list_development_proposals(
+                root,
+                approval_status=args.approval_status or None,
+                limit=args.limit,
+            )
+            result = {
+                "proposal_count": len(rows),
+                "proposals": _summarize_development_proposals(rows),
+            }
+        elif args.development_command == "proposal":
+            result = get_development_proposal(root, args.proposal_id)
+            if result is None:
+                raise FileNotFoundError(f"Development proposal not found: {args.proposal_id}")
+        elif args.development_command == "approve":
+            result = approve_development_proposal(
+                root,
+                args.proposal_id,
+                args.decision,
+                reviewer=args.reviewer,
+                notes=args.notes,
+            )
+            if args.build_task_pack and args.decision == "approved":
+                result = {
+                    "proposal": result,
+                    "task_pack_result": build_proposal_task_pack(
+                        root,
+                        args.proposal_id,
+                        task_type=args.task_type,
+                        constraints=_split_csv(args.constraints),
+                    ),
+                }
+        else:
+            raise ValueError(args.development_command)
     elif args.command == "repo-overview":
         if args.overview_command == "refresh":
             result = refresh_codebase_overview(root)
+        elif args.overview_command == "validate":
+            result = validate_codebase_index(root)
+        elif args.overview_command == "watch":
+            result = watch_codebase_overview(root, interval=args.interval, max_iterations=args.max_iterations)
         elif args.overview_command == "lookup":
             result = {"results": lookup_codebase(root, args.query, args.limit)}
         else:
@@ -1436,7 +1602,7 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError(args.holodeck_command)
     elif args.command == "inner-world":
         if args.inner_command == "seed":
-            result = seed_sources(root, Path(args.source_path), args.source_type)
+            result = ingest_source_file(root, Path(args.source_path), args.source_type)
         elif args.inner_command == "derive":
             result = derive_graph(
                 root,
@@ -1472,13 +1638,13 @@ def main(argv: list[str] | None = None) -> int:
                 domain_overlays=_split_csv(args.domains),
             )
         elif args.inner_command == "library-scan":
-            result = scan_library(root)
+            result = scan_library_sources(root)
         elif args.inner_command == "library-sync":
-            result = sync_library(root, _split_csv(args.domains))
+            result = _sync_library_admin(root)
         elif args.inner_command == "library-status":
-            result = get_library_status(root)
+            result = get_library_tracker_status(root)
         elif args.inner_command == "library-filter":
-            result = filter_library_sources(
+            result = filter_library_sources_admin(
                 root,
                 query=args.query,
                 statuses=_split_csv(args.statuses),
@@ -1491,7 +1657,7 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
             )
         elif args.inner_command == "library-govern":
-            result = govern_library_source(
+            result = govern_library_source_admin(
                 root,
                 source_ref=args.source_ref,
                 governance_status=args.status or None,
@@ -1505,7 +1671,7 @@ def main(argv: list[str] | None = None) -> int:
                 notes=args.notes or None,
             )
         elif args.inner_command == "library-govern-family":
-            result = govern_library_family(
+            result = govern_library_family_admin(
                 root,
                 source_family=args.family,
                 governance_status=args.status or None,
@@ -1519,7 +1685,7 @@ def main(argv: list[str] | None = None) -> int:
                 notes=args.notes or None,
             )
         elif args.inner_command == "library-rederive":
-            result = rederive_library(
+            result = rederive_library_admin(
                 root,
                 affected_only=args.affected_only,
                 dry_run=args.dry_run,
@@ -1601,16 +1767,16 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
             )
         elif args.inner_command == "runtime-pipeline":
-            result = get_runtime_pipeline(root)
+            result = get_runtime_pipeline_status(root)
         elif args.inner_command == "runtime-status":
             result = get_runtime_status(root)
         elif args.inner_command == "pond-router":
             if args.pond_router_command == "status":
-                result = get_pond_router_status(root)
+                result = get_pond_router_status_admin(root)
             elif args.pond_router_command == "preset":
-                result = apply_pond_router_preset(root, args.name)
+                result = apply_pond_router_preset_admin(root, args.name)
             elif args.pond_router_command == "update":
-                result = update_pond_router_config(
+                result = update_pond_router_config_admin(
                     root,
                     enabled=_parse_bool_flag(args.enabled),
                     mode=args.mode or None,
@@ -1625,7 +1791,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError(args.pond_router_command)
         elif args.inner_command == "runtime-pipeline-update":
             enabled = None if args.enabled is None else args.enabled == "true"
-            result = update_runtime_pipeline_component(
+            result = update_runtime_pipeline_component_config(
                 root,
                 args.component_id,
                 enabled=enabled,
@@ -1633,13 +1799,15 @@ def main(argv: list[str] | None = None) -> int:
                 weight=args.weight,
             )
         elif args.inner_command == "cost-report":
-            result = get_cost_report(root)
+            result = get_cost_summary(root)
         elif args.inner_command == "token-dashboard":
-            result = get_cost_report(root)
+            result = get_cost_summary(root)
         elif args.inner_command == "cost-events":
-            result = get_cost_events(root, args.limit)
+            events = list_cost_events(root, args.limit)
+            result = {"count": len(events), "events": events}
         elif args.inner_command == "token-events":
-            result = get_cost_events(root, args.limit)
+            events = list_cost_events(root, args.limit)
+            result = {"count": len(events), "events": events}
         elif args.inner_command == "source":
             result = get_source_item_detail(root, args.source_item_id, _split_csv(args.domains))
         elif args.inner_command == "chat":
@@ -1924,5 +2092,8 @@ def guarded_main(argv: list[str] | None = None) -> int:
     try:
         return main(argv)
     except PersonalInterfaceError as exc:
+        sys.stdout.write(json.dumps(exc.to_dict(), indent=2, ensure_ascii=False) + "\n")
+        return 1
+    except TaskPackRoutingError as exc:
         sys.stdout.write(json.dumps(exc.to_dict(), indent=2, ensure_ascii=False) + "\n")
         return 1

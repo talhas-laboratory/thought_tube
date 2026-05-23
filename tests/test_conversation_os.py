@@ -17,6 +17,50 @@ from pathlib import Path
 from urllib import error as urllib_error
 from urllib import request as urllib_request
 
+import conversation_os.cost_tracker as cost_tracker_module
+import conversation_os.analysis_units as analysis_units_module
+import conversation_os.analysis as analysis_module
+import conversation_os.chat_backends as chat_backends_module
+import conversation_os.cli as cli_module
+import conversation_os.codebase_overview as codebase_overview_module
+import conversation_os.conversation_learning as conversation_learning_module
+import conversation_os.context_bubbles as context_bubbles_module
+import conversation_os.conversation_deltas as conversation_deltas_module
+import conversation_os.development_intake as development_intake_module
+import conversation_os.development_router as development_router_module
+import conversation_os.conversation_synthesis as conversation_synthesis_module
+import conversation_os.conversation_threads as conversation_threads_module
+import conversation_os.engineering_guard as engineering_guard_module
+import conversation_os.holodeck as holodeck_module
+import conversation_os.judgment as judgment_module
+import conversation_os.knowledge_layer as knowledge_layer_module
+import conversation_os.library_tracker as library_tracker_module
+import conversation_os.long_form as long_form_module
+import conversation_os.meta_layer as meta_layer_module
+import conversation_os.meta_objects as meta_objects_module
+import conversation_os.miniapp as miniapp_module
+import conversation_os.models as models_module
+import conversation_os.openclaw_miniapp as openclaw_miniapp_module
+import conversation_os.pipeline_runner as pipeline_runner_module
+import conversation_os.pipelines as pipelines_module
+import conversation_os.personal_interface as personal_interface_module
+import conversation_os.personal_interface_mcp as personal_interface_mcp_module
+import conversation_os.policy_engine as policy_engine_module
+import conversation_os.operators as operators_module
+import conversation_os.plugins as plugins_module
+import conversation_os.product_inner_world as product_inner_world_module
+import conversation_os.review_queue as review_queue_module
+import conversation_os.routing as routing_module
+import conversation_os.runtime_pipeline as runtime_pipeline_module
+import conversation_os.services.openclaw_sync as openclaw_sync_module
+import conversation_os.storage as storage_module
+import conversation_os.thread_abstractions as thread_abstractions_module
+import conversation_os.thread_context as thread_context_module
+import conversation_os.thought_factory as thought_factory_module
+import conversation_os.vault_ingest as vault_ingest_module
+import conversation_os.vault_adapters.openclaw_conversations as openclaw_conversations_module
+import conversation_os.worldbuilding_studio as worldbuilding_studio_module
+import conversation_os.worldbuilding_studio_mcp as worldbuilding_studio_mcp_module
 from conversation_os.analysis import refresh_indexes
 from conversation_os.analysis_units import build_analysis_units, load_analysis_units
 from conversation_os.chat_backends import (
@@ -35,6 +79,7 @@ from conversation_os.holodeck import (
 )
 from conversation_os.conversation_synthesis import (
     choose_operator,
+    derive_development_signals,
     emit_thought_packet,
     load_formation_synthesis_reviews,
     load_concept_edges,
@@ -73,6 +118,17 @@ from conversation_os.context_bubbles import (
     load_context_bubbles,
 )
 from conversation_os.cost_tracker import get_cost_summary, list_cost_events
+from conversation_os.development_intake import (
+    approve_development_proposal,
+    build_development_proposal,
+    build_proposal_task_pack,
+    get_development_idea,
+    get_development_proposal,
+    list_development_ideas,
+    list_development_proposals,
+    record_development_idea,
+)
+from conversation_os.development_router import route_development_idea
 from conversation_os.meta_layer import extract_meta_layer, load_meta_records, meta_layer_dir
 from conversation_os.meta_objects import META_LAYER_FILES, META_LAYER_KINDS
 from conversation_os.openclaw_miniapp import build_openclaw_bundle
@@ -81,7 +137,9 @@ from conversation_os.miniapp import make_miniapp_handler
 from conversation_os.personal_interface import (
     build_personal_interface_profile,
     load_bridge_state,
+    load_surface_recipe as load_personal_interface_surface_recipe,
     rewrite_outgoing_message,
+    translate_idea_to_technical_framing,
 )
 from conversation_os.product_inner_world import (
     _materialize_connections,
@@ -108,6 +166,7 @@ from conversation_os.product_inner_world import (
     get_runtime_status,
     generate_daily_batch,
     get_runtime_overview,
+    load_surface_recipe,
     get_source_item_detail,
     get_thought_detail,
     load_pond_routing_feedback,
@@ -180,6 +239,8 @@ class ConversationOSTestCase(unittest.TestCase):
             shutil.copy(REPO_ROOT / filename, self.root / filename)
         os.symlink(REPO_ROOT / "plugins", self.root / "plugins", target_is_directory=True)
         os.symlink(REPO_ROOT / "context", self.root / "context", target_is_directory=True)
+        os.symlink(REPO_ROOT / "src", self.root / "src", target_is_directory=True)
+        os.symlink(REPO_ROOT / "tools", self.root / "tools", target_is_directory=True)
         shutil.copytree(
             REPO_ROOT / "docs" / "research" / "substack-article-structure-2026-04-16",
             self.root / "docs" / "research" / "substack-article-structure-2026-04-16",
@@ -291,6 +352,909 @@ class ConversationOSTestCase(unittest.TestCase):
             },
         )
         return path
+
+    def test_storage_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(storage_module.MODULE_ID, "kernel.foundation.storage")
+        self.assertEqual(storage_module.CONTRACT_VERSION, "1.0")
+        for name in storage_module.PUBLIC_API:
+            self.assertIn(name, storage_module.__all__)
+            self.assertTrue(hasattr(storage_module, name), name)
+
+    def test_models_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(models_module.MODULE_ID, "kernel.foundation.models")
+        self.assertEqual(models_module.CONTRACT_VERSION, "1.0")
+        for name in models_module.PUBLIC_MODELS:
+            self.assertIn(name, models_module.__all__)
+            self.assertTrue(hasattr(models_module, name), name)
+
+    def test_cost_tracker_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(cost_tracker_module.MODULE_ID, "kernel.runtime.cost_tracker")
+        self.assertEqual(cost_tracker_module.CONTRACT_VERSION, "1.0")
+        for name in cost_tracker_module.PUBLIC_API:
+            self.assertIn(name, cost_tracker_module.__all__)
+            self.assertTrue(hasattr(cost_tracker_module, name), name)
+
+    def test_chat_backends_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(chat_backends_module.MODULE_ID, "kernel.runtime.chat_backends")
+        self.assertEqual(chat_backends_module.CONTRACT_VERSION, "1.0")
+        for name in chat_backends_module.PUBLIC_API:
+            self.assertIn(name, chat_backends_module.__all__)
+            self.assertTrue(hasattr(chat_backends_module, name), name)
+
+    def test_codebase_overview_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(codebase_overview_module.MODULE_ID, "builder.codebase.codebase_overview")
+        self.assertEqual(codebase_overview_module.CONTRACT_VERSION, "1.0")
+        for name in codebase_overview_module.PUBLIC_API:
+            self.assertIn(name, codebase_overview_module.__all__)
+            self.assertTrue(hasattr(codebase_overview_module, name), name)
+
+    def test_validate_codebase_index_reports_stale_generated_artifacts(self) -> None:
+        isolated_root = Path(tempfile.mkdtemp())
+        tracked_path = isolated_root / "src" / "conversation_os" / "sample_owner.py"
+        tracked_path.parent.mkdir(parents=True, exist_ok=True)
+        tracked_path.write_text("def sample_owner():\n    return 'ok'\n", encoding="utf-8")
+
+        manifest_path = isolated_root / "context" / "substrate" / "modules" / "sample_owner.json"
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    "module_id": "kernel.sample.sample_owner",
+                    "path": "src/conversation_os/sample_owner.py",
+                    "layer": "kernel",
+                    "owner": "Sample owner for freshness testing.",
+                    "purpose": "Provide a minimal valid manifest so validation can focus on freshness.",
+                    "status": "active",
+                    "version": "1.0.0",
+                    "public_api": ["sample_owner"],
+                    "contains": ["sample_owner"],
+                    "depends_on": [],
+                    "feeds_into": [],
+                    "inputs": [],
+                    "outputs": [],
+                    "state_owned": [],
+                    "surfaces_using": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        generated_paths = [
+            isolated_root / "context" / "substrate" / "CODEBASE_OVERVIEW.md",
+            isolated_root / "context" / "substrate" / "CODEBASE_ATLAS.md",
+            isolated_root / "context" / "substrate" / "codebase_map.json",
+            isolated_root / "context" / "substrate" / "AGENT_OPERATING_BRIEF.md",
+            isolated_root / "context" / "substrate" / "registry" / "module_registry.json",
+            isolated_root / "context" / "substrate" / "registry" / "module_browse_map.json",
+            isolated_root / "context" / "substrate" / "registry" / "dependency_graph.json",
+            isolated_root / "context" / "substrate" / "registry" / "surface_index.json",
+            isolated_root / "context" / "substrate" / "registry" / "owner_index.json",
+        ]
+        for path in generated_paths:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("{}", encoding="utf-8")
+
+        stale_epoch = 1_700_000_000
+        for path in generated_paths:
+            os.utime(path, (stale_epoch, stale_epoch))
+        os.utime(manifest_path, (stale_epoch, stale_epoch))
+        fresh_epoch = stale_epoch + 60
+        os.utime(tracked_path, (fresh_epoch, fresh_epoch))
+
+        validation = codebase_overview_module.validate_codebase_index(isolated_root)
+
+        self.assertFalse(validation["fresh"])
+        self.assertIn("Generated codebase artifacts are older than the newest tracked source or manifest", validation["stale_reasons"][0])
+        self.assertEqual(validation["newest_source_path"], "src/conversation_os/sample_owner.py")
+
+    def test_cli_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(cli_module.MODULE_ID, "assembly.bootstrap.cli")
+        self.assertEqual(cli_module.CONTRACT_VERSION, "1.0")
+        for name in cli_module.PUBLIC_API:
+            self.assertIn(name, cli_module.__all__)
+            self.assertTrue(hasattr(cli_module, name), name)
+
+    def test_conversation_learning_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(conversation_learning_module.MODULE_ID, "kernel.analysis.conversation_learning")
+        self.assertEqual(conversation_learning_module.CONTRACT_VERSION, "1.0")
+        for name in conversation_learning_module.PUBLIC_API:
+            self.assertIn(name, conversation_learning_module.__all__)
+            self.assertTrue(hasattr(conversation_learning_module, name), name)
+
+    def test_holodeck_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(holodeck_module.MODULE_ID, "builder.holodeck.holodeck")
+        self.assertEqual(holodeck_module.CONTRACT_VERSION, "1.0")
+        for name in holodeck_module.PUBLIC_API:
+            self.assertIn(name, holodeck_module.__all__)
+            self.assertTrue(hasattr(holodeck_module, name), name)
+
+    def test_judgment_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(judgment_module.MODULE_ID, "kernel.reasoning.judgment")
+        self.assertEqual(judgment_module.CONTRACT_VERSION, "1.0")
+        for name in judgment_module.PUBLIC_API:
+            self.assertIn(name, judgment_module.__all__)
+            self.assertTrue(hasattr(judgment_module, name), name)
+
+    def test_meta_layer_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(meta_layer_module.MODULE_ID, "kernel.meta.meta_layer")
+        self.assertEqual(meta_layer_module.CONTRACT_VERSION, "1.0")
+        for name in meta_layer_module.PUBLIC_API:
+            self.assertIn(name, meta_layer_module.__all__)
+            self.assertTrue(hasattr(meta_layer_module, name), name)
+
+    def test_meta_objects_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(meta_objects_module.MODULE_ID, "kernel.meta.meta_objects")
+        self.assertEqual(meta_objects_module.CONTRACT_VERSION, "1.0")
+        for name in meta_objects_module.PUBLIC_API:
+            self.assertIn(name, meta_objects_module.__all__)
+            self.assertTrue(hasattr(meta_objects_module, name), name)
+
+    def test_miniapp_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(miniapp_module.MODULE_ID, "surface.inner_world.miniapp")
+        self.assertEqual(miniapp_module.CONTRACT_VERSION, "1.0")
+        for name in miniapp_module.PUBLIC_API:
+            self.assertIn(name, miniapp_module.__all__)
+            self.assertTrue(hasattr(miniapp_module, name), name)
+
+    def test_openclaw_conversations_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(openclaw_conversations_module.MODULE_ID, "assembly.adapters.openclaw_conversations")
+        self.assertEqual(openclaw_conversations_module.CONTRACT_VERSION, "1.0")
+        for name in openclaw_conversations_module.PUBLIC_API:
+            self.assertIn(name, openclaw_conversations_module.__all__)
+            self.assertTrue(hasattr(openclaw_conversations_module, name), name)
+
+    def test_openclaw_miniapp_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(openclaw_miniapp_module.MODULE_ID, "surface.inner_world.openclaw_miniapp")
+        self.assertEqual(openclaw_miniapp_module.CONTRACT_VERSION, "1.0")
+        for name in openclaw_miniapp_module.PUBLIC_API:
+            self.assertIn(name, openclaw_miniapp_module.__all__)
+            self.assertTrue(hasattr(openclaw_miniapp_module, name), name)
+
+    def test_openclaw_sync_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(openclaw_sync_module.MODULE_ID, "assembly.adapters.openclaw_sync")
+        self.assertEqual(openclaw_sync_module.CONTRACT_VERSION, "1.0")
+        for name in openclaw_sync_module.PUBLIC_API:
+            self.assertIn(name, openclaw_sync_module.__all__)
+            self.assertTrue(hasattr(openclaw_sync_module, name), name)
+
+    def test_operators_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(operators_module.MODULE_ID, "kernel.reasoning.operators")
+        self.assertEqual(operators_module.CONTRACT_VERSION, "1.0")
+        for name in operators_module.PUBLIC_API:
+            self.assertIn(name, operators_module.__all__)
+            self.assertTrue(hasattr(operators_module, name), name)
+
+    def test_personal_interface_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(personal_interface_module.MODULE_ID, "surface.personal.personal_interface")
+        self.assertEqual(personal_interface_module.CONTRACT_VERSION, "1.0")
+        for name in personal_interface_module.PUBLIC_API:
+            self.assertIn(name, personal_interface_module.__all__)
+            self.assertTrue(hasattr(personal_interface_module, name), name)
+        self.assertNotIn("ensure_personal_interface_runtime", personal_interface_module.__all__)
+        self.assertNotIn("load_bridge_state", personal_interface_module.__all__)
+        self.assertNotIn("load_personal_interface_profile", personal_interface_module.__all__)
+        self.assertNotIn("load_personal_interface_policy_snapshot", personal_interface_module.__all__)
+        self.assertIn("start_calibration_interview", personal_interface_module.__all__)
+        self.assertIn("rewrite_outgoing_message", personal_interface_module.__all__)
+        self.assertIn("translate_idea_to_technical_framing", personal_interface_module.__all__)
+
+    def test_personal_interface_mcp_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(personal_interface_mcp_module.MODULE_ID, "surface.personal.personal_interface_mcp")
+        self.assertEqual(personal_interface_mcp_module.CONTRACT_VERSION, "1.0")
+        for name in personal_interface_mcp_module.PUBLIC_API:
+            self.assertIn(name, personal_interface_mcp_module.__all__)
+            self.assertTrue(hasattr(personal_interface_mcp_module, name), name)
+
+    def test_analysis_units_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(analysis_units_module.MODULE_ID, "kernel.analysis.analysis_units")
+        self.assertEqual(analysis_units_module.CONTRACT_VERSION, "1.0")
+        for name in analysis_units_module.PUBLIC_API:
+            self.assertIn(name, analysis_units_module.__all__)
+            self.assertTrue(hasattr(analysis_units_module, name), name)
+
+    def test_analysis_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(analysis_module.MODULE_ID, "kernel.analysis.session_analysis")
+        self.assertEqual(analysis_module.CONTRACT_VERSION, "1.0")
+        for name in analysis_module.PUBLIC_API:
+            self.assertIn(name, analysis_module.__all__)
+            self.assertTrue(hasattr(analysis_module, name), name)
+
+    def test_development_intake_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(development_intake_module.MODULE_ID, "assembly.development.development_intake")
+        self.assertEqual(development_intake_module.CONTRACT_VERSION, "1.0")
+        for name in development_intake_module.PUBLIC_API:
+            self.assertIn(name, development_intake_module.__all__)
+            self.assertTrue(hasattr(development_intake_module, name), name)
+
+    def test_development_router_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(development_router_module.MODULE_ID, "assembly.development.development_router")
+        self.assertEqual(development_router_module.CONTRACT_VERSION, "1.0")
+        for name in development_router_module.PUBLIC_API:
+            self.assertIn(name, development_router_module.__all__)
+            self.assertTrue(hasattr(development_router_module, name), name)
+
+    def test_conversation_deltas_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(conversation_deltas_module.MODULE_ID, "kernel.analysis.conversation_deltas")
+        self.assertEqual(conversation_deltas_module.CONTRACT_VERSION, "1.0")
+        for name in conversation_deltas_module.PUBLIC_API:
+            self.assertIn(name, conversation_deltas_module.__all__)
+            self.assertTrue(hasattr(conversation_deltas_module, name), name)
+
+    def test_conversation_threads_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(conversation_threads_module.MODULE_ID, "kernel.analysis.conversation_threads")
+        self.assertEqual(conversation_threads_module.CONTRACT_VERSION, "1.0")
+        for name in conversation_threads_module.PUBLIC_API:
+            self.assertIn(name, conversation_threads_module.__all__)
+            self.assertTrue(hasattr(conversation_threads_module, name), name)
+
+    def test_thread_abstractions_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(thread_abstractions_module.MODULE_ID, "kernel.analysis.thread_abstractions")
+        self.assertEqual(thread_abstractions_module.CONTRACT_VERSION, "1.0")
+        for name in thread_abstractions_module.PUBLIC_API:
+            self.assertIn(name, thread_abstractions_module.__all__)
+            self.assertTrue(hasattr(thread_abstractions_module, name), name)
+
+    def test_context_bubbles_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(context_bubbles_module.MODULE_ID, "kernel.analysis.context_bubbles")
+        self.assertEqual(context_bubbles_module.CONTRACT_VERSION, "1.0")
+        for name in context_bubbles_module.PUBLIC_API:
+            self.assertIn(name, context_bubbles_module.__all__)
+            self.assertTrue(hasattr(context_bubbles_module, name), name)
+
+    def test_engineering_guard_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(engineering_guard_module.MODULE_ID, "builder.guard.engineering_guard")
+        self.assertEqual(engineering_guard_module.CONTRACT_VERSION, "1.0")
+        for name in engineering_guard_module.PUBLIC_API:
+            self.assertIn(name, engineering_guard_module.__all__)
+            self.assertTrue(hasattr(engineering_guard_module, name), name)
+
+    def test_lookup_codebase_supports_structured_manifest_filters(self) -> None:
+        payload = {
+            "entries": [
+                {
+                    "path": "src/conversation_os/personal_interface.py",
+                    "kind": "python",
+                    "area": "conversation_os",
+                    "summary": "Personal interface surface owner.",
+                    "symbols": ["rewrite_outgoing_message"],
+                    "imports_internal": [],
+                    "module_manifest": {
+                        "module_id": "surface.personal.personal_interface",
+                        "layer": "surface",
+                        "status": "active",
+                        "owner": "Personal Interface surface owner.",
+                        "purpose": "Handle personal-interface rewrite flows.",
+                    },
+                },
+                {
+                    "path": "src/conversation_os/library_tracker.py",
+                    "kind": "python",
+                    "area": "conversation_os",
+                    "summary": "Library governance owner.",
+                    "symbols": ["rederive_library"],
+                    "imports_internal": [],
+                    "module_manifest": {
+                        "module_id": "kernel.library.library_tracker",
+                        "layer": "kernel",
+                        "status": "active",
+                        "owner": "Library governance owner.",
+                        "purpose": "Own library control plane behavior.",
+                    },
+                },
+            ],
+            "module_index": {
+                "manifests": [
+                    {
+                        "module_id": "surface.personal.personal_interface",
+                        "path": "src/conversation_os/personal_interface.py",
+                        "layer": "surface",
+                        "owner": "Personal Interface surface owner.",
+                        "purpose": "Handle personal-interface rewrite flows.",
+                        "status": "active",
+                        "surfaces_using": ["personal_interface"],
+                    },
+                    {
+                        "module_id": "kernel.library.library_tracker",
+                        "path": "src/conversation_os/library_tracker.py",
+                        "layer": "kernel",
+                        "owner": "Library governance owner.",
+                        "purpose": "Own library control plane behavior.",
+                        "status": "active",
+                        "surfaces_using": ["inner_world", "personal_interface"],
+                    },
+                ]
+            },
+        }
+
+        with mock.patch("conversation_os.codebase_overview.load_codebase_map", return_value=payload):
+            personal_results = codebase_overview_module.lookup_codebase(
+                self.root,
+                "layer:surface surface:personal_interface module:surface.personal.personal_interface",
+                limit=5,
+            )
+            library_results = codebase_overview_module.lookup_codebase(
+                self.root,
+                "layer:kernel owner:governance module:library_tracker",
+                limit=5,
+            )
+
+        self.assertEqual([row["path"] for row in personal_results], ["src/conversation_os/personal_interface.py"])
+        self.assertEqual([row["path"] for row in library_results], ["src/conversation_os/library_tracker.py"])
+
+    def test_watch_codebase_overview_refreshes_when_fingerprint_changes(self) -> None:
+        with (
+            mock.patch(
+                "conversation_os.codebase_overview.refresh_codebase_overview",
+                side_effect=[
+                    {"generated_at": "2026-05-22T00:00:00+00:00"},
+                    {"generated_at": "2026-05-22T00:00:02+00:00"},
+                ],
+            ) as refresh_mock,
+            mock.patch(
+                "conversation_os.codebase_overview._codebase_input_fingerprint",
+                side_effect=["alpha", "beta"],
+            ),
+            mock.patch("conversation_os.codebase_overview.time.sleep", return_value=None),
+        ):
+            result = codebase_overview_module.watch_codebase_overview(self.root, interval=0.0, max_iterations=1)
+
+        self.assertEqual(refresh_mock.call_count, 2)
+        self.assertEqual(result["refresh_count"], 2)
+        self.assertEqual(result["iterations"], 1)
+        self.assertEqual(result["last_result"]["generated_at"], "2026-05-22T00:00:02+00:00")
+
+    def test_cli_repo_overview_watch_routes_to_owner(self) -> None:
+        with mock.patch(
+            "conversation_os.cli.watch_codebase_overview",
+            return_value={
+                "generated_at": "2026-05-22T00:00:03+00:00",
+                "refresh_count": 1,
+                "iterations": 0,
+                "last_fingerprint": "alpha",
+                "last_result": {"generated_at": "2026-05-22T00:00:03+00:00"},
+            },
+        ) as watch_mock:
+            output = StringIO()
+            old = os.getcwd()
+            os.chdir(self.root)
+            try:
+                with redirect_stdout(output):
+                    exit_code = main(["repo-overview", "watch", "--interval", "0.0", "--max-iterations", "0"])
+            finally:
+                os.chdir(old)
+            payload = json.loads(output.getvalue())
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["refresh_count"], 1)
+        watch_mock.assert_called_once_with(self.root.resolve(), interval=0.0, max_iterations=0)
+
+    def test_knowledge_layer_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(knowledge_layer_module.MODULE_ID, "kernel.knowledge.knowledge_layer")
+        self.assertEqual(knowledge_layer_module.CONTRACT_VERSION, "1.0")
+        for name in knowledge_layer_module.PUBLIC_API:
+            self.assertIn(name, knowledge_layer_module.__all__)
+            self.assertTrue(hasattr(knowledge_layer_module, name), name)
+
+    def test_library_tracker_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(library_tracker_module.MODULE_ID, "kernel.library.library_tracker")
+        self.assertEqual(library_tracker_module.CONTRACT_VERSION, "1.0")
+        for name in library_tracker_module.PUBLIC_API:
+            self.assertIn(name, library_tracker_module.__all__)
+            self.assertTrue(hasattr(library_tracker_module, name), name)
+
+    def test_conversation_synthesis_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(conversation_synthesis_module.MODULE_ID, "kernel.synthesis.conversation_synthesis")
+        self.assertEqual(conversation_synthesis_module.CONTRACT_VERSION, "1.0")
+        for name in conversation_synthesis_module.PUBLIC_API:
+            self.assertIn(name, conversation_synthesis_module.__all__)
+            self.assertTrue(hasattr(conversation_synthesis_module, name), name)
+
+    def test_translate_idea_to_technical_framing_uses_translation_profile(self) -> None:
+        self._write_personal_interface_profile()
+
+        payload = translate_idea_to_technical_framing(
+            self.root,
+            "I want a layer that routes raw ideas into modules and proposals.",
+            desired_effect="Produce an approved implementation proposal for the right module family.",
+            context_notes=["development-layer orchestration"],
+        )
+
+        self.assertEqual(payload["profile_source"], "saved_profile")
+        self.assertEqual(payload["communication_mode"], "concept_translation")
+        self.assertIn("components", payload["target_artifacts"])
+        self.assertIn("confirmed_intent", payload["output_contract"])
+        self.assertIn("Desired effect: Produce an approved implementation proposal for the right module family.", payload["confirmed_intent"])
+        self.assertTrue(payload["compiled_turn_policy"]["instruction_lines"])
+
+    def test_derive_development_signals_returns_reusable_matches(self) -> None:
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="meta-proposal",
+                    kind="shared_primitive",
+                    label="Development proposal router",
+                    summary="Routes ideas into module proposals and recipe changes.",
+                    source_ref="session://idea-router",
+                    chunk_id="chunk-1",
+                    confidence=0.83,
+                ),
+                self._meta_row(
+                    meta_id="meta-variant",
+                    kind="transfer_target",
+                    label="Module variant recipe",
+                    summary="Creates lens-specific variants instead of mutating the base module.",
+                    source_ref="session://idea-router",
+                    chunk_id="chunk-2",
+                    confidence=0.77,
+                ),
+            ]
+        )
+
+        payload = derive_development_signals(
+            self.root,
+            "Route ideas into module proposals and create variants when a lens diverges.",
+            limit=4,
+        )
+
+        self.assertEqual(payload["query_text"], "Route ideas into module proposals and create variants when a lens diverges.")
+        self.assertTrue(payload["query_tokens"])
+        self.assertTrue(payload["formation_candidates"])
+        self.assertEqual(payload["formation_candidates"][0]["meta_id"], "meta-proposal")
+        self.assertTrue(payload["shape_matches"])
+        self.assertTrue(payload["synthesis_candidates"])
+
+    def test_record_development_idea_persists_translation_and_signals(self) -> None:
+        self._write_personal_interface_profile()
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="meta-route",
+                    kind="shared_primitive",
+                    label="Routing owner",
+                    summary="Maps ideas to modules and proposals.",
+                    source_ref="session://development",
+                    chunk_id="chunk-route",
+                    confidence=0.81,
+                )
+            ]
+        )
+
+        record = record_development_idea(
+            self.root,
+            "Route raw ideas into module proposals.",
+            desired_effect="Produce a structured proposal.",
+            surface_hints=["personal_interface"],
+            source_refs=["session://development"],
+        )
+
+        reloaded = get_development_idea(self.root, record["idea_id"])
+        listed = list_development_ideas(self.root)
+
+        self.assertEqual(record["intent_kind"], "module_extension")
+        self.assertEqual(record["surface_hints"], ["personal_interface"])
+        self.assertEqual(record["translated_framing"]["communication_mode"], "concept_translation")
+        self.assertTrue(record["development_signals"]["formation_candidates"])
+        self.assertEqual(reloaded["idea_id"], record["idea_id"])
+        self.assertEqual(listed[0]["idea_id"], record["idea_id"])
+
+    def test_build_and_approve_development_proposal_persists_contract(self) -> None:
+        self._write_personal_interface_profile()
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="meta-route",
+                    kind="shared_primitive",
+                    label="Development proposal router",
+                    summary="Routes ideas into module proposals and recipe changes.",
+                    source_ref="session://development",
+                    chunk_id="chunk-1",
+                    confidence=0.84,
+                ),
+                self._meta_row(
+                    meta_id="meta-variant",
+                    kind="transfer_target",
+                    label="Module variant recipe",
+                    summary="Creates lens-specific variants instead of mutating the base module.",
+                    source_ref="session://development",
+                    chunk_id="chunk-2",
+                    confidence=0.78,
+                ),
+            ]
+        )
+        idea = record_development_idea(
+            self.root,
+            "Create a variant-oriented development lens for proposal routing.",
+            desired_effect="Produce an approval-ready proposal for the right owner.",
+            surface_hints=["personal_interface"],
+            source_refs=["session://development"],
+        )
+
+        proposal = build_development_proposal(self.root, idea["idea_id"])
+        approved = approve_development_proposal(self.root, proposal["proposal_id"], "approved", notes="Looks right.")
+        reloaded = get_development_proposal(self.root, proposal["proposal_id"])
+        listed = list_development_proposals(self.root, approval_status="approved")
+
+        self.assertEqual(proposal["idea_id"], idea["idea_id"])
+        self.assertIn(proposal["route_kind"], {"extend_existing", "create_variant", "update_recipe", "create_new_module"})
+        self.assertTrue(proposal["target_module_ids"])
+        self.assertEqual(approved["approval_status"], "approved")
+        self.assertEqual(reloaded["approval_status"], "approved")
+        self.assertEqual(listed[0]["proposal_id"], proposal["proposal_id"])
+
+    def test_build_proposal_task_pack_requires_approval_and_links_artifact(self) -> None:
+        self._write_personal_interface_profile()
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="meta-route",
+                    kind="shared_primitive",
+                    label="Development proposal router",
+                    summary="Routes ideas into module proposals and recipe changes.",
+                    source_ref="session://development",
+                    chunk_id="chunk-1",
+                    confidence=0.84,
+                )
+            ]
+        )
+        idea = record_development_idea(
+            self.root,
+            "Route implementation ideas into an approved handoff bundle.",
+            desired_effect="Build a task pack only after explicit approval.",
+            surface_hints=["personal_interface"],
+            source_refs=["session://development"],
+        )
+        proposal = build_development_proposal(self.root, idea["idea_id"])
+
+        with self.assertRaises(ValueError):
+            build_proposal_task_pack(self.root, proposal["proposal_id"])
+
+        approve_development_proposal(self.root, proposal["proposal_id"], "approved")
+        result = build_proposal_task_pack(self.root, proposal["proposal_id"])
+        reloaded = get_development_proposal(self.root, proposal["proposal_id"])
+
+        self.assertEqual(result["proposal_id"], proposal["proposal_id"])
+        self.assertTrue(result["task_pack"]["handoff_validation"]["fresh"])
+        self.assertTrue((self.root / "context" / "task_packs" / f"{proposal['proposal_id']}.json").exists())
+        self.assertEqual(reloaded["task_pack_ref"]["task_id"], proposal["proposal_id"])
+
+    def test_cli_development_flow_records_routes_proposes_and_approves(self) -> None:
+        self._write_personal_interface_profile()
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="meta-route",
+                    kind="shared_primitive",
+                    label="Development proposal router",
+                    summary="Routes ideas into module proposals and recipe changes.",
+                    source_ref="session://development",
+                    chunk_id="chunk-1",
+                    confidence=0.84,
+                ),
+                self._meta_row(
+                    meta_id="meta-variant",
+                    kind="transfer_target",
+                    label="Module variant recipe",
+                    summary="Creates lens-specific variants instead of mutating the base module.",
+                    source_ref="session://development",
+                    chunk_id="chunk-2",
+                    confidence=0.78,
+                ),
+            ]
+        )
+
+        old = os.getcwd()
+        os.chdir(self.root)
+        try:
+            record_output = StringIO()
+            with redirect_stdout(record_output):
+                exit_code = main(
+                    [
+                        "development",
+                        "record",
+                        "--idea-text",
+                        "Create a variant-oriented development lens for proposal routing.",
+                        "--desired-effect",
+                        "Produce an approval-ready proposal for the right owner.",
+                        "--surface-hints",
+                        "personal_interface",
+                        "--source-refs",
+                        "session://development",
+                    ]
+                )
+            record_payload = json.loads(record_output.getvalue())
+
+            route_output = StringIO()
+            with redirect_stdout(route_output):
+                route_exit_code = main(
+                    [
+                        "development",
+                        "route",
+                        "--idea-id",
+                        record_payload["idea_id"],
+                    ]
+                )
+            route_payload = json.loads(route_output.getvalue())
+
+            propose_output = StringIO()
+            with redirect_stdout(propose_output):
+                propose_exit_code = main(
+                    [
+                        "development",
+                        "propose",
+                        "--idea-id",
+                        record_payload["idea_id"],
+                    ]
+                )
+            propose_payload = json.loads(propose_output.getvalue())
+
+            approve_output = StringIO()
+            with redirect_stdout(approve_output):
+                approve_exit_code = main(
+                    [
+                        "development",
+                        "approve",
+                        "--proposal-id",
+                        propose_payload["proposal_id"],
+                        "--decision",
+                        "approved",
+                        "--build-task-pack",
+                    ]
+                )
+            approve_payload = json.loads(approve_output.getvalue())
+        finally:
+            os.chdir(old)
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(route_exit_code, 0)
+        self.assertEqual(propose_exit_code, 0)
+        self.assertEqual(approve_exit_code, 0)
+        self.assertEqual(record_payload["surface_hints"], ["personal_interface"])
+        self.assertIn(route_payload["route_kind"], {"extend_existing", "create_variant", "update_recipe", "create_new_module"})
+        self.assertEqual(propose_payload["idea_id"], record_payload["idea_id"])
+        self.assertEqual(approve_payload["proposal"]["approval_status"], "approved")
+        self.assertTrue(approve_payload["task_pack_result"]["task_pack"]["handoff_validation"]["fresh"])
+
+    def test_cli_development_listing_and_lookup_surfaces_persisted_artifacts(self) -> None:
+        self._write_personal_interface_profile()
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="meta-route",
+                    kind="shared_primitive",
+                    label="Development proposal router",
+                    summary="Routes ideas into module proposals and recipe changes.",
+                    source_ref="session://development",
+                    chunk_id="chunk-1",
+                    confidence=0.84,
+                )
+            ]
+        )
+
+        idea = record_development_idea(
+            self.root,
+            "Route implementation ideas into a visible proposal queue.",
+            desired_effect="Let operators inspect recorded ideas and proposals from CLI.",
+            surface_hints=["personal_interface"],
+            source_refs=["session://development"],
+        )
+        proposal = build_development_proposal(self.root, idea["idea_id"])
+
+        old = os.getcwd()
+        os.chdir(self.root)
+        try:
+            ideas_output = StringIO()
+            with redirect_stdout(ideas_output):
+                ideas_exit = main(["development", "ideas", "--limit", "5"])
+            ideas_payload = json.loads(ideas_output.getvalue())
+
+            idea_output = StringIO()
+            with redirect_stdout(idea_output):
+                idea_exit = main(["development", "idea", "--idea-id", idea["idea_id"]])
+            idea_payload = json.loads(idea_output.getvalue())
+
+            proposals_output = StringIO()
+            with redirect_stdout(proposals_output):
+                proposals_exit = main(["development", "proposals", "--limit", "5"])
+            proposals_payload = json.loads(proposals_output.getvalue())
+
+            proposal_output = StringIO()
+            with redirect_stdout(proposal_output):
+                proposal_exit = main(["development", "proposal", "--proposal-id", proposal["proposal_id"]])
+            proposal_payload = json.loads(proposal_output.getvalue())
+        finally:
+            os.chdir(old)
+
+        self.assertEqual(ideas_exit, 0)
+        self.assertEqual(idea_exit, 0)
+        self.assertEqual(proposals_exit, 0)
+        self.assertEqual(proposal_exit, 0)
+        self.assertEqual(ideas_payload["idea_count"], 1)
+        self.assertEqual(ideas_payload["ideas"][0]["idea_id"], idea["idea_id"])
+        self.assertIn("idea_preview", ideas_payload["ideas"][0])
+        self.assertNotIn("translated_framing", ideas_payload["ideas"][0])
+        self.assertEqual(idea_payload["idea_id"], idea["idea_id"])
+        self.assertEqual(proposals_payload["proposal_count"], 1)
+        self.assertEqual(proposals_payload["proposals"][0]["proposal_id"], proposal["proposal_id"])
+        self.assertEqual(proposals_payload["proposals"][0]["approval_status"], "proposed")
+        self.assertIn("target_module_ids", proposals_payload["proposals"][0])
+        self.assertNotIn("route_snapshot", proposals_payload["proposals"][0])
+        self.assertEqual(proposal_payload["proposal_id"], proposal["proposal_id"])
+
+    def test_route_development_idea_prefers_surface_recipe_for_lens_mix(self) -> None:
+        idea = {
+            "idea_id": "idea-test",
+            "raw_idea": "Compose a new lens that mixes personal interface guidance with worldbuilding studio generation.",
+            "desired_effect": "Create a reusable lens recipe without mutating the base surfaces.",
+            "intent_kind": "lens_composition",
+            "surface_hints": ["personal_interface", "worldbuilding"],
+            "translated_framing": {
+                "target_artifacts": ["components", "policies", "workflows"],
+                "context_notes": ["lens composition"],
+            },
+            "development_signals": {
+                "query_tokens": ["lens", "personal", "worldbuilding", "recipe"],
+            },
+        }
+
+        route = route_development_idea(self.root, idea, limit=5)
+
+        self.assertEqual(route["route_kind"], "update_recipe")
+        self.assertEqual(route["target_surface_family"], "personal_interface_v1")
+        self.assertTrue(route["candidate_targets"])
+        self.assertIn("surface:personal_interface_v1", route["query"])
+
+    def test_thought_factory_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(thought_factory_module.MODULE_ID, "kernel.surface.thought_factory")
+        self.assertEqual(thought_factory_module.CONTRACT_VERSION, "1.0")
+        for name in thought_factory_module.PUBLIC_API:
+            self.assertIn(name, thought_factory_module.__all__)
+            self.assertTrue(hasattr(thought_factory_module, name), name)
+
+    def test_long_form_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(long_form_module.MODULE_ID, "kernel.surface.long_form")
+        self.assertEqual(long_form_module.CONTRACT_VERSION, "1.0")
+        for name in long_form_module.PUBLIC_API:
+            self.assertIn(name, long_form_module.__all__)
+            self.assertTrue(hasattr(long_form_module, name), name)
+
+    def test_thread_context_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(thread_context_module.MODULE_ID, "kernel.surface.thread_context")
+        self.assertEqual(thread_context_module.CONTRACT_VERSION, "1.0")
+        for name in thread_context_module.PUBLIC_API:
+            self.assertIn(name, thread_context_module.__all__)
+            self.assertTrue(hasattr(thread_context_module, name), name)
+
+    def test_product_inner_world_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(product_inner_world_module.MODULE_ID, "surface.inner_world.product_inner_world")
+        self.assertEqual(product_inner_world_module.CONTRACT_VERSION, "1.0")
+        for name in product_inner_world_module.PUBLIC_API:
+            self.assertIn(name, product_inner_world_module.__all__)
+            self.assertTrue(hasattr(product_inner_world_module, name), name)
+        self.assertNotIn("_materialize_connections", product_inner_world_module.__all__)
+        self.assertNotIn("get_runtime_pipeline", product_inner_world_module.__all__)
+        self.assertNotIn("update_runtime_pipeline_component", product_inner_world_module.__all__)
+        self.assertNotIn("seed_sources", product_inner_world_module.__all__)
+        self.assertNotIn("scan_library", product_inner_world_module.__all__)
+        self.assertNotIn("sync_library", product_inner_world_module.__all__)
+        self.assertNotIn("get_library_status", product_inner_world_module.__all__)
+        self.assertNotIn("filter_library_sources", product_inner_world_module.__all__)
+        self.assertNotIn("search_library_dimensions", product_inner_world_module.__all__)
+        self.assertNotIn("govern_library_source", product_inner_world_module.__all__)
+        self.assertNotIn("govern_library_family", product_inner_world_module.__all__)
+        self.assertNotIn("rederive_library", product_inner_world_module.__all__)
+        self.assertNotIn("get_dimension_model_role_status", product_inner_world_module.__all__)
+        self.assertNotIn("get_pond_router_status", product_inner_world_module.__all__)
+        self.assertNotIn("get_chunk_pond_detail", product_inner_world_module.__all__)
+        self.assertNotIn("update_pond_router_config", product_inner_world_module.__all__)
+        self.assertNotIn("apply_pond_router_preset", product_inner_world_module.__all__)
+        self.assertNotIn("update_chunk_pond_detail", product_inner_world_module.__all__)
+        self.assertNotIn("update_dimension_model_role_binding", product_inner_world_module.__all__)
+        self.assertNotIn("load_pond_routing_feedback", product_inner_world_module.__all__)
+        self.assertNotIn("record_pond_routing_feedback", product_inner_world_module.__all__)
+        self.assertNotIn("classify_assisted_dimension", product_inner_world_module.__all__)
+        self.assertNotIn("classify_assisted_pond_route", product_inner_world_module.__all__)
+        self.assertNotIn("get_cost_report", product_inner_world_module.__all__)
+        self.assertNotIn("get_cost_events", product_inner_world_module.__all__)
+        self.assertNotIn("derive_graph", product_inner_world_module.__all__)
+        self.assertNotIn("get_runtime_status", product_inner_world_module.__all__)
+        self.assertIn("ensure_surface_recipe", product_inner_world_module.__all__)
+        self.assertIn("build_thought_feed", product_inner_world_module.__all__)
+
+    def test_policy_engine_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(policy_engine_module.MODULE_ID, "kernel.policy.policy_engine")
+        self.assertEqual(policy_engine_module.CONTRACT_VERSION, "1.0")
+        for name in policy_engine_module.PUBLIC_API:
+            self.assertIn(name, policy_engine_module.__all__)
+            self.assertTrue(hasattr(policy_engine_module, name), name)
+
+    def test_plugins_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(plugins_module.MODULE_ID, "builder.plugins.plugins")
+        self.assertEqual(plugins_module.CONTRACT_VERSION, "1.0")
+        for name in plugins_module.PUBLIC_API:
+            self.assertIn(name, plugins_module.__all__)
+            self.assertTrue(hasattr(plugins_module, name), name)
+
+    def test_review_queue_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(review_queue_module.MODULE_ID, "kernel.governance.review_queue")
+        self.assertEqual(review_queue_module.CONTRACT_VERSION, "1.0")
+        for name in review_queue_module.PUBLIC_API:
+            self.assertIn(name, review_queue_module.__all__)
+            self.assertTrue(hasattr(review_queue_module, name), name)
+
+    def test_routing_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(routing_module.MODULE_ID, "kernel.routing.task_pack_routing")
+        self.assertEqual(routing_module.CONTRACT_VERSION, "1.0")
+        for name in routing_module.PUBLIC_API:
+            self.assertIn(name, routing_module.__all__)
+            self.assertTrue(hasattr(routing_module, name), name)
+
+    def test_vault_ingest_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(vault_ingest_module.MODULE_ID, "kernel.ingest.vault_ingest")
+        self.assertEqual(vault_ingest_module.CONTRACT_VERSION, "1.0")
+        for name in vault_ingest_module.PUBLIC_API:
+            self.assertIn(name, vault_ingest_module.__all__)
+            self.assertTrue(hasattr(vault_ingest_module, name), name)
+
+    def test_worldbuilding_studio_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(worldbuilding_studio_module.MODULE_ID, "surface.worldbuilding.worldbuilding_studio")
+        self.assertEqual(worldbuilding_studio_module.CONTRACT_VERSION, "1.0")
+        for name in worldbuilding_studio_module.PUBLIC_API:
+            self.assertIn(name, worldbuilding_studio_module.__all__)
+            self.assertTrue(hasattr(worldbuilding_studio_module, name), name)
+        self.assertNotIn("worldbuilding_studio_dir", worldbuilding_studio_module.__all__)
+        self.assertNotIn("HiggsfieldCliClient", worldbuilding_studio_module.__all__)
+        self.assertIn("create_world", worldbuilding_studio_module.__all__)
+        self.assertIn("compile_scene", worldbuilding_studio_module.__all__)
+
+    def test_worldbuilding_studio_mcp_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(worldbuilding_studio_mcp_module.MODULE_ID, "surface.worldbuilding.worldbuilding_studio_mcp")
+        self.assertEqual(worldbuilding_studio_mcp_module.CONTRACT_VERSION, "1.0")
+        for name in worldbuilding_studio_mcp_module.PUBLIC_API:
+            self.assertIn(name, worldbuilding_studio_mcp_module.__all__)
+            self.assertTrue(hasattr(worldbuilding_studio_mcp_module, name), name)
+
+    def test_runtime_pipeline_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(runtime_pipeline_module.MODULE_ID, "assembly.runtime.runtime_pipeline")
+        self.assertEqual(runtime_pipeline_module.CONTRACT_VERSION, "1.0")
+        for name in runtime_pipeline_module.PUBLIC_API:
+            self.assertIn(name, runtime_pipeline_module.__all__)
+            self.assertTrue(hasattr(runtime_pipeline_module, name), name)
+
+    def test_pipelines_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(pipelines_module.MODULE_ID, "assembly.runtime.pipelines")
+        self.assertEqual(pipelines_module.CONTRACT_VERSION, "1.0")
+        for name in pipelines_module.PUBLIC_API:
+            self.assertIn(name, pipelines_module.__all__)
+            self.assertTrue(hasattr(pipelines_module, name), name)
+
+    def test_pipeline_runner_module_exposes_stable_public_boundary(self) -> None:
+        self.assertEqual(pipeline_runner_module.MODULE_ID, "assembly.runtime.pipeline_runner")
+        self.assertEqual(pipeline_runner_module.CONTRACT_VERSION, "1.0")
+        for name in pipeline_runner_module.PUBLIC_API:
+            self.assertIn(name, pipeline_runner_module.__all__)
+            self.assertTrue(hasattr(pipeline_runner_module, name), name)
+
+    def test_inner_world_surface_recipe_materializes_expected_shape(self) -> None:
+        recipe = load_surface_recipe(self.root)
+
+        self.assertEqual(recipe["recipe_id"], "recipe.inner_world.v1")
+        self.assertEqual(recipe["surface_id"], "surface.inner_world")
+        self.assertEqual(recipe["status"], "transitional")
+        self.assertTrue((self.root / "product" / "inner_world_v1" / "config" / "surface_recipe.v1.json").exists())
+        self.assertGreaterEqual(len(recipe["module_refs"]), 4)
+        self.assertGreaterEqual(len(recipe["adapter_refs"]), 2)
+        self.assertIn("memory/events", recipe["state_dependencies"])
+
+    def test_personal_interface_surface_recipe_materializes_expected_shape(self) -> None:
+        recipe = load_personal_interface_surface_recipe(self.root)
+
+        self.assertEqual(recipe["recipe_id"], "recipe.personal_interface.v1")
+        self.assertEqual(recipe["surface_id"], "surface.personal_interface")
+        self.assertEqual(recipe["status"], "transitional")
+        self.assertTrue((self.root / "product" / "personal_interface_v1" / "config" / "surface_recipe.v1.json").exists())
+        self.assertGreaterEqual(len(recipe["module_refs"]), 2)
+        self.assertGreaterEqual(len(recipe["adapter_refs"]), 2)
+        self.assertIn("product/personal_interface_v1/data", recipe["state_dependencies"])
 
     def test_session_lifecycle_materializes_artifacts(self) -> None:
         started = session_start(
@@ -624,6 +1588,33 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(len(pack_a["tenets"]), 10)
         self.assertTrue(pack_a["relevant_sessions"])
         self.assertIn("product_thesis", pack_a["reference_docs"])
+        self.assertIn("handoff_validation", pack_a)
+        self.assertTrue(pack_a["handoff_validation"]["fresh"])
+
+    def test_task_pack_build_is_blocked_when_codebase_index_is_not_ready(self) -> None:
+        with mock.patch(
+            "conversation_os.routing.validate_codebase_index",
+            return_value={
+                "generated_at": "2026-05-22T00:00:00+00:00",
+                "module_manifest_count": 57,
+                "error_count": 0,
+                "warning_count": 1,
+                "missing_manifest_count": 0,
+                "fresh": False,
+                "stale_reasons": ["Generated codebase artifacts are older than the newest tracked source or manifest."],
+                "missing_artifacts": [],
+                "newest_source_path": "src/conversation_os/cli.py",
+                "newest_generated_path": "context/substrate/AGENT_OPERATING_BRIEF.md",
+                "errors": [],
+                "warnings": ["1 tracked python modules do not yet have manifests"],
+                "missing_paths": [],
+            },
+        ):
+            with self.assertRaises(routing_module.TaskPackRoutingError) as exc:
+                build_task_pack(self.root, "task-blocked", "Need research insight routing", "implementation", ["research"], [])
+
+        self.assertEqual(exc.exception.code, "task_pack_index_not_ready")
+        self.assertIn("codebase atlas is stale or invalid", exc.exception.message)
 
     def test_inner_world_batch_contract_and_feedback(self) -> None:
         source = self.root / "seed.txt"
@@ -8472,6 +9463,64 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(assessed["status"], "ready")
         self.assertEqual(assessed["warnings"], [])
 
+    def test_engineering_guard_blocks_when_codebase_index_is_not_ready(self) -> None:
+        with (
+            mock.patch(
+                "conversation_os.engineering_guard.refresh_codebase_overview",
+                return_value=None,
+            ),
+            mock.patch(
+                "conversation_os.engineering_guard.validate_codebase_index",
+                return_value={
+                    "generated_at": "2026-05-22T00:00:00+00:00",
+                    "module_manifest_count": 57,
+                    "error_count": 0,
+                    "warning_count": 1,
+                    "missing_manifest_count": 0,
+                    "fresh": False,
+                    "stale_reasons": ["Generated codebase artifacts are older than the newest tracked source or manifest (context/substrate/registry/owner_index.json < src/conversation_os/cli.py)."],
+                    "missing_artifacts": [],
+                    "newest_source_path": "src/conversation_os/cli.py",
+                    "newest_generated_path": "context/substrate/registry/owner_index.json",
+                    "errors": [],
+                    "warnings": ["1 tracked python modules do not yet have manifests"],
+                    "missing_paths": [],
+                },
+            ),
+            mock.patch(
+                "conversation_os.engineering_guard._path_exists_or_can_exist",
+                return_value=True,
+            ),
+            mock.patch(
+                "conversation_os.engineering_guard.lookup_codebase",
+                return_value=[
+                    {
+                        "path": "src/conversation_os/cli.py",
+                        "kind": "python",
+                        "area": "conversation_os",
+                        "summary": "CLI owner",
+                        "symbols": [],
+                        "score": 10,
+                        "matched_tokens": ["index", "guard"],
+                    }
+                ],
+            ),
+        ):
+            assessed = assess_change_request(
+                self.root,
+                request="Add codebase index freshness checks to the existing guard and CLI workflow",
+                purpose="Block substantive implementation work when the module atlas or manifest validation is stale so agents refresh and validate the index first",
+                proposed_paths=[
+                    "src/conversation_os/cli.py",
+                    "tests/test_conversation_os.py",
+                ],
+            )
+
+        self.assertFalse(assessed["ready"])
+        self.assertEqual(assessed["status"], "needs_index")
+        self.assertEqual(assessed["blocking_issues"][0]["code"], "index_not_ready")
+        self.assertIn("Codebase index is not ready:", assessed["warnings"][0])
+
     def test_holodeck_owner_module_exists(self) -> None:
         module = importlib.import_module("conversation_os.holodeck")
         self.assertTrue(hasattr(module, "holodeck_check"))
@@ -8913,7 +9962,7 @@ class ConversationOSTestCase(unittest.TestCase):
 
     def test_hybrid_pond_router_can_escalate_ambiguous_chunks_to_assisted_route(self) -> None:
         with mock.patch(
-            "conversation_os.product_inner_world.get_pond_router_status",
+            "conversation_os.library_tracker.get_pond_router_status",
             return_value={
                 "enabled": True,
                 "mode": "hybrid",
@@ -8925,7 +9974,7 @@ class ConversationOSTestCase(unittest.TestCase):
                 "judge_role_id": "pond_router_judge",
             },
         ), mock.patch(
-            "conversation_os.product_inner_world.classify_assisted_pond_route",
+            "conversation_os.library_tracker.classify_assisted_pond_route",
             return_value={
                 "primary_pond": "project_klarorder",
                 "touched_layers": ["sales_workflow"],

@@ -9,6 +9,18 @@ from .storage import read_jsonl, write_jsonl
 from .vault_ingest import load_chunk_index, tokenize
 
 
+MODULE_ID = "kernel.analysis.conversation_deltas"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_conversation_deltas",
+    "load_user_expectations",
+    "build_conversation_deltas",
+)
+__all__ = list(PUBLIC_API)
+
+
 STOPWORDS = {
     "about",
     "again",

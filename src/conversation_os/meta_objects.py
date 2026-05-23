@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+MODULE_ID = "kernel.meta.meta_objects"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "META_LAYER_KINDS",
+    "META_LAYER_FILES",
+    "REVIEW_STATUSES",
+)
+__all__ = list(PUBLIC_API)
+
+
 META_LAYER_KINDS = [
     "signal_frame",
     "interpretation",

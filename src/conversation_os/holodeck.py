@@ -39,6 +39,54 @@ from .storage import (
 from .cli import _split_csv, _split_many
 from .vault_ingest import tokenize
 
+MODULE_ID = "builder.holodeck.holodeck"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "_collect_constraint_violations",
+    "_collect_run_drift_warnings",
+    "_collect_completed_run_drift_warnings",
+    "holodeck_create",
+    "holodeck_event",
+    "holodeck_log_context",
+    "holodeck_log_command",
+    "holodeck_ingest_artifact",
+    "holodeck_link_session",
+    "holodeck_update",
+    "holodeck_advance_stage",
+    "holodeck_add_work_item",
+    "holodeck_update_work_item",
+    "holodeck_add_test",
+    "holodeck_record_test_run",
+    "holodeck_start_run",
+    "holodeck_finish_run",
+    "holodeck_add_context",
+    "holodeck_update_context",
+    "holodeck_add_constraint",
+    "holodeck_update_constraint",
+    "holodeck_add_integration_target",
+    "holodeck_update_integration_target",
+    "holodeck_add_knowledge",
+    "holodeck_update_knowledge",
+    "holodeck_promote",
+    "holodeck_update_promotion",
+    "holodeck_apply_promotion",
+    "holodeck_artifacts",
+    "holodeck_contextualize",
+    "holodeck_list",
+    "holodeck_pause",
+    "holodeck_block",
+    "holodeck_close",
+    "holodeck_reopen",
+    "holodeck_archive",
+    "holodeck_materialize",
+    "holodeck_status",
+    "holodeck_check",
+    "holodeck_task_pack",
+)
+__all__ = list(PUBLIC_API)
+
 HOLODECK_MATURATION_STAGES = {
     "raw",
     "contextualizing",

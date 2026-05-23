@@ -20,6 +20,25 @@ from .thread_abstractions import (
 from .vault_ingest import load_source_registry, tokenize
 
 
+MODULE_ID = "kernel.knowledge.knowledge_layer"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_knowledge_nodes",
+    "load_knowledge_edges",
+    "load_context_links",
+    "load_semantic_capsules",
+    "load_link_governance",
+    "govern_context_link",
+    "add_alias_resolution",
+    "build_retrieval_bundle",
+    "build_knowledge_layer",
+    "select_candidate_pairs",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _nodes_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "data" / "knowledge_nodes.jsonl"
 

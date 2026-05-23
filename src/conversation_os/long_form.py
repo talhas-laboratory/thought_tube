@@ -9,6 +9,21 @@ from .storage import read_json
 from .vault_ingest import shorten, tokenize
 
 
+MODULE_ID = "kernel.surface.long_form"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "LongFormConfigLoader",
+    "LongFormContextBuilder",
+    "LongFormModuleAssembler",
+    "LongFormRenderer",
+    "LongFormOrchestrator",
+    "build_long_form_article",
+)
+__all__ = list(PUBLIC_API)
+
+
 _LONG_FORM_BLUEPRINT_PATH = Path(
     "docs/research/substack-article-structure-2026-04-16/long_form/long_form_blueprint.json"
 )

@@ -1,0 +1,25 @@
+{
+  "id": "research",
+  "title": "Research Overlay",
+  "domains": ["research"],
+  "reasoning_primitives": [
+    {
+      "id": "mechanism-bridge",
+      "label": "Mechanism Bridge",
+      "keywords": ["mechanism", "causal", "model", "evidence", "theory"]
+    },
+    {
+      "id": "assumption-audit",
+      "label": "Assumption Audit",
+      "keywords": ["assumption", "constraint", "risk", "gap", "bias"]
+    },
+    {
+      "id": "cross-paper-synthesis",
+      "label": "Cross-Paper Synthesis",
+      "keywords": ["study", "paper", "finding", "comparison", "synthesis"]
+    }
+  ],
+  "evidence_mode": "strict",
+  "output_template": "templates/insight.md",
+  "prompt_overlay": "prompts/system_overlay.md"
+}

@@ -37,6 +37,16 @@ from .worldbuilding_studio import (
 )
 
 
+MODULE_ID = "surface.worldbuilding.worldbuilding_studio_mcp"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "build_worldbuilding_studio_mcp_server",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _vendor_paths(root: Path) -> list[Path]:
     return [root / ".vendor" / "mcp_py"]
 

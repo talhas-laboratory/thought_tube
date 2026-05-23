@@ -1,0 +1,25 @@
+{
+  "id": "art",
+  "title": "Art Overlay",
+  "domains": ["art"],
+  "reasoning_primitives": [
+    {
+      "id": "mood-transfer",
+      "label": "Mood Transfer",
+      "keywords": ["mood", "tone", "atmosphere", "texture", "emotion"]
+    },
+    {
+      "id": "form-analogy",
+      "label": "Form Analogy",
+      "keywords": ["form", "shape", "composition", "gesture", "rhythm"]
+    },
+    {
+      "id": "material-symbolism",
+      "label": "Material Symbolism",
+      "keywords": ["material", "surface", "symbol", "color", "contrast"]
+    }
+  ],
+  "evidence_mode": "interpretive",
+  "output_template": "templates/insight.md",
+  "prompt_overlay": "prompts/system_overlay.md"
+}

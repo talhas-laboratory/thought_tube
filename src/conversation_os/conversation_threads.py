@@ -10,6 +10,18 @@ from .storage import read_jsonl, write_jsonl
 from .vault_ingest import load_chunk_index, tokenize
 
 
+MODULE_ID = "kernel.analysis.conversation_threads"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_conversation_threads",
+    "load_thread_links",
+    "build_conversation_threads",
+)
+__all__ = list(PUBLIC_API)
+
+
 STOPWORDS = {
     "again",
     "also",

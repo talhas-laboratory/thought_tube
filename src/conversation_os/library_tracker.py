@@ -11,8 +11,58 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-from .models import ChunkDimensionProfile, DimensionRun, DimensionSpec
-from .storage import make_id, read_json, read_jsonl, repo_root_from, utc_now, write_json, write_jsonl
+from .chat_backends import request_openclaw_reply
+from .models import ChunkDimensionProfile, DimensionRun, DimensionSpec, ModelRoleBinding
+from .storage import ensure_dir, make_id, read_json, read_jsonl, repo_root_from, utc_now, write_json, write_jsonl
+
+
+MODULE_ID = "kernel.library.library_tracker"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "ensure_library_tracker_bootstrap",
+    "load_library_tracker_config",
+    "load_library_governance",
+    "load_dimension_registry",
+    "derive_chunk_dimension_profiles",
+    "load_chunk_dimension_profiles",
+    "match_chunk_dimension_profiles",
+    "resolve_governed_chunk_rows",
+    "resolve_governed_source_rows",
+    "get_governed_source_lookup",
+    "update_source_governance",
+    "update_family_governance",
+    "update_chunk_governance",
+    "get_chunk_pond_routing_state",
+    "override_chunk_pond_routing",
+    "update_chunk_link",
+    "clear_pending_governance_rederive",
+    "scan_library_sources",
+    "sync_library_sources",
+    "filter_library_sources",
+    "govern_library_source",
+    "govern_library_family",
+    "rederive_library",
+    "derive_graph",
+    "get_dimension_model_role_status",
+    "get_pond_router_status",
+    "get_chunk_pond_detail",
+    "update_pond_router_config",
+    "apply_pond_router_preset",
+    "update_chunk_pond_detail",
+    "update_dimension_model_role_binding",
+    "load_pond_routing_feedback",
+    "record_pond_routing_feedback",
+    "classify_assisted_dimension",
+    "classify_assisted_pond_route",
+    "filter_governed_chunks",
+    "preview_prune_candidates",
+    "apply_prune_candidates",
+    "get_chunk_status",
+    "get_library_status",
+)
+__all__ = list(PUBLIC_API)
 
 
 DEFAULT_TEXT_GLOBS = ["*.md", "*.markdown", "*.txt", "*.json"]
@@ -150,6 +200,136 @@ def _chunk_dimension_profiles_path(root: Path) -> Path:
 
 def _dimension_runs_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "data" / "dimensions" / "dimension_runs.json"
+
+
+def _pond_routing_feedback_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "data" / "pond_routing_feedback.jsonl"
+
+
+def _runtime_config_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "config" / "runtime.json"
+
+
+def _default_dimension_model_roles() -> Dict[str, Any]:
+    return {
+        "dimension_local_fast": {
+            "backend": "",
+            "model_id": "",
+            "enabled": False,
+            "fallback_role_id": "",
+            "endpoint": "",
+            "attributes": {
+                "purpose": "Cheap local-first semantic classification for light chunk labeling.",
+            },
+        },
+        "dimension_local_semantic": {
+            "backend": "",
+            "model_id": "",
+            "enabled": False,
+            "fallback_role_id": "dimension_local_fast",
+            "endpoint": "",
+            "attributes": {
+                "purpose": "Stronger local semantic worker for intent/tension/lens enrichment.",
+            },
+        },
+        "dimension_remote_judge": {
+            "backend": "",
+            "model_id": "",
+            "enabled": False,
+            "fallback_role_id": "dimension_local_semantic",
+            "endpoint": "",
+            "attributes": {
+                "purpose": "Escalation-only remote semantic judge for difficult arbitration.",
+            },
+        },
+        "pond_router_local": {
+            "backend": "",
+            "model_id": "",
+            "enabled": False,
+            "fallback_role_id": "",
+            "endpoint": "",
+            "attributes": {
+                "purpose": "Local-first pond router for chunk/project/domain basin classification.",
+            },
+        },
+        "pond_router_judge": {
+            "backend": "",
+            "model_id": "",
+            "enabled": False,
+            "fallback_role_id": "pond_router_local",
+            "endpoint": "",
+            "attributes": {
+                "purpose": "Escalation-only pond routing judge for ambiguous or multi-pond chunks.",
+            },
+        },
+    }
+
+
+def _default_pond_router_config() -> Dict[str, Any]:
+    return {
+        "enabled": True,
+        "mode": "heuristic",
+        "assisted_on_ambiguity": True,
+        "allow_manual_override": True,
+        "ambiguity_threshold": 0.72,
+        "local_role_id": "pond_router_local",
+        "judge_role_id": "pond_router_judge",
+        "router_version": "v1",
+    }
+
+
+def _merged_pond_router_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    defaults = _default_pond_router_config()
+    configured = config.get("pond_router")
+    if not isinstance(configured, dict):
+        configured = {}
+    return {
+        **defaults,
+        **configured,
+    }
+
+
+def _merged_runtime_model_roles(config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    defaults = _default_dimension_model_roles()
+    configured = config.get("model_roles")
+    if not isinstance(configured, dict):
+        configured = {}
+    merged: Dict[str, Dict[str, Any]] = {}
+    order = list(defaults.keys())
+    for role_id, payload in configured.items():
+        if role_id not in order:
+            order.append(role_id)
+    for role_id in order:
+        default_payload = defaults.get(role_id, {})
+        configured_payload = configured.get(role_id, {})
+        if not isinstance(configured_payload, dict):
+            configured_payload = {}
+        merged[role_id] = {
+            **default_payload,
+            **configured_payload,
+            "attributes": {
+                **dict(default_payload.get("attributes", {})),
+                **dict(configured_payload.get("attributes", {})),
+            },
+        }
+    return merged
+
+
+def _runtime_config_payload(root: Path) -> Dict[str, Any]:
+    return read_json(_runtime_config_path(root), default={}) or {}
+
+
+def ensure_runtime_model_roles(root: Path) -> Dict[str, Any]:
+    path = _runtime_config_path(root)
+    config = _runtime_config_payload(root)
+    merged_roles = _merged_runtime_model_roles(config)
+    merged_pond_router = _merged_pond_router_config(config)
+    if config.get("model_roles") != merged_roles or config.get("pond_router") != merged_pond_router:
+        config = dict(config)
+        config["model_roles"] = merged_roles
+        config["pond_router"] = merged_pond_router
+        write_json(path, config)
+    return config
 
 
 def _default_library_sources() -> Dict[str, Any]:
@@ -536,19 +716,17 @@ def _pond_routing_payload(root: Path, row: Dict[str, Any]) -> Dict[str, Any]:
     if not pond_rows:
         return {}
     try:
-        from .product_inner_world import classify_assisted_pond_route, get_pond_router_status
+        router_status = get_pond_router_status(root)
     except Exception:
-        classify_assisted_pond_route = None
-        get_pond_router_status = None
-    router_status = get_pond_router_status(root) if get_pond_router_status is not None else {
-        "enabled": True,
-        "mode": "heuristic",
-        "assisted_on_ambiguity": True,
-        "ambiguity_threshold": 0.72,
-        "router_version": "v1",
-        "local_role_id": "pond_router_local",
-        "judge_role_id": "pond_router_judge",
-    }
+        router_status = {
+            "enabled": True,
+            "mode": "heuristic",
+            "assisted_on_ambiguity": True,
+            "ambiguity_threshold": 0.72,
+            "router_version": "v1",
+            "local_role_id": "pond_router_local",
+            "judge_role_id": "pond_router_judge",
+        }
     mode = str(router_status.get("mode", "heuristic")).strip().lower() or "heuristic"
     if not bool(router_status.get("enabled", True)) or mode in {"off", "manual_only"}:
         return {}
@@ -606,7 +784,7 @@ def _pond_routing_payload(root: Path, row: Dict[str, Any]) -> Dict[str, Any]:
         }
 
     if not pond_scores:
-        if mode in {"assisted", "hybrid"} and classify_assisted_pond_route is not None:
+        if mode in {"assisted", "hybrid"}:
             assisted = classify_assisted_pond_route(
                 root,
                 row=row,
@@ -636,7 +814,7 @@ def _pond_routing_payload(root: Path, row: Dict[str, Any]) -> Dict[str, Any]:
     )
     primary_score = pond_scores[primary_pond]
     if primary_score < 6.0:
-        if mode in {"assisted", "hybrid"} and classify_assisted_pond_route is not None:
+        if mode in {"assisted", "hybrid"}:
             assisted = classify_assisted_pond_route(
                 root,
                 row=row,
@@ -701,7 +879,7 @@ def _pond_routing_payload(root: Path, row: Dict[str, Any]) -> Dict[str, Any]:
         mode == "assisted"
         or (mode == "hybrid" and bool(router_status.get("assisted_on_ambiguity", True)) and ambiguous)
     )
-    if should_assist and classify_assisted_pond_route is not None:
+    if should_assist:
         preferred_role = (
             str(router_status.get("judge_role_id" if ambiguous else "local_role_id", "")).strip()
             or str(router_status.get("local_role_id", "pond_router_local")).strip()
@@ -1080,18 +1258,13 @@ def _dimension_profile_payload(
             method = "heuristic"
     elif dimension_id == "evidence_posture":
         if spec.get("requires_model", False):
-            try:
-                from .product_inner_world import classify_assisted_dimension
-            except Exception:
-                classify_assisted_dimension = None
-            if classify_assisted_dimension is not None:
-                assisted_payload = classify_assisted_dimension(
-                    root,
-                    dimension_id=dimension_id,
-                    row=row,
-                    preferred_role=str(spec.get("preferred_role", "")).strip(),
-                    allowed_values=list(spec.get("allowed_values", [])),
-                )
+            assisted_payload = classify_assisted_dimension(
+                root,
+                dimension_id=dimension_id,
+                row=row,
+                preferred_role=str(spec.get("preferred_role", "")).strip(),
+                allowed_values=list(spec.get("allowed_values", [])),
+            )
             if assisted_payload:
                 values = _dimension_values(assisted_payload.get("value"))
                 method = "assisted"
@@ -2011,24 +2184,19 @@ def update_chunk_governance(
         previous_layers = [str(value).strip() for value in previous_resolved.get("pond_layers", []) if str(value).strip()]
         resolved_layers = [str(value).strip() for value in resolved.get("pond_layers", []) if str(value).strip()]
         if previous_pond != resolved_pond or previous_layers != resolved_layers:
-            try:
-                from .product_inner_world import record_pond_routing_feedback
-            except Exception:
-                record_pond_routing_feedback = None
-            if record_pond_routing_feedback is not None:
-                record_pond_routing_feedback(
-                    root,
-                    event_type="manual_pond_override" if previous_pond != resolved_pond else "manual_pond_layer_override",
-                    chunk_id=chunk_id,
-                    source_ref=str(resolved.get("source_ref", "")).strip(),
-                    previous_primary_pond=previous_pond,
-                    new_primary_pond=resolved_pond,
-                    previous_pond_layers=previous_layers,
-                    new_pond_layers=resolved_layers,
-                    actor="operator",
-                    routing_method="manual",
-                    note=str(notes or "").strip(),
-                )
+            record_pond_routing_feedback(
+                root,
+                event_type="manual_pond_override" if previous_pond != resolved_pond else "manual_pond_layer_override",
+                chunk_id=chunk_id,
+                source_ref=str(resolved.get("source_ref", "")).strip(),
+                previous_primary_pond=previous_pond,
+                new_primary_pond=resolved_pond,
+                previous_pond_layers=previous_layers,
+                new_pond_layers=resolved_layers,
+                actor="operator",
+                routing_method="manual",
+                note=str(notes or "").strip(),
+            )
     return {
         "governance_path": governance["governance_path"],
         "policy_record": record,
@@ -2884,6 +3052,1214 @@ def _filter_text_score(text: str, query_tokens: set[str]) -> float:
     if not haystack:
         return 0.0
     return sum(1 for token in query_tokens if token in haystack) / len(query_tokens)
+
+
+def _library_chunk_preview(root: Path) -> Dict[str, List[Dict[str, Any]]]:
+    from .vault_ingest import load_chunk_index, shorten
+
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for row in load_chunk_index(root):
+        grouped.setdefault(row["source_ref"], []).append(row)
+    for source_ref, rows in grouped.items():
+        grouped[source_ref] = sorted(rows, key=lambda item: (item.get("chunk_index", 0), item["chunk_id"]))
+        for row in grouped[source_ref]:
+            if "preview_excerpt" not in row:
+                row["preview_excerpt"] = shorten(row.get("content", ""), 220)
+    return grouped
+
+
+def filter_library_sources(
+    root: Path,
+    *,
+    query: str = "",
+    statuses: List[str] | None = None,
+    source_families: List[str] | None = None,
+    semantic_roles: List[str] | None = None,
+    source_ref: str | None = None,
+    include_in_runtime: bool | None = None,
+    include_in_bubbles: bool | None = None,
+    include_in_concepts: bool | None = None,
+    limit: int = 20,
+) -> Dict[str, Any]:
+    from .vault_ingest import load_source_registry_raw, shorten
+
+    governance = load_library_governance(root)
+    governed_rows = resolve_governed_source_rows(root, load_source_registry_raw(root), governance=governance)
+    chunk_preview = _library_chunk_preview(root)
+    query_tokens = set(query.lower().split()) if query else set()
+    status_filter = set(statuses or [])
+    family_filter = set(source_families or [])
+    role_filter = set(semantic_roles or [])
+    results = []
+    for row in governed_rows:
+        if source_ref and row.get("source_ref") != source_ref:
+            continue
+        if status_filter and row.get("governance_status") not in status_filter:
+            continue
+        if family_filter and row.get("source_family") not in family_filter:
+            continue
+        if role_filter and row.get("semantic_role") not in role_filter:
+            continue
+        if include_in_runtime is not None and bool(row.get("include_in_runtime")) != include_in_runtime:
+            continue
+        if include_in_bubbles is not None and bool(row.get("include_in_bubbles")) != include_in_bubbles:
+            continue
+        if include_in_concepts is not None and bool(row.get("include_in_concepts")) != include_in_concepts:
+            continue
+        source_chunks = chunk_preview.get(row["source_ref"], [])
+        preview_text = " ".join(chunk.get("content", "")[:240] for chunk in source_chunks[:3])
+        haystack = " ".join(
+            [
+                row.get("title", ""),
+                row.get("source_ref", ""),
+                row.get("source_type", ""),
+                row.get("source_family", ""),
+                row.get("semantic_role", ""),
+                row.get("governance_status", ""),
+                row.get("governance_notes", ""),
+                " ".join(row.get("collection_tags", [])),
+                json.dumps(row.get("metadata", {}), ensure_ascii=False),
+                preview_text,
+            ]
+        )
+        score = _filter_text_score(haystack, query_tokens)
+        if query and score <= 0:
+            continue
+        results.append(
+            {
+                "source_ref": row["source_ref"],
+                "title": row.get("title", ""),
+                "source_type": row.get("source_type", ""),
+                "source_family": row.get("source_family", ""),
+                "semantic_role": row.get("semantic_role", ""),
+                "governance_status": row.get("governance_status", "active"),
+                "normalization_profile": row.get("normalization_profile", "default"),
+                "include_in_runtime": bool(row.get("include_in_runtime", True)),
+                "include_in_bubbles": bool(row.get("include_in_bubbles", True)),
+                "include_in_concepts": bool(row.get("include_in_concepts", True)),
+                "include_in_long_form": bool(row.get("include_in_long_form", True)),
+                "collection_tags": row.get("collection_tags", []),
+                "governance_notes": row.get("governance_notes", ""),
+                "chunk_count": row.get("chunk_count", len(source_chunks)),
+                "policy_origin": row.get("governance_origin", "default"),
+                "match_score": score or 0.0,
+                "preview_excerpt": shorten(preview_text, 220) if preview_text else "",
+            }
+        )
+    results.sort(
+        key=lambda item: (
+            -float(item.get("match_score", 0.0)),
+            item.get("governance_status", ""),
+            item.get("source_family", ""),
+            item.get("title", ""),
+        )
+    )
+    return {
+        "count": len(results),
+        "results": results[:limit],
+        "filters": {
+            "query": query,
+            "statuses": sorted(status_filter),
+            "source_families": sorted(family_filter),
+            "semantic_roles": sorted(role_filter),
+            "source_ref": source_ref or "",
+            "include_in_runtime": include_in_runtime,
+            "include_in_bubbles": include_in_bubbles,
+            "include_in_concepts": include_in_concepts,
+            "limit": limit,
+        },
+    }
+
+
+def govern_library_source(
+    root: Path,
+    *,
+    source_ref: str,
+    governance_status: str | None = None,
+    semantic_role: str | None = None,
+    normalization_profile: str | None = None,
+    include_in_runtime: bool | None = None,
+    include_in_bubbles: bool | None = None,
+    include_in_concepts: bool | None = None,
+    include_in_long_form: bool | None = None,
+    collection_tags: List[str] | None = None,
+    notes: str | None = None,
+) -> Dict[str, Any]:
+    result = update_source_governance(
+        root,
+        source_ref,
+        governance_status=governance_status,
+        semantic_role=semantic_role,
+        normalization_profile=normalization_profile,
+        include_in_runtime=include_in_runtime,
+        include_in_bubbles=include_in_bubbles,
+        include_in_concepts=include_in_concepts,
+        include_in_long_form=include_in_long_form,
+        collection_tags=collection_tags,
+        notes=notes,
+    )
+    resolved = filter_library_sources(root, source_ref=source_ref, limit=1)
+    return result | {"resolved_source": resolved["results"][0] if resolved["results"] else None}
+
+
+def govern_library_family(
+    root: Path,
+    *,
+    source_family: str,
+    governance_status: str | None = None,
+    semantic_role: str | None = None,
+    normalization_profile: str | None = None,
+    include_in_runtime: bool | None = None,
+    include_in_bubbles: bool | None = None,
+    include_in_concepts: bool | None = None,
+    include_in_long_form: bool | None = None,
+    collection_tags: List[str] | None = None,
+    notes: str | None = None,
+) -> Dict[str, Any]:
+    result = update_family_governance(
+        root,
+        source_family,
+        governance_status=governance_status,
+        semantic_role=semantic_role,
+        normalization_profile=normalization_profile,
+        include_in_runtime=include_in_runtime,
+        include_in_bubbles=include_in_bubbles,
+        include_in_concepts=include_in_concepts,
+        include_in_long_form=include_in_long_form,
+        collection_tags=collection_tags,
+        notes=notes,
+    )
+    filtered = filter_library_sources(root, source_families=[source_family], limit=5)
+    return result | {"sample_sources": filtered["results"]}
+
+
+def _runtime_data_dir(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "data"
+
+
+def _runtime_exports_dir(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "exports"
+
+
+def _runtime_threads_dir(root: Path) -> Path:
+    return _runtime_data_dir(root) / "threads"
+
+
+def _count_jsonl_rows(path: Path) -> int:
+    if not path.exists():
+        return 0
+    with path.open("r", encoding="utf-8") as handle:
+        return sum(1 for line in handle if line.strip())
+
+
+def _meta_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .analysis_units import load_analysis_units
+    from .conversation_deltas import load_conversation_deltas, load_user_expectations
+    from .meta_layer import meta_layer_dir
+    from .meta_objects import META_LAYER_FILES
+    from .vault_ingest import load_chunk_index
+
+    meta_counts = {
+        kind: _count_jsonl_rows(meta_layer_dir(root) / META_LAYER_FILES[kind])
+        for kind in META_LAYER_FILES
+    }
+    return {
+        "chunk_count": len(load_chunk_index(root)),
+        "analysis_unit_count": len(load_analysis_units(root)),
+        "delta_count": len(load_conversation_deltas(root)),
+        "expectation_count": len(load_user_expectations(root)),
+        "meta_counts": meta_counts,
+        "total_meta_records": sum(meta_counts.values()),
+    }
+
+
+def _thread_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .conversation_threads import load_conversation_threads, load_thread_links
+
+    return {
+        "thread_count": len(load_conversation_threads(root)),
+        "link_count": len(load_thread_links(root)),
+    }
+
+
+def _abstraction_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .conversation_threads import load_conversation_threads
+    from .thread_abstractions import (
+        load_project_lenses,
+        load_thread_abstraction_links,
+        load_thread_abstractions,
+    )
+
+    return {
+        "raw_thread_count": len(load_conversation_threads(root)),
+        "abstract_thread_count": len(load_thread_abstractions(root)),
+        "link_count": len(load_thread_abstraction_links(root)),
+        "project_lens_count": len(load_project_lenses(root)),
+    }
+
+
+def _bubble_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .context_bubbles import (
+        load_bubble_edges,
+        load_bubble_memberships,
+        load_bubble_transitions,
+        load_context_bubbles,
+    )
+
+    return {
+        "bubble_count": len(load_context_bubbles(root)),
+        "membership_count": len(load_bubble_memberships(root)),
+        "edge_count": len(load_bubble_edges(root)),
+        "transition_count": len(load_bubble_transitions(root)),
+    }
+
+
+def _knowledge_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .knowledge_layer import load_knowledge_edges, load_knowledge_nodes
+
+    return {
+        "meta_node_count": len(load_knowledge_nodes(root)),
+        "edge_count": len(load_knowledge_edges(root)),
+    }
+
+
+def _concept_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .conversation_synthesis import (
+        load_concept_edges,
+        load_concept_nodes,
+        load_concept_review_queue,
+        load_synthesis_packets,
+        load_touch_operations,
+    )
+
+    review_rows = load_concept_review_queue(root)
+    return {
+        "concept_count": len(load_concept_nodes(root)),
+        "edge_count": len(load_concept_edges(root)),
+        "synthesis_packet_count": len(load_synthesis_packets(root)),
+        "touch_operation_count": len(load_touch_operations(root)),
+        "review_count": len(review_rows),
+    }
+
+
+def _materialize_plugin_primitives(root: Path, domain_overlays: List[str] | None = None) -> Dict[str, Any]:
+    from .plugins import load_plugins
+
+    plugin_primitives = []
+    for plugin in load_plugins(root, domain_overlays):
+        plugin_primitives.extend(plugin.get("reasoning_primitives", []))
+    write_json(_runtime_data_dir(root) / "reasoning_primitives.json", plugin_primitives)
+    return {"primitive_count": len(plugin_primitives)}
+
+
+def _materialize_concept_nodes(root: Path) -> Dict[str, Any]:
+    from .conversation_synthesis import load_concept_nodes
+    from .meta_layer import load_meta_records
+
+    durable_concepts = load_concept_nodes(root)
+    if durable_concepts:
+        concept_nodes = [
+            {
+                "concept_node_id": row["concept_id"],
+                "label": row["label"],
+                "kind": "conversation_concept",
+                "support_count": len(row.get("source_refs", [])),
+                "status": row.get("status", "provisional"),
+                "confidence": row.get("confidence", 0.0),
+            }
+            for row in durable_concepts[:160]
+        ]
+    else:
+        concept_nodes = [
+            {
+                "concept_node_id": row["meta_id"],
+                "label": row["label"],
+                "kind": row["kind"],
+                "support_count": len(row["chunk_ids"]),
+            }
+            for row in load_meta_records(root, ["theme", "shared_primitive", "direction"])[:160]
+        ]
+    write_json(_runtime_data_dir(root) / "concept_nodes.json", concept_nodes)
+    return {"concept_node_count": len(concept_nodes)}
+
+
+def _materialize_connections(root: Path) -> Dict[str, Any]:
+    max_connections = 5000
+    connection_rows: List[Dict[str, Any]] = []
+    total_connection_count = 0
+    knowledge_edges_path = _runtime_data_dir(root) / "knowledge_edges.jsonl"
+    if knowledge_edges_path.exists():
+        with knowledge_edges_path.open(encoding="utf-8") as handle:
+            for line in handle:
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+                if item["kind"] not in {"relates_to", "contradicts", "transfers_to"}:
+                    continue
+                total_connection_count += 1
+                connection_rows.append(
+                    {
+                        "connection_id": item["edge_id"],
+                        "left_source_ref": item["from_id"],
+                        "right_source_ref": item["to_id"],
+                        "kind": item["kind"],
+                        "shared_concepts": item.get("attributes", {}).get("shared_tokens", []),
+                        "salient_concepts": item.get("attributes", {}).get("shared_tokens", []),
+                        "strength": item["confidence"],
+                    }
+                )
+    ordered_connections = sorted(
+        connection_rows,
+        key=lambda item: (
+            -float(item.get("strength", 0.0)),
+            item.get("connection_id", ""),
+        ),
+    )[:max_connections]
+    payload = {
+        "generated_at": utc_now(),
+        "total_connection_count": total_connection_count,
+        "included_connection_count": len(ordered_connections),
+        "max_connections": max_connections,
+        "truncated": total_connection_count > len(ordered_connections),
+        "connections": ordered_connections,
+    }
+    write_json(_runtime_data_dir(root) / "connections.json", payload)
+    return {
+        "connection_count": total_connection_count,
+        "included_connection_count": len(ordered_connections),
+        "truncated": payload["truncated"],
+    }
+
+
+def _meta_artifact_paths(root: Path) -> List[Path]:
+    from .meta_layer import meta_layer_dir
+    from .meta_objects import META_LAYER_FILES
+
+    return [meta_layer_dir(root) / META_LAYER_FILES[kind] for kind in META_LAYER_FILES]
+
+
+def _runtime_component_artifacts(root: Path) -> Dict[str, List[Path]]:
+    data_dir = _runtime_data_dir(root)
+    concept_graph_dir = data_dir / "concept_graph"
+    return {
+        "bootstrap_legacy_sources": [data_dir / "source_items.jsonl"],
+        "analysis_units": [data_dir / "analysis_units.jsonl"],
+        "conversation_deltas": [data_dir / "conversation_deltas.jsonl", data_dir / "user_expectations.jsonl"],
+        "meta_layer": _meta_artifact_paths(root),
+        "conversation_threads": [data_dir / "conversation_threads.jsonl", data_dir / "conversation_thread_links.jsonl"],
+        "thread_abstractions": [data_dir / "thread_abstractions.jsonl", data_dir / "thread_abstraction_links.jsonl"],
+        "conversation_concepts": [
+            concept_graph_dir / "concept_nodes.jsonl",
+            concept_graph_dir / "concept_edges.jsonl",
+            concept_graph_dir / "synthesis_packets.jsonl",
+            concept_graph_dir / "touch_operations.jsonl",
+            concept_graph_dir / "review_queue.jsonl",
+        ],
+        "context_bubbles": [
+            data_dir / "context_bubbles.jsonl",
+            data_dir / "bubble_memberships.jsonl",
+            data_dir / "bubble_edges.jsonl",
+            data_dir / "bubble_transitions.jsonl",
+        ],
+        "knowledge_layer": [data_dir / "knowledge_nodes.jsonl", data_dir / "knowledge_edges.jsonl"],
+        "plugin_primitives": [data_dir / "reasoning_primitives.json"],
+        "concept_nodes": [data_dir / "concept_nodes.json"],
+        "connections": [data_dir / "connections.json"],
+    }
+
+
+def _runtime_registry(root: Path, domain_overlays: List[str] | None = None, *, profile: bool = False) -> Dict[str, Dict[str, Any]]:
+    from .analysis_units import build_analysis_units
+    from .context_bubbles import build_context_bubbles
+    from .conversation_deltas import build_conversation_deltas
+    from .conversation_synthesis import rebuild_conversation_concepts
+    from .conversation_threads import build_conversation_threads
+    from .knowledge_layer import build_knowledge_layer
+    from .meta_layer import extract_meta_layer
+    from .pipelines import ensure_pipeline_specs
+    from .thread_abstractions import build_thread_abstractions
+    from .vault_ingest import bootstrap_legacy_source_items
+
+    artifacts = _runtime_component_artifacts(root)
+    return {
+        "bootstrap_legacy_sources": {
+            "label": "Bootstrap Legacy Sources",
+            "requires": [],
+            "run": lambda: {"status": "ok", "bootstrapped": bool(bootstrap_legacy_source_items(root))},
+            "artifacts": lambda: artifacts["bootstrap_legacy_sources"],
+        },
+        "ensure_pipeline_specs": {
+            "label": "Ensure Pipeline Specs",
+            "requires": [],
+            "run": lambda: {"status": "ok", "spec_count": ensure_pipeline_specs(root)["count"]},
+        },
+        "analysis_units": {
+            "label": "Build Analysis Units",
+            "requires": ["bootstrap_legacy_sources"],
+            "run": lambda: build_analysis_units(root),
+            "artifacts": lambda: artifacts["analysis_units"],
+        },
+        "conversation_deltas": {
+            "label": "Build Conversation Deltas",
+            "requires": ["bootstrap_legacy_sources"],
+            "run": lambda: build_conversation_deltas(root),
+            "artifacts": lambda: artifacts["conversation_deltas"],
+        },
+        "meta_layer": {
+            "label": "Extract Meta Layer",
+            "requires": ["analysis_units", "conversation_deltas", "ensure_pipeline_specs"],
+            "run": lambda: extract_meta_layer(root, domain_overlays, ensure_dependencies=False),
+            "artifacts": lambda: artifacts["meta_layer"],
+        },
+        "conversation_threads": {
+            "label": "Build Conversation Threads",
+            "requires": ["conversation_deltas"],
+            "run": lambda: build_conversation_threads(root, ensure_dependencies=False),
+            "artifacts": lambda: artifacts["conversation_threads"],
+        },
+        "thread_abstractions": {
+            "label": "Build Thread Abstractions",
+            "requires": ["conversation_threads", "conversation_deltas"],
+            "run": lambda: build_thread_abstractions(root, domain_overlays, ensure_dependencies=False, profile=profile),
+            "artifacts": lambda: artifacts["thread_abstractions"],
+        },
+        "context_bubbles": {
+            "label": "Build Context Bubbles",
+            "requires": ["thread_abstractions", "meta_layer", "conversation_concepts"],
+            "run": lambda: build_context_bubbles(root, domain_overlays, ensure_dependencies=False, profile=profile),
+            "artifacts": lambda: artifacts["context_bubbles"],
+        },
+        "knowledge_layer": {
+            "label": "Build Knowledge Layer",
+            "requires": ["thread_abstractions", "context_bubbles", "meta_layer"],
+            "run": lambda: build_knowledge_layer(root, ensure_dependencies=False),
+            "artifacts": lambda: artifacts["knowledge_layer"],
+        },
+        "conversation_concepts": {
+            "label": "Build Conversation Concepts",
+            "requires": [],
+            "run": lambda: rebuild_conversation_concepts(root),
+            "artifacts": lambda: artifacts["conversation_concepts"],
+        },
+        "plugin_primitives": {
+            "label": "Materialize Plugin Primitives",
+            "requires": [],
+            "run": lambda: _materialize_plugin_primitives(root, domain_overlays),
+            "artifacts": lambda: artifacts["plugin_primitives"],
+        },
+        "concept_nodes": {
+            "label": "Materialize Concept Nodes",
+            "requires": ["conversation_concepts"],
+            "run": lambda: _materialize_concept_nodes(root),
+            "artifacts": lambda: artifacts["concept_nodes"],
+        },
+        "connections": {
+            "label": "Materialize Connections",
+            "requires": ["knowledge_layer"],
+            "run": lambda: _materialize_connections(root),
+            "artifacts": lambda: artifacts["connections"],
+        },
+    }
+
+
+def _ensure_runtime_graph(
+    root: Path,
+    domain_overlays: List[str] | None = None,
+    *,
+    resume: bool = False,
+    from_stage: str | None = None,
+    only_stage: str | None = None,
+    force: bool = False,
+    profile: bool = False,
+) -> Dict[str, Any]:
+    from .runtime_pipeline import ensure_runtime_pipeline_config, execute_runtime_pipeline
+    from .vault_ingest import load_chunk_index, load_source_registry
+
+    ensure_dir(_runtime_data_dir(root))
+    ensure_dir(_runtime_exports_dir(root))
+    ensure_dir(_runtime_threads_dir(root))
+    ensure_runtime_pipeline_config(root)
+    pipeline_state = execute_runtime_pipeline(
+        root,
+        _runtime_registry(root, domain_overlays, profile=profile),
+        resume=resume,
+        from_stage=from_stage,
+        only_stage=only_stage,
+        force=force,
+    )
+    results = pipeline_state["results"]
+    meta_summary = results.get("meta_layer", _meta_summary_from_current_state(root))
+    thread_summary = results.get("conversation_threads", _thread_summary_from_current_state(root))
+    abstraction_summary = results.get("thread_abstractions", _abstraction_summary_from_current_state(root))
+    bubble_summary = results.get("context_bubbles", _bubble_summary_from_current_state(root))
+    knowledge_summary = results.get("knowledge_layer", _knowledge_summary_from_current_state(root))
+    concept_summary = results.get("conversation_concepts", _concept_summary_from_current_state(root))
+    return {
+        "meta_summary": meta_summary,
+        "thread_summary": thread_summary,
+        "abstraction_summary": abstraction_summary,
+        "bubble_summary": bubble_summary,
+        "knowledge_summary": knowledge_summary,
+        "concept_summary": concept_summary,
+        "source_count": len(load_source_registry(root)),
+        "chunk_count": len(load_chunk_index(root)),
+        "runtime_pipeline": pipeline_state,
+    }
+
+
+def derive_graph(
+    root: Path,
+    domain_overlays: List[str] | None = None,
+    *,
+    resume: bool = False,
+    from_stage: str | None = None,
+    only_stage: str | None = None,
+    force: bool = False,
+    profile: bool = False,
+) -> Dict[str, Any]:
+    summary = _ensure_runtime_graph(
+        root,
+        domain_overlays,
+        resume=resume,
+        from_stage=from_stage,
+        only_stage=only_stage,
+        force=force,
+        profile=profile,
+    )
+    knowledge_summary = summary["knowledge_summary"]
+    return {
+        "source_item_count": summary["chunk_count"],
+        "thread_count": summary["thread_summary"]["thread_count"],
+        "abstract_thread_count": summary["abstraction_summary"]["abstract_thread_count"],
+        "project_lens_count": summary["abstraction_summary"]["project_lens_count"],
+        "bubble_count": summary["bubble_summary"]["bubble_count"],
+        "concept_node_count": knowledge_summary["meta_node_count"],
+        "connection_count": knowledge_summary["edge_count"],
+    }
+
+
+def rederive_library(
+    root: Path,
+    *,
+    affected_only: bool = True,
+    dry_run: bool = False,
+    profile: bool = False,
+) -> Dict[str, Any]:
+    from .runtime_pipeline import load_runtime_pipeline_config
+
+    governance = load_library_governance(root)
+    pending = governance.get("pending_rederive") or {}
+    if affected_only and not pending:
+        return {
+            "status": "no_pending_changes",
+            "pending_rederive": None,
+        }
+    if affected_only:
+        plan = dict(pending)
+    else:
+        configured = [
+            row["component_id"]
+            for row in load_runtime_pipeline_config(root).get("components", [])
+            if row.get("enabled", True)
+        ]
+        plan = {
+            "affected_stages": configured,
+            "from_stage": configured[0] if configured else None,
+            "post_actions": [],
+            "reasons": ["Explicit full library rederive requested."],
+            "targets": [],
+        }
+    configured_set = {
+        row["component_id"]
+        for row in load_runtime_pipeline_config(root).get("components", [])
+        if row.get("enabled", True)
+    }
+    ordered_stages = [
+        stage
+        for stage in plan.get("affected_stages", [])
+        if stage in configured_set
+    ]
+    plan["affected_stages"] = ordered_stages
+    plan["from_stage"] = ordered_stages[0] if ordered_stages else plan.get("from_stage")
+    if dry_run or not plan.get("affected_stages"):
+        return {
+            "status": "planned",
+            "rederive_plan": plan,
+        }
+    # Preserve the existing runtime rebuild behavior while moving the library
+    # maintenance entry point to the library owner.
+    runtime = derive_graph(
+        root,
+        [],
+        from_stage=plan.get("from_stage"),
+        force=True,
+        profile=profile,
+    )
+    clear_pending_governance_rederive(root, applied_plan=plan)
+    return {
+        "status": "completed",
+        "rederive_plan": plan,
+        "runtime": runtime,
+    }
+
+
+def get_dimension_model_role_status(root: Path) -> Dict[str, Any]:
+    runtime_config = ensure_runtime_model_roles(root)
+    registry = load_dimension_registry(root)
+    configured_roles = runtime_config.get("model_roles") or {}
+    if not isinstance(configured_roles, dict):
+        configured_roles = {}
+    known_role_ids = {
+        "dimension_local_fast",
+        "dimension_local_semantic",
+        "dimension_remote_judge",
+        "pond_router_local",
+        "pond_router_judge",
+    }
+    for row in registry.get("dimensions", []):
+        preferred_role = str(row.get("preferred_role", "")).strip()
+        if preferred_role:
+            known_role_ids.add(preferred_role)
+
+    bindings: List[Dict[str, Any]] = []
+    role_map: Dict[str, Dict[str, Any]] = {}
+    for role_id in sorted(known_role_ids):
+        payload = configured_roles.get(role_id, {})
+        if not isinstance(payload, dict):
+            payload = {}
+        binding = ModelRoleBinding(
+            role_id=role_id,
+            backend=str(payload.get("backend", "")).strip(),
+            model_id=str(payload.get("model_id", "")).strip(),
+            enabled=bool(payload.get("enabled", False)),
+            fallback_role_id=str(payload.get("fallback_role_id", "")).strip(),
+            endpoint=str(payload.get("endpoint", "")).strip(),
+            attributes=dict(payload.get("attributes", {})),
+        ).to_dict()
+        binding["bound"] = bool(binding["enabled"] and (binding["model_id"] or binding["endpoint"]))
+        bindings.append(binding)
+        role_map[role_id] = binding
+
+    assisted_dimensions = []
+    for row in registry.get("dimensions", []):
+        if not row.get("requires_model", False):
+            continue
+        preferred_role = str(row.get("preferred_role", "")).strip()
+        binding = role_map.get(preferred_role, {}) if preferred_role else {}
+        assisted_dimensions.append(
+            {
+                "dimension_id": row["dimension_id"],
+                "label": row.get("label", row["dimension_id"]),
+                "preferred_role": preferred_role,
+                "fallback_mode": row.get("fallback_mode", "deterministic"),
+                "bound": bool(binding.get("bound", False)),
+                "binding": binding or None,
+            }
+        )
+
+    return {
+        "runtime_config_path": str(_runtime_config_path(root)),
+        "role_count": len(bindings),
+        "bound_role_count": sum(1 for row in bindings if row.get("bound")),
+        "bindings": bindings,
+        "assisted_dimension_count": len(assisted_dimensions),
+        "bound_assisted_dimension_count": sum(1 for row in assisted_dimensions if row.get("bound")),
+        "assisted_dimensions": assisted_dimensions,
+    }
+
+
+def _pond_learning_summary(feedback_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    pond_transition_counts: Counter[tuple[str, str]] = Counter()
+    weak_pond_counts: Counter[str] = Counter()
+    target_pond_counts: Counter[str] = Counter()
+    weak_layer_counts: Counter[str] = Counter()
+    target_layer_counts: Counter[str] = Counter()
+    corrected_chunk_ids = set()
+    manual_override_count = 0
+    layer_override_count = 0
+
+    for row in feedback_rows:
+        previous_pond = str(row.get("previous_primary_pond", "")).strip()
+        new_pond = str(row.get("new_primary_pond", "")).strip()
+        event_type = str(row.get("event_type", "")).strip()
+        chunk_id = str(row.get("chunk_id", "")).strip()
+        if chunk_id:
+            corrected_chunk_ids.add(chunk_id)
+        if event_type == "manual_pond_override":
+            manual_override_count += 1
+        if event_type == "manual_pond_layer_override":
+            layer_override_count += 1
+        if previous_pond and new_pond and previous_pond != new_pond:
+            pond_transition_counts[(previous_pond, new_pond)] += 1
+            weak_pond_counts[previous_pond] += 1
+            target_pond_counts[new_pond] += 1
+        elif new_pond:
+            target_pond_counts[new_pond] += 1
+        previous_layers = {str(value).strip() for value in row.get("previous_pond_layers", []) if str(value).strip()}
+        new_layers = {str(value).strip() for value in row.get("new_pond_layers", []) if str(value).strip()}
+        for layer in sorted(previous_layers - new_layers):
+            weak_layer_counts[layer] += 1
+        for layer in sorted(new_layers - previous_layers):
+            target_layer_counts[layer] += 1
+
+    return {
+        "corrected_chunk_count": len(corrected_chunk_ids),
+        "manual_override_count": manual_override_count,
+        "layer_override_count": layer_override_count,
+        "top_pond_transitions": [
+            {
+                "previous_primary_pond": previous_pond,
+                "new_primary_pond": new_pond,
+                "count": count,
+            }
+            for (previous_pond, new_pond), count in pond_transition_counts.most_common(5)
+        ],
+        "weak_primary_ponds": [
+            {"pond_id": pond_id, "count": count}
+            for pond_id, count in weak_pond_counts.most_common(5)
+        ],
+        "target_primary_ponds": [
+            {"pond_id": pond_id, "count": count}
+            for pond_id, count in target_pond_counts.most_common(5)
+        ],
+        "weak_layers": [
+            {"layer": layer, "count": count}
+            for layer, count in weak_layer_counts.most_common(5)
+        ],
+        "target_layers": [
+            {"layer": layer, "count": count}
+            for layer, count in target_layer_counts.most_common(5)
+        ],
+    }
+
+
+def get_pond_router_status(root: Path) -> Dict[str, Any]:
+    runtime_config = ensure_runtime_model_roles(root)
+    pond_router = dict(runtime_config.get("pond_router") or {})
+    local_role_id = str(pond_router.get("local_role_id", "")).strip()
+    judge_role_id = str(pond_router.get("judge_role_id", "")).strip()
+    feedback_rows = load_pond_routing_feedback(root)
+    event_type_counts: Dict[str, int] = {}
+    for row in feedback_rows:
+        event_type = str(row.get("event_type", "")).strip() or "unknown"
+        event_type_counts[event_type] = event_type_counts.get(event_type, 0) + 1
+    learning_summary = _pond_learning_summary(feedback_rows)
+    bindings = {
+        row["role_id"]: row
+        for row in get_dimension_model_role_status(root).get("bindings", [])
+        if row.get("role_id")
+    }
+    return {
+        "runtime_config_path": str(_runtime_config_path(root)),
+        "feedback_path": str(_pond_routing_feedback_path(root)),
+        "enabled": bool(pond_router.get("enabled", True)),
+        "mode": str(pond_router.get("mode", "heuristic")).strip() or "heuristic",
+        "assisted_on_ambiguity": bool(pond_router.get("assisted_on_ambiguity", True)),
+        "allow_manual_override": bool(pond_router.get("allow_manual_override", True)),
+        "ambiguity_threshold": float(pond_router.get("ambiguity_threshold", 0.72)),
+        "router_version": str(pond_router.get("router_version", "v1")).strip() or "v1",
+        "local_role_id": local_role_id,
+        "judge_role_id": judge_role_id,
+        "local_role_binding": bindings.get(local_role_id),
+        "judge_role_binding": bindings.get(judge_role_id),
+        "feedback_count": len(feedback_rows),
+        "feedback_event_types": event_type_counts,
+        "learning_summary": learning_summary,
+    }
+
+
+def get_chunk_pond_detail(root: Path, chunk_id: str, domain_overlays: List[str] | None = None) -> Dict[str, Any]:
+    del domain_overlays
+    return get_chunk_pond_routing_state(root, chunk_id)
+
+
+def update_pond_router_config(
+    root: Path,
+    *,
+    enabled: bool | None = None,
+    mode: str | None = None,
+    assisted_on_ambiguity: bool | None = None,
+    allow_manual_override: bool | None = None,
+    ambiguity_threshold: float | None = None,
+    local_role_id: str | None = None,
+    judge_role_id: str | None = None,
+    router_version: str | None = None,
+) -> Dict[str, Any]:
+    runtime_config = ensure_runtime_model_roles(root)
+    pond_router = _merged_pond_router_config(runtime_config)
+    updated = dict(pond_router)
+    if enabled is not None:
+        updated["enabled"] = bool(enabled)
+    if mode is not None:
+        normalized_mode = str(mode).strip().lower()
+        allowed_modes = {"off", "manual_only", "heuristic", "hybrid", "assisted"}
+        if normalized_mode not in allowed_modes:
+            raise ValueError(f"Invalid pond router mode: {mode}")
+        updated["mode"] = normalized_mode
+    if assisted_on_ambiguity is not None:
+        updated["assisted_on_ambiguity"] = bool(assisted_on_ambiguity)
+    if allow_manual_override is not None:
+        updated["allow_manual_override"] = bool(allow_manual_override)
+    if ambiguity_threshold is not None:
+        threshold = float(ambiguity_threshold)
+        if threshold < 0.0 or threshold > 1.0:
+            raise ValueError("ambiguity_threshold must be between 0.0 and 1.0")
+        updated["ambiguity_threshold"] = round(threshold, 3)
+    if local_role_id is not None:
+        updated["local_role_id"] = str(local_role_id).strip()
+    if judge_role_id is not None:
+        updated["judge_role_id"] = str(judge_role_id).strip()
+    if router_version is not None:
+        updated["router_version"] = str(router_version).strip() or pond_router.get("router_version", "v1")
+    runtime_config = dict(runtime_config)
+    runtime_config["pond_router"] = updated
+    write_json(_runtime_config_path(root), runtime_config)
+    return {"status": "updated", "pond_router": get_pond_router_status(root)}
+
+
+def apply_pond_router_preset(root: Path, preset: str) -> Dict[str, Any]:
+    normalized = str(preset).strip().lower()
+    if normalized == "off":
+        return update_pond_router_config(root, enabled=False, mode="off")
+    if normalized == "manual_only":
+        return update_pond_router_config(root, enabled=True, mode="manual_only")
+    if normalized == "heuristic":
+        return update_pond_router_config(root, enabled=True, mode="heuristic", assisted_on_ambiguity=False)
+    if normalized == "hybrid":
+        return update_pond_router_config(root, enabled=True, mode="hybrid", assisted_on_ambiguity=True)
+    if normalized == "assisted":
+        return update_pond_router_config(root, enabled=True, mode="assisted", assisted_on_ambiguity=True)
+    raise ValueError(f"Unknown pond router preset: {preset}")
+
+
+def update_chunk_pond_detail(
+    root: Path,
+    chunk_id: str,
+    *,
+    primary_pond: str | None = None,
+    pond_layers: List[str] | None = None,
+    clear_override: bool = False,
+    notes: str | None = None,
+    domain_overlays: List[str] | None = None,
+) -> Dict[str, Any]:
+    del domain_overlays
+    return override_chunk_pond_routing(
+        root,
+        chunk_id,
+        primary_pond=primary_pond,
+        pond_layers=pond_layers,
+        clear_override=clear_override,
+        notes=notes,
+    )
+
+
+def update_dimension_model_role_binding(
+    root: Path,
+    *,
+    role_id: str,
+    backend: str | None = None,
+    model_id: str | None = None,
+    enabled: bool | None = None,
+    fallback_role_id: str | None = None,
+    endpoint: str | None = None,
+    attributes: Dict | None = None,
+) -> Dict[str, Any]:
+    runtime_config = ensure_runtime_model_roles(root)
+    model_roles = _merged_runtime_model_roles(runtime_config)
+    if role_id not in model_roles:
+        model_roles[role_id] = {
+            "backend": "",
+            "model_id": "",
+            "enabled": False,
+            "fallback_role_id": "",
+            "endpoint": "",
+            "attributes": {},
+        }
+    payload = dict(model_roles[role_id])
+    if backend is not None:
+        payload["backend"] = str(backend).strip()
+    if model_id is not None:
+        payload["model_id"] = str(model_id).strip()
+    if enabled is not None:
+        payload["enabled"] = bool(enabled)
+    if fallback_role_id is not None:
+        payload["fallback_role_id"] = str(fallback_role_id).strip()
+    if endpoint is not None:
+        payload["endpoint"] = str(endpoint).strip()
+    if attributes is not None:
+        payload["attributes"] = dict(attributes)
+    model_roles[role_id] = payload
+    runtime_config = dict(runtime_config)
+    runtime_config["model_roles"] = model_roles
+    write_json(_runtime_config_path(root), runtime_config)
+    status = get_dimension_model_role_status(root)
+    resolved = next((row for row in status["bindings"] if row["role_id"] == role_id), None)
+    return {
+        "status": "updated",
+        "role_id": role_id,
+        "binding": resolved,
+        "dimension_model_roles": status,
+    }
+
+
+def load_pond_routing_feedback(root: Path) -> List[Dict[str, Any]]:
+    return read_jsonl(_pond_routing_feedback_path(root))
+
+
+def record_pond_routing_feedback(
+    root: Path,
+    *,
+    event_type: str,
+    chunk_id: str = "",
+    source_ref: str = "",
+    previous_primary_pond: str = "",
+    new_primary_pond: str = "",
+    previous_pond_layers: List[str] | None = None,
+    new_pond_layers: List[str] | None = None,
+    actor: str = "operator",
+    routing_method: str = "",
+    note: str = "",
+) -> Dict[str, Any]:
+    path = _pond_routing_feedback_path(root)
+    rows = load_pond_routing_feedback(root)
+    entry = {
+        "event_id": make_id("pond-feedback"),
+        "event_type": str(event_type).strip(),
+        "chunk_id": str(chunk_id).strip(),
+        "source_ref": str(source_ref).strip(),
+        "previous_primary_pond": str(previous_primary_pond).strip(),
+        "new_primary_pond": str(new_primary_pond).strip(),
+        "previous_pond_layers": [str(value).strip() for value in (previous_pond_layers or []) if str(value).strip()],
+        "new_pond_layers": [str(value).strip() for value in (new_pond_layers or []) if str(value).strip()],
+        "actor": str(actor).strip() or "operator",
+        "routing_method": str(routing_method).strip(),
+        "note": str(note).strip(),
+        "created_at": utc_now(),
+    }
+    rows.append(entry)
+    write_jsonl(path, rows)
+    return {
+        "status": "recorded",
+        "feedback_event": entry,
+        "pond_router": get_pond_router_status(root),
+    }
+
+
+def _dimension_role_binding(root: Path, role_id: str) -> Dict[str, Any] | None:
+    if not role_id:
+        return None
+    status = get_dimension_model_role_status(root)
+    return next((row for row in status.get("bindings", []) if row.get("role_id") == role_id), None)
+
+
+def _extract_json_object(text: str) -> Dict[str, Any] | None:
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if not match:
+        return None
+    try:
+        payload = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def classify_assisted_dimension(
+    root: Path,
+    *,
+    dimension_id: str,
+    row: Dict[str, Any],
+    preferred_role: str,
+    allowed_values: List[str] | None = None,
+) -> Dict[str, Any] | None:
+    binding = _dimension_role_binding(root, preferred_role)
+    if not binding or not binding.get("bound"):
+        return None
+
+    backend_id = str(binding.get("backend", "")).strip().lower()
+    if backend_id in {"local", "openclaw_local"}:
+        resolved_backend_id = "openclaw_local"
+    elif backend_id in {"remote", "openclaw_gateway", "openclaw"}:
+        resolved_backend_id = "openclaw_gateway"
+    else:
+        return None
+
+    allowed = [value for value in (allowed_values or []) if value]
+    if dimension_id != "evidence_posture":
+        return None
+
+    backend = {
+        "id": resolved_backend_id,
+        "openclaw": {
+            "agent": binding.get("attributes", {}).get("agent")
+            or _runtime_config_payload(root).get("openclaw", {}).get("agent")
+            or "main",
+            "thinking": binding.get("attributes", {}).get("thinking")
+            or _runtime_config_payload(root).get("openclaw", {}).get("thinking")
+            or "minimal",
+            "timeout_seconds": int(
+                binding.get("attributes", {}).get("timeout_seconds")
+                or _runtime_config_payload(root).get("openclaw", {}).get("timeout_seconds")
+                or 20
+            ),
+            "deliver": False,
+        },
+    }
+    context = {
+        "character": "Dimension Classifier",
+        "system_prompt": (
+            "Classify the attached chunk into exactly one evidence_posture label. "
+            f"Allowed labels: {', '.join(allowed) or 'evidence, synthesis, speculation, instruction, scaffolding'}. "
+            "Respond with compact JSON only: "
+            '{"value":"...", "confidence":0.0, "rationale":"..."}'
+        ),
+        "source_snippets": [
+            {
+                "title": row.get("title", "") or row.get("chunk_id", "chunk"),
+                "source_ref": row.get("source_ref", "memory://chunk"),
+                "excerpt": str(row.get("content", ""))[:600],
+            }
+        ],
+    }
+    thread = {
+        "thread_id": f"{dimension_id}-{row.get('chunk_id', 'chunk')}",
+        "title": f"{dimension_id} enrichment",
+        "messages": [],
+    }
+    try:
+        reply = request_openclaw_reply(
+            root,
+            context,
+            "Classify this chunk now.",
+            thread,
+            backend,
+        )
+    except Exception:
+        return None
+    payload = _extract_json_object(reply.get("content", ""))
+    if not payload:
+        return None
+    value = str(payload.get("value", "")).strip().lower()
+    if allowed and value not in {item.lower() for item in allowed}:
+        return None
+    confidence = payload.get("confidence", 0.65)
+    try:
+        confidence_value = float(confidence)
+    except (TypeError, ValueError):
+        confidence_value = 0.65
+    return {
+        "value": value,
+        "confidence": max(0.0, min(1.0, confidence_value)),
+        "rationale": str(payload.get("rationale", "")).strip(),
+        "model_role": preferred_role,
+        "model_signature": str(binding.get("model_id", "")).strip() or resolved_backend_id,
+        "binding": binding,
+    }
+
+
+def classify_assisted_pond_route(
+    root: Path,
+    *,
+    row: Dict[str, Any],
+    pond_matrix: Dict[str, Any],
+    preferred_role: str,
+) -> Dict[str, Any] | None:
+    binding = _dimension_role_binding(root, preferred_role)
+    if not binding or not binding.get("bound"):
+        return None
+
+    backend_id = str(binding.get("backend", "")).strip().lower()
+    if backend_id in {"local", "openclaw_local"}:
+        resolved_backend_id = "openclaw_local"
+    elif backend_id in {"remote", "openclaw_gateway", "openclaw"}:
+        resolved_backend_id = "openclaw_gateway"
+    else:
+        return None
+
+    pond_rows = pond_matrix.get("ponds", {}) if isinstance(pond_matrix, dict) else {}
+    if not pond_rows:
+        return None
+    pond_summary = {
+        pond_id: {
+            "description": pond.get("description", ""),
+            "layers": pond.get("layers", []),
+        }
+        for pond_id, pond in pond_rows.items()
+    }
+    backend = {
+        "id": resolved_backend_id,
+        "openclaw": {
+            "agent": binding.get("attributes", {}).get("agent")
+            or _runtime_config_payload(root).get("openclaw", {}).get("agent")
+            or "main",
+            "thinking": binding.get("attributes", {}).get("thinking")
+            or _runtime_config_payload(root).get("openclaw", {}).get("thinking")
+            or "minimal",
+            "timeout_seconds": int(
+                binding.get("attributes", {}).get("timeout_seconds")
+                or _runtime_config_payload(root).get("openclaw", {}).get("timeout_seconds")
+                or 20
+            ),
+            "deliver": False,
+        },
+    }
+    context = {
+        "character": "Pond Router",
+        "system_prompt": (
+            "Route the attached chunk into the most appropriate pond and touched layers from the supplied pond matrix. "
+            "Return compact JSON only with this shape: "
+            '{"primary_pond":"...", "touched_layers":["..."], "confidence":0.0, "justification":"..."}'
+        ),
+        "pond_matrix": pond_summary,
+        "source_snippets": [
+            {
+                "title": row.get("title", "") or row.get("chunk_id", "chunk"),
+                "source_ref": row.get("source_ref", "memory://chunk"),
+                "excerpt": str(row.get("content", ""))[:900],
+            }
+        ],
+    }
+    thread = {
+        "thread_id": f"pond-route-{row.get('chunk_id', 'chunk')}",
+        "title": "pond route enrichment",
+        "messages": [],
+    }
+    try:
+        reply = request_openclaw_reply(
+            root,
+            context,
+            "Route this chunk now.",
+            thread,
+            backend,
+        )
+    except Exception:
+        return None
+    payload = _extract_json_object(reply.get("content", ""))
+    if not payload:
+        return None
+    primary_pond = str(payload.get("primary_pond", "")).strip()
+    if primary_pond not in pond_summary:
+        return None
+    touched_layers = [
+        str(value).strip()
+        for value in payload.get("touched_layers", [])
+        if str(value).strip()
+    ]
+    allowed_layers = {str(layer).strip() for layer in pond_summary[primary_pond].get("layers", [])}
+    touched_layers = [layer for layer in touched_layers if layer in allowed_layers]
+    confidence = payload.get("confidence", 0.65)
+    try:
+        confidence_value = float(confidence)
+    except (TypeError, ValueError):
+        confidence_value = 0.65
+    return {
+        "primary_pond": primary_pond,
+        "touched_layers": touched_layers,
+        "confidence": max(0.0, min(1.0, confidence_value)),
+        "justification": str(payload.get("justification", "")).strip(),
+        "model_role": preferred_role,
+        "model_signature": str(binding.get("model_id", "")).strip() or resolved_backend_id,
+        "binding": binding,
+    }
 
 
 def get_chunk_status(root: Path) -> Dict[str, Any]:

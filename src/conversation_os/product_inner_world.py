@@ -36,20 +36,39 @@ from .conversation_threads import (
     load_thread_links as _load_thread_links,
 )
 from .library_tracker import (
+    _ensure_runtime_graph,
+    _materialize_connections as _materialize_connections_admin,
+    _merged_pond_router_config,
+    _merged_runtime_model_roles,
+    _runtime_config_path,
+    _runtime_config_payload,
+    apply_pond_router_preset as apply_pond_router_preset_admin,
     clear_pending_governance_rederive,
+    classify_assisted_dimension as classify_assisted_dimension_admin,
+    classify_assisted_pond_route as classify_assisted_pond_route_admin,
+    get_chunk_pond_detail as get_chunk_pond_detail_admin,
     get_chunk_pond_routing_state,
+    get_dimension_model_role_status as get_dimension_model_role_status_admin,
     get_library_status as get_library_tracker_status,
+    get_pond_router_status as get_pond_router_status_admin,
     load_chunk_dimension_profiles,
     load_dimension_registry,
     load_library_governance,
+    load_pond_routing_feedback as load_pond_routing_feedback_admin,
     match_chunk_dimension_profiles,
     override_chunk_pond_routing,
+    record_pond_routing_feedback as record_pond_routing_feedback_admin,
     resolve_governed_chunk_rows,
     resolve_governed_source_rows,
     scan_library_sources as scan_library_tracker_sources,
     sync_library_sources as sync_library_tracker_sources,
+    derive_graph as derive_graph_admin,
+    update_chunk_pond_detail as update_chunk_pond_detail_admin,
+    update_dimension_model_role_binding as update_dimension_model_role_binding_admin,
+    update_pond_router_config as update_pond_router_config_admin,
     update_family_governance,
     update_source_governance,
+    ensure_runtime_model_roles,
 )
 from .knowledge_layer import (
     add_alias_resolution,
@@ -65,7 +84,6 @@ from .knowledge_layer import (
 )
 from .meta_layer import extract_meta_layer, load_meta_records as _load_meta_records, meta_layer_dir
 from .meta_objects import META_LAYER_FILES
-from .models import ModelRoleBinding
 from .pipelines import ensure_pipeline_specs
 from .pipeline_runner import run_pipeline
 from .plugins import load_plugins
@@ -110,6 +128,43 @@ from .vault_ingest import (
 )
 
 
+MODULE_ID = "surface.inner_world.product_inner_world"
+CONTRACT_VERSION = "1.0"
+_ASSEMBLY_HOOKS = (
+    "ensure_surface_recipe",
+    "load_surface_recipe",
+)
+_SURFACE_EXPERIENCE_API = (
+    "get_retrieval_bundle",
+    "get_linking_overview",
+    "get_link_governance_state",
+    "update_link_governance",
+    "create_link_alias_resolution",
+    "generate_daily_batch",
+    "build_thought_feed",
+    "build_thought_archive",
+    "list_bubbles",
+    "get_bubble_detail",
+    "filter_knowledge_components",
+    "get_thought_detail",
+    "get_source_item_detail",
+    "get_thread_detail",
+    "chat_with_thought",
+    "save_thread",
+    "delete_thread",
+    "record_feedback",
+    "export_state",
+    "get_runtime_overview",
+)
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    *_ASSEMBLY_HOOKS,
+    *_SURFACE_EXPERIENCE_API,
+)
+__all__ = list(PUBLIC_API)
+
+
 def _data_dir(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "data"
 
@@ -138,8 +193,120 @@ def _context_bubbles_progress_path(root: Path) -> Path:
     return _data_dir(root) / "context_bubbles_progress.json"
 
 
-def _runtime_config_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "config" / "runtime.json"
+def _surface_recipe_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "config" / "surface_recipe.v1.json"
+
+
+def _default_surface_recipe(root: Path) -> Dict[str, Any]:
+    return {
+        "recipe_id": "recipe.inner_world.v1",
+        "surface_id": "surface.inner_world",
+        "name": "Inner World v1 Reference Surface",
+        "status": "transitional",
+        "version": "0.1.0",
+        "target_layer": "surface",
+        "purpose": (
+            "Present evidence-backed thoughts as a feed, archive, article expansion, "
+            "and scoped chat surface over the conversation substrate."
+        ),
+        "module_refs": [
+            {
+                "module_id": "kernel.foundation.storage",
+                "version_range": ">=0.1.0",
+                "required": True,
+                "notes": "Shared storage boundary used by the reference surface.",
+            },
+            {
+                "module_id": "kernel.foundation.models",
+                "version_range": ">=0.1.0",
+                "required": True,
+                "notes": "Shared record shapes used by runtime and surface payloads.",
+            },
+            {
+                "module_id": "kernel.analysis.analysis_units",
+                "version_range": ">=0.1.0",
+                "required": True,
+                "notes": "Provides canonical analysis units for downstream shaping.",
+            },
+            {
+                "module_id": "kernel.meta.meta_objects",
+                "version_range": ">=0.1.0",
+                "required": True,
+                "notes": "Provides canonical meta-layer vocabulary.",
+            },
+            {
+                "module_id": "kernel.runtime.cost_tracker",
+                "version_range": ">=0.1.0",
+                "required": False,
+                "notes": "Tracks runtime and equivalent LLM cost events.",
+            },
+            {
+                "module_id": "kernel.reasoning.judgment",
+                "version_range": ">=0.1.0",
+                "required": False,
+                "notes": "Classifies thought-surfacing runs for review and evidence state.",
+            },
+        ],
+        "adapter_refs": [
+            {
+                "adapter_id": "surface.inner_world.runtime_payloads",
+                "repo_paths": ["src/conversation_os/product_inner_world.py"],
+                "purpose": "Shape runtime state into feed, archive, detail, and chat payloads.",
+                "depends_on": [
+                    "kernel.analysis.analysis_units",
+                    "kernel.runtime.cost_tracker",
+                    "kernel.reasoning.judgment",
+                ],
+            },
+            {
+                "adapter_id": "surface.inner_world.browser_surface",
+                "repo_paths": [
+                    "src/conversation_os/miniapp.py",
+                    "product/inner_world_v1/miniapp",
+                ],
+                "purpose": "Serve the browser-facing Inner World and World Studio interface.",
+                "depends_on": ["surface.inner_world.runtime_payloads"],
+            },
+        ],
+        "policy_defaults": {
+            "source_visibility": "governed",
+            "contradiction_review": "required",
+            "chat_backend": "heuristic",
+        },
+        "runtime_dependencies": [
+            "product/inner_world_v1/config/runtime.json",
+            "product/inner_world_v1/config/runtime_pipeline.json",
+            "product/inner_world_v1/pipelines/*.json",
+        ],
+        "state_dependencies": [
+            "memory/events",
+            "memory/sessions",
+            "product/inner_world_v1/data",
+        ],
+        "entrypoints": [
+            "python3 tools/run_inner_world_miniapp.py",
+            "python3 tools/run_inner_world_backend.py",
+            "python3 tools/conversation_os.py inner-world serve --domains research,art,entrepreneurship",
+        ],
+        "config_path": str(_surface_recipe_path(root)),
+    }
+
+
+def ensure_surface_recipe(root: Path) -> Path:
+    path = _surface_recipe_path(root)
+    if not path.exists():
+        write_json(path, _default_surface_recipe(root))
+    return path
+
+
+def load_surface_recipe(root: Path) -> Dict[str, Any]:
+    path = ensure_surface_recipe(root)
+    payload = read_json(path, default={}) or {}
+    default_payload = _default_surface_recipe(root)
+    recipe = dict(default_payload)
+    recipe.update(payload)
+    recipe["config_path"] = str(path)
+    return recipe
 
 
 def _runtime_source_visibility(root: Path) -> Dict[str, bool]:
@@ -490,132 +657,6 @@ def load_thought_packets(root: Path) -> List[Dict]:
     ]
 
 
-def _default_dimension_model_roles() -> Dict:
-    return {
-        "dimension_local_fast": {
-            "backend": "",
-            "model_id": "",
-            "enabled": False,
-            "fallback_role_id": "",
-            "endpoint": "",
-            "attributes": {
-                "purpose": "Cheap local-first semantic classification for light chunk labeling.",
-            },
-        },
-        "dimension_local_semantic": {
-            "backend": "",
-            "model_id": "",
-            "enabled": False,
-            "fallback_role_id": "dimension_local_fast",
-            "endpoint": "",
-            "attributes": {
-                "purpose": "Stronger local semantic worker for intent/tension/lens enrichment.",
-            },
-        },
-        "dimension_remote_judge": {
-            "backend": "",
-            "model_id": "",
-            "enabled": False,
-            "fallback_role_id": "dimension_local_semantic",
-            "endpoint": "",
-            "attributes": {
-                "purpose": "Escalation-only remote semantic judge for difficult arbitration.",
-            },
-        },
-        "pond_router_local": {
-            "backend": "",
-            "model_id": "",
-            "enabled": False,
-            "fallback_role_id": "",
-            "endpoint": "",
-            "attributes": {
-                "purpose": "Local-first pond router for chunk/project/domain basin classification.",
-            },
-        },
-        "pond_router_judge": {
-            "backend": "",
-            "model_id": "",
-            "enabled": False,
-            "fallback_role_id": "pond_router_local",
-            "endpoint": "",
-            "attributes": {
-                "purpose": "Escalation-only pond routing judge for ambiguous or multi-pond chunks.",
-            },
-        },
-    }
-
-
-def _default_pond_router_config() -> Dict:
-    return {
-        "enabled": True,
-        "mode": "heuristic",
-        "assisted_on_ambiguity": True,
-        "allow_manual_override": True,
-        "ambiguity_threshold": 0.72,
-        "local_role_id": "pond_router_local",
-        "judge_role_id": "pond_router_judge",
-        "router_version": "v1",
-    }
-
-
-def _merged_pond_router_config(config: Dict) -> Dict:
-    defaults = _default_pond_router_config()
-    configured = config.get("pond_router")
-    if not isinstance(configured, dict):
-        configured = {}
-    return {
-        **defaults,
-        **configured,
-    }
-
-
-def _merged_runtime_model_roles(config: Dict) -> Dict:
-    defaults = _default_dimension_model_roles()
-    configured = config.get("model_roles")
-    if not isinstance(configured, dict):
-        configured = {}
-    merged: Dict[str, Dict] = {}
-    order = list(defaults.keys())
-    for role_id, payload in configured.items():
-        if role_id not in order:
-            order.append(role_id)
-    for role_id in order:
-        default_payload = defaults.get(role_id, {})
-        configured_payload = configured.get(role_id, {})
-        if not isinstance(configured_payload, dict):
-            configured_payload = {}
-        merged[role_id] = {
-            **default_payload,
-            **configured_payload,
-            "attributes": {
-                **dict(default_payload.get("attributes", {})),
-                **dict(configured_payload.get("attributes", {})),
-            },
-        }
-    return merged
-
-
-def ensure_runtime_model_roles(root: Path) -> Dict:
-    path = _runtime_config_path(root)
-    config = _runtime_config_payload(root)
-    merged_roles = _merged_runtime_model_roles(config)
-    merged_pond_router = _merged_pond_router_config(config)
-    if config.get("model_roles") != merged_roles or config.get("pond_router") != merged_pond_router:
-        config = dict(config)
-        config["model_roles"] = merged_roles
-        config["pond_router"] = merged_pond_router
-        write_json(path, config)
-    return config
-
-
-def _runtime_config_payload(root: Path) -> Dict:
-    return read_json(_runtime_config_path(root), default={}) or {}
-
-
-def _pond_routing_feedback_path(root: Path) -> Path:
-    return _data_dir(root) / "pond_routing_feedback.jsonl"
-
-
 def _count_jsonl_rows(path: Path) -> int:
     if not path.exists():
         return 0
@@ -834,260 +875,6 @@ def _feedback_bonus(feedback_state: str, policy_snapshot: Dict) -> float:
     return base
 
 
-def _meta_summary_from_current_state(root: Path) -> Dict:
-    meta_counts = {
-        kind: _count_jsonl_rows(meta_layer_dir(root) / META_LAYER_FILES[kind])
-        for kind in META_LAYER_FILES
-    }
-    return {
-        "chunk_count": len(load_chunk_index(root)),
-        "analysis_unit_count": len(load_analysis_units(root)),
-        "delta_count": len(load_conversation_deltas(root)),
-        "expectation_count": len(load_user_expectations(root)),
-        "meta_counts": meta_counts,
-        "total_meta_records": sum(meta_counts.values()),
-    }
-
-
-def _thread_summary_from_current_state(root: Path) -> Dict:
-    return {
-        "thread_count": len(load_conversation_threads(root)),
-        "link_count": len(load_thread_links(root)),
-    }
-
-
-def _abstraction_summary_from_current_state(root: Path) -> Dict:
-    return {
-        "raw_thread_count": len(load_conversation_threads(root)),
-        "abstract_thread_count": len(load_thread_abstractions(root)),
-        "link_count": len(load_thread_abstraction_links(root)),
-        "project_lens_count": len(load_project_lenses(root)),
-    }
-
-
-def _bubble_summary_from_current_state(root: Path) -> Dict:
-    return {
-        "bubble_count": len(load_context_bubbles(root)),
-        "membership_count": len(load_bubble_memberships(root)),
-        "edge_count": len(load_bubble_edges(root)),
-        "transition_count": len(load_bubble_transitions(root)),
-    }
-
-
-def _knowledge_summary_from_current_state(root: Path) -> Dict:
-    return {
-        "meta_node_count": len(load_knowledge_nodes(root)),
-        "edge_count": len(load_knowledge_edges(root)),
-    }
-
-
-def _concept_summary_from_current_state(root: Path) -> Dict:
-    review_rows = load_concept_review_queue(root)
-    return {
-        "concept_count": len(load_concept_nodes(root)),
-        "edge_count": len(load_concept_edges(root)),
-        "synthesis_packet_count": len(load_synthesis_packets(root)),
-        "touch_operation_count": len(load_touch_operations(root)),
-        "review_count": len(review_rows),
-    }
-
-
-def _materialize_plugin_primitives(root: Path, domain_overlays: List[str] | None = None) -> Dict:
-    plugin_primitives = []
-    for plugin in load_plugins(root, domain_overlays):
-        plugin_primitives.extend(plugin.get("reasoning_primitives", []))
-    write_json(_data_dir(root) / "reasoning_primitives.json", plugin_primitives)
-    return {"primitive_count": len(plugin_primitives)}
-
-
-def _materialize_concept_nodes(root: Path) -> Dict:
-    durable_concepts = load_concept_nodes(root)
-    if durable_concepts:
-        concept_nodes = [
-            {
-                "concept_node_id": row["concept_id"],
-                "label": row["label"],
-                "kind": "conversation_concept",
-                "support_count": len(row.get("source_refs", [])),
-                "status": row.get("status", "provisional"),
-                "confidence": row.get("confidence", 0.0),
-            }
-            for row in durable_concepts[:160]
-        ]
-    else:
-        concept_nodes = [
-            {"concept_node_id": row["meta_id"], "label": row["label"], "kind": row["kind"], "support_count": len(row["chunk_ids"])}
-            for row in load_meta_records(root, ["theme", "shared_primitive", "direction"])[:160]
-        ]
-    write_json(_data_dir(root) / "concept_nodes.json", concept_nodes)
-    return {"concept_node_count": len(concept_nodes)}
-
-
-def _materialize_connections(root: Path) -> Dict:
-    max_connections = 5000
-    connection_rows: List[Dict] = []
-    total_connection_count = 0
-    knowledge_edges_path = _data_dir(root) / "knowledge_edges.jsonl"
-    if knowledge_edges_path.exists():
-        with knowledge_edges_path.open(encoding="utf-8") as handle:
-            for line in handle:
-                if not line.strip():
-                    continue
-                item = json.loads(line)
-                if item["kind"] not in {"relates_to", "contradicts", "transfers_to"}:
-                    continue
-                total_connection_count += 1
-                connection_rows.append(
-                    {
-                        "connection_id": item["edge_id"],
-                        "left_source_ref": item["from_id"],
-                        "right_source_ref": item["to_id"],
-                        "kind": item["kind"],
-                        "shared_concepts": item.get("attributes", {}).get("shared_tokens", []),
-                        "salient_concepts": item.get("attributes", {}).get("shared_tokens", []),
-                        "strength": item["confidence"],
-                    }
-                )
-    ordered_connections = sorted(
-        connection_rows,
-        key=lambda item: (
-            -float(item.get("strength", 0.0)),
-            item.get("connection_id", ""),
-        ),
-    )[:max_connections]
-    payload = {
-        "generated_at": utc_now(),
-        "total_connection_count": total_connection_count,
-        "included_connection_count": len(ordered_connections),
-        "max_connections": max_connections,
-        "truncated": total_connection_count > len(ordered_connections),
-        "connections": ordered_connections,
-    }
-    write_json(_data_dir(root) / "connections.json", payload)
-    return {
-        "connection_count": total_connection_count,
-        "included_connection_count": len(ordered_connections),
-        "truncated": payload["truncated"],
-    }
-
-
-def _meta_artifact_paths(root: Path) -> List[Path]:
-    return [meta_layer_dir(root) / META_LAYER_FILES[kind] for kind in META_LAYER_FILES]
-
-
-def _runtime_component_artifacts(root: Path) -> Dict[str, List[Path]]:
-    data_dir = _data_dir(root)
-    concept_graph_dir = data_dir / "concept_graph"
-    return {
-        "bootstrap_legacy_sources": [data_dir / "source_items.jsonl"],
-        "analysis_units": [data_dir / "analysis_units.jsonl"],
-        "conversation_deltas": [data_dir / "conversation_deltas.jsonl", data_dir / "user_expectations.jsonl"],
-        "meta_layer": _meta_artifact_paths(root),
-        "conversation_threads": [data_dir / "conversation_threads.jsonl", data_dir / "conversation_thread_links.jsonl"],
-        "thread_abstractions": [data_dir / "thread_abstractions.jsonl", data_dir / "thread_abstraction_links.jsonl"],
-        "conversation_concepts": [
-            concept_graph_dir / "concept_nodes.jsonl",
-            concept_graph_dir / "concept_edges.jsonl",
-            concept_graph_dir / "synthesis_packets.jsonl",
-            concept_graph_dir / "touch_operations.jsonl",
-            concept_graph_dir / "review_queue.jsonl",
-        ],
-        "context_bubbles": [
-            data_dir / "context_bubbles.jsonl",
-            data_dir / "bubble_memberships.jsonl",
-            data_dir / "bubble_edges.jsonl",
-            data_dir / "bubble_transitions.jsonl",
-        ],
-        "knowledge_layer": [data_dir / "knowledge_nodes.jsonl", data_dir / "knowledge_edges.jsonl"],
-        "plugin_primitives": [data_dir / "reasoning_primitives.json"],
-        "concept_nodes": [data_dir / "concept_nodes.json"],
-        "connections": [data_dir / "connections.json"],
-    }
-
-
-def _runtime_registry(root: Path, domain_overlays: List[str] | None = None, *, profile: bool = False) -> Dict[str, Dict]:
-    artifacts = _runtime_component_artifacts(root)
-    return {
-        "bootstrap_legacy_sources": {
-            "label": "Bootstrap Legacy Sources",
-            "requires": [],
-            "run": lambda: {"status": "ok", "bootstrapped": bool(bootstrap_legacy_source_items(root))},
-            "artifacts": lambda: artifacts["bootstrap_legacy_sources"],
-        },
-        "ensure_pipeline_specs": {
-            "label": "Ensure Pipeline Specs",
-            "requires": [],
-            "run": lambda: {"status": "ok", "spec_count": ensure_pipeline_specs(root)["count"]},
-        },
-        "analysis_units": {
-            "label": "Build Analysis Units",
-            "requires": ["bootstrap_legacy_sources"],
-            "run": lambda: build_analysis_units(root),
-            "artifacts": lambda: artifacts["analysis_units"],
-        },
-        "conversation_deltas": {
-            "label": "Build Conversation Deltas",
-            "requires": ["bootstrap_legacy_sources"],
-            "run": lambda: build_conversation_deltas(root),
-            "artifacts": lambda: artifacts["conversation_deltas"],
-        },
-        "meta_layer": {
-            "label": "Extract Meta Layer",
-            "requires": ["analysis_units", "conversation_deltas", "ensure_pipeline_specs"],
-            "run": lambda: extract_meta_layer(root, domain_overlays, ensure_dependencies=False),
-            "artifacts": lambda: artifacts["meta_layer"],
-        },
-        "conversation_threads": {
-            "label": "Build Conversation Threads",
-            "requires": ["conversation_deltas"],
-            "run": lambda: build_conversation_threads(root, ensure_dependencies=False),
-            "artifacts": lambda: artifacts["conversation_threads"],
-        },
-        "thread_abstractions": {
-            "label": "Build Thread Abstractions",
-            "requires": ["conversation_threads", "conversation_deltas"],
-            "run": lambda: build_thread_abstractions(root, domain_overlays, ensure_dependencies=False, profile=profile),
-            "artifacts": lambda: artifacts["thread_abstractions"],
-        },
-        "context_bubbles": {
-            "label": "Build Context Bubbles",
-            "requires": ["thread_abstractions", "meta_layer", "conversation_concepts"],
-            "run": lambda: build_context_bubbles(root, domain_overlays, ensure_dependencies=False, profile=profile),
-            "artifacts": lambda: artifacts["context_bubbles"],
-        },
-        "knowledge_layer": {
-            "label": "Build Knowledge Layer",
-            "requires": ["thread_abstractions", "context_bubbles", "meta_layer"],
-            "run": lambda: build_knowledge_layer(root, ensure_dependencies=False),
-            "artifacts": lambda: artifacts["knowledge_layer"],
-        },
-        "conversation_concepts": {
-            "label": "Build Conversation Concepts",
-            "requires": [],
-            "run": lambda: rebuild_conversation_concepts(root),
-            "artifacts": lambda: artifacts["conversation_concepts"],
-        },
-        "plugin_primitives": {
-            "label": "Materialize Plugin Primitives",
-            "requires": [],
-            "run": lambda: _materialize_plugin_primitives(root, domain_overlays),
-            "artifacts": lambda: artifacts["plugin_primitives"],
-        },
-        "concept_nodes": {
-            "label": "Materialize Concept Nodes",
-            "requires": ["conversation_concepts"],
-            "run": lambda: _materialize_concept_nodes(root),
-            "artifacts": lambda: artifacts["concept_nodes"],
-        },
-        "connections": {
-            "label": "Materialize Connections",
-            "requires": ["knowledge_layer"],
-            "run": lambda: _materialize_connections(root),
-            "artifacts": lambda: artifacts["connections"],
-        },
-    }
-
-
 def _ensure_runtime(
     root: Path,
     domain_overlays: List[str] | None = None,
@@ -1098,36 +885,19 @@ def _ensure_runtime(
     force: bool = False,
     profile: bool = False,
 ) -> Dict:
-    ensure_dir(_data_dir(root))
-    ensure_dir(_exports_dir(root))
-    ensure_dir(_threads_dir(root))
-    ensure_runtime_pipeline_config(root)
-    pipeline_state = execute_runtime_pipeline(
+    return _ensure_runtime_graph(
         root,
-        _runtime_registry(root, domain_overlays, profile=profile),
+        domain_overlays,
         resume=resume,
         from_stage=from_stage,
         only_stage=only_stage,
         force=force,
+        profile=profile,
     )
-    results = pipeline_state["results"]
-    meta_summary = results.get("meta_layer", _meta_summary_from_current_state(root))
-    thread_summary = results.get("conversation_threads", _thread_summary_from_current_state(root))
-    abstraction_summary = results.get("thread_abstractions", _abstraction_summary_from_current_state(root))
-    bubble_summary = results.get("context_bubbles", _bubble_summary_from_current_state(root))
-    knowledge_summary = results.get("knowledge_layer", _knowledge_summary_from_current_state(root))
-    concept_summary = results.get("conversation_concepts", _concept_summary_from_current_state(root))
-    return {
-        "meta_summary": meta_summary,
-        "thread_summary": thread_summary,
-        "abstraction_summary": abstraction_summary,
-        "bubble_summary": bubble_summary,
-        "knowledge_summary": knowledge_summary,
-        "concept_summary": concept_summary,
-        "source_count": len(load_source_registry(root)),
-        "chunk_count": len(load_chunk_index(root)),
-        "runtime_pipeline": pipeline_state,
-    }
+
+
+def _materialize_connections(root: Path) -> Dict:
+    return _materialize_connections_admin(root)
 
 
 def get_runtime_pipeline(root: Path) -> Dict:
@@ -1178,169 +948,15 @@ def get_library_status(root: Path) -> Dict:
 
 
 def get_dimension_model_role_status(root: Path) -> Dict:
-    runtime_config = ensure_runtime_model_roles(root)
-    registry = load_dimension_registry(root)
-    configured_roles = runtime_config.get("model_roles") or {}
-    if not isinstance(configured_roles, dict):
-        configured_roles = {}
-    known_role_ids = {
-        "dimension_local_fast",
-        "dimension_local_semantic",
-        "dimension_remote_judge",
-        "pond_router_local",
-        "pond_router_judge",
-    }
-    for row in registry.get("dimensions", []):
-        preferred_role = str(row.get("preferred_role", "")).strip()
-        if preferred_role:
-            known_role_ids.add(preferred_role)
-
-    bindings: List[Dict] = []
-    role_map: Dict[str, Dict] = {}
-    for role_id in sorted(known_role_ids):
-        payload = configured_roles.get(role_id, {})
-        if not isinstance(payload, dict):
-            payload = {}
-        binding = ModelRoleBinding(
-            role_id=role_id,
-            backend=str(payload.get("backend", "")).strip(),
-            model_id=str(payload.get("model_id", "")).strip(),
-            enabled=bool(payload.get("enabled", False)),
-            fallback_role_id=str(payload.get("fallback_role_id", "")).strip(),
-            endpoint=str(payload.get("endpoint", "")).strip(),
-            attributes=dict(payload.get("attributes", {})),
-        ).to_dict()
-        binding["bound"] = bool(binding["enabled"] and (binding["model_id"] or binding["endpoint"]))
-        bindings.append(binding)
-        role_map[role_id] = binding
-
-    assisted_dimensions = []
-    for row in registry.get("dimensions", []):
-        if not row.get("requires_model", False):
-            continue
-        preferred_role = str(row.get("preferred_role", "")).strip()
-        binding = role_map.get(preferred_role, {}) if preferred_role else {}
-        assisted_dimensions.append(
-            {
-                "dimension_id": row["dimension_id"],
-                "label": row.get("label", row["dimension_id"]),
-                "preferred_role": preferred_role,
-                "fallback_mode": row.get("fallback_mode", "deterministic"),
-                "bound": bool(binding.get("bound", False)),
-                "binding": binding or None,
-            }
-        )
-
-    return {
-        "runtime_config_path": str(_runtime_config_path(root)),
-        "role_count": len(bindings),
-        "bound_role_count": sum(1 for row in bindings if row.get("bound")),
-        "bindings": bindings,
-        "assisted_dimension_count": len(assisted_dimensions),
-        "bound_assisted_dimension_count": sum(1 for row in assisted_dimensions if row.get("bound")),
-        "assisted_dimensions": assisted_dimensions,
-    }
-
-
-def _pond_learning_summary(feedback_rows: List[Dict]) -> Dict:
-    pond_transition_counts: Counter[tuple[str, str]] = Counter()
-    weak_pond_counts: Counter[str] = Counter()
-    target_pond_counts: Counter[str] = Counter()
-    weak_layer_counts: Counter[str] = Counter()
-    target_layer_counts: Counter[str] = Counter()
-    corrected_chunk_ids = set()
-    manual_override_count = 0
-    layer_override_count = 0
-
-    # Derive a compact learning surface from explicit correction behavior.
-    for row in feedback_rows:
-        previous_pond = str(row.get("previous_primary_pond", "")).strip()
-        new_pond = str(row.get("new_primary_pond", "")).strip()
-        event_type = str(row.get("event_type", "")).strip()
-        chunk_id = str(row.get("chunk_id", "")).strip()
-        if chunk_id:
-            corrected_chunk_ids.add(chunk_id)
-        if event_type == "manual_pond_override":
-            manual_override_count += 1
-        if event_type == "manual_pond_layer_override":
-            layer_override_count += 1
-        if previous_pond and new_pond and previous_pond != new_pond:
-            pond_transition_counts[(previous_pond, new_pond)] += 1
-            weak_pond_counts[previous_pond] += 1
-            target_pond_counts[new_pond] += 1
-        elif new_pond:
-            target_pond_counts[new_pond] += 1
-        previous_layers = {str(value).strip() for value in row.get("previous_pond_layers", []) if str(value).strip()}
-        new_layers = {str(value).strip() for value in row.get("new_pond_layers", []) if str(value).strip()}
-        for layer in sorted(previous_layers - new_layers):
-            weak_layer_counts[layer] += 1
-        for layer in sorted(new_layers - previous_layers):
-            target_layer_counts[layer] += 1
-
-    return {
-        "corrected_chunk_count": len(corrected_chunk_ids),
-        "manual_override_count": manual_override_count,
-        "layer_override_count": layer_override_count,
-        "top_pond_transitions": [
-            {
-                "previous_primary_pond": previous_pond,
-                "new_primary_pond": new_pond,
-                "count": count,
-            }
-            for (previous_pond, new_pond), count in pond_transition_counts.most_common(5)
-        ],
-        "weak_primary_ponds": [
-            {"pond_id": pond_id, "count": count}
-            for pond_id, count in weak_pond_counts.most_common(5)
-        ],
-        "target_primary_ponds": [
-            {"pond_id": pond_id, "count": count}
-            for pond_id, count in target_pond_counts.most_common(5)
-        ],
-        "weak_layers": [
-            {"layer": layer, "count": count}
-            for layer, count in weak_layer_counts.most_common(5)
-        ],
-        "target_layers": [
-            {"layer": layer, "count": count}
-            for layer, count in target_layer_counts.most_common(5)
-        ],
-    }
+    return get_dimension_model_role_status_admin(root)
 
 
 def get_pond_router_status(root: Path) -> Dict:
-    runtime_config = ensure_runtime_model_roles(root)
-    pond_router = dict(runtime_config.get("pond_router") or {})
-    local_role_id = str(pond_router.get("local_role_id", "")).strip()
-    judge_role_id = str(pond_router.get("judge_role_id", "")).strip()
-    feedback_rows = load_pond_routing_feedback(root)
-    event_type_counts: Dict[str, int] = {}
-    for row in feedback_rows:
-        event_type = str(row.get("event_type", "")).strip() or "unknown"
-        event_type_counts[event_type] = event_type_counts.get(event_type, 0) + 1
-    learning_summary = _pond_learning_summary(feedback_rows)
-    return {
-        "runtime_config_path": str(_runtime_config_path(root)),
-        "feedback_path": str(_pond_routing_feedback_path(root)),
-        "enabled": bool(pond_router.get("enabled", True)),
-        "mode": str(pond_router.get("mode", "heuristic")).strip() or "heuristic",
-        "assisted_on_ambiguity": bool(pond_router.get("assisted_on_ambiguity", True)),
-        "allow_manual_override": bool(pond_router.get("allow_manual_override", True)),
-        "ambiguity_threshold": float(pond_router.get("ambiguity_threshold", 0.72)),
-        "router_version": str(pond_router.get("router_version", "v1")).strip() or "v1",
-        "local_role_id": local_role_id,
-        "judge_role_id": judge_role_id,
-        "local_role_binding": _dimension_role_binding(root, local_role_id) if local_role_id else None,
-        "judge_role_binding": _dimension_role_binding(root, judge_role_id) if judge_role_id else None,
-        "feedback_count": len(feedback_rows),
-        "feedback_event_types": event_type_counts,
-        "learning_summary": learning_summary,
-    }
+    return get_pond_router_status_admin(root)
 
 
 def get_chunk_pond_detail(root: Path, chunk_id: str, domain_overlays: List[str] | None = None) -> Dict:
-    del domain_overlays
-    return get_chunk_pond_routing_state(root, chunk_id)
+    return get_chunk_pond_detail_admin(root, chunk_id, domain_overlays)
 
 
 def update_pond_router_config(
@@ -1355,51 +971,21 @@ def update_pond_router_config(
     judge_role_id: str | None = None,
     router_version: str | None = None,
 ) -> Dict:
-    runtime_config = ensure_runtime_model_roles(root)
-    pond_router = _merged_pond_router_config(runtime_config)
-    updated = dict(pond_router)
-    if enabled is not None:
-        updated["enabled"] = bool(enabled)
-    if mode is not None:
-        normalized_mode = str(mode).strip().lower()
-        allowed_modes = {"off", "manual_only", "heuristic", "hybrid", "assisted"}
-        if normalized_mode not in allowed_modes:
-            raise ValueError(f"Invalid pond router mode: {mode}")
-        updated["mode"] = normalized_mode
-    if assisted_on_ambiguity is not None:
-        updated["assisted_on_ambiguity"] = bool(assisted_on_ambiguity)
-    if allow_manual_override is not None:
-        updated["allow_manual_override"] = bool(allow_manual_override)
-    if ambiguity_threshold is not None:
-        threshold = float(ambiguity_threshold)
-        if threshold < 0.0 or threshold > 1.0:
-            raise ValueError("ambiguity_threshold must be between 0.0 and 1.0")
-        updated["ambiguity_threshold"] = round(threshold, 3)
-    if local_role_id is not None:
-        updated["local_role_id"] = str(local_role_id).strip()
-    if judge_role_id is not None:
-        updated["judge_role_id"] = str(judge_role_id).strip()
-    if router_version is not None:
-        updated["router_version"] = str(router_version).strip() or pond_router.get("router_version", "v1")
-    runtime_config = dict(runtime_config)
-    runtime_config["pond_router"] = updated
-    write_json(_runtime_config_path(root), runtime_config)
-    return {"status": "updated", "pond_router": get_pond_router_status(root)}
+    return update_pond_router_config_admin(
+        root,
+        enabled=enabled,
+        mode=mode,
+        assisted_on_ambiguity=assisted_on_ambiguity,
+        allow_manual_override=allow_manual_override,
+        ambiguity_threshold=ambiguity_threshold,
+        local_role_id=local_role_id,
+        judge_role_id=judge_role_id,
+        router_version=router_version,
+    )
 
 
 def apply_pond_router_preset(root: Path, preset: str) -> Dict:
-    normalized = str(preset).strip().lower()
-    if normalized == "off":
-        return update_pond_router_config(root, enabled=False, mode="off")
-    if normalized == "manual_only":
-        return update_pond_router_config(root, enabled=True, mode="manual_only")
-    if normalized == "heuristic":
-        return update_pond_router_config(root, enabled=True, mode="heuristic", assisted_on_ambiguity=False)
-    if normalized == "hybrid":
-        return update_pond_router_config(root, enabled=True, mode="hybrid", assisted_on_ambiguity=True)
-    if normalized == "assisted":
-        return update_pond_router_config(root, enabled=True, mode="assisted", assisted_on_ambiguity=True)
-    raise ValueError(f"Unknown pond router preset: {preset}")
+    return apply_pond_router_preset_admin(root, preset)
 
 
 def update_chunk_pond_detail(
@@ -1412,14 +998,14 @@ def update_chunk_pond_detail(
     notes: str | None = None,
     domain_overlays: List[str] | None = None,
 ) -> Dict:
-    del domain_overlays
-    return override_chunk_pond_routing(
+    return update_chunk_pond_detail_admin(
         root,
         chunk_id,
         primary_pond=primary_pond,
         pond_layers=pond_layers,
         clear_override=clear_override,
         notes=notes,
+        domain_overlays=domain_overlays,
     )
 
 
@@ -1434,46 +1020,20 @@ def update_dimension_model_role_binding(
     endpoint: str | None = None,
     attributes: Dict | None = None,
 ) -> Dict:
-    runtime_config = ensure_runtime_model_roles(root)
-    model_roles = _merged_runtime_model_roles(runtime_config)
-    if role_id not in model_roles:
-        model_roles[role_id] = {
-            "backend": "",
-            "model_id": "",
-            "enabled": False,
-            "fallback_role_id": "",
-            "endpoint": "",
-            "attributes": {},
-        }
-    payload = dict(model_roles[role_id])
-    if backend is not None:
-        payload["backend"] = str(backend).strip()
-    if model_id is not None:
-        payload["model_id"] = str(model_id).strip()
-    if enabled is not None:
-        payload["enabled"] = bool(enabled)
-    if fallback_role_id is not None:
-        payload["fallback_role_id"] = str(fallback_role_id).strip()
-    if endpoint is not None:
-        payload["endpoint"] = str(endpoint).strip()
-    if attributes is not None:
-        payload["attributes"] = dict(attributes)
-    model_roles[role_id] = payload
-    runtime_config = dict(runtime_config)
-    runtime_config["model_roles"] = model_roles
-    write_json(_runtime_config_path(root), runtime_config)
-    status = get_dimension_model_role_status(root)
-    resolved = next((row for row in status["bindings"] if row["role_id"] == role_id), None)
-    return {
-        "status": "updated",
-        "role_id": role_id,
-        "binding": resolved,
-        "dimension_model_roles": status,
-    }
+    return update_dimension_model_role_binding_admin(
+        root,
+        role_id=role_id,
+        backend=backend,
+        model_id=model_id,
+        enabled=enabled,
+        fallback_role_id=fallback_role_id,
+        endpoint=endpoint,
+        attributes=attributes,
+    )
 
 
 def load_pond_routing_feedback(root: Path) -> List[Dict]:
-    return read_jsonl(_pond_routing_feedback_path(root))
+    return load_pond_routing_feedback_admin(root)
 
 
 def record_pond_routing_feedback(
@@ -1490,47 +1050,19 @@ def record_pond_routing_feedback(
     routing_method: str = "",
     note: str = "",
 ) -> Dict:
-    path = _pond_routing_feedback_path(root)
-    rows = load_pond_routing_feedback(root)
-    entry = {
-        "event_id": make_id("pond-feedback"),
-        "event_type": str(event_type).strip(),
-        "chunk_id": str(chunk_id).strip(),
-        "source_ref": str(source_ref).strip(),
-        "previous_primary_pond": str(previous_primary_pond).strip(),
-        "new_primary_pond": str(new_primary_pond).strip(),
-        "previous_pond_layers": [str(value).strip() for value in (previous_pond_layers or []) if str(value).strip()],
-        "new_pond_layers": [str(value).strip() for value in (new_pond_layers or []) if str(value).strip()],
-        "actor": str(actor).strip() or "operator",
-        "routing_method": str(routing_method).strip(),
-        "note": str(note).strip(),
-        "created_at": utc_now(),
-    }
-    rows.append(entry)
-    write_jsonl(path, rows)
-    return {
-        "status": "recorded",
-        "feedback_event": entry,
-        "pond_router": get_pond_router_status(root),
-    }
-
-
-def _dimension_role_binding(root: Path, role_id: str) -> Dict | None:
-    if not role_id:
-        return None
-    status = get_dimension_model_role_status(root)
-    return next((row for row in status.get("bindings", []) if row.get("role_id") == role_id), None)
-
-
-def _extract_json_object(text: str) -> Dict | None:
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        return None
-    try:
-        payload = json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return None
-    return payload if isinstance(payload, dict) else None
+    return record_pond_routing_feedback_admin(
+        root,
+        event_type=event_type,
+        chunk_id=chunk_id,
+        source_ref=source_ref,
+        previous_primary_pond=previous_primary_pond,
+        new_primary_pond=new_primary_pond,
+        previous_pond_layers=previous_pond_layers,
+        new_pond_layers=new_pond_layers,
+        actor=actor,
+        routing_method=routing_method,
+        note=note,
+    )
 
 
 def classify_assisted_dimension(
@@ -1541,89 +1073,13 @@ def classify_assisted_dimension(
     preferred_role: str,
     allowed_values: List[str] | None = None,
 ) -> Dict | None:
-    binding = _dimension_role_binding(root, preferred_role)
-    if not binding or not binding.get("bound"):
-        return None
-
-    backend_id = str(binding.get("backend", "")).strip().lower()
-    if backend_id in {"local", "openclaw_local"}:
-        resolved_backend_id = "openclaw_local"
-    elif backend_id in {"remote", "openclaw_gateway", "openclaw"}:
-        resolved_backend_id = "openclaw_gateway"
-    else:
-        return None
-
-    allowed = [value for value in (allowed_values or []) if value]
-    if dimension_id != "evidence_posture":
-        return None
-
-    backend = {
-        "id": resolved_backend_id,
-        "openclaw": {
-            "agent": binding.get("attributes", {}).get("agent")
-            or _runtime_config_payload(root).get("openclaw", {}).get("agent")
-            or "main",
-            "thinking": binding.get("attributes", {}).get("thinking")
-            or _runtime_config_payload(root).get("openclaw", {}).get("thinking")
-            or "minimal",
-            "timeout_seconds": int(
-                binding.get("attributes", {}).get("timeout_seconds")
-                or _runtime_config_payload(root).get("openclaw", {}).get("timeout_seconds")
-                or 20
-            ),
-            "deliver": False,
-        },
-    }
-    context = {
-        "character": "Dimension Classifier",
-        "system_prompt": (
-            "Classify the attached chunk into exactly one evidence_posture label. "
-            f"Allowed labels: {', '.join(allowed) or 'evidence, synthesis, speculation, instruction, scaffolding'}. "
-            "Respond with compact JSON only: "
-            '{"value":"...", "confidence":0.0, "rationale":"..."}'
-        ),
-        "source_snippets": [
-            {
-                "title": row.get("title", "") or row.get("chunk_id", "chunk"),
-                "source_ref": row.get("source_ref", "memory://chunk"),
-                "excerpt": str(row.get("content", ""))[:600],
-            }
-        ],
-    }
-    thread = {
-        "thread_id": f"{dimension_id}-{row.get('chunk_id', 'chunk')}",
-        "title": f"{dimension_id} enrichment",
-        "messages": [],
-    }
-    try:
-        reply = request_openclaw_reply(
-            root,
-            context,
-            "Classify this chunk now.",
-            thread,
-            backend,
-        )
-    except Exception:
-        return None
-    payload = _extract_json_object(reply.get("content", ""))
-    if not payload:
-        return None
-    value = str(payload.get("value", "")).strip().lower()
-    if allowed and value not in {item.lower() for item in allowed}:
-        return None
-    confidence = payload.get("confidence", 0.65)
-    try:
-        confidence_value = float(confidence)
-    except (TypeError, ValueError):
-        confidence_value = 0.65
-    return {
-        "value": value,
-        "confidence": max(0.0, min(1.0, confidence_value)),
-        "rationale": str(payload.get("rationale", "")).strip(),
-        "model_role": preferred_role,
-        "model_signature": str(binding.get("model_id", "")).strip() or resolved_backend_id,
-        "binding": binding,
-    }
+    return classify_assisted_dimension_admin(
+        root,
+        dimension_id=dimension_id,
+        row=row,
+        preferred_role=preferred_role,
+        allowed_values=allowed_values,
+    )
 
 
 def classify_assisted_pond_route(
@@ -1633,103 +1089,12 @@ def classify_assisted_pond_route(
     pond_matrix: Dict,
     preferred_role: str,
 ) -> Dict | None:
-    binding = _dimension_role_binding(root, preferred_role)
-    if not binding or not binding.get("bound"):
-        return None
-
-    backend_id = str(binding.get("backend", "")).strip().lower()
-    if backend_id in {"local", "openclaw_local"}:
-        resolved_backend_id = "openclaw_local"
-    elif backend_id in {"remote", "openclaw_gateway", "openclaw"}:
-        resolved_backend_id = "openclaw_gateway"
-    else:
-        return None
-
-    pond_rows = pond_matrix.get("ponds", {}) if isinstance(pond_matrix, dict) else {}
-    if not pond_rows:
-        return None
-    pond_summary = {
-        pond_id: {
-            "description": pond.get("description", ""),
-            "layers": pond.get("layers", []),
-        }
-        for pond_id, pond in pond_rows.items()
-    }
-    backend = {
-        "id": resolved_backend_id,
-        "openclaw": {
-            "agent": binding.get("attributes", {}).get("agent")
-            or _runtime_config_payload(root).get("openclaw", {}).get("agent")
-            or "main",
-            "thinking": binding.get("attributes", {}).get("thinking")
-            or _runtime_config_payload(root).get("openclaw", {}).get("thinking")
-            or "minimal",
-            "timeout_seconds": int(
-                binding.get("attributes", {}).get("timeout_seconds")
-                or _runtime_config_payload(root).get("openclaw", {}).get("timeout_seconds")
-                or 20
-            ),
-            "deliver": False,
-        },
-    }
-    context = {
-        "character": "Pond Router",
-        "system_prompt": (
-            "Route the attached chunk into the most appropriate pond and touched layers from the supplied pond matrix. "
-            "Return compact JSON only with this shape: "
-            '{"primary_pond":"...", "touched_layers":["..."], "confidence":0.0, "justification":"..."}'
-        ),
-        "pond_matrix": pond_summary,
-        "source_snippets": [
-            {
-                "title": row.get("title", "") or row.get("chunk_id", "chunk"),
-                "source_ref": row.get("source_ref", "memory://chunk"),
-                "excerpt": str(row.get("content", ""))[:900],
-            }
-        ],
-    }
-    thread = {
-        "thread_id": f"pond-route-{row.get('chunk_id', 'chunk')}",
-        "title": "pond route enrichment",
-        "messages": [],
-    }
-    try:
-        reply = request_openclaw_reply(
-            root,
-            context,
-            "Route this chunk now.",
-            thread,
-            backend,
-        )
-    except Exception:
-        return None
-    payload = _extract_json_object(reply.get("content", ""))
-    if not payload:
-        return None
-    primary_pond = str(payload.get("primary_pond", "")).strip()
-    if primary_pond not in pond_summary:
-        return None
-    touched_layers = [
-        str(value).strip()
-        for value in payload.get("touched_layers", [])
-        if str(value).strip()
-    ]
-    allowed_layers = {str(layer).strip() for layer in pond_summary[primary_pond].get("layers", [])}
-    touched_layers = [layer for layer in touched_layers if layer in allowed_layers]
-    confidence = payload.get("confidence", 0.65)
-    try:
-        confidence_value = float(confidence)
-    except (TypeError, ValueError):
-        confidence_value = 0.65
-    return {
-        "primary_pond": primary_pond,
-        "touched_layers": touched_layers,
-        "confidence": max(0.0, min(1.0, confidence_value)),
-        "justification": str(payload.get("justification", "")).strip(),
-        "model_role": preferred_role,
-        "model_signature": str(binding.get("model_id", "")).strip() or resolved_backend_id,
-        "binding": binding,
-    }
+    return classify_assisted_pond_route_admin(
+        root,
+        row=row,
+        pond_matrix=pond_matrix,
+        preferred_role=preferred_role,
+    )
 
 
 def _library_chunk_preview(root: Path) -> Dict[str, List[Dict]]:
@@ -2168,7 +1533,7 @@ def derive_graph(
     force: bool = False,
     profile: bool = False,
 ) -> Dict:
-    summary = _ensure_runtime(
+    return derive_graph_admin(
         root,
         domain_overlays,
         resume=resume,
@@ -2177,16 +1542,6 @@ def derive_graph(
         force=force,
         profile=profile,
     )
-    knowledge_summary = summary["knowledge_summary"]
-    return {
-        "source_item_count": summary["chunk_count"],
-        "thread_count": summary["thread_summary"]["thread_count"],
-        "abstract_thread_count": summary["abstraction_summary"]["abstract_thread_count"],
-        "project_lens_count": summary["abstraction_summary"]["project_lens_count"],
-        "bubble_count": summary["bubble_summary"]["bubble_count"],
-        "concept_node_count": knowledge_summary["meta_node_count"],
-        "connection_count": knowledge_summary["edge_count"],
-    }
 
 
 def get_runtime_status(root: Path) -> Dict:

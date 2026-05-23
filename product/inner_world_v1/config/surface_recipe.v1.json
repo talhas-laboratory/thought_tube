@@ -1,0 +1,93 @@
+{
+  "recipe_id": "recipe.inner_world.v1",
+  "surface_id": "surface.inner_world",
+  "name": "Inner World v1 Reference Surface",
+  "status": "transitional",
+  "version": "0.1.0",
+  "target_layer": "surface",
+  "purpose": "Present evidence-backed thoughts as a feed, archive, article expansion, and scoped chat surface over the conversation substrate.",
+  "module_refs": [
+    {
+      "module_id": "kernel.foundation.storage",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Shared storage boundary used by the reference surface."
+    },
+    {
+      "module_id": "kernel.foundation.models",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Shared record shapes used by runtime and surface payloads."
+    },
+    {
+      "module_id": "kernel.analysis.analysis_units",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Provides canonical analysis units for downstream shaping."
+    },
+    {
+      "module_id": "kernel.meta.meta_objects",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Provides canonical meta-layer vocabulary."
+    },
+    {
+      "module_id": "kernel.runtime.cost_tracker",
+      "version_range": ">=0.1.0",
+      "required": false,
+      "notes": "Tracks runtime and equivalent LLM cost events."
+    },
+    {
+      "module_id": "kernel.reasoning.judgment",
+      "version_range": ">=0.1.0",
+      "required": false,
+      "notes": "Classifies thought-surfacing runs for review and evidence state."
+    }
+  ],
+  "adapter_refs": [
+    {
+      "adapter_id": "surface.inner_world.runtime_payloads",
+      "repo_paths": [
+        "src/conversation_os/product_inner_world.py"
+      ],
+      "purpose": "Shape runtime state into feed, archive, detail, and chat payloads.",
+      "depends_on": [
+        "kernel.analysis.analysis_units",
+        "kernel.runtime.cost_tracker",
+        "kernel.reasoning.judgment"
+      ]
+    },
+    {
+      "adapter_id": "surface.inner_world.browser_surface",
+      "repo_paths": [
+        "src/conversation_os/miniapp.py",
+        "product/inner_world_v1/miniapp"
+      ],
+      "purpose": "Serve the browser-facing Inner World and World Studio interface.",
+      "depends_on": [
+        "surface.inner_world.runtime_payloads"
+      ]
+    }
+  ],
+  "policy_defaults": {
+    "source_visibility": "governed",
+    "contradiction_review": "required",
+    "chat_backend": "heuristic"
+  },
+  "runtime_dependencies": [
+    "product/inner_world_v1/config/runtime.json",
+    "product/inner_world_v1/config/runtime_pipeline.json",
+    "product/inner_world_v1/pipelines/*.json"
+  ],
+  "state_dependencies": [
+    "memory/events",
+    "memory/sessions",
+    "product/inner_world_v1/data"
+  ],
+  "entrypoints": [
+    "python3 tools/run_inner_world_miniapp.py",
+    "python3 tools/run_inner_world_backend.py",
+    "python3 tools/conversation_os.py inner-world serve --domains research,art,entrepreneurship"
+  ],
+  "config_path": "/Users/talhauddin/software/inner_space/product/inner_world_v1/config/surface_recipe.v1.json"
+}

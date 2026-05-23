@@ -1,0 +1,72 @@
+{
+  "recipe_id": "recipe.personal_interface.v1",
+  "surface_id": "surface.personal_interface",
+  "name": "Personal Interface v1 Reference Surface",
+  "status": "transitional",
+  "version": "0.1.0",
+  "target_layer": "surface",
+  "purpose": "Adapt outgoing assistant replies through a calibrated local-first personalization surface over the conversation substrate.",
+  "module_refs": [
+    {
+      "module_id": "kernel.foundation.storage",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Persists profile, calibration, and rewrite artifacts."
+    },
+    {
+      "module_id": "kernel.foundation.models",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Provides shared conversation record shapes."
+    },
+    {
+      "module_id": "kernel.analysis.conversation_learning",
+      "version_range": ">=0.1.0",
+      "required": false,
+      "notes": "Learns user explanation and follow-up preferences from conversation input."
+    }
+  ],
+  "adapter_refs": [
+    {
+      "adapter_id": "surface.personal.runtime_payloads",
+      "repo_paths": [
+        "src/conversation_os/personal_interface.py"
+      ],
+      "purpose": "Drive calibration, profile compilation, learning ingestion, and rewrite behavior for outgoing messages.",
+      "depends_on": [
+        "kernel.foundation.storage",
+        "kernel.foundation.models",
+        "kernel.analysis.conversation_learning"
+      ]
+    },
+    {
+      "adapter_id": "surface.personal.mcp_surface",
+      "repo_paths": [
+        "src/conversation_os/personal_interface_mcp.py",
+        "tools/run_personal_interface_mcp.py"
+      ],
+      "purpose": "Expose Personal Interface rewrite operations to host chat systems.",
+      "depends_on": [
+        "surface.personal.runtime_payloads"
+      ]
+    }
+  ],
+  "policy_defaults": {
+    "rewrite_mode": "governed",
+    "feedback_learning": "explicit_only"
+  },
+  "runtime_dependencies": [
+    "product/personal_interface_v1/data/runtime.json"
+  ],
+  "state_dependencies": [
+    "memory/events",
+    "memory/sessions",
+    "product/personal_interface_v1/data"
+  ],
+  "entrypoints": [
+    "python3 tools/conversation_os.py personal-interface calibrate-start",
+    "python3 tools/conversation_os.py personal-interface rewrite-turn --draft-text \"...\" --conversation-json \"[...]\"",
+    "python3 tools/run_personal_interface_mcp.py"
+  ],
+  "config_path": "/Users/talhauddin/software/inner_space/product/personal_interface_v1/config/surface_recipe.v1.json"
+}

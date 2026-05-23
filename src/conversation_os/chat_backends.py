@@ -13,6 +13,22 @@ from typing import Any, Dict, List
 from .cost_tracker import estimate_token_count, record_actual_cost
 
 
+MODULE_ID = "kernel.runtime.chat_backends"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "get_openclaw_model_control_state",
+    "stage_openclaw_agent_model",
+    "apply_openclaw_model_control",
+    "rollback_openclaw_model_control",
+    "resolve_chat_backend",
+    "compose_openclaw_message",
+    "request_openclaw_reply",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _config_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "config" / "runtime.json"
 

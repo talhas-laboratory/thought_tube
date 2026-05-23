@@ -18,6 +18,23 @@ from .thread_abstractions import build_thread_abstractions, load_thread_abstract
 from .vault_ingest import load_chunk_index, load_source_registry, shorten, tokenize
 
 
+MODULE_ID = "kernel.analysis.context_bubbles"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_context_bubbles",
+    "load_bubble_memberships",
+    "load_bubble_edges",
+    "load_bubble_transitions",
+    "load_context_bubble_progress",
+    "build_context_bubbles",
+    "list_context_bubbles",
+    "get_context_bubble",
+)
+__all__ = list(PUBLIC_API)
+
+
 SEED_KIND_PRIORITY = {
     "shared_primitive": 0,
     "signal_frame": 1,

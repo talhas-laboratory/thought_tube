@@ -6,6 +6,38 @@ from typing import Dict, List
 from .vault_ingest import shorten, tokenize
 
 
+MODULE_ID = "kernel.reasoning.operators"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "DIMENSION_RULES",
+    "PATTERN_RULES",
+    "TENSION_RULES",
+    "POLARITY_RULES",
+    "GENERIC_PHRASES",
+    "_detect_patterns",
+    "normalize_capture",
+    "infer_capture_context",
+    "clarify_core_meaning",
+    "separate_layers",
+    "detect_shared_primitive",
+    "build_why_it_matters",
+    "clarify_connection_context",
+    "detect_connection_primitive",
+    "detect_connection_tension",
+    "build_connection_why_it_matters",
+    "build_connection_candidate",
+    "fidelity_check",
+    "genericity_filter",
+    "confidence_calibration",
+    "relevance_check",
+    "review_gate",
+    "OPERATOR_REGISTRY",
+)
+__all__ = list(PUBLIC_API)
+
+
 DIMENSION_RULES = {
     "tension": {"but", "however", "versus", "tradeoff", "tension", "conflict"},
     "question": {"why", "how", "what", "question", "?"},

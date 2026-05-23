@@ -5,6 +5,17 @@ from pathlib import Path
 from typing import Dict, List
 
 
+MODULE_ID = "builder.plugins.plugins"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_plugin",
+    "load_plugins",
+)
+__all__ = list(PUBLIC_API)
+
+
 def load_plugin(root: Path, plugin_id: str) -> Dict:
     plugin_dir = root / "plugins" / plugin_id
     return json.loads((plugin_dir / "plugin.json").read_text(encoding="utf-8"))

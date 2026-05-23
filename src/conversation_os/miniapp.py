@@ -72,6 +72,19 @@ from .worldbuilding_studio import (
 )
 
 
+MODULE_ID = "surface.inner_world.miniapp"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "build_miniapp_ui_enhancement_assets",
+    "inject_miniapp_ui_enhancement",
+    "make_miniapp_handler",
+    "serve_miniapp",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _read_json_body(handler: BaseHTTPRequestHandler) -> dict:
     length = int(handler.headers.get("Content-Length", "0"))
     if length <= 0:

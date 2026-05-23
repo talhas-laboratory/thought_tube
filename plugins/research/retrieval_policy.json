@@ -1,0 +1,9 @@
+{
+  "weights": {
+    "mechanism_terms": 3,
+    "evidence_terms": 3,
+    "uncertainty_terms": 2,
+    "recency": 1
+  },
+  "favor_grounded": true
+}

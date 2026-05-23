@@ -1,0 +1,25 @@
+{
+  "id": "entrepreneurship",
+  "title": "Entrepreneurship Overlay",
+  "domains": ["entrepreneurship"],
+  "reasoning_primitives": [
+    {
+      "id": "friction-signal",
+      "label": "Friction Signal",
+      "keywords": ["friction", "workflow", "delay", "pain", "bottleneck"]
+    },
+    {
+      "id": "moat-shift",
+      "label": "Moat Shift",
+      "keywords": ["moat", "distribution", "retention", "defensibility", "channel"]
+    },
+    {
+      "id": "opportunity-gap",
+      "label": "Opportunity Gap",
+      "keywords": ["market", "gap", "wedge", "user", "demand"]
+    }
+  ],
+  "evidence_mode": "pragmatic",
+  "output_template": "templates/insight.md",
+  "prompt_overlay": "prompts/system_overlay.md"
+}

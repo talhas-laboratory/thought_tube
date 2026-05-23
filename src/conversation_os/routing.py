@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+from .codebase_overview import validate_codebase_index
 from .conversation_synthesis import search_concepts
 from .models import TaskContextPack
 from .storage import (
@@ -16,6 +17,55 @@ from .storage import (
     write_json,
     write_markdown,
 )
+
+
+MODULE_ID = "kernel.routing.task_pack_routing"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "TaskPackRoutingError",
+    "build_task_pack",
+    "enrich_task_pack_with_workspace",
+)
+__all__ = list(PUBLIC_API)
+
+
+class TaskPackRoutingError(Exception):
+    def __init__(self, *, code: str, message: str, details: dict | None = None) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.details = details or {}
+
+    def to_dict(self) -> dict:
+        return {
+            "error": self.code,
+            "message": self.message,
+            "details": self.details,
+        }
+
+
+def _ensure_codebase_index_ready_for_handoff(root: Path) -> dict:
+    index_state = validate_codebase_index(root)
+    if (
+        not index_state.get("fresh", False)
+        or index_state.get("error_count", 0) > 0
+        or index_state.get("warning_count", 0) > 0
+        or index_state.get("missing_manifest_count", 0) > 0
+    ):
+        raise TaskPackRoutingError(
+            code="task_pack_index_not_ready",
+            message="Task-pack handoff blocked because the codebase atlas is stale or invalid.",
+            details=index_state,
+        )
+    return {
+        "generated_at": index_state["generated_at"],
+        "fresh": index_state["fresh"],
+        "module_manifest_count": index_state["module_manifest_count"],
+        "newest_source_path": index_state["newest_source_path"],
+        "newest_generated_path": index_state["newest_generated_path"],
+    }
 
 
 def _keyword_score(text: str, query: str) -> int:
@@ -101,6 +151,7 @@ def build_task_pack(
     domain_overlays: List[str],
     constraints: List[str],
 ) -> Dict:
+    handoff_validation = _ensure_codebase_index_ready_for_handoff(root)
     tenets_path = root / "TENETS.md"
     tenets = _numbered_items(tenets_path)
     reference_docs = {
@@ -211,6 +262,7 @@ def build_task_pack(
         relevant_concepts=relevant_concepts,
     )
     payload = pack.to_dict()
+    payload["handoff_validation"] = handoff_validation
     write_json(task_packs_dir(root) / f"{task_id}.json", payload)
     md = [
         f"# Task Pack — {task_id}",
@@ -218,6 +270,14 @@ def build_task_pack(
         f"- request: {request}",
         f"- task_type: {task_type}",
         f"- domain_overlays: {', '.join(domain_overlays) if domain_overlays else 'none'}",
+        "",
+        "## Handoff Validation",
+        "",
+        f"- generated_at: {handoff_validation['generated_at']}",
+        f"- fresh: {handoff_validation['fresh']}",
+        f"- module_manifest_count: {handoff_validation['module_manifest_count']}",
+        f"- newest_source_path: {handoff_validation['newest_source_path']}",
+        f"- newest_generated_path: {handoff_validation['newest_generated_path']}",
         "",
         "## Reference Docs",
         "",

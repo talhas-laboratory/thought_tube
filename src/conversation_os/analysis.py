@@ -21,6 +21,20 @@ from .storage import (
 )
 
 
+MODULE_ID = "kernel.analysis.session_analysis"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "materialize_transcript",
+    "analyze_session",
+    "materialize_cards",
+    "refresh_indexes",
+    "update_manifest",
+)
+__all__ = list(PUBLIC_API)
+
+
 DECISION_HINTS = {
     "default_output": "Morning Batch is the default delivery mode.",
     "storage_shape": "Markdown and JSONL are canonical source of truth.",

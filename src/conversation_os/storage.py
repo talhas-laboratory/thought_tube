@@ -14,6 +14,47 @@ except ImportError:  # pragma: no cover - non-POSIX fallback
     fcntl = None
 
 
+MODULE_ID = "kernel.foundation.storage"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "utc_now",
+    "repo_root_from",
+    "slugify",
+    "make_id",
+    "ensure_dir",
+    "read_json",
+    "write_json",
+    "append_jsonl",
+    "read_jsonl",
+    "write_jsonl",
+    "write_markdown",
+    "session_events_path",
+    "session_dir",
+    "cards_dir",
+    "indexes_dir",
+    "task_packs_dir",
+    "plans_dir",
+    "workspace_dir",
+    "workspace_context_dir",
+    "workspace_manifest_path",
+    "workspace_events_path",
+    "workspace_artifact_links_path",
+    "workspace_work_item_events_path",
+    "workspace_test_cases_path",
+    "workspace_test_runs_path",
+    "workspace_knowledge_records_path",
+    "workspace_promotions_path",
+    "workspace_materialized_paths",
+    "workspace_source_paths",
+    "workspace_exists",
+    "workspace_ids",
+    "sorted_files",
+)
+__all__ = list(PUBLIC_API)
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 

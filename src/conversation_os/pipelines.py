@@ -5,6 +5,19 @@ from pathlib import Path
 from .storage import ensure_dir, read_json, write_json
 
 
+MODULE_ID = "assembly.runtime.pipelines"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "DEFAULT_PIPELINES",
+    "pipeline_dir",
+    "ensure_pipeline_specs",
+    "load_pipeline_spec",
+)
+__all__ = list(PUBLIC_API)
+
+
 DEFAULT_PIPELINES = {
     "vault_decomposition_v1": {
         "pipeline_id": "vault_decomposition_v1",

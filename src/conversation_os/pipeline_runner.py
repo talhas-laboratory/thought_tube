@@ -10,6 +10,16 @@ from .pipelines import load_pipeline_spec
 from .storage import ensure_dir, make_id, utc_now, write_json
 
 
+MODULE_ID = "assembly.runtime.pipeline_runner"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "run_pipeline",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _merge_patch(target: Dict, patch: Dict) -> Dict:
     for key, value in patch.items():
         if isinstance(value, dict) and isinstance(target.get(key), dict):

@@ -15,6 +15,18 @@ from .storage import ensure_dir, read_jsonl, write_jsonl
 from .vault_ingest import tokenize
 
 
+MODULE_ID = "kernel.meta.meta_layer"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "meta_layer_dir",
+    "load_meta_records",
+    "extract_meta_layer",
+)
+__all__ = list(PUBLIC_API)
+
+
 def meta_layer_dir(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "data" / "meta_layer"
 

@@ -116,6 +116,14 @@ Rule:
 
 - Keep the agent inside the world OS loop. Ingest evidence first, ask the next returned question, preserve provenance on core records, generate canon before compiling scenes, and execute only canon-backed packets.
 
+## Deployment Guide
+
+Canonical deployment reference:
+
+- `docs/guides/deployment-guide.md`
+
+Use that guide for the full OpenClaw, backend, UI sync, portable pack, Personal Interface MCP, and GitHub publish/release procedures.
+
 ## Artifact lookup rule
 
 - When a user asks to read, inspect, verify, or list mobile artifacts, treat the server-hosted `mobile_artifacts` directory as canonical before concluding the artifact is missing.

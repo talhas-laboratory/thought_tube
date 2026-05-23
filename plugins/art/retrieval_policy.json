@@ -1,0 +1,9 @@
+{
+  "weights": {
+    "mood_terms": 3,
+    "composition_terms": 2,
+    "material_terms": 2,
+    "novelty": 2
+  },
+  "favor_grounded": false
+}

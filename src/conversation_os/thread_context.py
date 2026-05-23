@@ -8,6 +8,16 @@ from .thought_factory import load_thought_packets
 from .vault_ingest import load_chunk_index, shorten
 
 
+MODULE_ID = "kernel.surface.thread_context"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "build_thread_packet",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _thought_lookup(root: Path) -> Dict[str, Dict]:
     return {row["thought_id"]: row for row in load_thought_packets(root)}
 

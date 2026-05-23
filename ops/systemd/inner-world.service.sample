@@ -1,0 +1,14 @@
+[Unit]
+Description=Inner World backend for OpenClaw miniapps
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/talha/.openclaw/workspace/containers/inner-world
+Environment=PYTHONPATH=/home/talha/.openclaw/workspace/containers/inner-world/src
+ExecStart=/usr/bin/env python3 /home/talha/.openclaw/workspace/containers/inner-world/tools/run_inner_world_backend.py --host 127.0.0.1 --port 8422 --api-prefixes /api,/apps/api/inner-world --skip-refresh-on-start
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

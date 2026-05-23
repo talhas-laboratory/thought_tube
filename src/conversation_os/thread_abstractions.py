@@ -14,6 +14,19 @@ from .storage import ensure_dir, read_json, read_jsonl, slugify, write_json, wri
 from .vault_ingest import tokenize
 
 
+MODULE_ID = "kernel.analysis.thread_abstractions"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "load_project_lenses",
+    "load_thread_abstractions",
+    "load_thread_abstraction_links",
+    "build_thread_abstractions",
+)
+__all__ = list(PUBLIC_API)
+
+
 DEFAULT_PROJECT_LENSES = [
     {
         "lens_key": "interaction_model",

@@ -3,6 +3,16 @@ from __future__ import annotations
 from typing import Dict
 
 
+MODULE_ID = "kernel.reasoning.judgment"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "classify_run",
+)
+__all__ = list(PUBLIC_API)
+
+
 def classify_run(packet: Dict) -> Dict:
     reports = packet.get("conscious_articulation", {}).get("evaluation_reports", {})
     confidence = reports.get("confidence_report", {}).get("confidence", 0.0)

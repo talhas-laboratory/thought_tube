@@ -13,6 +13,20 @@ from .storage import read_json, read_jsonl, utc_now, write_json, write_jsonl
 from .vault_ingest import load_chunk_index, shorten, tokenize
 
 
+MODULE_ID = "kernel.surface.thought_factory"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "thought_packets_path",
+    "load_thought_packets",
+    "build_thought_packets",
+    "build_feed_rows",
+    "build_archive_rows",
+)
+__all__ = list(PUBLIC_API)
+
+
 THOUGHT_STYLE_MAP = {
     "morning_batch": {
         "title": "Morning Batch Is The Native Surface",

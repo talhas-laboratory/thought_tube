@@ -10,6 +10,22 @@ from typing import IO, Any, Dict, Iterator, List, Set
 from .storage import ensure_dir, read_json, utc_now, write_json
 
 
+MODULE_ID = "assembly.runtime.runtime_pipeline"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "DEFAULT_RUNTIME_PIPELINE",
+    "ensure_runtime_pipeline_config",
+    "load_runtime_pipeline_config",
+    "update_runtime_pipeline_component",
+    "get_runtime_pipeline_status",
+    "write_runtime_pipeline_last_run",
+    "execute_runtime_pipeline",
+)
+__all__ = list(PUBLIC_API)
+
+
 DEFAULT_RUNTIME_PIPELINE = {
     "version": 1,
     "selection_mode": "dependency_weighted",

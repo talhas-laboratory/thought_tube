@@ -1,0 +1,9 @@
+{
+  "weights": {
+    "pain_terms": 3,
+    "workflow_terms": 2,
+    "moat_terms": 2,
+    "decision_terms": 2
+  },
+  "favor_grounded": true
+}

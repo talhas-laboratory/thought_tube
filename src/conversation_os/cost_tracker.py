@@ -8,6 +8,22 @@ from .models import LLMCostEvent
 from .storage import append_jsonl, make_id, read_json, read_jsonl, utc_now, write_json
 
 
+MODULE_ID = "kernel.runtime.cost_tracker"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "ensure_cost_tracker_bootstrap",
+    "load_cost_config",
+    "estimate_token_count",
+    "record_actual_cost",
+    "record_equivalent_cost",
+    "list_cost_events",
+    "get_cost_summary",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _config_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "config" / "llm_costs.json"
 

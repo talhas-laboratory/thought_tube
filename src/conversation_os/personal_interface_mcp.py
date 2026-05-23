@@ -16,6 +16,16 @@ from .personal_interface import (
 )
 
 
+MODULE_ID = "surface.personal.personal_interface_mcp"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "build_personal_interface_mcp_server",
+)
+__all__ = list(PUBLIC_API)
+
+
 def _error_payload(exc: PersonalInterfaceError) -> Dict[str, Any]:
     return exc.to_dict()
 

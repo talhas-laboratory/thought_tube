@@ -3,7 +3,19 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .codebase_overview import lookup_codebase, refresh_codebase_overview
+from .codebase_overview import lookup_codebase, refresh_codebase_overview, validate_codebase_index
+
+
+MODULE_ID = "builder.guard.engineering_guard"
+CONTRACT_VERSION = "1.0"
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "VAGUE_PURPOSE_PHRASES",
+    "OWNER_EXTRACTION_MARKERS",
+    "assess_change_request",
+)
+__all__ = list(PUBLIC_API)
 
 
 VAGUE_PURPOSE_PHRASES = {
@@ -112,6 +124,21 @@ def _classify_warnings(
             }
         )
 
+    index_not_ready = [
+        warning.split(": ", 1)[1]
+        for warning in warnings
+        if warning.startswith("Codebase index is not ready:")
+    ]
+    if index_not_ready:
+        blocking_issues.append(
+            {
+                "code": "index_not_ready",
+                "message": "The codebase overview or module atlas is stale or invalid.",
+                "details": index_not_ready,
+                "suggested_fix": "Run `python3 tools/conversation_os.py repo-overview refresh` and `python3 tools/conversation_os.py repo-overview validate`, then resolve any reported stale artifacts, errors, warnings, or missing manifests before implementation.",
+            }
+        )
+
     missing_paths = [
         warning.split(": ", 1)[1]
         for warning in warnings
@@ -163,9 +190,27 @@ def assess_change_request(
     limit: int = 6,
 ) -> dict[str, Any]:
     refresh_codebase_overview(root)
+    index_state = validate_codebase_index(root)
     proposed_paths = _normalize_paths(proposed_paths)
     lookup_results = lookup_codebase(root, f"{request} {purpose}", limit=limit)
     warnings: list[str] = []
+
+    if (
+        not index_state.get("fresh", False)
+        or index_state.get("error_count", 0) > 0
+        or index_state.get("warning_count", 0) > 0
+        or index_state.get("missing_manifest_count", 0) > 0
+    ):
+        detail_parts: list[str] = []
+        if not index_state.get("fresh", False):
+            detail_parts.extend(index_state.get("stale_reasons", []))
+        if index_state.get("error_count", 0) > 0:
+            detail_parts.append(f"errors={index_state['error_count']}")
+        if index_state.get("warning_count", 0) > 0:
+            detail_parts.append(f"warnings={index_state['warning_count']}")
+        if index_state.get("missing_manifest_count", 0) > 0:
+            detail_parts.append(f"missing_manifests={index_state['missing_manifest_count']}")
+        warnings.append("Codebase index is not ready: " + "; ".join(detail_parts))
 
     normalized_purpose = purpose.strip().lower()
     if not normalized_purpose or normalized_purpose in VAGUE_PURPOSE_PHRASES or len(normalized_purpose.split()) < 4:
@@ -195,6 +240,8 @@ def assess_change_request(
         status = "needs_scope"
     elif any("Purpose is too vague" in warning for warning in warnings):
         status = "needs_purpose"
+    elif any("Codebase index is not ready:" in warning for warning in warnings):
+        status = "needs_index"
     elif warnings:
         status = "review_targets"
     else:
@@ -219,6 +266,7 @@ def assess_change_request(
         "status": status,
         "request": request,
         "purpose": purpose,
+        "codebase_index": index_state,
         "proposed_paths": proposed_paths,
         "recommended_targets": lookup_results,
         "warnings": warnings,
