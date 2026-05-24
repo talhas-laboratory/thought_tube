@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import mimetypes
+import os
 from http import HTTPStatus
+from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import List
@@ -84,6 +88,9 @@ PUBLIC_API = (
 )
 __all__ = list(PUBLIC_API)
 
+_MOBILE_SESSION_COOKIE_NAME = "inner_world_mobile_session"
+_MOBILE_SESSION_PAYLOAD = "mobile-session"
+
 
 def _read_json_body(handler: BaseHTTPRequestHandler) -> dict:
     length = int(handler.headers.get("Content-Length", "0"))
@@ -104,6 +111,33 @@ def _canonical_api_path(path: str, api_prefixes: List[str]) -> str | None:
             suffix = path[len(normalized) :]
             return suffix or "/"
     return None
+
+
+def _mobile_surface_dir(root: Path) -> Path:
+    return root / "product" / "mobile_surface_v1"
+
+
+def _sign_mobile_session(password: str) -> str:
+    signature = hmac.new(
+        password.encode("utf-8"),
+        _MOBILE_SESSION_PAYLOAD.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"{_MOBILE_SESSION_PAYLOAD}.{signature}"
+
+
+def _verify_mobile_session(cookie_value: str | None, password: str | None) -> bool:
+    if not cookie_value or not password or "." not in cookie_value:
+        return False
+    payload, signature = cookie_value.rsplit(".", 1)
+    if payload != _MOBILE_SESSION_PAYLOAD:
+        return False
+    expected_signature = hmac.new(
+        password.encode("utf-8"),
+        payload.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected_signature)
 
 
 _FEED_UI_ENHANCEMENT_CSS = "feed-ui-enhancement.css"
@@ -699,12 +733,20 @@ def make_miniapp_handler(
     api_prefixes: List[str],
 ):
     class InnerWorldMiniappHandler(BaseHTTPRequestHandler):
-        def _send_json(self, payload: dict, status: int = HTTPStatus.OK) -> None:
+        def _send_json(
+            self,
+            payload: dict,
+            status: int = HTTPStatus.OK,
+            headers: dict[str, str] | None = None,
+        ) -> None:
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Cache-Control", "no-store, max-age=0")
             self.send_header("Pragma", "no-cache")
+            if headers:
+                for header_name, header_value in headers.items():
+                    self.send_header(header_name, header_value)
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -733,6 +775,30 @@ def make_miniapp_handler(
         def _not_found(self) -> None:
             self._send_json({"error": "not_found"}, status=HTTPStatus.NOT_FOUND)
 
+        def _mobile_session_cookie_value(self) -> str | None:
+            cookie_header = self.headers.get("Cookie")
+            if not cookie_header:
+                return None
+            cookies = SimpleCookie()
+            try:
+                cookies.load(cookie_header)
+            except Exception:
+                return None
+            morsel = cookies.get(_MOBILE_SESSION_COOKIE_NAME)
+            return morsel.value if morsel else None
+
+        def _mobile_session_authenticated(self) -> bool:
+            password = os.environ.get("INNER_WORLD_MOBILE_PASSWORD")
+            if not password:
+                return False
+            return _verify_mobile_session(self._mobile_session_cookie_value(), password)
+
+        def _require_mobile_session(self) -> bool:
+            if self._mobile_session_authenticated():
+                return True
+            self._send_json({"error": "auth_required"}, status=HTTPStatus.UNAUTHORIZED)
+            return False
+
         def log_message(self, format: str, *args) -> None:  # noqa: A003
             return
 
@@ -740,6 +806,14 @@ def make_miniapp_handler(
             parsed = urlparse(self.path)
             path = parsed.path
             api_path = _canonical_api_path(path, api_prefixes)
+
+            if path.startswith("/mobile") and not self._require_mobile_session():
+                return
+
+            if api_path and api_path.startswith("/mobile/") and api_path not in {"/mobile/session", "/mobile/session/logout"}:
+                if not self._require_mobile_session():
+                    return
+
             if api_path == "/archive":
                 archive = build_thought_archive(root, domain_overlays=domain_overlays)
                 self._send_json(archive)
@@ -963,6 +1037,10 @@ def make_miniapp_handler(
                     return
                 self._send_json(state)
                 return
+            if api_path == "/mobile/feed":
+                feed = build_thought_feed(root, limit=limit, domain_overlays=domain_overlays)
+                self._send_json(feed)
+                return
             if api_path and api_path.startswith("/source/"):
                 source_item_id = api_path.removeprefix("/source/").strip("/")
                 try:
@@ -991,6 +1069,25 @@ def make_miniapp_handler(
                 self._send_json(detail)
                 return
 
+            if path == "/manifest.webmanifest":
+                mobile_manifest = _mobile_surface_dir(root) / "manifest.webmanifest"
+                if self._mobile_session_authenticated() and mobile_manifest.exists():
+                    self._send_file(mobile_manifest)
+                    return
+
+            if path == "/mobile" or path.startswith("/mobile/"):
+                mobile_assets_dir = _mobile_surface_dir(root)
+                relative = path.removeprefix("/mobile").lstrip("/") or "index.html"
+                candidate = mobile_assets_dir / relative
+                if candidate.exists() and candidate.is_file():
+                    if candidate.suffix == ".html":
+                        self._send_text(candidate.read_text(encoding="utf-8"), "text/html")
+                    else:
+                        self._send_file(candidate)
+                    return
+                self._not_found()
+                return
+
             relative = path.strip("/") or "index.html"
             enhancement_assets = build_miniapp_ui_enhancement_assets()
             if relative in enhancement_assets:
@@ -1013,6 +1110,45 @@ def make_miniapp_handler(
             parsed = urlparse(self.path)
             path = parsed.path
             api_path = _canonical_api_path(path, api_prefixes)
+
+            if api_path and api_path.startswith("/mobile/") and api_path not in {"/mobile/session", "/mobile/session/logout"}:
+                if not self._require_mobile_session():
+                    return
+
+            if api_path == "/mobile/session/logout":
+                self._send_json(
+                    {"authenticated": False},
+                    headers={
+                        "Set-Cookie": (
+                            f"{_MOBILE_SESSION_COOKIE_NAME}=; Path=/; Max-Age=0; "
+                            "HttpOnly; SameSite=Lax"
+                        )
+                    },
+                )
+                return
+
+            if api_path == "/mobile/session":
+                try:
+                    payload = _read_json_body(self)
+                except json.JSONDecodeError:
+                    self._send_json({"error": "invalid_json"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                password = (payload.get("password") or "").strip()
+                expected_password = os.environ.get("INNER_WORLD_MOBILE_PASSWORD") or ""
+                if not expected_password or password != expected_password:
+                    self._send_json({"error": "invalid_password"}, status=HTTPStatus.UNAUTHORIZED)
+                    return
+                self._send_json(
+                    {"authenticated": True},
+                    headers={
+                        "Set-Cookie": (
+                            f"{_MOBILE_SESSION_COOKIE_NAME}={_sign_mobile_session(expected_password)}; "
+                            "Path=/; HttpOnly; SameSite=Lax"
+                        )
+                    },
+                )
+                return
+
             try:
                 payload = _read_json_body(self)
             except json.JSONDecodeError:
