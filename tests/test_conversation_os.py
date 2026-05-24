@@ -1,5 +1,6 @@
 import json
 import importlib
+import importlib.util
 import os
 import http.cookiejar as cookiejar
 import subprocess
@@ -230,6 +231,15 @@ from tools.run_inner_world_backend import InnerWorldGPTBridge, build_gpt_openapi
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _load_tool_module(module_name: str, relative_path: str):
+    spec = importlib.util.spec_from_file_location(module_name, REPO_ROOT / relative_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load module {module_name} from {relative_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class ConversationOSTestCase(unittest.TestCase):
@@ -12199,6 +12209,63 @@ class ConversationOSTestCase(unittest.TestCase):
             server.shutdown()
             thread.join(timeout=2)
             server.server_close()
+
+    def test_run_inner_world_miniapp_main_accepts_cli_flags_and_calls_serve_miniapp(self) -> None:
+        module = _load_tool_module("run_inner_world_miniapp_test", "tools/run_inner_world_miniapp.py")
+
+        with mock.patch.object(module, "serve_miniapp") as serve_mock:
+            module.main(
+                [
+                    "--host",
+                    "0.0.0.0",
+                    "--port",
+                    "9310",
+                    "--domains",
+                    "research,mobile,operators",
+                    "--refresh-on-start",
+                ]
+            )
+
+        serve_mock.assert_called_once_with(
+            module.ROOT,
+            host="0.0.0.0",
+            port=9310,
+            domain_overlays=["research", "mobile", "operators"],
+            refresh_on_start=True,
+        )
+
+    def test_deploy_inner_world_parser_accepts_mobile_surface_flags(self) -> None:
+        module = _load_tool_module("deploy_inner_world_to_openclaw_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        args = module.build_parser().parse_args(
+            [
+                "--with-mobile-surface",
+                "--mobile-hostname",
+                "mobile.example.test",
+                "--mobile-service-url",
+                "http://127.0.0.1:3010/apps/inner-world/mobile/",
+            ]
+        )
+
+        self.assertTrue(args.with_mobile_surface)
+        self.assertEqual(args.mobile_hostname, "mobile.example.test")
+        self.assertEqual(args.mobile_service_url, "http://127.0.0.1:3010/apps/inner-world/mobile/")
+
+    def test_patch_cloudflared_config_accepts_full_service_url(self) -> None:
+        module = _load_tool_module("deploy_inner_world_to_openclaw_cloudflared_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        with mock.patch.object(module, "run") as run_mock:
+            module.patch_cloudflared_config(
+                "talha@example",
+                "/tmp/config.yml",
+                "mobile.example.test",
+                "http://127.0.0.1:3010/apps/inner-world/mobile/",
+            )
+
+        run_mock.assert_called_once()
+        args, kwargs = run_mock.call_args
+        self.assertEqual(args[0], ["ssh", "talha@example", "python3 -"])
+        self.assertIn("service: http://127.0.0.1:3010/apps/inner-world/mobile/", kwargs["input_text"])
 
     def test_rewrite_outgoing_message_updates_shared_bridge_state(self) -> None:
         self._write_personal_interface_profile()

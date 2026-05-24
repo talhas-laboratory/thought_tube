@@ -27,8 +27,10 @@ DEFAULT_APP_ID = "inner-world"
 DEFAULT_PORT = 8422
 DEFAULT_GPT_BRIDGE_PORT = 8093
 DEFAULT_GPT_BRIDGE_HOSTNAME = "inner-world-gpt.talhaslaboratory.xyz"
+DEFAULT_MOBILE_HOSTNAME = "mobile.talhaslaboratory.xyz"
 DEFAULT_GPT_CLOUDFLARED_CONFIG = "/home/talha/.cloudflared/config.yml"
 DEFAULT_GPT_CLOUDFLARED_TUNNEL = "klarorder-gpt"
+DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL = "http://127.0.0.1:3010"
 
 SYNC_ITEMS = [
     "AGENTS.md",
@@ -74,6 +76,10 @@ def build_bundle(api_base_url: str) -> Path:
         api_base_url=api_base_url,
     )
     return temp_root / DEFAULT_APP_ID
+
+
+def build_mobile_service_url(app_id: str, host_service_base_url: str = DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL) -> str:
+    return f"{host_service_base_url.rstrip('/')}/apps/{app_id}/mobile/"
 
 
 def refresh_generated_agent_docs() -> None:
@@ -247,13 +253,13 @@ print(f'patched {path}')
     run(["ssh", remote, "python3 -"], input_text=patch_script)
 
 
-def patch_cloudflared_config(remote: str, config_path: str, hostname: str, port: int) -> None:
+def patch_cloudflared_config(remote: str, config_path: str, hostname: str, service_url: str) -> None:
     patch_script = f"""
 from pathlib import Path
 
 path = Path({config_path!r})
 text = path.read_text(encoding='utf-8')
-block = "  - hostname: {hostname}\\n    service: http://127.0.0.1:{port}\\n"
+block = "  - hostname: {hostname}\\n    service: {service_url}\\n"
 if f"hostname: {hostname}" in text:
     print("cloudflared hostname already present")
     raise SystemExit(0)
@@ -303,7 +309,7 @@ def restart_services(remote: str, *, with_gpt_bridge: bool = False) -> None:
     run(["ssh", remote, " && ".join(units)])
 
 
-def verify(remote: str, app_id: str) -> None:
+def verify(remote: str, app_id: str, *, verify_mobile_surface: bool = False) -> None:
     checks = [
         "systemctl --user is-active inner-world.service",
         "systemctl --user is-active openclaw-miniapps.service",
@@ -311,6 +317,11 @@ def verify(remote: str, app_id: str) -> None:
         "curl -fsS http://127.0.0.1:3010/apps/api/inner-world/feed > /dev/null",
         f"curl -fsS http://127.0.0.1:3010/apps/{app_id}/ > /dev/null",
     ]
+    if verify_mobile_surface:
+        checks.append(
+            f"status=$(curl -s -o /dev/null -w '%{{http_code}}' http://127.0.0.1:3010/apps/{app_id}/mobile/) && "
+            "[ \"$status\" = \"200\" ] || [ \"$status\" = \"401\" ]"
+        )
     run(["ssh", remote, " && ".join(checks)])
 
 
@@ -341,6 +352,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gpt-bridge-artifact-root", default="")
     parser.add_argument("--cloudflared-config", default=DEFAULT_GPT_CLOUDFLARED_CONFIG)
     parser.add_argument("--cloudflared-tunnel-name", default=DEFAULT_GPT_CLOUDFLARED_TUNNEL)
+    parser.add_argument("--with-mobile-surface", action="store_true")
+    parser.add_argument("--mobile-hostname", default=DEFAULT_MOBILE_HOSTNAME)
+    parser.add_argument("--mobile-service-url", default="")
+    parser.add_argument("--openclaw-host-service-base-url", default=DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL)
     return parser
 
 
@@ -360,6 +375,10 @@ def main() -> None:
         legacy_action_keys = [item.strip() for item in existing_legacy.split(",") if item.strip()]
     artifact_root = args.gpt_bridge_artifact_root.strip() or f"{args.repo_path}/mobile_artifacts"
     public_base_url = f"https://{args.gpt_bridge_hostname}"
+    mobile_service_url = args.mobile_service_url.strip() or build_mobile_service_url(
+        args.app_id,
+        args.openclaw_host_service_base_url,
+    )
     try:
         rsync_repo(args.remote, args.repo_path)
         rsync_bundle(bundle_dir, args.remote, args.apps_root, args.app_id)
@@ -374,16 +393,28 @@ def main() -> None:
                 artifact_root=artifact_root,
             )
             install_gpt_bridge_service(args.remote, args.repo_path, args.gpt_bridge_port)
-            patch_cloudflared_config(args.remote, args.cloudflared_config, args.gpt_bridge_hostname, args.gpt_bridge_port)
+            patch_cloudflared_config(
+                args.remote,
+                args.cloudflared_config,
+                args.gpt_bridge_hostname,
+                f"http://127.0.0.1:{args.gpt_bridge_port}",
+            )
             ensure_cloudflared_dns(args.remote, args.cloudflared_tunnel_name, args.gpt_bridge_hostname)
+        if args.with_mobile_surface:
+            patch_cloudflared_config(args.remote, args.cloudflared_config, args.mobile_hostname, mobile_service_url)
+            ensure_cloudflared_dns(args.remote, args.cloudflared_tunnel_name, args.mobile_hostname)
         restart_services(args.remote, with_gpt_bridge=args.with_gpt_bridge)
-        if args.with_gpt_bridge:
+        if args.with_gpt_bridge or args.with_mobile_surface:
             restart_cloudflared(args.remote, args.cloudflared_config, args.cloudflared_tunnel_name)
-        verify(args.remote, args.app_id)
+        verify(args.remote, args.app_id, verify_mobile_surface=args.with_mobile_surface)
         if args.with_gpt_bridge:
             verify_gpt_bridge(args.remote, args.gpt_bridge_port)
         print(f"Deployed Inner World to {args.remote}:{args.repo_path}")
         print(f"Miniapp URL path: /apps/{args.app_id}/")
+        if args.with_mobile_surface:
+            print(f"Mobile surface URL path: /apps/{args.app_id}/mobile/")
+            print(f"Mobile surface hostname: https://{args.mobile_hostname}")
+            print(f"Mobile surface host service target: {mobile_service_url}")
         print("GPT repo visibility for the private app: inherited from the existing OpenClaw GPT context service.")
         if args.with_gpt_bridge:
             print(f"Inner World GPT bridge URL: {public_base_url}")
