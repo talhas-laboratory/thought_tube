@@ -317,6 +317,15 @@ class ConversationOSTestCase(unittest.TestCase):
                 [row for row in rows if row["kind"] == kind],
             )
 
+    def _write_analysis_units(self, rows: list[dict]) -> None:
+        write_jsonl(self.root / "product" / "inner_world_v1" / "data" / "analysis_units.jsonl", rows)
+
+    def _write_shape_signatures(self, rows: list[dict]) -> None:
+        write_jsonl(self.root / "product" / "inner_world_v1" / "data" / "shape_signatures.jsonl", rows)
+
+    def _write_shape_memory(self, rows: list[dict]) -> None:
+        write_jsonl(self.root / "product" / "inner_world_v1" / "data" / "shape_memory.jsonl", rows)
+
     def _write_library_config(self, payload: dict) -> Path:
         path = self.root / "product" / "inner_world_v1" / "config" / "library_sources.json"
         write_json(path, payload)
@@ -366,6 +375,186 @@ class ConversationOSTestCase(unittest.TestCase):
         for name in models_module.PUBLIC_MODELS:
             self.assertIn(name, models_module.__all__)
             self.assertTrue(hasattr(models_module, name), name)
+
+    def test_shape_signature_model_dataclasses_round_trip_to_plain_dicts(self) -> None:
+        for name in [
+            "EvidenceSpan",
+            "SignatureEntity",
+            "SignatureState",
+            "SignatureRelation",
+            "SignatureFeedbackLoop",
+            "SignatureConstraint",
+            "SignatureAbsence",
+            "SignatureAffordance",
+            "CandidateShape",
+            "AlternativeInterpretation",
+            "SystemDynamicSignature",
+            "ShapeGraphNode",
+            "ShapeGraphEdge",
+            "AnalogyEvaluationPacket",
+            "ShapeMemoryItem",
+        ]:
+            self.assertIn(name, models_module.PUBLIC_MODELS)
+            self.assertIn(name, models_module.__all__)
+            self.assertTrue(hasattr(models_module, name), name)
+
+        evidence = models_module.EvidenceSpan(
+            source_ref="session:session-shape-1",
+            chunk_id="chunk-shape-1",
+            text="Users do not understand what the product is.",
+            kind="direct_quote",
+        )
+        entity = models_module.SignatureEntity(
+            entity_id="entity-features",
+            label="Features",
+            node_type="entity",
+            role="added_elements",
+            confidence=0.78,
+            evidence=[evidence.to_dict()],
+        )
+        state = models_module.SignatureState(
+            state_id="state-unclear-value",
+            label="Unclear perceived value",
+            confidence=0.74,
+            evidence=[evidence.to_dict()],
+        )
+        relation = models_module.SignatureRelation(
+            relation_id="rel-features-hide-value",
+            source_id="entity-features",
+            target_id="entity-core-value",
+            edge_type="hides",
+            operation="accumulate",
+            confidence=0.71,
+            evidence=[evidence.to_dict()],
+        )
+        loop = models_module.SignatureFeedbackLoop(
+            loop_id="loop-confusion-complexity",
+            label="Confusion creates more explanation and more complexity",
+            node_ids=["state-unclear-value", "entity-features"],
+            edge_ids=["rel-features-hide-value"],
+            confidence=0.67,
+            evidence=[evidence.to_dict()],
+        )
+        constraint = models_module.SignatureConstraint(
+            constraint_id="constraint-limited-attention",
+            label="Limited user attention",
+            confidence=0.81,
+            evidence=[evidence.to_dict()],
+        )
+        absence = models_module.SignatureAbsence(
+            absence_id="absence-primary-path",
+            label="Missing primary path",
+            confidence=0.76,
+            evidence=[evidence.to_dict()],
+        )
+        affordance = models_module.SignatureAffordance(
+            affordance_id="affordance-onboarding",
+            label="Onboarding can reveal the value hierarchy",
+            confidence=0.63,
+            evidence=[evidence.to_dict()],
+        )
+        candidate_shape = models_module.CandidateShape(
+            shape_name="Signal Dilution Through Accumulation",
+            confidence=0.76,
+            rationale="Many useful elements compete for attention and hide the core signal.",
+        )
+        alternative = models_module.AlternativeInterpretation(
+            title="Failed Translation of Hidden Value",
+            summary="The issue may be messaging rather than accumulation alone.",
+            confidence=0.58,
+        )
+        signature = models_module.SystemDynamicSignature(
+            signature_id="signature-product-overload",
+            source_ref="session:session-shape-1",
+            source_kind="session",
+            source_anchor_id="session-shape-1",
+            title="Product clarity failure under feature accumulation",
+            summary="Feature growth competes with user attention and obscures the core value.",
+            system_boundary="Product experience and user interpretation",
+            observer_lens="product_strategy_ux",
+            entities=[entity.to_dict()],
+            states=[state.to_dict()],
+            relations=[relation.to_dict()],
+            feedback_loops=[loop.to_dict()],
+            constraints=[constraint.to_dict()],
+            absences=[absence.to_dict()],
+            affordances=[affordance.to_dict()],
+            failure_mode="Signal dilution through accumulation",
+            desired_transformation="Preserve depth while restoring immediate clarity",
+            candidate_shapes=[candidate_shape.to_dict()],
+            alternative_interpretations=[alternative.to_dict()],
+            evidence_spans=[evidence.to_dict()],
+            missing_information=["Whether users are confused by quantity or by unclear value framing."],
+            confidence=0.76,
+            status="provisional",
+            version=1,
+            created_at="2026-05-24T09:00:00+00:00",
+            updated_at="2026-05-24T09:00:00+00:00",
+        )
+        graph_node = models_module.ShapeGraphNode(
+            graph_node_id="graph-node-features",
+            signature_id="signature-product-overload",
+            node_key="entity-features",
+            node_type="entity",
+            label="Features",
+            role="added_elements",
+            confidence=0.78,
+            attributes={"source_ref": "session:session-shape-1"},
+        )
+        graph_edge = models_module.ShapeGraphEdge(
+            graph_edge_id="graph-edge-hide-value",
+            signature_id="signature-product-overload",
+            source_node_key="entity-features",
+            target_node_key="entity-core-value",
+            edge_type="hides",
+            operation="accumulate",
+            confidence=0.71,
+            attributes={"loop_member": False},
+        )
+        evaluation = models_module.AnalogyEvaluationPacket(
+            evaluation_id="evaluation-overproduced-song",
+            signature_id="signature-product-overload",
+            analogy_id="analogy-overproduced-song",
+            deterministic_score=0.84,
+            role_fit=1.0,
+            causal_fit=0.88,
+            feedback_fit=0.75,
+            leverage_fit=0.86,
+            material_transfer_fit=0.8,
+            anti_match_penalty=0.0,
+            llm_rationale="The analogy preserves competing elements, weak hierarchy, and receiver overload.",
+            transfers=["competing_elements", "weak_hierarchy", "receiver_overload"],
+            does_not_transfer=["literal_sound_frequency"],
+            intervention_risks=["music can tolerate ornamental complexity more than a task-oriented product"],
+            verdict="strong_match",
+            confidence=0.84,
+        )
+        memory_item = models_module.ShapeMemoryItem(
+            memory_id="shape-memory-signal-dilution",
+            scope="user",
+            scope_key="user-talha",
+            shape_name="Signal Dilution Through Accumulation",
+            shape_definition="More useful elements are added, but hierarchy does not scale, so the main signal becomes harder to perceive.",
+            validated_examples=["signature-product-overload"],
+            anti_matches=["analogy-maze"],
+            interventions=["define_primary_path", "demote_secondary_features"],
+            missing_constraints=["limited_attention"],
+            validation_count=3,
+            rejection_count=1,
+            last_validated_at="2026-05-24T09:00:00+00:00",
+            updated_at="2026-05-24T09:00:00+00:00",
+        )
+
+        signature_payload = signature.to_dict()
+        self.assertEqual(signature_payload["title"], "Product clarity failure under feature accumulation")
+        self.assertEqual(signature_payload["entities"][0]["label"], "Features")
+        self.assertEqual(signature_payload["relations"][0]["edge_type"], "hides")
+        self.assertEqual(signature_payload["candidate_shapes"][0]["shape_name"], "Signal Dilution Through Accumulation")
+        self.assertIsInstance(signature_payload["confidence"], float)
+        self.assertEqual(graph_node.to_dict()["node_type"], "entity")
+        self.assertEqual(graph_edge.to_dict()["operation"], "accumulate")
+        self.assertEqual(evaluation.to_dict()["verdict"], "strong_match")
+        self.assertEqual(memory_item.to_dict()["validation_count"], 3)
 
     def test_cost_tracker_module_exposes_stable_public_boundary(self) -> None:
         self.assertEqual(cost_tracker_module.MODULE_ID, "kernel.runtime.cost_tracker")
@@ -481,6 +670,1031 @@ class ConversationOSTestCase(unittest.TestCase):
         for name in meta_layer_module.PUBLIC_API:
             self.assertIn(name, meta_layer_module.__all__)
             self.assertTrue(hasattr(meta_layer_module, name), name)
+
+    def test_extract_shape_signatures_derives_structural_signature_from_unit_and_meta(self) -> None:
+        self._write_analysis_units(
+            [
+                {
+                    "unit_id": "unit-shape-1",
+                    "source_id": "source-shape-1",
+                    "source_ref": "session:shape-1",
+                    "source_type": "conversation",
+                    "source_family": "conversation_library",
+                    "sensitivity_tier": "private",
+                    "title": "Product clarity",
+                    "content": (
+                        "Our product has many features but users do not understand what it is. "
+                        "We keep adding explanations, which makes the surface feel even more complex."
+                    ),
+                    "section_path": ["Product clarity"],
+                    "chunk_ids": ["chunk-shape-1"],
+                    "chunk_indexes": [0],
+                    "anchor_chunk_id": "chunk-shape-1",
+                    "created_at": "2026-05-24T09:00:00+00:00",
+                    "metadata": {"speaker_role": "user"},
+                    "metadata_dimensions": {},
+                    "speaker_role": "user",
+                    "speaker_weight": 1.0,
+                    "role_sequence": ["user"],
+                    "related_chunk_ids": [],
+                    "tokens": [
+                        "product",
+                        "many",
+                        "features",
+                        "users",
+                        "understand",
+                        "adding",
+                        "explanations",
+                        "complex",
+                    ],
+                }
+            ]
+        )
+        self._write_meta_rows(
+            [
+                self._meta_row(
+                    meta_id="signal-frame-shape-1",
+                    kind="signal_frame",
+                    label="Product clarity failure under feature accumulation",
+                    summary="More useful elements are added, but hierarchy does not scale, causing the receiver to lose the central signal.",
+                    source_ref="session:shape-1",
+                    chunk_id="chunk-shape-1",
+                    attributes={
+                        "tokens": ["product", "features", "clarity"],
+                        "transformation_goal": "Restore a dominant primary path without removing depth.",
+                        "speaker_role": "user",
+                    },
+                ),
+                self._meta_row(
+                    meta_id="question-shape-1",
+                    kind="question",
+                    label="What exactly confuses users?",
+                    summary="Do users feel overwhelmed by quantity, or do they fail to understand the value proposition?",
+                    source_ref="session:shape-1",
+                    chunk_id="chunk-shape-1",
+                    attributes={"tokens": ["users", "quantity", "value"]},
+                ),
+                self._meta_row(
+                    meta_id="tension-shape-1",
+                    kind="tension",
+                    label="signal dilution",
+                    summary="More added elements create attention competition and reduce clarity.",
+                    source_ref="session:shape-1",
+                    chunk_id="chunk-shape-1",
+                    attributes={"tokens": ["features", "clarity", "attention"], "polarity": "protective"},
+                ),
+                self._meta_row(
+                    meta_id="primitive-shape-1",
+                    kind="shared_primitive",
+                    label="Signal Dilution Through Accumulation",
+                    summary="Useful additions crowd out the main signal when hierarchy does not scale.",
+                    source_ref="session:shape-1",
+                    chunk_id="chunk-shape-1",
+                    attributes={
+                        "tokens": ["accumulation", "hierarchy", "signal"],
+                        "family": "system_dynamic_shape",
+                        "primitive_key": "signal_dilution_through_accumulation",
+                    },
+                ),
+            ]
+        )
+
+        summary = meta_layer_module.extract_shape_signatures(self.root, ensure_dependencies=False)
+        signatures = meta_layer_module.load_shape_signatures(self.root)
+
+        self.assertEqual(summary["shape_signature_count"], 1)
+        self.assertEqual(summary["analysis_unit_count"], 1)
+        self.assertEqual(summary["meta_record_count"], 4)
+        self.assertEqual(len(signatures), 1)
+
+        signature = signatures[0]
+        self.assertEqual(
+            signature["title"],
+            "Product clarity failure under feature accumulation",
+        )
+        self.assertEqual(signature["failure_mode"], "Signal Dilution Through Accumulation")
+        self.assertEqual(signature["candidate_shapes"][0]["shape_name"], "Signal Dilution Through Accumulation")
+        self.assertEqual(signature["candidate_shapes"][0]["attributes"]["origin"], "shared_primitive")
+        self.assertEqual(signature["desired_transformation"], "Restore a dominant primary path without removing depth.")
+        self.assertEqual(signature["evidence_spans"][0]["chunk_id"], "chunk-shape-1")
+        self.assertIn("quantity", signature["missing_information"][0].lower())
+
+        entity_roles = {row["role"] for row in signature["entities"]}
+        self.assertIn("added_elements", entity_roles)
+        self.assertIn("limited_receiver_capacity", entity_roles)
+        self.assertIn("source_signal", entity_roles)
+
+        relation_types = {row["edge_type"] for row in signature["relations"]}
+        self.assertIn("competes_with", relation_types)
+        self.assertIn("hides", relation_types)
+        self.assertIn("feeds_back_into", relation_types)
+
+        self.assertTrue(signature["constraints"])
+        self.assertTrue(signature["absences"])
+
+    def test_build_shape_graph_projects_signature_nodes_edges_and_feedback_metadata(self) -> None:
+        evidence = models_module.EvidenceSpan(
+            source_ref="session:shape-graph-1",
+            chunk_id="chunk-shape-graph-1",
+            text="Our product has many features but users do not understand what it is.",
+            kind="direct_quote",
+        )
+        entities = [
+            models_module.SignatureEntity(
+                entity_id="entity-features",
+                label="Features",
+                node_type="entity",
+                role="added_elements",
+                confidence=0.78,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+            models_module.SignatureEntity(
+                entity_id="entity-attention",
+                label="User attention",
+                node_type="resource",
+                role="limited_receiver_capacity",
+                confidence=0.74,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+            models_module.SignatureEntity(
+                entity_id="entity-core-value",
+                label="Core value",
+                node_type="signal",
+                role="source_signal",
+                confidence=0.76,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+            models_module.SignatureEntity(
+                entity_id="entity-explanations",
+                label="Explanation layer",
+                node_type="entity",
+                role="coordination_layer",
+                confidence=0.68,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+        ]
+        states = [
+            models_module.SignatureState(
+                state_id="state-confusion",
+                label="Receiver confusion",
+                confidence=0.79,
+                evidence=[evidence.to_dict()],
+            ).to_dict()
+        ]
+        relations = [
+            models_module.SignatureRelation(
+                relation_id="relation-features-compete-attention",
+                source_id="entity-features",
+                target_id="entity-attention",
+                edge_type="competes_with",
+                operation="accumulate",
+                confidence=0.77,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+            models_module.SignatureRelation(
+                relation_id="relation-features-hide-core-value",
+                source_id="entity-features",
+                target_id="entity-core-value",
+                edge_type="hides",
+                operation="accumulate",
+                confidence=0.8,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+            models_module.SignatureRelation(
+                relation_id="relation-confusion-causes-explanations",
+                source_id="state-confusion",
+                target_id="entity-explanations",
+                edge_type="causes",
+                operation="amplify",
+                confidence=0.71,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+            models_module.SignatureRelation(
+                relation_id="relation-explanations-feed-features",
+                source_id="entity-explanations",
+                target_id="entity-features",
+                edge_type="feeds_back_into",
+                operation="amplify",
+                confidence=0.73,
+                evidence=[evidence.to_dict()],
+            ).to_dict(),
+        ]
+        feedback_loops = [
+            models_module.SignatureFeedbackLoop(
+                loop_id="feedback-loop-clarity-complexity",
+                label="Confusion drives more explanation, which drives more complexity.",
+                node_ids=["state-confusion", "entity-explanations", "entity-features"],
+                edge_ids=[
+                    "relation-confusion-causes-explanations",
+                    "relation-explanations-feed-features",
+                ],
+                confidence=0.69,
+                evidence=[evidence.to_dict()],
+            ).to_dict()
+        ]
+        constraints = [
+            models_module.SignatureConstraint(
+                constraint_id="constraint-limited-attention",
+                label="Limited receiver capacity",
+                confidence=0.75,
+                evidence=[evidence.to_dict()],
+            ).to_dict()
+        ]
+        absences = [
+            models_module.SignatureAbsence(
+                absence_id="absence-primary-hierarchy",
+                label="Missing primary hierarchy",
+                confidence=0.72,
+                evidence=[evidence.to_dict()],
+            ).to_dict()
+        ]
+        affordances = [
+            models_module.SignatureAffordance(
+                affordance_id="affordance-hierarchy-restoration",
+                label="Hierarchy can restore the dominant signal",
+                confidence=0.67,
+                evidence=[evidence.to_dict()],
+            ).to_dict()
+        ]
+        signature = models_module.SystemDynamicSignature(
+            signature_id="signature-shape-graph-1",
+            source_ref="session:shape-graph-1",
+            source_kind="analysis_unit",
+            source_anchor_id="unit-shape-graph-1",
+            title="Product clarity failure under feature accumulation",
+            summary="Added features compete for attention and hide the core value.",
+            system_boundary="Product experience and user interpretation",
+            observer_lens="structural_interpretation",
+            entities=entities,
+            states=states,
+            relations=relations,
+            feedback_loops=feedback_loops,
+            constraints=constraints,
+            absences=absences,
+            affordances=affordances,
+            failure_mode="Signal Dilution Through Accumulation",
+            desired_transformation="Restore a dominant primary path without removing depth.",
+            candidate_shapes=[
+                models_module.CandidateShape(
+                    shape_name="Signal Dilution Through Accumulation",
+                    confidence=0.77,
+                    rationale="More elements compete for attention and hide the main signal.",
+                ).to_dict()
+            ],
+            alternative_interpretations=[],
+            evidence_spans=[evidence.to_dict()],
+            missing_information=[],
+            confidence=0.76,
+            status="provisional",
+            version=1,
+            created_at="2026-05-24T10:00:00+00:00",
+            updated_at="2026-05-24T10:00:00+00:00",
+        ).to_dict()
+        self._write_shape_signatures([signature])
+
+        summary = meta_layer_module.build_shape_graph(self.root, ensure_dependencies=False)
+        nodes = meta_layer_module.load_shape_graph_nodes(self.root)
+        edges = meta_layer_module.load_shape_graph_edges(self.root)
+
+        self.assertEqual(summary["shape_signature_count"], 1)
+        self.assertEqual(summary["shape_graph_node_count"], 8)
+        self.assertEqual(summary["shape_graph_edge_count"], 4)
+        self.assertEqual(summary["invalid_edge_count"], 0)
+        self.assertEqual(len(nodes), 8)
+        self.assertEqual(len(edges), 4)
+
+        node_keys = {row["node_key"] for row in nodes}
+        self.assertIn("entity-features", node_keys)
+        self.assertIn("state-confusion", node_keys)
+        self.assertIn("constraint-limited-attention", node_keys)
+        self.assertIn("absence-primary-hierarchy", node_keys)
+        self.assertIn("affordance-hierarchy-restoration", node_keys)
+        self.assertTrue(all(row["source_node_key"] in node_keys for row in edges))
+        self.assertTrue(all(row["target_node_key"] in node_keys for row in edges))
+
+        loop_edge = next(row for row in edges if row["graph_edge_id"] == "relation-explanations-feed-features")
+        self.assertEqual(loop_edge["edge_type"], "feeds_back_into")
+        self.assertEqual(
+            loop_edge["attributes"]["feedback_loop_ids"],
+            ["feedback-loop-clarity-complexity"],
+        )
+
+    def test_retrieve_candidates_attaches_shape_signature_hints_to_candidate_attributes(self) -> None:
+        evidence = models_module.EvidenceSpan(
+            source_ref="session:shape-hints-1",
+            chunk_id="chunk-shape-hints-1",
+            text="Our product has many features but users do not understand what it is.",
+            kind="direct_quote",
+        )
+        signature = models_module.SystemDynamicSignature(
+            signature_id="signature-shape-hints-1",
+            source_ref="session:shape-hints-1",
+            source_kind="analysis_unit",
+            source_anchor_id="unit-shape-hints-1",
+            title="Product clarity failure under feature accumulation",
+            summary="Added features compete for attention and hide the core value.",
+            system_boundary="Product experience",
+            observer_lens="structural_interpretation",
+            entities=[
+                models_module.SignatureEntity(
+                    entity_id="entity-features",
+                    label="Features",
+                    node_type="entity",
+                    role="added_elements",
+                    confidence=0.78,
+                    evidence=[evidence.to_dict()],
+                ).to_dict(),
+                models_module.SignatureEntity(
+                    entity_id="entity-attention",
+                    label="User attention",
+                    node_type="resource",
+                    role="limited_receiver_capacity",
+                    confidence=0.74,
+                    evidence=[evidence.to_dict()],
+                ).to_dict(),
+            ],
+            states=[],
+            relations=[
+                models_module.SignatureRelation(
+                    relation_id="relation-features-compete-attention",
+                    source_id="entity-features",
+                    target_id="entity-attention",
+                    edge_type="competes_with",
+                    operation="accumulate",
+                    confidence=0.77,
+                    evidence=[evidence.to_dict()],
+                ).to_dict()
+            ],
+            feedback_loops=[],
+            constraints=[],
+            absences=[],
+            affordances=[],
+            failure_mode="Signal Dilution Through Accumulation",
+            desired_transformation="Restore a dominant primary path.",
+            candidate_shapes=[
+                models_module.CandidateShape(
+                    shape_name="Signal Dilution Through Accumulation",
+                    confidence=0.77,
+                    rationale="More elements compete for attention and hide the main signal.",
+                ).to_dict()
+            ],
+            alternative_interpretations=[],
+            evidence_spans=[evidence.to_dict()],
+            missing_information=[],
+            confidence=0.76,
+            status="provisional",
+            version=1,
+            created_at="2026-05-24T10:00:00+00:00",
+            updated_at="2026-05-24T10:00:00+00:00",
+        ).to_dict()
+        self._write_shape_signatures([signature])
+
+        pair_rows = [
+            {
+                "score": 0.52,
+                "edge_kind": "relates_to",
+                "left": self._meta_row(
+                    meta_id="meta-shape-hints-1",
+                    kind="signal_frame",
+                    label="Product clarity failure under feature accumulation",
+                    summary="Added features compete for attention and hide the core value.",
+                    source_ref="session:shape-hints-1",
+                    chunk_id="chunk-shape-hints-1",
+                ),
+                "right": self._meta_row(
+                    meta_id="meta-unrelated-1",
+                    kind="theme",
+                    label="Unrelated note",
+                    summary="Something else entirely.",
+                    source_ref="session:other-1",
+                    chunk_id="chunk-other-1",
+                ),
+            }
+        ]
+
+        with mock.patch("conversation_os.knowledge_layer.select_candidate_pairs", return_value=pair_rows):
+            candidates = retrieve_candidates(
+                self.root,
+                {
+                    "query_text": "product clarity feature overload",
+                    "source_refs": ["session:shape-hints-1"],
+                    "meta_refs": [],
+                },
+                limit=4,
+            )
+
+        enriched = next(candidate for candidate in candidates if candidate.meta_id == "meta-shape-hints-1")
+        self.assertEqual(enriched.attributes["shape_signature_ids"], ["signature-shape-hints-1"])
+        self.assertEqual(
+            enriched.attributes["shape_candidate_shapes"],
+            ["Signal Dilution Through Accumulation"],
+        )
+        self.assertEqual(
+            enriched.attributes["shape_node_roles"],
+            ["added_elements", "limited_receiver_capacity"],
+        )
+        self.assertEqual(enriched.attributes["shape_edge_types"], ["competes_with"])
+        self.assertEqual(enriched.attributes["shape_operations"], ["accumulate"])
+        self.assertFalse(enriched.attributes["shape_has_feedback_loop"])
+
+    def test_match_shapes_prefers_structural_overlap_when_shape_hints_exist(self) -> None:
+        anchor = conversation_synthesis_module.FormationCandidate(
+            candidate_id="anchor-1",
+            meta_id="meta-anchor-1",
+            kind="signal_frame",
+            label="Product clarity failure",
+            summary="Many features hide the core value and confuse the user.",
+            source_refs=["session:anchor-1"],
+            chunk_ids=["chunk-anchor-1"],
+            candidate_score=0.78,
+            attributes={
+                "shape_signature_ids": ["signature-anchor-1"],
+                "shape_candidate_shapes": ["Signal Dilution Through Accumulation"],
+                "shape_node_roles": [
+                    "added_elements",
+                    "limited_receiver_capacity",
+                    "source_signal",
+                    "coordination_layer",
+                ],
+                "shape_edge_types": ["competes_with", "hides", "feeds_back_into"],
+                "shape_operations": ["accumulate", "amplify"],
+                "shape_has_feedback_loop": True,
+            },
+        )
+        strong_candidate = conversation_synthesis_module.FormationCandidate(
+            candidate_id="candidate-song-1",
+            meta_id="meta-song-1",
+            kind="transfer_target",
+            label="Overproduced song",
+            summary="Too many layers compete with the lead melody and crowd the mix.",
+            source_refs=["session:song-1"],
+            chunk_ids=["chunk-song-1"],
+            candidate_score=0.74,
+            attributes={
+                "shape_signature_ids": ["signature-song-1"],
+                "shape_candidate_shapes": ["Signal Dilution Through Accumulation"],
+                "shape_node_roles": [
+                    "added_elements",
+                    "limited_receiver_capacity",
+                    "source_signal",
+                    "coordination_layer",
+                ],
+                "shape_edge_types": ["competes_with", "hides", "feeds_back_into"],
+                "shape_operations": ["accumulate", "amplify"],
+                "shape_has_feedback_loop": True,
+            },
+        )
+        weak_candidate = conversation_synthesis_module.FormationCandidate(
+            candidate_id="candidate-maze-1",
+            meta_id="meta-maze-1",
+            kind="transfer_target",
+            label="Maze",
+            summary="A user gets confused trying to find the exit through a hidden path.",
+            source_refs=["session:maze-1"],
+            chunk_ids=["chunk-maze-1"],
+            candidate_score=0.74,
+            attributes={
+                "shape_signature_ids": ["signature-maze-1"],
+                "shape_candidate_shapes": ["Search Confusion Through Hidden Route"],
+                "shape_node_roles": ["receiver", "blocked_transition", "goal"],
+                "shape_edge_types": ["blocks", "delays"],
+                "shape_operations": ["delay"],
+                "shape_has_feedback_loop": False,
+            },
+        )
+
+        matches = match_shapes(anchor, [weak_candidate, strong_candidate])
+
+        self.assertEqual(matches[0].candidate_meta_id, "meta-song-1")
+        self.assertIn("shape_structure", matches[0].reasons)
+        self.assertEqual(matches[0].structural_fit["role_fit"], 1.0)
+        self.assertEqual(matches[0].structural_fit["edge_fit"], 1.0)
+        self.assertEqual(matches[0].structural_fit["operation_fit"], 1.0)
+        self.assertEqual(matches[0].structural_fit["feedback_fit"], 1.0)
+        self.assertGreaterEqual(matches[0].structural_fit["structural_score"], 0.9)
+        self.assertLess(matches[1].structural_fit["role_fit"], matches[0].structural_fit["role_fit"])
+        self.assertLess(matches[1].structural_fit["structural_score"], matches[0].structural_fit["structural_score"])
+        self.assertEqual(matches[0].structural_fit["verdict"], "strong_match")
+        self.assertEqual(matches[1].structural_fit["verdict"], "reject")
+        self.assertGreater(matches[1].structural_fit["anti_match_penalty"], 0.0)
+        self.assertGreater(matches[0].score, matches[1].score)
+
+    def test_match_shapes_clamps_rejected_structural_mismatch_score(self) -> None:
+        anchor = conversation_synthesis_module.FormationCandidate(
+            candidate_id="anchor-low-score-1",
+            meta_id="meta-anchor-low-score-1",
+            kind="signal_frame",
+            label="Product clarity failure",
+            summary="Many features obscure the main signal.",
+            source_refs=[],
+            chunk_ids=[],
+            candidate_score=0.01,
+            attributes={
+                "shape_signature_ids": ["signature-anchor-low-score-1"],
+                "shape_node_roles": ["source_signal"],
+                "shape_edge_types": ["hides"],
+                "shape_operations": ["accumulate"],
+                "shape_has_feedback_loop": False,
+            },
+        )
+        candidate = conversation_synthesis_module.FormationCandidate(
+            candidate_id="candidate-low-score-1",
+            meta_id="meta-candidate-low-score-1",
+            kind="transfer_target",
+            label="Blocked maze path",
+            summary="A route is delayed by a hidden obstruction.",
+            source_refs=[],
+            chunk_ids=[],
+            candidate_score=0.01,
+            attributes={
+                "shape_signature_ids": ["signature-candidate-low-score-1"],
+                "shape_node_roles": ["goal"],
+                "shape_edge_types": ["blocks"],
+                "shape_operations": ["delay"],
+                "shape_has_feedback_loop": True,
+            },
+        )
+
+        match = match_shapes(anchor, [candidate])[0]
+
+        self.assertEqual(match.structural_fit["verdict"], "reject")
+        self.assertIn("shape_mismatch", match.reasons)
+        self.assertEqual(match.score, 0.0)
+
+    def test_shape_memory_feedback_persists_validation_and_anti_match_records(self) -> None:
+        accepted = meta_layer_module.record_shape_feedback(
+            self.root,
+            scope="project",
+            scope_key="thought-tube",
+            shape_name="Signal Dilution Through Accumulation",
+            shape_definition="Useful elements accumulate faster than hierarchy, so the main signal becomes harder to perceive.",
+            feedback_type="accepted",
+            validated_example="signature-product-overload",
+            intervention="define_primary_path",
+        )
+        rejected = meta_layer_module.record_shape_feedback(
+            self.root,
+            scope="project",
+            scope_key="thought-tube",
+            shape_name="Signal Dilution Through Accumulation",
+            shape_definition="Useful elements accumulate faster than hierarchy, so the main signal becomes harder to perceive.",
+            feedback_type="rejected",
+            rejected_candidate_id="meta-maze-1",
+            anchor_meta_id="meta-anchor-1",
+            anti_match_penalty=0.25,
+        )
+
+        memory_rows = meta_layer_module.load_shape_memory(self.root)
+
+        self.assertEqual(accepted["shape_name"], "Signal Dilution Through Accumulation")
+        self.assertEqual(rejected["rejection_count"], 1)
+        self.assertEqual(len(memory_rows), 1)
+        self.assertEqual(memory_rows[0]["validation_count"], 1)
+        self.assertEqual(memory_rows[0]["rejection_count"], 1)
+        self.assertIn("signature-product-overload", memory_rows[0]["validated_examples"])
+        self.assertIn("meta-maze-1", memory_rows[0]["anti_matches"])
+        self.assertEqual(memory_rows[0]["attributes"]["anti_match_records"][0]["anchor_meta_id"], "meta-anchor-1")
+        self.assertEqual(memory_rows[0]["attributes"]["anti_match_records"][0]["candidate_meta_id"], "meta-maze-1")
+
+    def test_recorded_anti_match_penalty_downranks_future_structural_match(self) -> None:
+        def build_signature(signature_id: str, source_ref: str) -> dict:
+            evidence = models_module.EvidenceSpan(
+                source_ref=source_ref,
+                chunk_id=f"chunk-{signature_id}",
+                text="Users get confused following a route through the system.",
+                kind="direct_quote",
+            )
+            return models_module.SystemDynamicSignature(
+                signature_id=signature_id,
+                source_ref=source_ref,
+                source_kind="analysis_unit",
+                source_anchor_id=f"unit-{signature_id}",
+                title="Route confusion structure",
+                summary="A receiver gets delayed or blocked while trying to reach a goal.",
+                system_boundary="User interpretation flow",
+                observer_lens="structural_interpretation",
+                entities=[
+                    models_module.SignatureEntity(
+                        entity_id=f"{signature_id}-receiver",
+                        label="Receiver",
+                        node_type="receiver",
+                        role="receiver",
+                        confidence=0.8,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict(),
+                    models_module.SignatureEntity(
+                        entity_id=f"{signature_id}-path",
+                        label="Blocked path",
+                        node_type="constraint",
+                        role="blocked_transition",
+                        confidence=0.76,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict(),
+                    models_module.SignatureEntity(
+                        entity_id=f"{signature_id}-goal",
+                        label="Goal",
+                        node_type="goal",
+                        role="goal",
+                        confidence=0.74,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict(),
+                ],
+                states=[],
+                relations=[
+                    models_module.SignatureRelation(
+                        relation_id=f"{signature_id}-blocks",
+                        source_id=f"{signature_id}-path",
+                        target_id=f"{signature_id}-receiver",
+                        edge_type="blocks",
+                        operation="delay",
+                        confidence=0.79,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict()
+                ],
+                feedback_loops=[],
+                constraints=[],
+                absences=[],
+                affordances=[],
+                failure_mode="Route confusion through blocked transition",
+                desired_transformation="Restore a visible path to the goal.",
+                candidate_shapes=[
+                    models_module.CandidateShape(
+                        shape_name="Route Confusion Through Blocked Transition",
+                        confidence=0.75,
+                        rationale="A receiver is delayed or blocked before reaching the intended goal.",
+                    ).to_dict()
+                ],
+                alternative_interpretations=[],
+                evidence_spans=[evidence.to_dict()],
+                missing_information=[],
+                confidence=0.75,
+                status="provisional",
+                version=1,
+                created_at="2026-05-24T10:00:00+00:00",
+                updated_at="2026-05-24T10:00:00+00:00",
+            ).to_dict()
+
+        self._write_shape_signatures(
+            [
+                build_signature("signature-anchor-anti", "session:anchor-anti"),
+                build_signature("signature-remembered-anti", "session:remembered-anti"),
+                build_signature("signature-fresh-anti", "session:fresh-anti"),
+            ]
+        )
+
+        write_jsonl(
+            self.root / "product" / "inner_world_v1" / "data" / "review_queue.jsonl",
+            [
+                {
+                    "review_id": "review-anti-match-1",
+                    "queue_type": "formation_synthesis",
+                    "status": "needs_review",
+                    "created_at": "2026-05-24T10:10:00+00:00",
+                    "anti_match_summary": {
+                        "anchor_meta_id": "meta-anchor-anti",
+                        "candidate_meta_id": "meta-remembered-anti",
+                        "operator_key": "abduce_hypothesis",
+                        "verdict": "reject",
+                        "structural_score": 0.22,
+                        "anti_match_penalty": 0.25,
+                        "shared_tokens": ["route", "confusion"],
+                    },
+                }
+            ],
+        )
+
+        pair_rows = [
+            {
+                "score": 0.52,
+                "edge_kind": "relates_to",
+                "left": self._meta_row(
+                    meta_id="meta-anchor-anti",
+                    kind="signal_frame",
+                    label="Route confusion anchor",
+                    summary="Users get confused following a route through the system.",
+                    source_ref="session:anchor-anti",
+                    chunk_id="chunk-anchor-anti",
+                ),
+                "right": self._meta_row(
+                    meta_id="meta-remembered-anti",
+                    kind="transfer_target",
+                    label="Route confusion analogy alpha",
+                    summary="Users get confused following a route through the system.",
+                    source_ref="session:remembered-anti",
+                    chunk_id="chunk-remembered-anti",
+                ),
+            },
+            {
+                "score": 0.52,
+                "edge_kind": "relates_to",
+                "left": self._meta_row(
+                    meta_id="meta-anchor-anti",
+                    kind="signal_frame",
+                    label="Route confusion anchor",
+                    summary="Users get confused following a route through the system.",
+                    source_ref="session:anchor-anti",
+                    chunk_id="chunk-anchor-anti",
+                ),
+                "right": self._meta_row(
+                    meta_id="meta-fresh-anti",
+                    kind="transfer_target",
+                    label="Route confusion analogy beta",
+                    summary="Users get confused following a route through the system.",
+                    source_ref="session:fresh-anti",
+                    chunk_id="chunk-fresh-anti",
+                ),
+            },
+        ]
+
+        with mock.patch("conversation_os.knowledge_layer.select_candidate_pairs", return_value=pair_rows):
+            candidates = retrieve_candidates(
+                self.root,
+                {
+                    "query_text": "route confusion blocked transition",
+                    "source_refs": ["session:anchor-anti"],
+                    "meta_refs": ["meta-anchor-anti"],
+                },
+                limit=6,
+            )
+
+        anchor = next(candidate for candidate in candidates if candidate.meta_id == "meta-anchor-anti")
+        remembered = next(candidate for candidate in candidates if candidate.meta_id == "meta-remembered-anti")
+        fresh = next(candidate for candidate in candidates if candidate.meta_id == "meta-fresh-anti")
+
+        self.assertEqual(remembered.attributes["shape_anti_match_anchor_meta_ids"], ["meta-anchor-anti"])
+        self.assertEqual(remembered.attributes["shape_anti_match_penalty"], 0.25)
+        self.assertNotIn("shape_anti_match_anchor_meta_ids", fresh.attributes)
+
+        matches = match_shapes(anchor, candidates)
+        remembered_match = next(row for row in matches if row.candidate_meta_id == "meta-remembered-anti")
+        fresh_match = next(row for row in matches if row.candidate_meta_id == "meta-fresh-anti")
+
+        self.assertIn("anti_match_memory", remembered_match.reasons)
+        self.assertLess(remembered_match.structural_fit["structural_score"], fresh_match.structural_fit["structural_score"])
+        self.assertLess(remembered_match.score, fresh_match.score)
+
+    def test_shape_memory_beats_review_queue_as_anti_match_source(self) -> None:
+        def build_signature(signature_id: str, source_ref: str) -> dict:
+            evidence = models_module.EvidenceSpan(
+                source_ref=source_ref,
+                chunk_id=f"chunk-{signature_id}",
+                text="Users get confused following a route through the system.",
+                kind="direct_quote",
+            )
+            return models_module.SystemDynamicSignature(
+                signature_id=signature_id,
+                source_ref=source_ref,
+                source_kind="analysis_unit",
+                source_anchor_id=f"unit-{signature_id}",
+                title="Route confusion structure",
+                summary="A receiver gets delayed or blocked while trying to reach a goal.",
+                system_boundary="User interpretation flow",
+                observer_lens="structural_interpretation",
+                entities=[
+                    models_module.SignatureEntity(
+                        entity_id=f"{signature_id}-receiver",
+                        label="Receiver",
+                        node_type="receiver",
+                        role="receiver",
+                        confidence=0.8,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict(),
+                    models_module.SignatureEntity(
+                        entity_id=f"{signature_id}-path",
+                        label="Blocked path",
+                        node_type="constraint",
+                        role="blocked_transition",
+                        confidence=0.76,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict(),
+                    models_module.SignatureEntity(
+                        entity_id=f"{signature_id}-goal",
+                        label="Goal",
+                        node_type="goal",
+                        role="goal",
+                        confidence=0.74,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict(),
+                ],
+                states=[],
+                relations=[
+                    models_module.SignatureRelation(
+                        relation_id=f"{signature_id}-blocks",
+                        source_id=f"{signature_id}-path",
+                        target_id=f"{signature_id}-receiver",
+                        edge_type="blocks",
+                        operation="delay",
+                        confidence=0.79,
+                        evidence=[evidence.to_dict()],
+                    ).to_dict()
+                ],
+                feedback_loops=[],
+                constraints=[],
+                absences=[],
+                affordances=[],
+                failure_mode="Route confusion through blocked transition",
+                desired_transformation="Restore a visible path to the goal.",
+                candidate_shapes=[
+                    models_module.CandidateShape(
+                        shape_name="Route Confusion Through Blocked Transition",
+                        confidence=0.75,
+                        rationale="A receiver is delayed or blocked before reaching the intended goal.",
+                    ).to_dict()
+                ],
+                alternative_interpretations=[],
+                evidence_spans=[evidence.to_dict()],
+                missing_information=[],
+                confidence=0.75,
+                status="provisional",
+                version=1,
+                created_at="2026-05-24T10:00:00+00:00",
+                updated_at="2026-05-24T10:00:00+00:00",
+            ).to_dict()
+
+        self._write_shape_signatures(
+            [
+                build_signature("signature-anchor-memory", "session:anchor-memory"),
+                build_signature("signature-remembered-memory", "session:remembered-memory"),
+            ]
+        )
+        self._write_shape_memory(
+            [
+                models_module.ShapeMemoryItem(
+                    memory_id="shape-memory-route-confusion",
+                    scope="project",
+                    scope_key="thought-tube",
+                    shape_name="Route Confusion Through Blocked Transition",
+                    shape_definition="A receiver is delayed or blocked before reaching the goal.",
+                    anti_matches=["meta-remembered-memory"],
+                    rejection_count=1,
+                    updated_at="2026-05-24T10:00:00+00:00",
+                    attributes={
+                        "anti_match_records": [
+                            {
+                                "anchor_meta_id": "meta-anchor-memory",
+                                "candidate_meta_id": "meta-remembered-memory",
+                                "anti_match_penalty": 0.3,
+                            }
+                        ]
+                    },
+                ).to_dict()
+            ]
+        )
+        write_jsonl(
+            self.root / "product" / "inner_world_v1" / "data" / "review_queue.jsonl",
+            [
+                {
+                    "review_id": "review-memory-fallback-1",
+                    "queue_type": "formation_synthesis",
+                    "status": "needs_review",
+                    "created_at": "2026-05-24T10:10:00+00:00",
+                    "anti_match_summary": {
+                        "anchor_meta_id": "meta-anchor-memory",
+                        "candidate_meta_id": "meta-remembered-memory",
+                        "anti_match_penalty": 0.1,
+                    },
+                }
+            ],
+        )
+        pair_rows = [
+            {
+                "score": 0.52,
+                "edge_kind": "relates_to",
+                "left": self._meta_row(
+                    meta_id="meta-anchor-memory",
+                    kind="signal_frame",
+                    label="Route confusion anchor",
+                    summary="Users get confused following a route through the system.",
+                    source_ref="session:anchor-memory",
+                    chunk_id="chunk-anchor-memory",
+                ),
+                "right": self._meta_row(
+                    meta_id="meta-remembered-memory",
+                    kind="transfer_target",
+                    label="Route confusion analogy alpha",
+                    summary="Users get confused following a route through the system.",
+                    source_ref="session:remembered-memory",
+                    chunk_id="chunk-remembered-memory",
+                ),
+            }
+        ]
+
+        with mock.patch("conversation_os.knowledge_layer.select_candidate_pairs", return_value=pair_rows):
+            candidates = retrieve_candidates(
+                self.root,
+                {
+                    "query_text": "route confusion blocked transition",
+                    "source_refs": ["session:anchor-memory"],
+                    "meta_refs": ["meta-anchor-memory"],
+                },
+                limit=4,
+            )
+
+        remembered = next(candidate for candidate in candidates if candidate.meta_id == "meta-remembered-memory")
+        self.assertEqual(remembered.attributes["shape_anti_match_penalty"], 0.3)
+        self.assertEqual(remembered.attributes["shape_anti_match_source"], "shape_memory")
+
+    def test_synthesize_candidate_preserves_structural_fit_payload(self) -> None:
+        match = conversation_synthesis_module.ShapeMatch(
+            match_id="shape-match-1",
+            anchor_meta_id="meta-anchor-1",
+            anchor_kind="signal_frame",
+            candidate_meta_id="meta-song-1",
+            candidate_kind="transfer_target",
+            edge_kind="relates_to",
+            score=0.88,
+            shared_tokens=["signal", "attention"],
+            reasons=["shared_tokens", "shape_structure"],
+            operator_hints=["structure_map", "adapt_case"],
+            source_refs=["session:anchor-1", "session:song-1"],
+            source_item_ids=["chunk-anchor-1", "chunk-song-1"],
+            evidence=["anchor evidence", "candidate evidence"],
+            structural_fit={
+                "role_fit": 1.0,
+                "edge_fit": 1.0,
+                "operation_fit": 1.0,
+                "feedback_fit": 1.0,
+                "anti_match_penalty": 0.0,
+                "structural_score": 0.92,
+                "verdict": "strong_match",
+            },
+            anchor_label="Product clarity failure",
+            candidate_label="Overproduced song",
+        )
+
+        decision = choose_operator(match)
+        synthesized = synthesize_candidate(match, decision)
+
+        self.assertEqual(synthesized.structural_fit["verdict"], "strong_match")
+        self.assertEqual(synthesized.structural_fit["role_fit"], 1.0)
+        self.assertEqual(synthesized.structural_fit["anti_match_penalty"], 0.0)
+
+    def test_choose_operator_falls_back_when_structural_verdict_is_reject(self) -> None:
+        match = conversation_synthesis_module.ShapeMatch(
+            match_id="shape-match-reject-1",
+            anchor_meta_id="meta-anchor-1",
+            anchor_kind="signal_frame",
+            candidate_meta_id="meta-maze-1",
+            candidate_kind="transfer_target",
+            edge_kind="relates_to",
+            score=0.51,
+            shared_tokens=["user", "confusion"],
+            reasons=["shared_tokens", "shape_structure"],
+            operator_hints=["structure_map", "adapt_case"],
+            source_refs=["session:anchor-1", "session:maze-1"],
+            source_item_ids=["chunk-anchor-1", "chunk-maze-1"],
+            evidence=["anchor evidence", "candidate evidence"],
+            structural_fit={
+                "role_fit": 0.25,
+                "edge_fit": 0.0,
+                "operation_fit": 0.0,
+                "feedback_fit": 0.0,
+                "anti_match_penalty": 0.25,
+                "structural_score": 0.12,
+                "verdict": "reject",
+            },
+            anchor_label="Product clarity failure",
+            candidate_label="Maze",
+        )
+
+        decision = choose_operator(match)
+
+        self.assertEqual(decision.operator_key, "abduce_hypothesis")
+        self.assertIn("structural", decision.rationale.lower())
+
+    def test_choose_operator_avoids_structure_map_for_memory_penalized_partial_match(self) -> None:
+        match = conversation_synthesis_module.ShapeMatch(
+            match_id="shape-match-partial-memory-1",
+            anchor_meta_id="meta-anchor-1",
+            anchor_kind="signal_frame",
+            candidate_meta_id="meta-remembered-anti",
+            candidate_kind="transfer_target",
+            edge_kind="relates_to",
+            score=0.66,
+            shared_tokens=["route", "confusion"],
+            reasons=["shared_tokens", "shape_structure", "anti_match_memory"],
+            operator_hints=["structure_map", "blend", "adapt_case"],
+            source_refs=["session:anchor-1", "session:remembered-anti"],
+            source_item_ids=["chunk-anchor-1", "chunk-remembered-anti"],
+            evidence=["anchor evidence", "candidate evidence"],
+            structural_fit={
+                "role_fit": 1.0,
+                "edge_fit": 1.0,
+                "operation_fit": 1.0,
+                "feedback_fit": 1.0,
+                "review_memory_penalty": 0.25,
+                "anti_match_penalty": 0.25,
+                "structural_score": 0.67,
+                "verdict": "partial_match",
+            },
+            anchor_label="Route confusion anchor",
+            candidate_label="Route confusion analogy alpha",
+        )
+
+        decision = choose_operator(match)
+
+        self.assertEqual(decision.operator_key, "blend")
+        self.assertIn("anti-match", decision.rationale.lower())
 
     def test_meta_objects_module_exposes_stable_public_boundary(self) -> None:
         self.assertEqual(meta_objects_module.MODULE_ID, "kernel.meta.meta_objects")
@@ -1818,6 +3032,85 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(summary["concept_node_count"], 0)
         self.assertEqual(summary["connection_count"], 0)
 
+    def test_runtime_pipeline_materializes_shape_signature_and_shape_graph_components(self) -> None:
+        source = self.root / "runtime-shape-pipeline-chat.md"
+        source.write_text(
+            "\n".join(
+                [
+                    "# User",
+                    "",
+                    "Our product has many features but users do not understand what it is.",
+                    "",
+                    "# Assistant",
+                    "",
+                    "Then the surface should restore hierarchy instead of adding more explanation layers.",
+                    "",
+                    "# User",
+                    "",
+                    "Yes, because more explanation is making the product feel even more complex.",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        seed_sources(self.root, source, "conversation_library")
+
+        derive_graph(self.root, ["research"])
+        pipeline = get_runtime_pipeline(self.root)
+        status_by_id = {row["component_id"]: row for row in pipeline["last_run"]["components"]}
+        shape_signatures = meta_layer_module.load_shape_signatures(self.root)
+        shape_nodes = meta_layer_module.load_shape_graph_nodes(self.root)
+        shape_edges = meta_layer_module.load_shape_graph_edges(self.root)
+
+        self.assertEqual(status_by_id["shape_signatures"]["status"], "completed")
+        self.assertEqual(status_by_id["shape_graph"]["status"], "completed")
+        self.assertTrue(
+            (self.root / "product" / "inner_world_v1" / "data" / "shape_signatures.jsonl").exists()
+        )
+        self.assertTrue(
+            (self.root / "product" / "inner_world_v1" / "data" / "shape_graph_nodes.jsonl").exists()
+        )
+        self.assertTrue(
+            (self.root / "product" / "inner_world_v1" / "data" / "shape_graph_edges.jsonl").exists()
+        )
+        self.assertGreaterEqual(len(shape_signatures), 1)
+        self.assertGreaterEqual(len(shape_nodes), 1)
+        self.assertGreaterEqual(len(shape_edges), 1)
+
+    def test_library_status_and_runtime_overview_expose_shape_artifact_counts(self) -> None:
+        source = self.root / "runtime-shape-status-chat.md"
+        source.write_text(
+            "\n".join(
+                [
+                    "# User",
+                    "",
+                    "Our product has many features but users do not understand what it is.",
+                    "",
+                    "# Assistant",
+                    "",
+                    "Then the system should restore hierarchy instead of stacking more explanation.",
+                    "",
+                    "# User",
+                    "",
+                    "Yes, more explanation is making it feel even more complex.",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        seed_sources(self.root, source, "conversation_library")
+
+        derive_graph(self.root, ["research"])
+        library_status = get_library_status(self.root)
+        runtime_overview = get_runtime_overview(self.root)
+
+        self.assertIn("shape_artifacts", library_status)
+        self.assertGreaterEqual(library_status["shape_artifacts"]["signature_count"], 1)
+        self.assertGreaterEqual(library_status["shape_artifacts"]["graph_node_count"], 1)
+        self.assertGreaterEqual(library_status["shape_artifacts"]["graph_edge_count"], 1)
+        self.assertEqual(
+            runtime_overview["library_tracker"]["shape_artifacts"]["signature_count"],
+            library_status["shape_artifacts"]["signature_count"],
+        )
+
     def test_materialize_connections_writes_bounded_summary_payload(self) -> None:
         data_dir = self.root / "product" / "inner_world_v1" / "data"
         edges = []
@@ -2933,6 +4226,62 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(review_row["status"], "needs_review")
         self.assertTrue(review_rows)
         self.assertEqual(review_rows[0]["synthesis_id"], synthesis.synthesis_id)
+
+    def test_formation_synthesis_review_records_structural_anti_match_summary(self) -> None:
+        seed_packet = {
+            "meta_refs": ["meta-anchor-1"],
+            "source_refs": ["source-a"],
+            "query_text": "product clarity weak analogy",
+        }
+        synthesis = conversation_synthesis_module.SynthesisCandidate(
+            synthesis_id="synthesis-reject-1",
+            anchor_meta_id="meta-anchor-1",
+            candidate_meta_id="meta-maze-1",
+            operator_key="abduce_hypothesis",
+            title="Product clarity failure needs review",
+            short_text="A weak analogy should stay provisional.",
+            summary="The analogy shares vocabulary but not the same system shape.",
+            what_changed="The structural match broke under inspection.",
+            why_it_matters_now="Direct transfer would target the wrong leverage point.",
+            next_action="Review the rejected analogy and look for a stronger structural neighbor.",
+            source_refs=["session:anchor-1", "session:maze-1"],
+            source_item_ids=["chunk-anchor-1", "chunk-maze-1"],
+            meta_refs=["meta-anchor-1", "meta-maze-1"],
+            confidence_score=0.49,
+            relevance_score=0.52,
+            novelty_score=0.41,
+            evidence_status="grounded",
+            review_status="needs_review",
+            shared_primitive_key="abduce_hypothesis",
+            shared_primitive_label="Abduce hypothesis",
+            reasoning_pipeline="formation_synthesis_v1",
+            rationale="The analogy should not be transferred directly.",
+            structural_fit={
+                "role_fit": 0.25,
+                "edge_fit": 0.0,
+                "operation_fit": 0.0,
+                "feedback_fit": 0.0,
+                "anti_match_penalty": 0.25,
+                "structural_score": 0.12,
+                "verdict": "reject",
+            },
+            shared_tokens=["user", "confusion"],
+            evidence=["anchor evidence", "candidate evidence"],
+        )
+        stress = conversation_synthesis_module.StressTestResult(
+            should_surface=False,
+            review_status="needs_review",
+            evidence_status="grounded",
+            confidence_adjustment=-0.08,
+            concerns=["low_confidence"],
+        )
+
+        review_row = record_formation_synthesis_review(self.root, seed_packet, synthesis, stress)
+
+        self.assertEqual(review_row["status"], "needs_review")
+        self.assertEqual(review_row["anti_match_summary"]["verdict"], "reject")
+        self.assertEqual(review_row["anti_match_summary"]["candidate_meta_id"], "meta-maze-1")
+        self.assertGreater(review_row["anti_match_summary"]["anti_match_penalty"], 0.0)
 
     def test_product_surface_exposes_link_governance_wrappers(self) -> None:
         source = self.root / "governed-link-surface.md"

@@ -3342,6 +3342,16 @@ def _concept_summary_from_current_state(root: Path) -> Dict[str, Any]:
     }
 
 
+def _shape_summary_from_current_state(root: Path) -> Dict[str, Any]:
+    from .meta_layer import load_shape_graph_edges, load_shape_graph_nodes, load_shape_signatures
+
+    return {
+        "signature_count": len(load_shape_signatures(root)),
+        "graph_node_count": len(load_shape_graph_nodes(root)),
+        "graph_edge_count": len(load_shape_graph_edges(root)),
+    }
+
+
 def _materialize_plugin_primitives(root: Path, domain_overlays: List[str] | None = None) -> Dict[str, Any]:
     from .plugins import load_plugins
 
@@ -3438,14 +3448,25 @@ def _meta_artifact_paths(root: Path) -> List[Path]:
     return [meta_layer_dir(root) / META_LAYER_FILES[kind] for kind in META_LAYER_FILES]
 
 
+def _shape_artifact_paths(root: Path) -> Dict[str, List[Path]]:
+    data_dir = _runtime_data_dir(root)
+    return {
+        "shape_signatures": [data_dir / "shape_signatures.jsonl"],
+        "shape_graph": [data_dir / "shape_graph_nodes.jsonl", data_dir / "shape_graph_edges.jsonl"],
+    }
+
+
 def _runtime_component_artifacts(root: Path) -> Dict[str, List[Path]]:
     data_dir = _runtime_data_dir(root)
     concept_graph_dir = data_dir / "concept_graph"
+    shape_artifacts = _shape_artifact_paths(root)
     return {
         "bootstrap_legacy_sources": [data_dir / "source_items.jsonl"],
         "analysis_units": [data_dir / "analysis_units.jsonl"],
         "conversation_deltas": [data_dir / "conversation_deltas.jsonl", data_dir / "user_expectations.jsonl"],
         "meta_layer": _meta_artifact_paths(root),
+        "shape_signatures": shape_artifacts["shape_signatures"],
+        "shape_graph": shape_artifacts["shape_graph"],
         "conversation_threads": [data_dir / "conversation_threads.jsonl", data_dir / "conversation_thread_links.jsonl"],
         "thread_abstractions": [data_dir / "thread_abstractions.jsonl", data_dir / "thread_abstraction_links.jsonl"],
         "conversation_concepts": [
@@ -3475,7 +3496,7 @@ def _runtime_registry(root: Path, domain_overlays: List[str] | None = None, *, p
     from .conversation_synthesis import rebuild_conversation_concepts
     from .conversation_threads import build_conversation_threads
     from .knowledge_layer import build_knowledge_layer
-    from .meta_layer import extract_meta_layer
+    from .meta_layer import build_shape_graph, extract_meta_layer, extract_shape_signatures
     from .pipelines import ensure_pipeline_specs
     from .thread_abstractions import build_thread_abstractions
     from .vault_ingest import bootstrap_legacy_source_items
@@ -3510,6 +3531,18 @@ def _runtime_registry(root: Path, domain_overlays: List[str] | None = None, *, p
             "requires": ["analysis_units", "conversation_deltas", "ensure_pipeline_specs"],
             "run": lambda: extract_meta_layer(root, domain_overlays, ensure_dependencies=False),
             "artifacts": lambda: artifacts["meta_layer"],
+        },
+        "shape_signatures": {
+            "label": "Extract Shape Signatures",
+            "requires": ["meta_layer"],
+            "run": lambda: extract_shape_signatures(root, domain_overlays, ensure_dependencies=False),
+            "artifacts": lambda: artifacts["shape_signatures"],
+        },
+        "shape_graph": {
+            "label": "Build Shape Graph",
+            "requires": ["shape_signatures"],
+            "run": lambda: build_shape_graph(root, domain_overlays, ensure_dependencies=False),
+            "artifacts": lambda: artifacts["shape_graph"],
         },
         "conversation_threads": {
             "label": "Build Conversation Threads",
@@ -4720,6 +4753,7 @@ def get_library_status(root: Path) -> Dict[str, Any]:
     raw_chunks = load_chunk_index_raw(root)
     governed_chunks = resolve_governed_chunk_rows(root, raw_chunks, governance=governance)
     dimension_profiles = load_chunk_dimension_profiles(root, refresh=False)
+    shape_summary = _shape_summary_from_current_state(root)
     status_counts = Counter(row["governance_status"] for row in governed_sources)
     semantic_role_counts = Counter(row["semantic_role"] for row in governed_sources)
     chunk_status_counts = Counter(row["governance_status"] for row in governed_chunks)
@@ -4781,6 +4815,7 @@ def get_library_status(root: Path) -> Dict[str, Any]:
                 Counter(dimension_profiles["per_dimension_counts"]).most_common(16)
             ),
         },
+        "shape_artifacts": shape_summary,
         "chunk_counts": {
             "raw_chunk_count": len(raw_chunks),
             "governed_chunk_count": len(governed_chunks),

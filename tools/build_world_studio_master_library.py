@@ -23,7 +23,6 @@ SOURCE_FILES = [
     ROOT / "src" / "conversation_os" / "cli.py",
     ROOT / "src" / "conversation_os" / "miniapp.py",
     ROOT / "src" / "conversation_os" / "worldbuilding_studio_mcp.py",
-    ROOT / "tests" / "test_worldbuilding_studio.py",
     ROOT / "tools" / "build_world_studio_master_library.py",
     ROOT / "tools" / "run_three_state_showcase.py",
     ROOT / "tools" / "build_world_studio_portable_pack.py",
@@ -1663,7 +1662,6 @@ def build_docs(output: Path) -> None:
             - `src/conversation_os/cli.py`
             - `src/conversation_os/miniapp.py`
             - `src/conversation_os/worldbuilding_studio_mcp.py`
-            - `tests/test_worldbuilding_studio.py`
             - `tools/run_three_state_showcase.py`
             - `tools/run_inner_world_backend.py`
             - `product/inner_world_v1/miniapp/world-studio.*`

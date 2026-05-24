@@ -38,6 +38,21 @@ PUBLIC_MODELS = (
     "ConceptEdge",
     "TouchOperation",
     "SynthesisPacket",
+    "EvidenceSpan",
+    "SignatureEntity",
+    "SignatureState",
+    "SignatureRelation",
+    "SignatureFeedbackLoop",
+    "SignatureConstraint",
+    "SignatureAbsence",
+    "SignatureAffordance",
+    "CandidateShape",
+    "AlternativeInterpretation",
+    "SystemDynamicSignature",
+    "ShapeGraphNode",
+    "ShapeGraphEdge",
+    "AnalogyEvaluationPacket",
+    "ShapeMemoryItem",
     "DimensionSpec",
     "ModelRoleBinding",
     "ChunkDimensionProfile",
@@ -621,6 +636,240 @@ class SynthesisPacket:
     concept_candidates: List[Dict[str, Any]] = field(default_factory=list)
     touch_operations: List[Dict[str, Any]] = field(default_factory=list)
     conversation_analysis: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class EvidenceSpan:
+    source_ref: str
+    chunk_id: str
+    text: str
+    kind: str
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureEntity:
+    entity_id: str
+    label: str
+    node_type: str
+    role: str
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureState:
+    state_id: str
+    label: str
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureRelation:
+    relation_id: str
+    source_id: str
+    target_id: str
+    edge_type: str
+    operation: str
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureFeedbackLoop:
+    loop_id: str
+    label: str
+    node_ids: List[str]
+    edge_ids: List[str]
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureConstraint:
+    constraint_id: str
+    label: str
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureAbsence:
+    absence_id: str
+    label: str
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SignatureAffordance:
+    affordance_id: str
+    label: str
+    confidence: float
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class CandidateShape:
+    shape_name: str
+    confidence: float
+    rationale: str = ""
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class AlternativeInterpretation:
+    title: str
+    summary: str
+    confidence: float
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SystemDynamicSignature:
+    signature_id: str
+    source_ref: str
+    source_kind: str
+    source_anchor_id: str
+    title: str
+    summary: str
+    system_boundary: str
+    observer_lens: str
+    entities: List[Dict[str, Any]] = field(default_factory=list)
+    states: List[Dict[str, Any]] = field(default_factory=list)
+    relations: List[Dict[str, Any]] = field(default_factory=list)
+    feedback_loops: List[Dict[str, Any]] = field(default_factory=list)
+    constraints: List[Dict[str, Any]] = field(default_factory=list)
+    absences: List[Dict[str, Any]] = field(default_factory=list)
+    affordances: List[Dict[str, Any]] = field(default_factory=list)
+    failure_mode: str = ""
+    desired_transformation: str = ""
+    candidate_shapes: List[Dict[str, Any]] = field(default_factory=list)
+    alternative_interpretations: List[Dict[str, Any]] = field(default_factory=list)
+    evidence_spans: List[Dict[str, Any]] = field(default_factory=list)
+    missing_information: List[str] = field(default_factory=list)
+    confidence: float = 0.0
+    status: str = "provisional"
+    version: int = 1
+    created_at: str = ""
+    updated_at: str = ""
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ShapeGraphNode:
+    graph_node_id: str
+    signature_id: str
+    node_key: str
+    node_type: str
+    label: str
+    role: str = ""
+    confidence: float = 0.0
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ShapeGraphEdge:
+    graph_edge_id: str
+    signature_id: str
+    source_node_key: str
+    target_node_key: str
+    edge_type: str
+    operation: str = ""
+    confidence: float = 0.0
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class AnalogyEvaluationPacket:
+    evaluation_id: str
+    signature_id: str
+    analogy_id: str
+    deterministic_score: float
+    role_fit: float
+    causal_fit: float
+    feedback_fit: float
+    leverage_fit: float
+    material_transfer_fit: float
+    anti_match_penalty: float
+    llm_rationale: str
+    transfers: List[str] = field(default_factory=list)
+    does_not_transfer: List[str] = field(default_factory=list)
+    intervention_risks: List[str] = field(default_factory=list)
+    verdict: str = ""
+    confidence: float = 0.0
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ShapeMemoryItem:
+    memory_id: str
+    scope: str
+    scope_key: str
+    shape_name: str
+    shape_definition: str
+    validated_examples: List[str] = field(default_factory=list)
+    anti_matches: List[str] = field(default_factory=list)
+    interventions: List[str] = field(default_factory=list)
+    missing_constraints: List[str] = field(default_factory=list)
+    validation_count: int = 0
+    rejection_count: int = 0
+    last_validated_at: str = ""
+    updated_at: str = ""
+    attributes: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

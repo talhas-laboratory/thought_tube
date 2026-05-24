@@ -66,6 +66,20 @@ DEFAULT_RUNTIME_PIPELINE = {
             "weight": 1.2,
         },
         {
+            "component_id": "shape_signatures",
+            "label": "Extract Shape Signatures",
+            "enabled": True,
+            "order": 35,
+            "weight": 1.05,
+        },
+        {
+            "component_id": "shape_graph",
+            "label": "Build Shape Graph",
+            "enabled": True,
+            "order": 36,
+            "weight": 1.0,
+        },
+        {
             "component_id": "conversation_threads",
             "label": "Build Conversation Threads",
             "enabled": True,

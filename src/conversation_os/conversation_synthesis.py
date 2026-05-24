@@ -7,8 +7,9 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
-from .meta_layer import load_meta_records
+from .meta_layer import find_shape_memory_matches, load_meta_records, load_shape_signatures
 from .models import ConceptEdge, ConceptNode, SynthesisPacket, ThoughtPacket, TouchOperation
+from .operators import choose_structural_operator_override
 from .storage import read_json, read_jsonl, session_dir, session_events_path, sorted_files, utc_now, write_json, write_jsonl
 from .vault_ingest import shorten, tokenize
 
@@ -212,6 +213,7 @@ class ShapeMatch:
     source_refs: List[str] = field(default_factory=list)
     source_item_ids: List[str] = field(default_factory=list)
     evidence: List[str] = field(default_factory=list)
+    structural_fit: Dict[str, Any] = field(default_factory=dict)
     anchor_label: str = ""
     candidate_label: str = ""
 
@@ -254,6 +256,7 @@ class SynthesisCandidate:
     shared_primitive_label: str
     reasoning_pipeline: str
     rationale: str
+    structural_fit: Dict[str, Any] = field(default_factory=dict)
     shared_tokens: List[str] = field(default_factory=list)
     evidence: List[str] = field(default_factory=list)
 
@@ -424,6 +427,221 @@ def _jaccard(left: Iterable[str], right: Iterable[str]) -> float:
     if not left_set or not right_set:
         return 0.0
     return len(left_set & right_set) / len(left_set | right_set)
+
+
+def _shape_hints_for_source_refs(root: Path, source_refs: Iterable[str]) -> Dict[str, Any]:
+    selected_source_refs = {str(value).strip() for value in source_refs if str(value).strip()}
+    if not selected_source_refs:
+        return {}
+    matched = [row for row in load_shape_signatures(root) if str(row.get("source_ref", "")).strip() in selected_source_refs]
+    if not matched:
+        return {}
+    signature_ids = sorted({row.get("signature_id", "") for row in matched if row.get("signature_id")})
+    candidate_shapes = sorted(
+        {
+            shape.get("shape_name", "").strip()
+            for row in matched
+            for shape in row.get("candidate_shapes", [])
+            if shape.get("shape_name", "").strip()
+        }
+    )
+    node_roles = sorted(
+        {
+            entity.get("role", "").strip()
+            for row in matched
+            for entity in row.get("entities", [])
+            if entity.get("role", "").strip()
+        }
+    )
+    edge_types = sorted(
+        {
+            relation.get("edge_type", "").strip()
+            for row in matched
+            for relation in row.get("relations", [])
+            if relation.get("edge_type", "").strip()
+        }
+    )
+    operations = sorted(
+        {
+            relation.get("operation", "").strip()
+            for row in matched
+            for relation in row.get("relations", [])
+            if relation.get("operation", "").strip()
+        }
+    )
+    return {
+        "shape_signature_ids": signature_ids,
+        "shape_candidate_shapes": candidate_shapes,
+        "shape_node_roles": node_roles,
+        "shape_edge_types": edge_types,
+        "shape_operations": operations,
+        "shape_has_feedback_loop": any(row.get("feedback_loops") for row in matched),
+    }
+
+
+def _anti_match_hints_for_meta(root: Path, meta_id: str, seed_meta_refs: Iterable[str]) -> Dict[str, Any]:
+    normalized_meta_id = str(meta_id).strip()
+    selected_seed_meta_refs = {str(value).strip() for value in seed_meta_refs if str(value).strip()}
+    if not normalized_meta_id or not selected_seed_meta_refs:
+        return {}
+    memory_rows = find_shape_memory_matches(root, candidate_meta_id=normalized_meta_id)
+    memory_records: List[Dict[str, Any]] = []
+    for row in memory_rows:
+        for record in row.get("attributes", {}).get("anti_match_records", []):
+            anchor_meta_id = str(record.get("anchor_meta_id", "")).strip()
+            candidate_meta_id = str(record.get("candidate_meta_id", "")).strip()
+            if candidate_meta_id != normalized_meta_id:
+                continue
+            if anchor_meta_id not in selected_seed_meta_refs:
+                continue
+            memory_records.append({"memory_id": row.get("memory_id", ""), **record})
+    if memory_records:
+        penalties = []
+        for record in memory_records:
+            try:
+                penalties.append(float(record.get("anti_match_penalty", 0.0)))
+            except (TypeError, ValueError):
+                continue
+        return {
+            "shape_anti_match_anchor_meta_ids": sorted(
+                {str(record.get("anchor_meta_id", "")).strip() for record in memory_records if str(record.get("anchor_meta_id", "")).strip()}
+            ),
+            "shape_anti_match_penalty": round(max(penalties or [0.0]), 3),
+            "shape_anti_match_memory_ids": sorted(
+                {str(record.get("memory_id", "")).strip() for record in memory_records if str(record.get("memory_id", "")).strip()}
+            ),
+            "shape_anti_match_source": "shape_memory",
+        }
+    matched_summaries: List[Dict[str, Any]] = []
+    for row in load_formation_synthesis_reviews(root):
+        summary = row.get("anti_match_summary", {})
+        candidate_meta_id = str(summary.get("candidate_meta_id", "")).strip()
+        anchor_meta_id = str(summary.get("anchor_meta_id", "")).strip()
+        if candidate_meta_id != normalized_meta_id:
+            continue
+        if anchor_meta_id not in selected_seed_meta_refs:
+            continue
+        matched_summaries.append({"review_id": row.get("review_id", ""), **summary})
+    if not matched_summaries:
+        return {}
+    penalties = []
+    for summary in matched_summaries:
+        try:
+            penalties.append(float(summary.get("anti_match_penalty", 0.0)))
+        except (TypeError, ValueError):
+            continue
+    return {
+        "shape_anti_match_anchor_meta_ids": sorted(
+            {str(summary.get("anchor_meta_id", "")).strip() for summary in matched_summaries if str(summary.get("anchor_meta_id", "")).strip()}
+        ),
+        "shape_anti_match_penalty": round(max(penalties or [0.0]), 3),
+        "shape_anti_match_review_ids": sorted(
+            {str(summary.get("review_id", "")).strip() for summary in matched_summaries if str(summary.get("review_id", "")).strip()}
+        ),
+        "shape_anti_match_source": "review_queue",
+    }
+
+
+def _meta_with_shape_hints(root: Path, meta: Dict[str, Any]) -> Dict[str, Any]:
+    enriched = dict(meta)
+    attributes = dict(meta.get("attributes", {}))
+    shape_hints = _shape_hints_for_source_refs(root, meta.get("source_refs", []))
+    if shape_hints:
+        attributes.update(shape_hints)
+    enriched["attributes"] = attributes
+    return enriched
+
+
+def _structural_shape_score(anchor: FormationCandidate, candidate: FormationCandidate) -> Tuple[Dict[str, float], List[str], List[str]]:
+    anchor_roles = anchor.attributes.get("shape_node_roles", [])
+    candidate_roles = candidate.attributes.get("shape_node_roles", [])
+    anchor_edges = anchor.attributes.get("shape_edge_types", [])
+    candidate_edges = candidate.attributes.get("shape_edge_types", [])
+    anchor_ops = anchor.attributes.get("shape_operations", [])
+    candidate_ops = candidate.attributes.get("shape_operations", [])
+    anchor_has_shape = bool(anchor.attributes.get("shape_signature_ids"))
+    candidate_has_shape = bool(candidate.attributes.get("shape_signature_ids"))
+    if not anchor_has_shape or not candidate_has_shape:
+        return {
+            "role_fit": 0.0,
+            "edge_fit": 0.0,
+            "operation_fit": 0.0,
+            "feedback_fit": 0.0,
+            "anti_match_penalty": 0.0,
+            "structural_score": 0.0,
+            "verdict": "unscored",
+        }, [], []
+
+    role_overlap = _jaccard(anchor_roles, candidate_roles)
+    edge_overlap = _jaccard(anchor_edges, candidate_edges)
+    operation_overlap = _jaccard(anchor_ops, candidate_ops)
+    feedback_fit = 1.0 if bool(anchor.attributes.get("shape_has_feedback_loop")) == bool(candidate.attributes.get("shape_has_feedback_loop")) else 0.0
+    total = round(0.35 * role_overlap + 0.35 * edge_overlap + 0.2 * operation_overlap + 0.1 * feedback_fit, 3)
+    anti_match_penalty = 0.0
+    review_memory_penalty = 0.0
+    if role_overlap < 0.2:
+        anti_match_penalty += 0.1
+    if edge_overlap == 0.0:
+        anti_match_penalty += 0.1
+    if operation_overlap == 0.0:
+        anti_match_penalty += 0.05
+    if feedback_fit == 0.0 and (
+        bool(anchor.attributes.get("shape_has_feedback_loop")) or bool(candidate.attributes.get("shape_has_feedback_loop"))
+    ):
+        anti_match_penalty += 0.05
+    anti_match_anchor_meta_ids = {
+        str(value).strip() for value in candidate.attributes.get("shape_anti_match_anchor_meta_ids", []) if str(value).strip()
+    }
+    if anchor.meta_id in anti_match_anchor_meta_ids:
+        try:
+            review_memory_penalty = max(0.0, float(candidate.attributes.get("shape_anti_match_penalty", 0.0)))
+        except (TypeError, ValueError):
+            review_memory_penalty = 0.0
+        anti_match_penalty += min(0.35, review_memory_penalty)
+    adjusted_total = round(max(0.0, total - anti_match_penalty), 3)
+    if adjusted_total >= 0.78:
+        verdict = "strong_match"
+    elif adjusted_total >= 0.45:
+        verdict = "partial_match"
+    else:
+        verdict = "reject"
+    structural_fit = {
+        "role_fit": round(role_overlap, 3),
+        "edge_fit": round(edge_overlap, 3),
+        "operation_fit": round(operation_overlap, 3),
+        "feedback_fit": round(feedback_fit, 3),
+        "review_memory_penalty": round(review_memory_penalty, 3),
+        "anti_match_penalty": round(anti_match_penalty, 3),
+        "structural_score": adjusted_total,
+        "verdict": verdict,
+    }
+
+    reasons: List[str] = []
+    operator_hints: List[str] = []
+    if review_memory_penalty > 0.0:
+        reasons.append("anti_match_memory")
+    if adjusted_total >= 0.35:
+        reasons.append("shape_structure")
+        if role_overlap >= 0.5 and edge_overlap >= 0.5:
+            operator_hints.append("structure_map")
+    else:
+        reasons.append("shape_mismatch")
+
+    anchor_shapes = set(anchor.attributes.get("shape_candidate_shapes", []))
+    candidate_shapes = set(candidate.attributes.get("shape_candidate_shapes", []))
+    if anchor_shapes & candidate_shapes:
+        reasons.append("shared_shape_family")
+        operator_hints.append("adapt_case")
+        adjusted_total = round(min(1.0, adjusted_total + 0.08), 3)
+        if adjusted_total >= 0.78:
+            verdict = "strong_match"
+        elif adjusted_total >= 0.45:
+            verdict = "partial_match"
+        else:
+            verdict = "reject"
+    structural_fit["structural_score"] = adjusted_total
+    structural_fit["verdict"] = verdict
+    return structural_fit, reasons, operator_hints
 
 
 def _artifact_refs(text: str) -> List[str]:
@@ -1085,10 +1303,15 @@ def retrieve_candidates(root: Path, seed_packet: Dict[str, Any], limit: int = 24
     buckets: Dict[str, Dict[str, Any]] = {}
     for pair in pair_rows:
         for side in ("left", "right"):
-            meta = pair[side]
+            meta = _meta_with_shape_hints(root, pair[side])
             meta_id = str(meta.get("meta_id", "")).strip()
             if not meta_id:
                 continue
+            anti_match_hints = _anti_match_hints_for_meta(root, meta_id, seed_meta_refs)
+            if anti_match_hints:
+                attributes = dict(meta.get("attributes", {}))
+                attributes.update(anti_match_hints)
+                meta["attributes"] = attributes
             reasons: List[str] = []
             score = float(pair.get("score", 0.0))
             meta_source_refs = {str(value).strip() for value in meta.get("source_refs", []) if str(value).strip()}
@@ -1121,9 +1344,15 @@ def retrieve_candidates(root: Path, seed_packet: Dict[str, Any], limit: int = 24
 
     if not buckets:
         for meta in load_meta_records(root):
+            meta = _meta_with_shape_hints(root, meta)
             meta_id = str(meta.get("meta_id", "")).strip()
             if not meta_id:
                 continue
+            anti_match_hints = _anti_match_hints_for_meta(root, meta_id, seed_meta_refs)
+            if anti_match_hints:
+                attributes = dict(meta.get("attributes", {}))
+                attributes.update(anti_match_hints)
+                meta["attributes"] = attributes
             reasons: List[str] = []
             score = float(meta.get("confidence", 0.0))
             meta_source_refs = {str(value).strip() for value in meta.get("source_refs", []) if str(value).strip()}
@@ -1169,9 +1398,19 @@ def match_shapes(anchor: FormationCandidate, candidates: List[FormationCandidate
         shared_tokens = sorted(anchor_tokens & candidate_tokens)
         score = min(anchor.candidate_score, candidate.candidate_score) * 0.45
         reasons: List[str] = []
+        operator_hints: List[str] = []
         if shared_tokens:
             reasons.append("shared_tokens")
             score += min(0.32, len(shared_tokens) * 0.08)
+        structural_fit, structural_reasons, structural_hints = _structural_shape_score(anchor, candidate)
+        if structural_reasons:
+            reasons.extend(structural_reasons)
+        if structural_hints:
+            operator_hints.extend(structural_hints)
+        if "shape_structure" in structural_reasons:
+            score += min(0.3, structural_fit["structural_score"] * 0.28)
+        elif "shape_mismatch" in structural_reasons:
+            score -= 0.08
         if anchor.kind == candidate.kind:
             reasons.append("shared_kind")
             score += 0.16
@@ -1183,14 +1422,13 @@ def match_shapes(anchor: FormationCandidate, candidates: List[FormationCandidate
             score += 0.04
         if not reasons:
             continue
-        operator_hints: List[str] = []
         if candidate.kind == "contradiction":
             operator_hints.append("find_counterpoint")
-        if anchor.kind == candidate.kind and len(shared_tokens) >= 2:
+        if anchor.kind == candidate.kind and len(shared_tokens) >= 2 and "structure_map" not in operator_hints:
             operator_hints.append("structure_map")
         if len(shared_tokens) >= 1:
             operator_hints.append("blend")
-        if candidate.kind in {"transfer_target", "shared_primitive"}:
+        if candidate.kind in {"transfer_target", "shared_primitive"} and "adapt_case" not in operator_hints:
             operator_hints.append("adapt_case")
         rows.append(
             ShapeMatch(
@@ -1200,13 +1438,14 @@ def match_shapes(anchor: FormationCandidate, candidates: List[FormationCandidate
                 candidate_meta_id=candidate.meta_id,
                 candidate_kind=candidate.kind,
                 edge_kind="contradicts" if candidate.kind == "contradiction" else "relates_to",
-                score=round(min(0.99, score), 3),
+                score=round(max(0.0, min(0.99, score)), 3),
                 shared_tokens=shared_tokens[:8],
-                reasons=reasons,
-                operator_hints=operator_hints,
+                reasons=sorted(set(reasons)),
+                operator_hints=sorted(set(operator_hints)),
                 source_refs=sorted(set(anchor.source_refs + candidate.source_refs)),
                 source_item_ids=sorted(set(anchor.chunk_ids + candidate.chunk_ids)),
                 evidence=(anchor.evidence + candidate.evidence)[:4],
+                structural_fit=structural_fit,
                 anchor_label=anchor.label,
                 candidate_label=candidate.label,
             )
@@ -1222,6 +1461,25 @@ def choose_operator(match: ShapeMatch) -> OperatorDecision:
             confidence=round(min(0.95, 0.58 + match.score * 0.32), 3),
             rationale="The candidate acts as a contradiction or opposing pressure on the anchor formation.",
             fallback_operator_key="abduce_hypothesis",
+        )
+    structural_override = choose_structural_operator_override(
+        match.edge_kind,
+        match.operator_hints,
+        match.structural_fit,
+    )
+    if structural_override:
+        operator_key = structural_override["operator_key"]
+        fallback_operator_key = structural_override["fallback_operator_key"]
+        rationale = structural_override["rationale"]
+        confidence = {
+            "abduce_hypothesis": round(min(0.8, 0.4 + match.score * 0.18), 3),
+            "blend": round(min(0.88, 0.5 + match.score * 0.26), 3),
+        }.get(operator_key, round(min(0.82, 0.46 + match.score * 0.22), 3))
+        return OperatorDecision(
+            operator_key=operator_key,
+            confidence=confidence,
+            rationale=rationale,
+            fallback_operator_key=fallback_operator_key,
         )
     if "structure_map" in match.operator_hints:
         return OperatorDecision(
@@ -1315,6 +1573,7 @@ def synthesize_candidate(match: ShapeMatch, decision: OperatorDecision) -> Synth
         shared_primitive_label=decision.operator_key.replace("_", " "),
         reasoning_pipeline="formation_synthesis_v1",
         rationale=decision.rationale,
+        structural_fit=dict(match.structural_fit),
         shared_tokens=match.shared_tokens,
         evidence=match.evidence,
     )
@@ -1404,6 +1663,8 @@ def record_formation_synthesis_review(
     stress: StressTestResult,
 ) -> Dict[str, Any]:
     rows = read_jsonl(_formation_review_queue_path(root))
+    structural_fit = dict(candidate.structural_fit)
+    structural_verdict = str(structural_fit.get("verdict", "")).strip().lower()
     review_row = {
         "review_id": _stable_id("formation-review", candidate.synthesis_id, ",".join(stress.concerns)),
         "queue_type": "formation_synthesis",
@@ -1419,6 +1680,16 @@ def record_formation_synthesis_review(
         "candidate": candidate.to_dict(),
         "stress_test": stress.to_dict(),
     }
+    if structural_verdict == "reject":
+        review_row["anti_match_summary"] = {
+            "anchor_meta_id": candidate.anchor_meta_id,
+            "candidate_meta_id": candidate.candidate_meta_id,
+            "operator_key": candidate.operator_key,
+            "verdict": structural_verdict,
+            "structural_score": structural_fit.get("structural_score", 0.0),
+            "anti_match_penalty": structural_fit.get("anti_match_penalty", 0.0),
+            "shared_tokens": list(candidate.shared_tokens[:3]),
+        }
     rows.append(review_row)
     write_jsonl(_formation_review_queue_path(root), rows)
     return review_row

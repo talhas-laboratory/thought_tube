@@ -8,10 +8,26 @@ from typing import Dict, List
 from .analysis_units import build_analysis_units, load_analysis_units
 from .conversation_deltas import build_conversation_deltas, load_conversation_deltas, load_user_expectations
 from .meta_objects import META_LAYER_FILES, META_LAYER_KINDS
-from .models import MetaLayerRecord
+from .models import (
+    AlternativeInterpretation,
+    CandidateShape,
+    EvidenceSpan,
+    MetaLayerRecord,
+    SignatureAbsence,
+    SignatureAffordance,
+    SignatureConstraint,
+    SignatureEntity,
+    SignatureFeedbackLoop,
+    SignatureRelation,
+    SignatureState,
+    ShapeGraphEdge,
+    ShapeGraphNode,
+    ShapeMemoryItem,
+    SystemDynamicSignature,
+)
 from .pipeline_runner import run_pipeline
 from .plugins import load_plugins
-from .storage import ensure_dir, read_jsonl, write_jsonl
+from .storage import ensure_dir, read_jsonl, utc_now, write_jsonl
 from .vault_ingest import tokenize
 
 
@@ -21,8 +37,20 @@ PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "meta_layer_dir",
+    "shape_signatures_path",
+    "shape_graph_nodes_path",
+    "shape_graph_edges_path",
+    "shape_memory_path",
     "load_meta_records",
+    "load_shape_signatures",
+    "load_shape_graph_nodes",
+    "load_shape_graph_edges",
+    "load_shape_memory",
+    "find_shape_memory_matches",
+    "record_shape_feedback",
     "extract_meta_layer",
+    "extract_shape_signatures",
+    "build_shape_graph",
 )
 __all__ = list(PUBLIC_API)
 
@@ -43,9 +71,616 @@ def load_meta_records(root: Path, kinds: List[str] | None = None) -> List[Dict]:
     return rows
 
 
+def shape_signatures_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "data" / "shape_signatures.jsonl"
+
+
+def load_shape_signatures(root: Path) -> List[Dict]:
+    return read_jsonl(shape_signatures_path(root))
+
+
+def shape_graph_nodes_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "data" / "shape_graph_nodes.jsonl"
+
+
+def shape_graph_edges_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "data" / "shape_graph_edges.jsonl"
+
+
+def shape_memory_path(root: Path) -> Path:
+    return root / "product" / "inner_world_v1" / "data" / "shape_memory.jsonl"
+
+
+def load_shape_graph_nodes(root: Path) -> List[Dict]:
+    return read_jsonl(shape_graph_nodes_path(root))
+
+
+def load_shape_graph_edges(root: Path) -> List[Dict]:
+    return read_jsonl(shape_graph_edges_path(root))
+
+
+def load_shape_memory(root: Path) -> List[Dict]:
+    return read_jsonl(shape_memory_path(root))
+
+
+def find_shape_memory_matches(
+    root: Path,
+    *,
+    scope: str | None = None,
+    scope_key: str | None = None,
+    shape_name: str | None = None,
+    anchor_meta_id: str | None = None,
+    candidate_meta_id: str | None = None,
+) -> List[Dict]:
+    rows = load_shape_memory(root)
+    matched: List[Dict] = []
+    normalized_scope = str(scope or "").strip()
+    normalized_scope_key = str(scope_key or "").strip()
+    normalized_shape_name = str(shape_name or "").strip().lower()
+    normalized_anchor_meta_id = str(anchor_meta_id or "").strip()
+    normalized_candidate_meta_id = str(candidate_meta_id or "").strip()
+    for row in rows:
+        if normalized_scope and str(row.get("scope", "")).strip() != normalized_scope:
+            continue
+        if normalized_scope_key and str(row.get("scope_key", "")).strip() != normalized_scope_key:
+            continue
+        if normalized_shape_name and str(row.get("shape_name", "")).strip().lower() != normalized_shape_name:
+            continue
+        records = row.get("attributes", {}).get("anti_match_records", [])
+        if normalized_anchor_meta_id or normalized_candidate_meta_id:
+            if not any(
+                (not normalized_anchor_meta_id or str(record.get("anchor_meta_id", "")).strip() == normalized_anchor_meta_id)
+                and (not normalized_candidate_meta_id or str(record.get("candidate_meta_id", "")).strip() == normalized_candidate_meta_id)
+                for record in records
+            ):
+                continue
+        matched.append(row)
+    return matched
+
+
+def _dedupe_strings(values: List[str]) -> List[str]:
+    seen = set()
+    ordered: List[str] = []
+    for value in values:
+        normalized = str(value).strip()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        ordered.append(normalized)
+    return ordered
+
+
+def record_shape_feedback(
+    root: Path,
+    *,
+    scope: str,
+    scope_key: str,
+    shape_name: str,
+    shape_definition: str,
+    feedback_type: str,
+    validated_example: str = "",
+    rejected_candidate_id: str = "",
+    anchor_meta_id: str = "",
+    anti_match_penalty: float = 0.0,
+    intervention: str = "",
+    missing_constraint: str = "",
+) -> Dict:
+    rows = load_shape_memory(root)
+    normalized_scope = scope.strip()
+    normalized_scope_key = scope_key.strip()
+    normalized_shape_name = shape_name.strip()
+    normalized_feedback_type = feedback_type.strip().lower()
+    now = utc_now()
+    existing = next(
+        (
+            row
+            for row in rows
+            if str(row.get("scope", "")).strip() == normalized_scope
+            and str(row.get("scope_key", "")).strip() == normalized_scope_key
+            and str(row.get("shape_name", "")).strip() == normalized_shape_name
+        ),
+        None,
+    )
+    if existing is None:
+        existing = ShapeMemoryItem(
+            memory_id=_make_id("shape-memory", normalized_scope_key or "global", normalized_shape_name or "shape"),
+            scope=normalized_scope,
+            scope_key=normalized_scope_key,
+            shape_name=normalized_shape_name,
+            shape_definition=shape_definition.strip(),
+            updated_at=now,
+        ).to_dict()
+        rows.append(existing)
+
+    existing["shape_definition"] = shape_definition.strip() or str(existing.get("shape_definition", "")).strip()
+    existing["validated_examples"] = list(existing.get("validated_examples", []))
+    existing["anti_matches"] = list(existing.get("anti_matches", []))
+    existing["interventions"] = list(existing.get("interventions", []))
+    existing["missing_constraints"] = list(existing.get("missing_constraints", []))
+    attributes = dict(existing.get("attributes", {}))
+    anti_match_records = list(attributes.get("anti_match_records", []))
+
+    if normalized_feedback_type == "accepted":
+        existing["validation_count"] = int(existing.get("validation_count", 0)) + 1
+        existing["last_validated_at"] = now
+        if validated_example.strip():
+            existing["validated_examples"] = _dedupe_strings(existing["validated_examples"] + [validated_example])
+        if intervention.strip():
+            existing["interventions"] = _dedupe_strings(existing["interventions"] + [intervention])
+    elif normalized_feedback_type in {"rejected", "wrong_analogy", "anti_match"}:
+        existing["rejection_count"] = int(existing.get("rejection_count", 0)) + 1
+        if rejected_candidate_id.strip():
+            existing["anti_matches"] = _dedupe_strings(existing["anti_matches"] + [rejected_candidate_id])
+            record = next(
+                (
+                    item
+                    for item in anti_match_records
+                    if str(item.get("anchor_meta_id", "")).strip() == anchor_meta_id.strip()
+                    and str(item.get("candidate_meta_id", "")).strip() == rejected_candidate_id.strip()
+                ),
+                None,
+            )
+            if record is None:
+                anti_match_records.append(
+                    {
+                        "anchor_meta_id": anchor_meta_id.strip(),
+                        "candidate_meta_id": rejected_candidate_id.strip(),
+                        "anti_match_penalty": round(max(0.0, anti_match_penalty), 3),
+                        "updated_at": now,
+                    }
+                )
+            else:
+                record["anti_match_penalty"] = round(
+                    max(float(record.get("anti_match_penalty", 0.0)), max(0.0, anti_match_penalty)),
+                    3,
+                )
+                record["updated_at"] = now
+    if missing_constraint.strip():
+        existing["missing_constraints"] = _dedupe_strings(existing["missing_constraints"] + [missing_constraint])
+
+    attributes["anti_match_records"] = anti_match_records
+    existing["attributes"] = attributes
+    existing["updated_at"] = now
+    write_jsonl(shape_memory_path(root), rows)
+    return existing
+
+
 def _make_id(kind: str, anchor_id: str, label: str) -> str:
     digest = hashlib.sha256(f"{kind}:{anchor_id}:{label}".encode("utf-8")).hexdigest()[:12]
     return f"{kind}-{digest}"
+
+
+def _text_contains_any(text: str, markers: List[str]) -> bool:
+    return any(marker in text for marker in markers)
+
+
+def _matching_meta_rows(unit: Dict, meta_rows: List[Dict]) -> List[Dict]:
+    unit_chunk_ids = set(unit.get("chunk_ids", []))
+    unit_source_ref = unit.get("source_ref")
+    matched = []
+    for row in meta_rows:
+        row_source_refs = set(row.get("source_refs", []))
+        row_chunk_ids = set(row.get("chunk_ids", []))
+        if unit_source_ref and unit_source_ref not in row_source_refs:
+            continue
+        if unit_chunk_ids and not unit_chunk_ids.intersection(row_chunk_ids):
+            continue
+        matched.append(row)
+    return matched
+
+
+def _evidence_spans_for_unit(unit: Dict, meta_rows: List[Dict]) -> List[Dict]:
+    direct_text = unit.get("content", "").strip()
+    spans = [
+        EvidenceSpan(
+            source_ref=unit["source_ref"],
+            chunk_id=unit.get("anchor_chunk_id") or unit["chunk_ids"][0],
+            text=direct_text[:280],
+            kind="direct_quote",
+        ).to_dict()
+    ]
+    for row in meta_rows[:3]:
+        evidence_text = (row.get("evidence") or [row.get("summary", "")])[0]
+        if not evidence_text:
+            continue
+        spans.append(
+            EvidenceSpan(
+                source_ref=row.get("source_refs", [unit["source_ref"]])[0],
+                chunk_id=(row.get("chunk_ids") or [unit["chunk_ids"][0]])[0],
+                text=evidence_text[:220],
+                kind=f"meta_{row['kind']}",
+                attributes={"meta_id": row["meta_id"]},
+            ).to_dict()
+        )
+    return spans
+
+
+def _build_candidate_shapes(unit: Dict, meta_rows: List[Dict], text: str) -> List[Dict]:
+    candidates: List[Dict] = []
+    seen = set()
+    for row in meta_rows:
+        if row["kind"] != "shared_primitive":
+            continue
+        shape_name = row["label"].strip()
+        key = shape_name.lower()
+        if not shape_name or key in seen:
+            continue
+        seen.add(key)
+        candidates.append(
+            CandidateShape(
+                shape_name=shape_name,
+                confidence=row.get("confidence", 0.6),
+                rationale=row.get("summary", ""),
+                attributes={
+                    "origin": "shared_primitive",
+                    "primitive_key": row.get("attributes", {}).get("primitive_key", ""),
+                },
+            ).to_dict()
+        )
+    if (
+        _text_contains_any(text, ["many", "too many", "keep adding", "adding", "crowded", "feature"])
+        and _text_contains_any(text, ["do not understand", "don't understand", "unclear", "confus", "overwhelm"])
+        and "signal dilution through accumulation" not in seen
+    ):
+        candidates.append(
+            CandidateShape(
+                shape_name="Signal Dilution Through Accumulation",
+                confidence=0.68,
+                rationale="Accumulating useful elements without scalable hierarchy makes the main signal harder to perceive.",
+                attributes={"origin": "heuristic_pattern"},
+            ).to_dict()
+        )
+    return candidates
+
+
+def _build_alternative_interpretations(meta_rows: List[Dict], text: str) -> List[Dict]:
+    alternatives: List[Dict] = []
+    for row in meta_rows:
+        if row["kind"] != "interpretation":
+            continue
+        alternatives.append(
+            AlternativeInterpretation(
+                title=row["label"],
+                summary=row["summary"],
+                confidence=row.get("confidence", 0.6),
+                attributes={"origin": "interpretation"},
+            ).to_dict()
+        )
+    if _text_contains_any(text, ["what it is", "value proposition", "message", "framing"]):
+        alternatives.append(
+            AlternativeInterpretation(
+                title="Failed Translation of Hidden Value",
+                summary="The problem may be value framing or message translation, not accumulation alone.",
+                confidence=0.58,
+                attributes={"origin": "heuristic_pattern"},
+            ).to_dict()
+        )
+    return alternatives
+
+
+def _build_signature_for_unit(unit: Dict, meta_rows: List[Dict]) -> Dict | None:
+    text = unit.get("content", "").lower()
+    signal_frame = next((row for row in meta_rows if row["kind"] == "signal_frame"), None)
+    candidate_shapes = _build_candidate_shapes(unit, meta_rows, text)
+    if not signal_frame and not candidate_shapes:
+        return None
+
+    evidence_spans = _evidence_spans_for_unit(unit, meta_rows)
+    title = signal_frame["label"] if signal_frame else unit["title"]
+    summary = signal_frame["summary"] if signal_frame else unit["content"][:220]
+    created_at = unit.get("created_at") or utc_now()
+    desired_transformation = ""
+    if signal_frame:
+        desired_transformation = signal_frame.get("attributes", {}).get("transformation_goal", "")
+
+    entities: List[Dict] = []
+    states: List[Dict] = []
+    relations: List[Dict] = []
+    feedback_loops: List[Dict] = []
+    constraints: List[Dict] = []
+    absences: List[Dict] = []
+    affordances: List[Dict] = []
+
+    accumulation_markers = ["many", "too many", "keep adding", "adding", "accumulate", "feature", "features"]
+    confusion_markers = ["do not understand", "don't understand", "unclear", "confus", "overwhelm", "what it is"]
+    explanation_markers = ["explanation", "explanations", "onboarding", "documentation", "docs", "tutorial"]
+    hierarchy_markers = ["primary", "main path", "clear hierarchy", "dominant", "hierarchy", "lead"]
+
+    is_accumulation_case = _text_contains_any(text, accumulation_markers) and _text_contains_any(text, confusion_markers)
+    has_explanation_feedback = _text_contains_any(text, explanation_markers)
+
+    if is_accumulation_case:
+        added_elements_id = "entity-added-elements"
+        receiver_id = "entity-receiver-capacity"
+        signal_id = "entity-source-signal"
+        confusion_state_id = "state-receiver-confusion"
+        explanation_id = "entity-coordination-layer"
+
+        entities.append(
+            SignatureEntity(
+                entity_id=added_elements_id,
+                label="Features" if "feature" in text else "Accumulating elements",
+                node_type="entity",
+                role="added_elements",
+                confidence=0.78,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+        )
+        entities.append(
+            SignatureEntity(
+                entity_id=receiver_id,
+                label="User attention" if "user" in text else "Receiver attention",
+                node_type="resource",
+                role="limited_receiver_capacity",
+                confidence=0.74,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+        )
+        entities.append(
+            SignatureEntity(
+                entity_id=signal_id,
+                label="Core value" if _text_contains_any(text, ["value", "what it is", "product"]) else "Primary signal",
+                node_type="signal",
+                role="source_signal",
+                confidence=0.72,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+        )
+        if has_explanation_feedback:
+            entities.append(
+                SignatureEntity(
+                    entity_id=explanation_id,
+                    label="Explanation layer",
+                    node_type="entity",
+                    role="coordination_layer",
+                    confidence=0.68,
+                    evidence=evidence_spans[:1],
+                ).to_dict()
+            )
+
+        states.append(
+            SignatureState(
+                state_id=confusion_state_id,
+                label="Receiver confusion",
+                confidence=0.77,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+        )
+
+        relation_ids: List[str] = []
+        relation_one = SignatureRelation(
+            relation_id="relation-added-elements-compete-receiver",
+            source_id=added_elements_id,
+            target_id=receiver_id,
+            edge_type="competes_with",
+            operation="accumulate",
+            confidence=0.76,
+            evidence=evidence_spans[:1],
+        ).to_dict()
+        relation_ids.append(relation_one["relation_id"])
+        relations.append(relation_one)
+
+        relation_two = SignatureRelation(
+            relation_id="relation-added-elements-hide-signal",
+            source_id=added_elements_id,
+            target_id=signal_id,
+            edge_type="hides",
+            operation="accumulate",
+            confidence=0.8,
+            evidence=evidence_spans[:1],
+        ).to_dict()
+        relation_ids.append(relation_two["relation_id"])
+        relations.append(relation_two)
+
+        if has_explanation_feedback:
+            relation_three = SignatureRelation(
+                relation_id="relation-confusion-causes-explanations",
+                source_id=confusion_state_id,
+                target_id=explanation_id,
+                edge_type="causes",
+                operation="amplify",
+                confidence=0.7,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+            relation_four = SignatureRelation(
+                relation_id="relation-explanations-feed-complexity",
+                source_id=explanation_id,
+                target_id=added_elements_id,
+                edge_type="feeds_back_into",
+                operation="amplify",
+                confidence=0.72,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+            relation_ids.extend([relation_three["relation_id"], relation_four["relation_id"]])
+            relations.extend([relation_three, relation_four])
+            feedback_loops.append(
+                SignatureFeedbackLoop(
+                    loop_id="feedback-loop-clarity-complexity",
+                    label="Confusion drives more explanation, which increases surface complexity.",
+                    node_ids=[confusion_state_id, explanation_id, added_elements_id],
+                    edge_ids=[relation_three["relation_id"], relation_four["relation_id"]],
+                    confidence=0.69,
+                    evidence=evidence_spans[:2],
+                ).to_dict()
+            )
+
+        constraints.append(
+            SignatureConstraint(
+                constraint_id="constraint-limited-receiver-capacity",
+                label="Limited receiver capacity",
+                confidence=0.75,
+                evidence=evidence_spans[:1],
+            ).to_dict()
+        )
+        if not _text_contains_any(text, hierarchy_markers):
+            absences.append(
+                SignatureAbsence(
+                    absence_id="absence-primary-hierarchy",
+                    label="Missing primary hierarchy",
+                    confidence=0.71,
+                    evidence=evidence_spans[:1],
+                ).to_dict()
+            )
+        affordances.append(
+            SignatureAffordance(
+                affordance_id="affordance-hierarchy-restoration",
+                label="Hierarchy can restore the dominant signal without removing depth",
+                confidence=0.66,
+                evidence=evidence_spans[:2],
+            ).to_dict()
+        )
+
+    missing_information = [row["summary"] for row in meta_rows if row["kind"] == "question"]
+    alternatives = _build_alternative_interpretations(meta_rows, text)
+    confidence_rows = [row.get("confidence", 0.6) for row in meta_rows]
+    confidence = round(sum(confidence_rows) / max(1, len(confidence_rows)), 2)
+    failure_mode = candidate_shapes[0]["shape_name"] if candidate_shapes else ""
+    observer_lens = "structural_interpretation"
+    if signal_frame and signal_frame.get("attributes", {}).get("speaker_role"):
+        observer_lens = signal_frame["attributes"]["speaker_role"]
+
+    return SystemDynamicSignature(
+        signature_id=_make_id("signature", unit["unit_id"], title),
+        source_ref=unit["source_ref"],
+        source_kind="analysis_unit",
+        source_anchor_id=unit["unit_id"],
+        title=title,
+        summary=summary,
+        system_boundary=unit["title"],
+        observer_lens=observer_lens,
+        entities=entities,
+        states=states,
+        relations=relations,
+        feedback_loops=feedback_loops,
+        constraints=constraints,
+        absences=absences,
+        affordances=affordances,
+        failure_mode=failure_mode,
+        desired_transformation=desired_transformation,
+        candidate_shapes=candidate_shapes,
+        alternative_interpretations=alternatives,
+        evidence_spans=evidence_spans,
+        missing_information=missing_information,
+        confidence=confidence,
+        status="provisional",
+        version=1,
+        created_at=created_at,
+        updated_at=created_at,
+        attributes={
+            "source_meta_ids": [row["meta_id"] for row in meta_rows],
+            "source_chunk_ids": unit.get("chunk_ids", []),
+        },
+    ).to_dict()
+
+
+def _signature_graph_nodes(signature: Dict) -> List[Dict]:
+    nodes: List[Dict] = []
+    signature_id = signature["signature_id"]
+    for entity in signature.get("entities", []):
+        nodes.append(
+            ShapeGraphNode(
+                graph_node_id=f"{signature_id}:{entity['entity_id']}",
+                signature_id=signature_id,
+                node_key=entity["entity_id"],
+                node_type=entity.get("node_type", "entity"),
+                label=entity["label"],
+                role=entity.get("role", ""),
+                confidence=entity.get("confidence", 0.0),
+                attributes={"origin": "entity"},
+            ).to_dict()
+        )
+    for state in signature.get("states", []):
+        nodes.append(
+            ShapeGraphNode(
+                graph_node_id=f"{signature_id}:{state['state_id']}",
+                signature_id=signature_id,
+                node_key=state["state_id"],
+                node_type="state",
+                label=state["label"],
+                confidence=state.get("confidence", 0.0),
+                attributes={"origin": "state"},
+            ).to_dict()
+        )
+    for constraint in signature.get("constraints", []):
+        nodes.append(
+            ShapeGraphNode(
+                graph_node_id=f"{signature_id}:{constraint['constraint_id']}",
+                signature_id=signature_id,
+                node_key=constraint["constraint_id"],
+                node_type="constraint",
+                label=constraint["label"],
+                confidence=constraint.get("confidence", 0.0),
+                attributes={"origin": "constraint"},
+            ).to_dict()
+        )
+    for absence in signature.get("absences", []):
+        nodes.append(
+            ShapeGraphNode(
+                graph_node_id=f"{signature_id}:{absence['absence_id']}",
+                signature_id=signature_id,
+                node_key=absence["absence_id"],
+                node_type="absence",
+                label=absence["label"],
+                confidence=absence.get("confidence", 0.0),
+                attributes={"origin": "absence"},
+            ).to_dict()
+        )
+    for affordance in signature.get("affordances", []):
+        nodes.append(
+            ShapeGraphNode(
+                graph_node_id=f"{signature_id}:{affordance['affordance_id']}",
+                signature_id=signature_id,
+                node_key=affordance["affordance_id"],
+                node_type="affordance",
+                label=affordance["label"],
+                confidence=affordance.get("confidence", 0.0),
+                attributes={"origin": "affordance"},
+            ).to_dict()
+        )
+    return nodes
+
+
+def _feedback_loop_edge_index(signature: Dict) -> Dict[str, List[str]]:
+    index: Dict[str, List[str]] = defaultdict(list)
+    for loop in signature.get("feedback_loops", []):
+        loop_id = loop.get("loop_id", "")
+        if not loop_id:
+            continue
+        for edge_id in loop.get("edge_ids", []):
+            index[edge_id].append(loop_id)
+    return {edge_id: sorted(loop_ids) for edge_id, loop_ids in index.items()}
+
+
+def _signature_graph_edges(signature: Dict) -> List[Dict]:
+    signature_id = signature["signature_id"]
+    loop_index = _feedback_loop_edge_index(signature)
+    edges: List[Dict] = []
+    for relation in signature.get("relations", []):
+        edges.append(
+            ShapeGraphEdge(
+                graph_edge_id=relation["relation_id"],
+                signature_id=signature_id,
+                source_node_key=relation["source_id"],
+                target_node_key=relation["target_id"],
+                edge_type=relation["edge_type"],
+                operation=relation.get("operation", ""),
+                confidence=relation.get("confidence", 0.0),
+                attributes={
+                    "origin": "relation",
+                    "feedback_loop_ids": loop_index.get(relation["relation_id"], []),
+                },
+            ).to_dict()
+        )
+    return edges
+
+
+def _count_invalid_edges(nodes: List[Dict], edges: List[Dict]) -> int:
+    valid_node_keys = {row["node_key"] for row in nodes}
+    invalid_count = 0
+    for edge in edges:
+        if edge["source_node_key"] not in valid_node_keys or edge["target_node_key"] not in valid_node_keys:
+            invalid_count += 1
+    return invalid_count
 
 
 def _record(
@@ -658,4 +1293,43 @@ def extract_meta_layer(root: Path, domain_overlays: List[str] | None = None, ens
         "expectation_count": len(expectation_rows),
         "meta_counts": counts,
         "total_meta_records": sum(counts.values()),
+    }
+
+
+def extract_shape_signatures(root: Path, domain_overlays: List[str] | None = None, ensure_dependencies: bool = True) -> Dict:
+    if ensure_dependencies:
+        extract_meta_layer(root, domain_overlays=domain_overlays, ensure_dependencies=True)
+    units = load_analysis_units(root)
+    meta_rows = load_meta_records(root)
+    signatures: List[Dict] = []
+    for unit in units:
+        matching_rows = _matching_meta_rows(unit, meta_rows)
+        signature = _build_signature_for_unit(unit, matching_rows)
+        if signature is not None:
+            signatures.append(signature)
+    write_jsonl(shape_signatures_path(root), signatures)
+    return {
+        "analysis_unit_count": len(units),
+        "meta_record_count": len(meta_rows),
+        "shape_signature_count": len(signatures),
+    }
+
+
+def build_shape_graph(root: Path, domain_overlays: List[str] | None = None, ensure_dependencies: bool = True) -> Dict:
+    if ensure_dependencies:
+        extract_shape_signatures(root, domain_overlays=domain_overlays, ensure_dependencies=True)
+    signatures = load_shape_signatures(root)
+    nodes: List[Dict] = []
+    edges: List[Dict] = []
+    for signature in signatures:
+        nodes.extend(_signature_graph_nodes(signature))
+        edges.extend(_signature_graph_edges(signature))
+    write_jsonl(shape_graph_nodes_path(root), nodes)
+    write_jsonl(shape_graph_edges_path(root), edges)
+    invalid_edge_count = _count_invalid_edges(nodes, edges)
+    return {
+        "shape_signature_count": len(signatures),
+        "shape_graph_node_count": len(nodes),
+        "shape_graph_edge_count": len(edges),
+        "invalid_edge_count": invalid_edge_count,
     }

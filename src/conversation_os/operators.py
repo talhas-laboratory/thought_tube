@@ -33,6 +33,7 @@ PUBLIC_API = (
     "confidence_calibration",
     "relevance_check",
     "review_gate",
+    "choose_structural_operator_override",
     "OPERATOR_REGISTRY",
 )
 __all__ = list(PUBLIC_API)
@@ -776,6 +777,35 @@ def review_gate(packet: Dict, _: Dict) -> Dict:
             },
         }
     }
+
+
+def choose_structural_operator_override(edge_kind: str, operator_hints: List[str], structural_fit: Dict) -> Dict[str, str]:
+    if edge_kind == "contradicts" or "find_counterpoint" in operator_hints:
+        return {}
+    verdict = str(structural_fit.get("verdict", "")).strip().lower()
+    try:
+        review_memory_penalty = max(0.0, float(structural_fit.get("review_memory_penalty", 0.0)))
+    except (TypeError, ValueError):
+        review_memory_penalty = 0.0
+    if verdict == "reject":
+        return {
+            "operator_key": "abduce_hypothesis",
+            "fallback_operator_key": "blend",
+            "rationale": "The match has lexical overlap but fails structural checks, so the safest move is a provisional hypothesis instead of direct transfer.",
+        }
+    if verdict == "partial_match" and review_memory_penalty > 0.0:
+        if "blend" in operator_hints:
+            return {
+                "operator_key": "blend",
+                "fallback_operator_key": "abduce_hypothesis",
+                "rationale": "The analogy remains partially useful, but anti-match memory says direct structure transfer has failed before, so the safer move is a cautious blend.",
+            }
+        return {
+            "operator_key": "abduce_hypothesis",
+            "fallback_operator_key": "blend",
+            "rationale": "Anti-match memory weakens this partial structural fit, so the system should keep the result provisional instead of transferring it directly.",
+        }
+    return {}
 
 
 OPERATOR_REGISTRY = {

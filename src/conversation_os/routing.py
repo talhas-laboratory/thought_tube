@@ -60,7 +60,6 @@ def _ensure_codebase_index_ready_for_handoff(root: Path) -> dict:
             details=index_state,
         )
     return {
-        "generated_at": index_state["generated_at"],
         "fresh": index_state["fresh"],
         "module_manifest_count": index_state["module_manifest_count"],
         "newest_source_path": index_state["newest_source_path"],
@@ -273,7 +272,6 @@ def build_task_pack(
         "",
         "## Handoff Validation",
         "",
-        f"- generated_at: {handoff_validation['generated_at']}",
         f"- fresh: {handoff_validation['fresh']}",
         f"- module_manifest_count: {handoff_validation['module_manifest_count']}",
         f"- newest_source_path: {handoff_validation['newest_source_path']}",
