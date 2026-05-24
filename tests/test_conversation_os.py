@@ -282,19 +282,7 @@ class ConversationOSTestCase(unittest.TestCase):
 
     def _start_test_mobile_miniapp_server(self):
         mobile_dir = self.root / "product" / "mobile_surface_v1"
-        mobile_dir.mkdir(parents=True, exist_ok=True)
-        (mobile_dir / "index.html").write_text("<html><body>mobile</body></html>", encoding="utf-8")
-        (mobile_dir / "manifest.webmanifest").write_text(
-            json.dumps(
-                {
-                    "name": "Inner World Mobile",
-                    "short_name": "Inner World",
-                    "start_url": "/mobile",
-                    "display": "standalone",
-                }
-            ),
-            encoding="utf-8",
-        )
+        shutil.copytree(REPO_ROOT / "product" / "mobile_surface_v1", mobile_dir, dirs_exist_ok=True)
         return self._start_test_miniapp_server()
 
     def _json_request(self, url: str, *, method: str = "GET", payload: dict | None = None):
@@ -5781,6 +5769,37 @@ class ConversationOSTestCase(unittest.TestCase):
                     self.assertEqual(response.status, 200)
                     body = response.read().decode("utf-8")
                 self.assertIn("mobile", body)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_bundle_serves_key_pwa_assets(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+
+                with opener.open(f"{base_url}/mobile/") as response:
+                    self.assertEqual(response.status, 200)
+                    html = response.read().decode("utf-8")
+                self.assertIn("Inner World Mobile", html)
+
+                with opener.open(f"{base_url}/mobile/app.js") as response:
+                    self.assertEqual(response.status, 200)
+                    app_js = response.read().decode("utf-8")
+                self.assertIn("INNER_WORLD_MOBILE_CONFIG", app_js)
+
+                with opener.open(f"{base_url}/mobile/styles.css") as response:
+                    self.assertEqual(response.status, 200)
+                    css = response.read().decode("utf-8")
+                self.assertIn("Inner World Mobile", css)
+
+                with opener.open(f"{base_url}/manifest.webmanifest") as response:
+                    self.assertEqual(response.status, 200)
+                    manifest = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(manifest["name"], "Inner World Mobile")
+                self.assertEqual(manifest["start_url"], "/mobile/")
             finally:
                 server.shutdown()
                 thread.join(timeout=2)
