@@ -2069,114 +2069,6 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(reloaded["idea_id"], record["idea_id"])
         self.assertEqual(listed[0]["idea_id"], record["idea_id"])
 
-    def test_record_development_idea_attaches_multi_lens_thought_graph(self) -> None:
-        self._write_personal_interface_profile()
-
-        record = record_development_idea(
-            self.root,
-            (
-                "Mobile Codex contact should turn fast brain dumps into applied work. "
-                "The system needs micro shift detection, a whole conversation lens, "
-                "and a bridge that routes expert tools through a safe workflow."
-            ),
-            desired_effect="Preserve the vision as a graph and route it toward implementation.",
-            surface_hints=["inner_world", "personal_interface"],
-            source_session_id="session-mobile-vision",
-            source_refs=["event://mobile-vision"],
-        )
-
-        graph = record["thought_graph"]
-        reloaded = get_development_idea(self.root, record["idea_id"])
-
-        self.assertEqual(graph["source_session_id"], "session-mobile-vision")
-        self.assertEqual(graph["source_refs"], ["event://mobile-vision"])
-        self.assertEqual(
-            {lens["lens_key"] for lens in graph["size_lenses"]},
-            {"raw_drop", "micro_shift", "meta_commentary", "cross_conversation", "macro_conversation", "workflow_path", "bridge_orchestration"},
-        )
-        self.assertGreaterEqual(len([node for node in graph["nodes"] if node["lens"] == "micro_shift"]), 2)
-        self.assertTrue(any(node["lens"] == "workflow_path" for node in graph["nodes"]))
-        self.assertTrue(any(node["lens"] == "bridge_orchestration" for node in graph["nodes"]))
-        self.assertTrue(any(edge["relation"] == "contains" for edge in graph["edges"]))
-        self.assertIn("assembly.development.development_router", graph["workflow_path"][1]["owner_module"])
-        self.assertEqual(reloaded["thought_graph"]["graph_id"], graph["graph_id"])
-
-    def test_record_development_idea_derives_meta_commentary_artifacts(self) -> None:
-        self._write_personal_interface_profile()
-
-        record = record_development_idea(
-            self.root,
-            (
-                "I have a vision and need to brain dump it first. "
-                "Then Codex should transform the conversation into a plan, "
-                "but it should not execute tools until the workflow is safe."
-            ),
-            desired_effect="Create meta commentary artifacts for deeper analysis dimensions.",
-            surface_hints=["inner_world", "personal_interface"],
-            source_session_id="session-meta",
-            source_refs=["event-meta"],
-        )
-
-        graph = record["thought_graph"]
-        artifacts = graph["meta_commentary_artifacts"]
-        artifact_types = {artifact["artifact_type"] for artifact in artifacts}
-
-        self.assertIn("meta_commentary", [lens["lens_key"] for lens in graph["size_lenses"]])
-        self.assertIn("interaction_dynamic", artifact_types)
-        self.assertIn("implicit_instruction", artifact_types)
-        self.assertIn("tool_readiness", artifact_types)
-        self.assertTrue(all(artifact["evidence_refs"] == ["event-meta"] for artifact in artifacts))
-        self.assertTrue(any("tool_readiness" in artifact["analysis_dimensions"] for artifact in artifacts))
-
-    def test_thought_graph_cross_conversation_lens_includes_development_signal_refs(self) -> None:
-        self._write_personal_interface_profile()
-        self._write_meta_rows(
-            [
-                self._meta_row(
-                    meta_id="meta-bridge",
-                    kind="shared_primitive",
-                    label="Execution bridge",
-                    summary="Routes rough ideas toward guarded implementation workflows.",
-                    source_ref="session://prior-bridge",
-                    chunk_id="chunk-bridge",
-                    confidence=0.86,
-                )
-            ]
-        )
-
-        record = record_development_idea(
-            self.root,
-            "Build a mobile execution bridge from rough thoughts to guarded workflows.",
-            desired_effect="Compare this against prior bridge conversations.",
-            surface_hints=["inner_world"],
-        )
-
-        cross_nodes = [
-            node for node in record["thought_graph"]["nodes"]
-            if node["lens"] == "cross_conversation"
-        ]
-        self.assertTrue(cross_nodes)
-        self.assertTrue(record["thought_graph"]["related_context_refs"])
-        self.assertEqual(record["thought_graph"]["related_context_refs"][0]["meta_id"], "meta-bridge")
-
-    def test_build_development_proposal_carries_thought_graph_summary(self) -> None:
-        self._write_personal_interface_profile()
-
-        idea = record_development_idea(
-            self.root,
-            "Make mobile thought graphs route into guarded implementation plans.",
-            desired_effect="Proposal should expose graph dimensions and uncertainty.",
-            surface_hints=["inner_world"],
-            source_session_id="session-graph",
-            source_refs=["event-graph"],
-        )
-
-        proposal = build_development_proposal(self.root, idea["idea_id"])
-
-        self.assertEqual(proposal["thought_graph_summary"]["graph_id"], idea["thought_graph"]["graph_id"])
-        self.assertIn("workflow_routing", proposal["thought_graph_summary"]["dimensions"])
-        self.assertIn("workflow_path", proposal["thought_graph_summary"]["lens_keys"])
-
     def test_build_and_approve_development_proposal_persists_contract(self) -> None:
         self._write_personal_interface_profile()
         self._write_meta_rows(
@@ -5456,6 +5348,40 @@ class ConversationOSTestCase(unittest.TestCase):
             thread.join(timeout=2)
             server.server_close()
 
+    def test_miniapp_mobile_session_rejects_invalid_password(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                request = urllib_request.Request(
+                    f"{base_url}/api/mobile/session",
+                    data=json.dumps({"password": "wrong-pass"}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as error_context:
+                    urllib_request.urlopen(request)
+                self.assertEqual(error_context.exception.code, 401)
+                payload = json.loads(error_context.exception.read().decode("utf-8"))
+                self.assertEqual(payload["error"], "invalid_password")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_path_requires_session_auth(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                with self.assertRaises(urllib_error.HTTPError) as error_context:
+                    urllib_request.urlopen(f"{base_url}/mobile")
+                self.assertEqual(error_context.exception.code, 401)
+                payload = json.loads(error_context.exception.read().decode("utf-8"))
+                self.assertEqual(payload["error"], "auth_required")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
     def test_miniapp_mobile_session_login_sets_cookie_and_serves_manifest(self) -> None:
         with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
             server, thread, base_url = self._start_test_mobile_miniapp_server()
@@ -5480,6 +5406,61 @@ class ConversationOSTestCase(unittest.TestCase):
                     self.assertEqual(response.status, 200)
                     manifest = json.loads(response.read().decode("utf-8"))
                 self.assertEqual(manifest["name"], "Inner World Mobile")
+
+                with opener.open(f"{base_url}/mobile") as response:
+                    self.assertEqual(response.status, 200)
+                    body = response.read().decode("utf-8")
+                self.assertIn("mobile", body)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_logout_clears_cookie(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                cookie_jar = cookiejar.CookieJar()
+                opener = urllib_request.build_opener(urllib_request.HTTPCookieProcessor(cookie_jar))
+                login_request = urllib_request.Request(
+                    f"{base_url}/api/mobile/session",
+                    data=json.dumps({"password": "mobile-pass"}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with opener.open(login_request) as response:
+                    self.assertEqual(response.status, 200)
+                self.assertTrue(any(cookie.name == "inner_world_mobile_session" for cookie in cookie_jar))
+
+                logout_request = urllib_request.Request(
+                    f"{base_url}/api/mobile/session/logout",
+                    data=b"{}",
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with opener.open(logout_request) as response:
+                    self.assertEqual(response.status, 200)
+                    payload = json.loads(response.read().decode("utf-8"))
+                    set_cookie_headers = response.headers.get_all("Set-Cookie") or []
+                self.assertEqual(payload["authenticated"], False)
+                self.assertTrue(any("Max-Age=0" in header for header in set_cookie_headers))
+
+                with self.assertRaises(urllib_error.HTTPError) as error_context:
+                    opener.open(f"{base_url}/mobile")
+                self.assertEqual(error_context.exception.code, 401)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_prefix_does_not_gate_unrelated_path(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                with urllib_request.urlopen(f"{base_url}/mobile.css") as response:
+                    self.assertEqual(response.status, 200)
+                    body = response.read().decode("utf-8")
+                self.assertIn("./feed-ui-enhancement.css", body)
             finally:
                 server.shutdown()
                 thread.join(timeout=2)

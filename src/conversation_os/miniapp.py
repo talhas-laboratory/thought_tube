@@ -807,7 +807,7 @@ def make_miniapp_handler(
             path = parsed.path
             api_path = _canonical_api_path(path, api_prefixes)
 
-            if path.startswith("/mobile") and not self._require_mobile_session():
+            if (path == "/mobile" or path.startswith("/mobile/")) and not self._require_mobile_session():
                 return
 
             if api_path and api_path.startswith("/mobile/") and api_path not in {"/mobile/session", "/mobile/session/logout"}:
