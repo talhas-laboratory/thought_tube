@@ -19,6 +19,9 @@ from .chat_backends import (
     stage_openclaw_agent_model,
 )
 from .product_inner_world import (
+    append_mobile_capture,
+    build_mobile_feed,
+    build_mobile_library,
     build_thought_archive,
     build_thought_feed,
     chat_with_thought,
@@ -32,6 +35,8 @@ from .product_inner_world import (
     get_linking_overview,
     get_retrieval_bundle,
     get_runtime_overview,
+    reply_in_mobile_session,
+    save_mobile_feed_item,
     search_library_dimensions,
     get_source_item_detail,
     get_thread_detail,
@@ -1038,8 +1043,12 @@ def make_miniapp_handler(
                 self._send_json(state)
                 return
             if api_path == "/mobile/feed":
-                feed = build_thought_feed(root, limit=limit, domain_overlays=domain_overlays)
+                feed = build_mobile_feed(root, limit=limit, domain_overlays=domain_overlays)
                 self._send_json(feed)
+                return
+            if api_path == "/mobile/library":
+                library = build_mobile_library(root)
+                self._send_json(library)
                 return
             if api_path and api_path.startswith("/source/"):
                 source_item_id = api_path.removeprefix("/source/").strip("/")
@@ -1153,6 +1162,49 @@ def make_miniapp_handler(
                 payload = _read_json_body(self)
             except json.JSONDecodeError:
                 self._send_json({"error": "invalid_json"}, status=HTTPStatus.BAD_REQUEST)
+                return
+
+            if api_path == "/mobile/capture":
+                try:
+                    result = append_mobile_capture(
+                        root,
+                        content=payload.get("content", ""),
+                        session_id=payload.get("session_id"),
+                    )
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                self._send_json(result)
+                return
+
+            if api_path and api_path.startswith("/mobile/conversations/") and api_path.endswith("/reply"):
+                session_id = api_path[len("/mobile/conversations/") : -len("/reply")].strip("/")
+                try:
+                    result = reply_in_mobile_session(
+                        root,
+                        session_id=session_id,
+                        user_message=payload.get("message", ""),
+                    )
+                except FileNotFoundError:
+                    self._not_found()
+                    return
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                self._send_json(result)
+                return
+
+            if api_path == "/mobile/feedback":
+                insight_id = payload.get("insight_id")
+                feedback_state = payload.get("feedback_state")
+                if not insight_id or not feedback_state:
+                    self._send_json({"error": "insight_id_and_feedback_state_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                if feedback_state == "saved":
+                    result = save_mobile_feed_item(root, insight_id=insight_id)
+                else:
+                    result = record_feedback(root, insight_id, feedback_state)
+                self._send_json(result)
                 return
 
             if api_path == "/world-studio/world":

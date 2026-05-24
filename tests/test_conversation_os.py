@@ -308,6 +308,21 @@ class ConversationOSTestCase(unittest.TestCase):
         with urllib_request.urlopen(request) as response:
             return response.status, json.loads(response.read().decode("utf-8"))
 
+    def _mobile_session_opener(self, base_url: str, *, password: str = "mobile-pass"):
+        cookie_jar = cookiejar.CookieJar()
+        opener = urllib_request.build_opener(urllib_request.HTTPCookieProcessor(cookie_jar))
+        request = urllib_request.Request(
+            f"{base_url}/api/mobile/session",
+            data=json.dumps({"password": password}).encode("utf-8"),
+            method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        with opener.open(request) as response:
+            self.assertEqual(response.status, 200)
+            payload = json.loads(response.read().decode("utf-8"))
+        self.assertTrue(payload["authenticated"])
+        return opener
+
     def _meta_row(
         self,
         *,
@@ -5530,6 +5545,178 @@ class ConversationOSTestCase(unittest.TestCase):
             server.shutdown()
             thread.join(timeout=2)
             server.server_close()
+
+    def test_miniapp_mobile_feed_returns_mobile_feed_shape(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+                expected = {
+                    "generated_at": "2026-05-24T20:00:00+00:00",
+                    "count": 1,
+                    "items": [
+                        {
+                            "thought_id": "thought-1",
+                            "insight_id": "insight-1",
+                            "title": "Title",
+                            "summary": "Short summary",
+                            "feedback_state": "pending",
+                            "post_format": "signal",
+                            "thread_count": 2,
+                            "source_refs": ["source://one"],
+                        }
+                    ],
+                }
+                with mock.patch("conversation_os.miniapp.build_mobile_feed", return_value=expected) as mocked_mobile_feed:
+                    with opener.open(f"{base_url}/api/mobile/feed") as response:
+                        self.assertEqual(response.status, 200)
+                        payload = json.loads(response.read().decode("utf-8"))
+                mocked_mobile_feed.assert_called_once()
+                self.assertEqual(payload, expected)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_library_returns_grouped_buckets(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+                expected = {
+                    "captures": [{"capture_id": "capture-1", "session_id": "session-1", "content": "Pocket note.", "created_at": "2026-05-24T20:00:00+00:00"}],
+                    "conversations": [{"conversation_type": "mobile_session", "session_id": "session-1", "title": "Mobile Capture Session", "updated_at": "2026-05-24T20:01:00+00:00", "message_count": 2, "preview": "Follow the thread."}],
+                    "saved_items": [{"insight_id": "insight-1", "title": "Saved", "summary": "Saved item", "feedback_state": "saved"}],
+                }
+                with mock.patch("conversation_os.miniapp.build_mobile_library", return_value=expected) as mocked_mobile_library:
+                    with opener.open(f"{base_url}/api/mobile/library") as response:
+                        self.assertEqual(response.status, 200)
+                        payload = json.loads(response.read().decode("utf-8"))
+                mocked_mobile_library.assert_called_once_with(self.root)
+                self.assertEqual(payload, expected)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_capture_returns_ids_and_writes_capture_event(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+                request = urllib_request.Request(
+                    f"{base_url}/api/mobile/capture",
+                    data=json.dumps({"content": "Capture this before it disappears."}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with opener.open(request) as response:
+                    self.assertEqual(response.status, 200)
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertTrue(payload["session_id"])
+                self.assertTrue(payload["capture_id"])
+                events = read_jsonl(session_events_path(self.root, payload["session_id"]))
+                self.assertEqual(len(events), 1)
+                self.assertEqual(events[0]["kind"], "capture")
+                self.assertEqual(events[0]["content"], "Capture this before it disappears.")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_conversation_reply_returns_assistant_message_and_writes_events(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+                session = ensure_mobile_capture_session(self.root)
+                with mock.patch(
+                    "conversation_os.product_inner_world._request_mobile_session_reply",
+                    return_value={"content": "Follow the thread and keep it grounded.", "backend_id": "stub"},
+                ):
+                    request = urllib_request.Request(
+                        f"{base_url}/api/mobile/conversations/{session['session_id']}/reply",
+                        data=json.dumps({"message": "Help me continue this thought."}).encode("utf-8"),
+                        method="POST",
+                        headers={"Content-Type": "application/json"},
+                    )
+                    with opener.open(request) as response:
+                        self.assertEqual(response.status, 200)
+                        payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["session_id"], session["session_id"])
+                self.assertEqual(payload["assistant_message"]["content"], "Follow the thread and keep it grounded.")
+                events = read_jsonl(session_events_path(self.root, session["session_id"]))
+                self.assertEqual([event["actor"] for event in events], ["user", "assistant"])
+                self.assertEqual([event["kind"] for event in events], ["message", "reply"])
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_feedback_saved_persists_saved_state(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+                request = urllib_request.Request(
+                    f"{base_url}/api/mobile/feedback",
+                    data=json.dumps({"insight_id": "insight-saved-http", "feedback_state": "saved"}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with opener.open(request) as response:
+                    self.assertEqual(response.status, 200)
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["insight_id"], "insight-saved-http")
+                self.assertEqual(payload["feedback_state"], "saved")
+                feedback_events = read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "feedback_events.jsonl")
+                self.assertEqual(feedback_events[-1]["insight_id"], "insight-saved-http")
+                self.assertEqual(feedback_events[-1]["feedback_state"], "saved")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_routes_map_mobile_errors(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+
+                blank_capture_request = urllib_request.Request(
+                    f"{base_url}/api/mobile/capture",
+                    data=json.dumps({"content": "   "}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as capture_error:
+                    opener.open(blank_capture_request)
+                self.assertEqual(capture_error.exception.code, 400)
+
+                unknown_session_request = urllib_request.Request(
+                    f"{base_url}/api/mobile/conversations/session-missing/reply",
+                    data=json.dumps({"message": "Hello?"}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as reply_error:
+                    opener.open(unknown_session_request)
+                self.assertEqual(reply_error.exception.code, 404)
+
+                session = ensure_mobile_capture_session(self.root)
+                blank_message_request = urllib_request.Request(
+                    f"{base_url}/api/mobile/conversations/{session['session_id']}/reply",
+                    data=json.dumps({"message": "   "}).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as blank_message_error:
+                    opener.open(blank_message_request)
+                self.assertEqual(blank_message_error.exception.code, 400)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
 
     def test_miniapp_mobile_session_rejects_invalid_password(self) -> None:
         with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
