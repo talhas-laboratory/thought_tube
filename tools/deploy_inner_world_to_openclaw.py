@@ -31,6 +31,7 @@ DEFAULT_MOBILE_HOSTNAME = "mobile.talhaslaboratory.xyz"
 DEFAULT_GPT_CLOUDFLARED_CONFIG = "/home/talha/.cloudflared/config.yml"
 DEFAULT_GPT_CLOUDFLARED_TUNNEL = "klarorder-gpt"
 DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL = "http://127.0.0.1:3010"
+DEFAULT_INNER_WORLD_ENV_PATH = "%h/.config/inner-world.env"
 
 SYNC_ITEMS = [
     "AGENTS.md",
@@ -117,9 +118,26 @@ def rsync_bundle(bundle_dir: Path, remote: str, remote_apps_root: str, app_id: s
 def install_service_with_stdin(remote: str, remote_repo_path: str) -> None:
     unit = (ROOT / "ops" / "systemd" / "inner-world.service.sample").read_text(encoding="utf-8")
     unit = unit.replace("/home/talha/.openclaw/workspace/containers/inner-world", remote_repo_path)
+    env_marker = "Environment=PYTHONPATH="
+    env_file_line = f"EnvironmentFile=-{DEFAULT_INNER_WORLD_ENV_PATH}\n"
+    if env_file_line not in unit and env_marker in unit:
+        unit = unit.replace(env_marker, env_file_line + env_marker, 1)
     run(
         ["ssh", remote, "mkdir -p ~/.config/systemd/user && cat > ~/.config/systemd/user/inner-world.service"],
         input_text=unit,
+    )
+
+
+def install_inner_world_env(remote: str, *, mobile_password: str) -> None:
+    payload = "\n".join(
+        [
+            f"INNER_WORLD_MOBILE_PASSWORD={mobile_password}",
+            "",
+        ]
+    )
+    run(
+        ["ssh", remote, "mkdir -p ~/.config && cat > ~/.config/inner-world.env"],
+        input_text=payload,
     )
 
 
@@ -174,6 +192,29 @@ def read_existing_gpt_bridge_env_var(remote: str, var_name: str) -> str:
 from pathlib import Path
 
 path = Path.home() / ".config" / "inner-world-gpt-bridge.env"
+if not path.exists():
+    raise SystemExit(0)
+for line in path.read_text(encoding="utf-8").splitlines():
+    if line.startswith({var_name!r} + "="):
+        print(line.split("=", 1)[1])
+        break
+PY"""
+    proc = subprocess.run(
+        ["ssh", remote, command],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout.strip()
+
+
+def read_existing_inner_world_env_var(remote: str, var_name: str) -> str:
+    command = rf"""python3 - <<'PY'
+from pathlib import Path
+
+path = Path.home() / ".config" / "inner-world.env"
 if not path.exists():
     raise SystemExit(0)
 for line in path.read_text(encoding="utf-8").splitlines():
@@ -356,6 +397,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mobile-hostname", default=DEFAULT_MOBILE_HOSTNAME)
     parser.add_argument("--mobile-service-url", default="")
     parser.add_argument("--openclaw-host-service-base-url", default=DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL)
+    parser.add_argument("--mobile-password", default="")
     return parser
 
 
@@ -379,9 +421,16 @@ def main() -> None:
         args.app_id,
         args.openclaw_host_service_base_url,
     )
+    mobile_password = args.mobile_password.strip()
+    if args.with_mobile_surface and not mobile_password:
+        mobile_password = read_existing_inner_world_env_var(args.remote, "INNER_WORLD_MOBILE_PASSWORD")
+    if args.with_mobile_surface and not mobile_password:
+        mobile_password = secrets.token_urlsafe(18)
     try:
         rsync_repo(args.remote, args.repo_path)
         rsync_bundle(bundle_dir, args.remote, args.apps_root, args.app_id)
+        if args.with_mobile_surface:
+            install_inner_world_env(args.remote, mobile_password=mobile_password)
         install_service_with_stdin(args.remote, args.repo_path)
         patch_remote_host(args.remote)
         if args.with_gpt_bridge:
@@ -415,6 +464,7 @@ def main() -> None:
             print(f"Mobile surface URL path: /apps/{args.app_id}/mobile/")
             print(f"Mobile surface hostname: https://{args.mobile_hostname}")
             print(f"Mobile surface host service target: {mobile_service_url}")
+            print(f"Mobile surface password: {mobile_password}")
         print("GPT repo visibility for the private app: inherited from the existing OpenClaw GPT context service.")
         if args.with_gpt_bridge:
             print(f"Inner World GPT bridge URL: {public_base_url}")

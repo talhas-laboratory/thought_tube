@@ -12244,12 +12244,15 @@ class ConversationOSTestCase(unittest.TestCase):
                 "mobile.example.test",
                 "--mobile-service-url",
                 "http://127.0.0.1:3010/apps/inner-world/mobile/",
+                "--mobile-password",
+                "mobile-secret",
             ]
         )
 
         self.assertTrue(args.with_mobile_surface)
         self.assertEqual(args.mobile_hostname, "mobile.example.test")
         self.assertEqual(args.mobile_service_url, "http://127.0.0.1:3010/apps/inner-world/mobile/")
+        self.assertEqual(args.mobile_password, "mobile-secret")
 
     def test_patch_cloudflared_config_accepts_full_service_url(self) -> None:
         module = _load_tool_module("deploy_inner_world_to_openclaw_cloudflared_test", "tools/deploy_inner_world_to_openclaw.py")
@@ -12266,6 +12269,18 @@ class ConversationOSTestCase(unittest.TestCase):
         args, kwargs = run_mock.call_args
         self.assertEqual(args[0], ["ssh", "talha@example", "python3 -"])
         self.assertIn("service: http://127.0.0.1:3010/apps/inner-world/mobile/", kwargs["input_text"])
+
+    def test_install_service_with_stdin_injects_environment_file_for_mobile_surface(self) -> None:
+        module = _load_tool_module("deploy_inner_world_to_openclaw_service_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        with mock.patch.object(module, "run") as run_mock:
+            module.install_service_with_stdin("talha@example", "/srv/inner-world")
+
+        run_mock.assert_called_once()
+        args, kwargs = run_mock.call_args
+        self.assertEqual(args[0], ["ssh", "talha@example", "mkdir -p ~/.config/systemd/user && cat > ~/.config/systemd/user/inner-world.service"])
+        self.assertIn("EnvironmentFile=-%h/.config/inner-world.env", kwargs["input_text"])
+        self.assertIn("Environment=PYTHONPATH=/srv/inner-world/src", kwargs["input_text"])
 
     def test_rewrite_outgoing_message_updates_shared_bridge_state(self) -> None:
         self._write_personal_interface_profile()
