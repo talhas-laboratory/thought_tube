@@ -892,6 +892,12 @@ def _append_session_event(
     return event.to_dict()
 
 
+def _require_non_blank_mobile_content(content: str, *, field_name: str) -> str:
+    if not content.strip():
+        raise ValueError(f"{field_name} must not be blank")
+    return content
+
+
 def _mobile_session_manifests(root: Path) -> List[Dict[str, Any]]:
     sessions_root = root / "memory" / "sessions"
     if not sessions_root.exists():
@@ -3539,6 +3545,7 @@ def ensure_mobile_capture_session(root: Path, session_id: str | None = None) -> 
 
 
 def append_mobile_capture(root: Path, *, content: str, session_id: str | None = None) -> Dict[str, Any]:
+    _require_non_blank_mobile_content(content, field_name="content")
     manifest = ensure_mobile_capture_session(root, session_id=session_id)
     capture_event = _append_session_event(
         root,
@@ -3557,7 +3564,26 @@ def append_mobile_capture(root: Path, *, content: str, session_id: str | None = 
 
 
 def reply_in_mobile_session(root: Path, *, session_id: str, user_message: str) -> Dict[str, Any]:
-    manifest = ensure_mobile_capture_session(root, session_id=session_id)
+    manifest = _load_session_manifest(root, session_id)
+    if manifest is None:
+        raise FileNotFoundError(f"Mobile session not found: {session_id}")
+    if manifest.get("source_type") != "mobile_surface":
+        raise ValueError(f"Session {session_id} is not a mobile_surface session")
+
+    _require_non_blank_mobile_content(user_message, field_name="user_message")
+    events = read_jsonl(session_events_path(root, manifest["session_id"]))
+    pending_user_event = {
+        "session_id": manifest["session_id"],
+        "actor": "user",
+        "kind": "message",
+        "content": user_message,
+    }
+    reply = _request_mobile_session_reply(
+        root,
+        session_manifest=manifest,
+        user_message=user_message,
+        events=[*events, pending_user_event],
+    )
     user_event = _append_session_event(
         root,
         session_id=manifest["session_id"],
@@ -3565,13 +3591,6 @@ def reply_in_mobile_session(root: Path, *, session_id: str, user_message: str) -
         kind="message",
         content=user_message,
         tags=["mobile_surface", "conversation"],
-    )
-    events = read_jsonl(session_events_path(root, manifest["session_id"]))
-    reply = _request_mobile_session_reply(
-        root,
-        session_manifest=manifest,
-        user_message=user_message,
-        events=events,
     )
     assistant_event = _append_session_event(
         root,

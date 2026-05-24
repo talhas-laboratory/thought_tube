@@ -143,6 +143,7 @@ from conversation_os.personal_interface import (
     translate_idea_to_technical_framing,
 )
 from conversation_os.product_inner_world import (
+    _mobile_session_manifests,
     _materialize_connections,
     build_thought_archive,
     build_thought_feed,
@@ -2413,6 +2414,12 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(result["created_at"], events[0]["timestamp"])
         self.assertTrue(result["continue_conversation_available"])
 
+    def test_append_mobile_capture_rejects_blank_content_without_creating_session(self) -> None:
+        with self.assertRaisesRegex(ValueError, "must not be blank"):
+            append_mobile_capture(self.root, content="   ")
+
+        self.assertEqual(_mobile_session_manifests(self.root), [])
+
     def test_reply_in_mobile_session_appends_user_and_assistant_events(self) -> None:
         session = ensure_mobile_capture_session(self.root)
 
@@ -2437,6 +2444,48 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(events[1]["content"], "Stay with the contradiction and name the pressure plainly.")
         self.assertEqual(result["session_id"], session["session_id"])
         self.assertEqual(result["assistant_message"]["content"], events[1]["content"])
+
+    def test_reply_in_mobile_session_rejects_unknown_session_id(self) -> None:
+        missing_session_id = "session-missing"
+
+        with self.assertRaises(FileNotFoundError):
+            reply_in_mobile_session(
+                self.root,
+                session_id=missing_session_id,
+                user_message="Continue this thread.",
+            )
+
+        self.assertFalse((self.root / "memory" / "sessions" / missing_session_id).exists())
+
+    def test_reply_in_mobile_session_backend_failure_does_not_append_events(self) -> None:
+        session = ensure_mobile_capture_session(self.root)
+
+        with mock.patch(
+            "conversation_os.product_inner_world._request_mobile_session_reply",
+            side_effect=RuntimeError("backend unavailable"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "backend unavailable"):
+                reply_in_mobile_session(
+                    self.root,
+                    session_id=session["session_id"],
+                    user_message="Keep the thread going.",
+                )
+
+        self.assertEqual(read_jsonl(session_events_path(self.root, session["session_id"])), [])
+
+    def test_reply_in_mobile_session_rejects_blank_message_without_appending_events(self) -> None:
+        session = ensure_mobile_capture_session(self.root)
+
+        with mock.patch("conversation_os.product_inner_world._request_mobile_session_reply") as mocked:
+            with self.assertRaisesRegex(ValueError, "must not be blank"):
+                reply_in_mobile_session(
+                    self.root,
+                    session_id=session["session_id"],
+                    user_message=" \n\t ",
+                )
+
+        mocked.assert_not_called()
+        self.assertEqual(read_jsonl(session_events_path(self.root, session["session_id"])), [])
 
     def test_build_mobile_feed_adapts_existing_thought_feed(self) -> None:
         with mock.patch(
