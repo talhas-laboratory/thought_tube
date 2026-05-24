@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
+from .analysis import update_manifest
 from .chat_backends import request_openclaw_reply, resolve_chat_backend
 from .conversation_synthesis import (
     load_concept_edges,
@@ -100,7 +101,9 @@ from .runtime_pipeline import (
     load_runtime_pipeline_config,
     update_runtime_pipeline_component as update_runtime_pipeline_component_config,
 )
+from .models import ConversationEvent, SessionManifest
 from .storage import ensure_dir, make_id, read_json, read_jsonl, utc_now, write_json, write_jsonl, write_markdown
+from .storage import append_jsonl, session_dir, session_events_path
 from .thought_factory import (
     build_archive_rows,
     build_feed_rows,
@@ -153,6 +156,12 @@ _SURFACE_EXPERIENCE_API = (
     "save_thread",
     "delete_thread",
     "record_feedback",
+    "ensure_mobile_capture_session",
+    "append_mobile_capture",
+    "reply_in_mobile_session",
+    "build_mobile_feed",
+    "save_mobile_feed_item",
+    "build_mobile_library",
     "export_state",
     "get_runtime_overview",
 )
@@ -841,6 +850,116 @@ def _write_thread(root: Path, thread: Dict) -> Path:
     path = _threads_dir(root) / f"{thread['thread_id']}.json"
     write_json(path, thread)
     return path
+
+
+def _session_manifest_path(root: Path, session_id: str) -> Path:
+    return session_dir(root, session_id) / "manifest.json"
+
+
+def _load_session_manifest(root: Path, session_id: str) -> Dict[str, Any] | None:
+    payload = read_json(_session_manifest_path(root, session_id), default=None)
+    return payload if isinstance(payload, dict) else None
+
+
+def _write_session_manifest(root: Path, manifest: SessionManifest) -> None:
+    ensure_dir(session_dir(root, manifest.session_id))
+    ensure_dir(session_events_path(root, manifest.session_id).parent)
+    session_events_path(root, manifest.session_id).touch(exist_ok=True)
+    update_manifest(root, manifest)
+
+
+def _append_session_event(
+    root: Path,
+    *,
+    session_id: str,
+    actor: str,
+    kind: str,
+    content: str,
+    tags: List[str] | None = None,
+) -> Dict[str, Any]:
+    event = ConversationEvent(
+        event_id=make_id("event"),
+        session_id=session_id,
+        timestamp=utc_now(),
+        actor=actor,
+        kind=kind,
+        content=content,
+        attachments=[],
+        tags=list(tags or []),
+        source_ref=None,
+    )
+    append_jsonl(session_events_path(root, session_id), event.to_dict())
+    return event.to_dict()
+
+
+def _mobile_session_manifests(root: Path) -> List[Dict[str, Any]]:
+    sessions_root = root / "memory" / "sessions"
+    if not sessions_root.exists():
+        return []
+    manifests: List[Dict[str, Any]] = []
+    for path in sorted(sessions_root.glob("*/manifest.json")):
+        payload = read_json(path, default={}) or {}
+        if payload.get("source_type") == "mobile_surface":
+            manifests.append(payload)
+    return manifests
+
+
+def _mobile_reply_context(session_manifest: Dict[str, Any], events: List[Dict[str, Any]]) -> Dict[str, Any]:
+    source_snippets = [
+        {
+            "title": "Mobile capture",
+            "source_ref": f"mobile://{session_manifest['session_id']}/{event['event_id']}",
+            "excerpt": shorten(event.get("content", ""), 220),
+        }
+        for event in events
+        if event.get("actor") == "user"
+    ][-4:]
+    return {
+        "character": "Grounded Inner World companion",
+        "system_prompt": (
+            "Stay concise and grounded in the user's own session captures and recent messages. "
+            "Do not invent outside evidence. End with one concrete next move."
+        ),
+        "source_snippets": source_snippets,
+        "session_title": session_manifest.get("title", ""),
+    }
+
+
+def _generate_mobile_session_reply(context: Dict[str, Any], user_message: str, events: List[Dict[str, Any]]) -> str:
+    captures = [event.get("content", "").strip() for event in events if event.get("kind") == "capture" and event.get("content", "").strip()]
+    latest_capture = captures[-1] if captures else user_message
+    return " ".join(
+        [
+            f"What feels most live is {shorten(latest_capture, 180).rstrip('.')}.",
+            f"Your next question is really about {shorten(user_message, 140).rstrip('.')}.",
+            "Next move: name the concrete pressure or contradiction in one sentence.",
+        ]
+    )
+
+
+def _request_mobile_session_reply(
+    root: Path,
+    *,
+    session_manifest: Dict[str, Any],
+    user_message: str,
+    events: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    context = _mobile_reply_context(session_manifest, events)
+    thread = {
+        "thread_id": session_manifest["session_id"],
+        "messages": [
+            {"role": event["actor"], "content": event["content"]}
+            for event in events
+            if event.get("actor") in {"user", "assistant"} and event.get("content")
+        ],
+    }
+    backend = resolve_chat_backend(root)
+    if backend["id"] == "heuristic":
+        return {
+            "content": _generate_mobile_session_reply(context, user_message, events),
+            "backend_id": "heuristic",
+        }
+    return request_openclaw_reply(root, context, user_message, thread, backend)
 
 
 def _list_threads(root: Path, thought_id: str | None = None, include_deleted: bool = False) -> List[Dict]:
@@ -3394,6 +3513,182 @@ def record_feedback(root: Path, insight_id: str, feedback_state: str) -> Dict:
             feedback_state=feedback_state,
         )["taste_profile"]
     return {"insight_id": insight_id, "feedback_state": feedback_state, "policy_snapshot": snapshot, "taste_profile": taste_profile}
+
+
+def ensure_mobile_capture_session(root: Path, session_id: str | None = None) -> Dict[str, Any]:
+    resolved_session_id = session_id or make_id("session")
+    existing = _load_session_manifest(root, resolved_session_id)
+    if existing is not None:
+        if existing.get("source_type") != "mobile_surface":
+            raise ValueError(f"Session {resolved_session_id} is not a mobile_surface session")
+        return existing
+
+    manifest = SessionManifest(
+        session_id=resolved_session_id,
+        title="Mobile Capture Session",
+        started_at=utc_now(),
+        ended_at=None,
+        participants=["user", "assistant"],
+        source_type="mobile_surface",
+        status="active",
+        artifact_refs={},
+        domains=[],
+    )
+    _write_session_manifest(root, manifest)
+    return manifest.to_dict()
+
+
+def append_mobile_capture(root: Path, *, content: str, session_id: str | None = None) -> Dict[str, Any]:
+    manifest = ensure_mobile_capture_session(root, session_id=session_id)
+    capture_event = _append_session_event(
+        root,
+        session_id=manifest["session_id"],
+        actor="user",
+        kind="capture",
+        content=content,
+        tags=["mobile_surface", "capture"],
+    )
+    return {
+        "capture_id": capture_event["event_id"],
+        "session_id": manifest["session_id"],
+        "created_at": capture_event["timestamp"],
+        "continue_conversation_available": True,
+    }
+
+
+def reply_in_mobile_session(root: Path, *, session_id: str, user_message: str) -> Dict[str, Any]:
+    manifest = ensure_mobile_capture_session(root, session_id=session_id)
+    user_event = _append_session_event(
+        root,
+        session_id=manifest["session_id"],
+        actor="user",
+        kind="message",
+        content=user_message,
+        tags=["mobile_surface", "conversation"],
+    )
+    events = read_jsonl(session_events_path(root, manifest["session_id"]))
+    reply = _request_mobile_session_reply(
+        root,
+        session_manifest=manifest,
+        user_message=user_message,
+        events=events,
+    )
+    assistant_event = _append_session_event(
+        root,
+        session_id=manifest["session_id"],
+        actor="assistant",
+        kind="reply",
+        content=reply["content"],
+        tags=["mobile_surface", "conversation"],
+    )
+    return {
+        "session_id": manifest["session_id"],
+        "user_message": user_event,
+        "assistant_message": {
+            "event_id": assistant_event["event_id"],
+            "content": assistant_event["content"],
+            "created_at": assistant_event["timestamp"],
+        },
+        "backend_id": reply.get("backend_id", ""),
+    }
+
+
+def build_mobile_feed(root: Path, *, domain_overlays: List[str] | None = None, limit: int = 12) -> Dict[str, Any]:
+    feed = build_thought_feed(root, limit=limit, domain_overlays=domain_overlays)
+    items = [
+        {
+            "thought_id": thought["thought_id"],
+            "insight_id": thought["insight_id"],
+            "title": thought["title"],
+            "summary": thought["short_text"],
+            "feedback_state": thought.get("feedback_state", "pending"),
+            "post_format": thought.get("post_format", ""),
+            "thread_count": thought.get("thread_count", 0),
+            "source_refs": list(thought.get("source_refs", [])),
+        }
+        for thought in feed.get("thoughts", [])
+    ]
+    return {
+        "generated_at": feed.get("generated_at", utc_now()),
+        "count": len(items),
+        "items": items,
+    }
+
+
+def save_mobile_feed_item(root: Path, *, insight_id: str) -> Dict[str, Any]:
+    return record_feedback(root, insight_id, "saved")
+
+
+def build_mobile_library(root: Path) -> Dict[str, Any]:
+    captures: List[Dict[str, Any]] = []
+    conversations: List[Dict[str, Any]] = []
+    for manifest in _mobile_session_manifests(root):
+        events = read_jsonl(session_events_path(root, manifest["session_id"]))
+        capture_events = [event for event in events if event.get("kind") == "capture"]
+        captures.extend(
+            {
+                "capture_id": event["event_id"],
+                "session_id": manifest["session_id"],
+                "content": event["content"],
+                "created_at": event["timestamp"],
+            }
+            for event in capture_events
+        )
+        assistant_events = [event for event in events if event.get("actor") == "assistant" and event.get("content")]
+        if assistant_events:
+            conversations.append(
+                {
+                    "conversation_type": "mobile_session",
+                    "session_id": manifest["session_id"],
+                    "title": manifest.get("title", ""),
+                    "updated_at": assistant_events[-1]["timestamp"],
+                    "message_count": len([event for event in events if event.get("actor") in {"user", "assistant"}]),
+                    "preview": assistant_events[-1]["content"],
+                }
+            )
+
+    for thread in _list_threads(root):
+        if thread.get("status") != "saved":
+            continue
+        preview = ""
+        for message in reversed(thread.get("messages", [])):
+            content = message.get("content", "").strip()
+            if content:
+                preview = content
+                break
+        conversations.append(
+            {
+                "conversation_type": "saved_thread",
+                "thread_id": thread["thread_id"],
+                "thought_id": thread.get("thought_id", ""),
+                "title": thread.get("title", ""),
+                "updated_at": thread.get("updated_at", ""),
+                "message_count": len(thread.get("messages", [])),
+                "preview": preview,
+            }
+        )
+
+    saved_feedback_states = {"saved", "relevant", "revisit_later"}
+    archive = build_thought_archive(root)
+    saved_items = [
+        {
+            "insight_id": thought["insight_id"],
+            "title": thought["title"],
+            "summary": thought.get("short_text", ""),
+            "feedback_state": thought.get("feedback_state", ""),
+        }
+        for thought in archive.get("thoughts", [])
+        if thought.get("feedback_state") in saved_feedback_states
+    ]
+
+    captures.sort(key=lambda item: (item["created_at"], item["capture_id"]), reverse=True)
+    conversations.sort(key=lambda item: (item.get("updated_at", ""), item.get("title", "")), reverse=True)
+    saved_items.sort(key=lambda item: (item["feedback_state"], item["title"], item["insight_id"]))
+    return {
+        "captures": captures,
+        "conversations": conversations,
+        "saved_items": saved_items,
+    }
 
 
 def export_state(root: Path) -> Dict:

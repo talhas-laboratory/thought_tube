@@ -146,11 +146,15 @@ from conversation_os.product_inner_world import (
     _materialize_connections,
     build_thought_archive,
     build_thought_feed,
+    build_mobile_feed,
+    build_mobile_library,
     apply_pond_router_preset,
+    append_mobile_capture,
     chat_with_thought,
     create_link_alias_resolution,
     delete_thread,
     derive_graph,
+    ensure_mobile_capture_session,
     export_state,
     filter_library_sources,
     filter_knowledge_components,
@@ -174,6 +178,8 @@ from conversation_os.product_inner_world import (
     record_feedback,
     record_pond_routing_feedback,
     rederive_library,
+    reply_in_mobile_session,
+    save_mobile_feed_item,
     save_thread,
     search_library_dimensions,
     seed_sources,
@@ -2391,6 +2397,134 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertNotIn("get_runtime_status", product_inner_world_module.__all__)
         self.assertIn("ensure_surface_recipe", product_inner_world_module.__all__)
         self.assertIn("build_thought_feed", product_inner_world_module.__all__)
+
+    def test_append_mobile_capture_appends_session_event_and_returns_ack(self) -> None:
+        result = append_mobile_capture(self.root, content="Capture this before it disappears.")
+
+        manifest = read_json(self.root / "memory" / "sessions" / result["session_id"] / "manifest.json", default={})
+        events = read_jsonl(session_events_path(self.root, result["session_id"]))
+
+        self.assertEqual(manifest["source_type"], "mobile_surface")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_id"], result["capture_id"])
+        self.assertEqual(events[0]["actor"], "user")
+        self.assertEqual(events[0]["kind"], "capture")
+        self.assertEqual(events[0]["content"], "Capture this before it disappears.")
+        self.assertEqual(result["created_at"], events[0]["timestamp"])
+        self.assertTrue(result["continue_conversation_available"])
+
+    def test_reply_in_mobile_session_appends_user_and_assistant_events(self) -> None:
+        session = ensure_mobile_capture_session(self.root)
+
+        with mock.patch(
+            "conversation_os.product_inner_world._request_mobile_session_reply",
+            return_value={"content": "Stay with the contradiction and name the pressure plainly.", "backend_id": "stub"},
+        ):
+            result = reply_in_mobile_session(
+                self.root,
+                session_id=session["session_id"],
+                user_message="What does this capture suggest I should look at next?",
+            )
+
+        events = read_jsonl(session_events_path(self.root, session["session_id"]))
+
+        self.assertEqual(len(events), 2)
+        self.assertEqual(events[0]["actor"], "user")
+        self.assertEqual(events[0]["kind"], "message")
+        self.assertEqual(events[0]["content"], "What does this capture suggest I should look at next?")
+        self.assertEqual(events[1]["actor"], "assistant")
+        self.assertEqual(events[1]["kind"], "reply")
+        self.assertEqual(events[1]["content"], "Stay with the contradiction and name the pressure plainly.")
+        self.assertEqual(result["session_id"], session["session_id"])
+        self.assertEqual(result["assistant_message"]["content"], events[1]["content"])
+
+    def test_build_mobile_feed_adapts_existing_thought_feed(self) -> None:
+        with mock.patch(
+            "conversation_os.product_inner_world.build_thought_feed",
+            return_value={
+                "generated_at": "2026-05-24T20:00:00+00:00",
+                "count": 1,
+                "thoughts": [
+                    {
+                        "thought_id": "thought-1",
+                        "insight_id": "insight-1",
+                        "title": "Title",
+                        "short_text": "Short summary",
+                        "feedback_state": "pending",
+                        "post_format": "signal",
+                        "thread_count": 2,
+                        "source_refs": ["source://one"],
+                    }
+                ],
+            },
+        ) as mocked:
+            feed = build_mobile_feed(self.root, domain_overlays=["research"], limit=5)
+
+        mocked.assert_called_once_with(self.root, limit=5, domain_overlays=["research"])
+        self.assertEqual(feed["generated_at"], "2026-05-24T20:00:00+00:00")
+        self.assertEqual(feed["count"], 1)
+        self.assertEqual(
+            feed["items"],
+            [
+                {
+                    "thought_id": "thought-1",
+                    "insight_id": "insight-1",
+                    "title": "Title",
+                    "summary": "Short summary",
+                    "feedback_state": "pending",
+                    "post_format": "signal",
+                    "thread_count": 2,
+                    "source_refs": ["source://one"],
+                }
+            ],
+        )
+
+    def test_build_mobile_library_groups_captures_saved_items_and_conversations(self) -> None:
+        session = ensure_mobile_capture_session(self.root)
+        append_mobile_capture(self.root, session_id=session["session_id"], content="Pocket note.")
+        with mock.patch(
+            "conversation_os.product_inner_world._request_mobile_session_reply",
+            return_value={"content": "Follow the thread and keep it grounded.", "backend_id": "stub"},
+        ):
+            reply_in_mobile_session(
+                self.root,
+                session_id=session["session_id"],
+                user_message="Help me continue this thought.",
+            )
+
+        write_json(
+            self.root / "product" / "inner_world_v1" / "data" / "threads" / "thread-saved.json",
+            {
+                "thread_id": "thread-saved",
+                "thought_id": "thought-2",
+                "title": "Saved Thought Thread",
+                "status": "saved",
+                "updated_at": "2026-05-24T20:10:00+00:00",
+                "messages": [
+                    {"role": "user", "content": "Keep going."},
+                    {"role": "assistant", "content": "Name the pressure directly."},
+                ],
+                "embedded_source_item_ids": ["source-item-1"],
+            },
+        )
+
+        with mock.patch(
+            "conversation_os.product_inner_world.build_thought_archive",
+            return_value={
+                "thoughts": [
+                    {"insight_id": "insight-saved", "title": "Saved", "short_text": "Saved item", "feedback_state": "saved"},
+                    {"insight_id": "insight-relevant", "title": "Relevant", "short_text": "Relevant item", "feedback_state": "relevant"},
+                    {"insight_id": "insight-later", "title": "Later", "short_text": "Later item", "feedback_state": "revisit_later"},
+                    {"insight_id": "insight-pending", "title": "Pending", "short_text": "Pending item", "feedback_state": "pending"},
+                ]
+            },
+        ):
+            library = build_mobile_library(self.root)
+
+        self.assertEqual([item["content"] for item in library["captures"]], ["Pocket note."])
+        self.assertEqual({item["conversation_type"] for item in library["conversations"]}, {"mobile_session", "saved_thread"})
+        self.assertEqual({item["feedback_state"] for item in library["saved_items"]}, {"saved", "relevant", "revisit_later"})
+        self.assertEqual(len(library["saved_items"]), 3)
 
     def test_policy_engine_module_exposes_stable_public_boundary(self) -> None:
         self.assertEqual(policy_engine_module.MODULE_ID, "kernel.policy.policy_engine")
