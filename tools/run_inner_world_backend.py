@@ -25,6 +25,7 @@ sys.path.insert(0, src_str)
 
 from conversation_os.cli import session_import  # noqa: E402
 from conversation_os import holodeck as holodeck_module  # noqa: E402
+from conversation_os.chat_backends import apply_openclaw_host_telegram_fix, migrate_openclaw_telegram_bindings  # noqa: E402
 from conversation_os.miniapp import serve_miniapp  # noqa: E402
 
 
@@ -99,6 +100,7 @@ REQUIRED_GPT_ACTION_PATHS = [
     "/mobile-artifacts/search",
     "/mobile-artifacts/save-chat",
     "/sync/local-status",
+    "/openclaw/telegram-fix",
 ]
 
 
@@ -1249,6 +1251,29 @@ def build_gpt_openapi(public_base_url: str | None = None) -> dict[str, Any]:
                     "responses": object_response,
                 }
             },
+            "/openclaw/telegram-fix": {
+                "post": {
+                    "operationId": "postOpenclawTelegramFix",
+                    "summary": "Repair Telegram agent bindings in OpenClaw config",
+                    "description": "Migrates legacy channels.telegram.accounts.*.agentId values into top-level bindings and can restart the OpenClaw gateway.",
+                    "security": security,
+                    "x-openai-isConsequential": True,
+                    "requestBody": {
+                        "required": False,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "restart_gateway": {"type": "boolean", "default": True},
+                                    },
+                                }
+                            }
+                        },
+                    },
+                    "responses": object_response,
+                }
+            },
         },
         "components": {
             "securitySchemes": {
@@ -1524,6 +1549,15 @@ def make_gpt_bridge_handler(bridge: InnerWorldGPTBridge):
                         )
                     )
                     return
+                if path == "/openclaw/telegram-fix":
+                    self._send_json(
+                        apply_openclaw_host_telegram_fix(
+                            bridge.root,
+                            apply=True,
+                            restart_gateway=bool(payload.get("restart_gateway", True)),
+                        )
+                    )
+                    return
                 self._send_json({"error": "not_found"}, status_code=HTTPStatus.NOT_FOUND)
             except json.JSONDecodeError:
                 self._send_json({"error": "invalid_json"}, status_code=HTTPStatus.BAD_REQUEST)
@@ -1554,6 +1588,22 @@ def serve_gpt_bridge(
         artifact_root=artifact_root,
         domains=domains,
     )
+    try:
+        preview = migrate_openclaw_telegram_bindings(root, apply=False)
+        fix_result = apply_openclaw_host_telegram_fix(
+            root,
+            apply=True,
+            restart_gateway=bool(preview.get("changes")),
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(json.dumps({"event": "telegram_binding_autofix_failed", "error": str(exc)}, ensure_ascii=False), file=sys.stderr, flush=True)
+    else:
+        if fix_result.get("applied") or fix_result.get("changes"):
+            print(
+                json.dumps({"event": "telegram_binding_autofix", **fix_result}, ensure_ascii=False, default=str),
+                file=sys.stderr,
+                flush=True,
+            )
     handler = make_gpt_bridge_handler(bridge)
     server = ThreadingHTTPServer((host, port), handler)
     try:

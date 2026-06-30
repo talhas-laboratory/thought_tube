@@ -24,6 +24,7 @@ PUBLIC_API = (
     "rollback_openclaw_model_control",
     "diagnose_openclaw_telegram_config",
     "migrate_openclaw_telegram_bindings",
+    "apply_openclaw_host_telegram_fix",
     "resolve_chat_backend",
     "compose_openclaw_message",
     "request_openclaw_reply",
@@ -732,6 +733,30 @@ def migrate_openclaw_telegram_bindings(root: Path, *, apply: bool = False) -> Di
         "changes": changes,
         "diagnosis": post_diagnosis,
     }
+
+
+def restart_openclaw_gateway(root: Path) -> Dict[str, Any]:
+    restart_result = _run_openclaw_gateway_command(root, "restart")
+    health_result = _run_openclaw_gateway_command(root, "health")
+    return {
+        "restart": restart_result,
+        "health": health_result,
+        "ok": bool(restart_result["ok"] and health_result["ok"]),
+    }
+
+
+def apply_openclaw_host_telegram_fix(
+    root: Path,
+    *,
+    apply: bool = True,
+    restart_gateway: bool = False,
+) -> Dict[str, Any]:
+    result = migrate_openclaw_telegram_bindings(root, apply=apply)
+    if apply and result.get("applied") and restart_gateway:
+        gateway = restart_openclaw_gateway(root)
+        result["gateway"] = gateway
+        result["ok"] = bool(result.get("ok")) and gateway["ok"]
+    return result
 
 
 def resolve_chat_backend(root: Path) -> Dict:
