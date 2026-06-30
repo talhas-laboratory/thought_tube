@@ -16,6 +16,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from conversation_os.openclaw_miniapp import build_openclaw_bundle  # noqa: E402
+from conversation_os.chat_backends import apply_openclaw_host_telegram_fix, diagnose_openclaw_telegram_config  # noqa: E402
 from conversation_os.codebase_overview import refresh_codebase_overview  # noqa: E402
 
 
@@ -325,6 +326,28 @@ def verify_gpt_bridge(remote: str, bridge_port: int) -> None:
     run(["ssh", remote, " && ".join(checks)])
 
 
+def fix_telegram_bindings_remote(remote: str, remote_repo_path: str) -> None:
+    script = f"""
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, {remote_repo_path!r} + "/src")
+from conversation_os.chat_backends import apply_openclaw_host_telegram_fix, diagnose_openclaw_telegram_config
+
+root = Path({remote_repo_path!r})
+diagnosis = diagnose_openclaw_telegram_config(root)
+print(json.dumps({{"phase": "diagnose", **diagnosis}}, indent=2))
+if diagnosis.get("ok"):
+    raise SystemExit(0)
+result = apply_openclaw_host_telegram_fix(root, apply=True, restart_gateway=True)
+print(json.dumps({{"phase": "migrate", **result}}, indent=2, default=str))
+if not result.get("diagnosis", {{}}).get("ok"):
+    raise SystemExit("telegram binding fix incomplete")
+"""
+    run(["ssh", remote, "python3 -"], input_text=script)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Deploy Inner World into the live OpenClaw workspace.")
     parser.add_argument("--remote", default=DEFAULT_REMOTE)
@@ -341,6 +364,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gpt-bridge-artifact-root", default="")
     parser.add_argument("--cloudflared-config", default=DEFAULT_GPT_CLOUDFLARED_CONFIG)
     parser.add_argument("--cloudflared-tunnel-name", default=DEFAULT_GPT_CLOUDFLARED_TUNNEL)
+    parser.add_argument("--fix-telegram-bindings", action="store_true")
     return parser
 
 
@@ -382,6 +406,8 @@ def main() -> None:
         verify(args.remote, args.app_id)
         if args.with_gpt_bridge:
             verify_gpt_bridge(args.remote, args.gpt_bridge_port)
+        if args.fix_telegram_bindings:
+            fix_telegram_bindings_remote(args.remote, args.repo_path)
         print(f"Deployed Inner World to {args.remote}:{args.repo_path}")
         print(f"Miniapp URL path: /apps/{args.app_id}/")
         print("GPT repo visibility for the private app: inherited from the existing OpenClaw GPT context service.")
