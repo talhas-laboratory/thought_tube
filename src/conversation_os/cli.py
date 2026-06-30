@@ -45,6 +45,7 @@ from .library_tracker import (
 )
 from .miniapp import serve_miniapp
 from .models import ConversationEvent, MemoryCard, SessionManifest
+from .chat_backends import diagnose_openclaw_telegram_config, migrate_openclaw_telegram_bindings
 from .openclaw_miniapp import build_openclaw_bundle, install_openclaw_bundle
 from .personal_interface import (
     PersonalInterfaceError,
@@ -627,6 +628,12 @@ def build_parser() -> argparse.ArgumentParser:
     guard_assess.add_argument("--purpose", required=True)
     guard_assess.add_argument("--proposed-paths", default="")
     guard_assess.add_argument("--limit", type=int, default=6)
+
+    openclaw = sub.add_parser("openclaw")
+    openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
+    openclaw_sub.add_parser("telegram-diagnose")
+    telegram_fix = openclaw_sub.add_parser("telegram-fix")
+    telegram_fix.add_argument("--apply", action="store_true")
 
     holodeck = sub.add_parser("holodeck")
     holodeck_sub = holodeck.add_subparsers(dest="holodeck_command", required=True)
@@ -1521,6 +1528,13 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             raise ValueError(args.guard_command)
+    elif args.command == "openclaw":
+        if args.openclaw_command == "telegram-diagnose":
+            result = diagnose_openclaw_telegram_config(root)
+        elif args.openclaw_command == "telegram-fix":
+            result = migrate_openclaw_telegram_bindings(root, apply=bool(args.apply))
+        else:
+            raise ValueError(args.openclaw_command)
     elif args.command == "holodeck":
         from . import holodeck as holodeck_module
 

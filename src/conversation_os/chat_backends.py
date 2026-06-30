@@ -22,6 +22,8 @@ PUBLIC_API = (
     "stage_openclaw_agent_model",
     "apply_openclaw_model_control",
     "rollback_openclaw_model_control",
+    "diagnose_openclaw_telegram_config",
+    "migrate_openclaw_telegram_bindings",
     "resolve_chat_backend",
     "compose_openclaw_message",
     "request_openclaw_reply",
@@ -437,6 +439,298 @@ def rollback_openclaw_model_control(root: Path) -> Dict[str, Any]:
         "restart": restart_result,
         "health_check": health_result,
         "pending_changes": [],
+    }
+
+
+def _telegram_channel_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    channels = config.get("channels")
+    if not isinstance(channels, dict):
+        return {}
+    telegram = channels.get("telegram")
+    return telegram if isinstance(telegram, dict) else {}
+
+
+def _telegram_account_map(telegram_config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    accounts = telegram_config.get("accounts")
+    if isinstance(accounts, dict) and accounts:
+        return {str(account_id): row for account_id, row in accounts.items() if isinstance(row, dict)}
+    if telegram_config.get("botToken") or telegram_config.get("tokenFile"):
+        return {"default": telegram_config}
+    return {}
+
+
+def _binding_entries(config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    bindings = config.get("bindings")
+    if not isinstance(bindings, list):
+        return []
+    return [row for row in bindings if isinstance(row, dict)]
+
+
+def _telegram_binding_lookup(config: Dict[str, Any]) -> Dict[str, str]:
+    lookup: Dict[str, str] = {}
+    for binding in _binding_entries(config):
+        match = binding.get("match")
+        agent_id = binding.get("agentId")
+        if not isinstance(match, dict) or not isinstance(agent_id, str) or not agent_id.strip():
+            continue
+        if match.get("channel") != "telegram":
+            continue
+        account_id = str(match.get("accountId") or "default")
+        lookup[account_id] = agent_id.strip()
+    return lookup
+
+
+def _collect_legacy_telegram_account_agent_ids(telegram_config: Dict[str, Any]) -> List[Dict[str, str]]:
+    rows: List[Dict[str, str]] = []
+    for account_id, account in _telegram_account_map(telegram_config).items():
+        agent_id = account.get("agentId")
+        if isinstance(agent_id, str) and agent_id.strip():
+            rows.append({"account_id": account_id, "agent_id": agent_id.strip()})
+    return rows
+
+
+def diagnose_openclaw_telegram_config(root: Path, config: Dict[str, Any] | None = None, config_path: Path | None = None) -> Dict[str, Any]:
+    resolved_path = config_path or _openclaw_config_path(root)
+    issues: List[Dict[str, Any]] = []
+    if config is None:
+        try:
+            config = _read_openclaw_config(resolved_path)
+        except FileNotFoundError:
+            return {
+                "ok": False,
+                "config_path": str(resolved_path),
+                "issues": [
+                    {
+                        "code": "config_missing",
+                        "severity": "error",
+                        "message": f"OpenClaw config not found: {resolved_path}",
+                        "fix": "Install or point INNER_WORLD_OPENCLAW_CONFIG_PATH at a valid openclaw.json.",
+                    }
+                ],
+            }
+
+    telegram_config = _telegram_channel_config(config)
+    account_map = _telegram_account_map(telegram_config)
+    declared_agent_ids = set(_agent_lookup(config))
+    binding_lookup = _telegram_binding_lookup(config)
+    legacy_account_agent_ids = _collect_legacy_telegram_account_agent_ids(telegram_config)
+
+    if not telegram_config:
+        issues.append(
+            {
+                "code": "telegram_channel_missing",
+                "severity": "error",
+                "message": "channels.telegram is not configured.",
+                "fix": "Run `openclaw channels add telegram` or add channels.telegram to openclaw.json.",
+            }
+        )
+    elif telegram_config.get("enabled") is False:
+        issues.append(
+            {
+                "code": "telegram_channel_disabled",
+                "severity": "error",
+                "message": "channels.telegram.enabled is false.",
+                "fix": "Set channels.telegram.enabled to true and restart the gateway.",
+            }
+        )
+
+    if telegram_config and not account_map:
+        issues.append(
+            {
+                "code": "telegram_token_missing",
+                "severity": "error",
+                "message": "No Telegram bot token is configured for any account.",
+                "fix": "Set channels.telegram.botToken or channels.telegram.accounts.<id>.botToken.",
+            }
+        )
+
+    for row in legacy_account_agent_ids:
+        issues.append(
+            {
+                "code": "legacy_account_agent_id",
+                "severity": "error",
+                "message": (
+                    f"channels.telegram.accounts.{row['account_id']}.agentId is no longer valid in OpenClaw 2026.4.8+."
+                ),
+                "account_id": row["account_id"],
+                "agent_id": row["agent_id"],
+                "fix": "Move routing to top-level bindings[] and remove agentId from the account block.",
+            }
+        )
+
+    for account_id, account in account_map.items():
+        if not (account.get("botToken") or account.get("tokenFile")):
+            issues.append(
+                {
+                    "code": "telegram_token_missing",
+                    "severity": "error",
+                    "message": f"Telegram account '{account_id}' has no botToken or tokenFile.",
+                    "account_id": account_id,
+                    "fix": f"Set channels.telegram.accounts.{account_id}.botToken.",
+                }
+            )
+        bound_agent_id = binding_lookup.get(account_id)
+        legacy_agent_id = account.get("agentId") if isinstance(account.get("agentId"), str) else None
+        effective_agent_id = (legacy_agent_id or bound_agent_id or "").strip()
+        if not effective_agent_id:
+            issues.append(
+                {
+                    "code": "missing_telegram_binding",
+                    "severity": "error",
+                    "message": f"No Telegram binding exists for account '{account_id}'.",
+                    "account_id": account_id,
+                    "fix": (
+                        "Add bindings[].agentId with match.channel=telegram and match.accountId="
+                        f"'{account_id}'."
+                    ),
+                }
+            )
+            continue
+        if effective_agent_id not in declared_agent_ids:
+            issues.append(
+                {
+                    "code": "agent_not_in_list",
+                    "severity": "error",
+                    "message": (
+                        f"Telegram account '{account_id}' routes to agent '{effective_agent_id}', "
+                        "but that agent is missing from agents.list."
+                    ),
+                    "account_id": account_id,
+                    "agent_id": effective_agent_id,
+                    "fix": f"Add {{\"id\": \"{effective_agent_id}\"}} to agents.list.",
+                }
+            )
+
+    for account_id, agent_id in binding_lookup.items():
+        if agent_id not in declared_agent_ids:
+            issues.append(
+                {
+                    "code": "agent_not_in_list",
+                    "severity": "error",
+                    "message": f"bindings route Telegram account '{account_id}' to missing agent '{agent_id}'.",
+                    "account_id": account_id,
+                    "agent_id": agent_id,
+                    "fix": f"Add {{\"id\": \"{agent_id}\"}} to agents.list.",
+                }
+            )
+
+    dm_policy = str(telegram_config.get("dmPolicy") or "pairing")
+    if dm_policy == "pairing":
+        issues.append(
+            {
+                "code": "pairing_required",
+                "severity": "info",
+                "message": "Telegram DM policy is pairing; first-time users must approve pairing.",
+                "fix": "Run `openclaw pairing list telegram` and `openclaw pairing approve telegram <CODE>`.",
+            }
+        )
+
+    blocking_codes = {
+        "config_missing",
+        "telegram_channel_missing",
+        "telegram_channel_disabled",
+        "telegram_token_missing",
+        "legacy_account_agent_id",
+        "missing_telegram_binding",
+        "agent_not_in_list",
+    }
+    blocking = [issue for issue in issues if issue["code"] in blocking_codes]
+    return {
+        "ok": not blocking,
+        "config_path": str(resolved_path),
+        "telegram_account_ids": sorted(account_map),
+        "declared_agent_ids": sorted(declared_agent_ids),
+        "binding_lookup": binding_lookup,
+        "legacy_account_agent_ids": legacy_account_agent_ids,
+        "issues": issues,
+        "blocking_issue_count": len(blocking),
+    }
+
+
+def migrate_openclaw_telegram_bindings(root: Path, *, apply: bool = False) -> Dict[str, Any]:
+    diagnosis = diagnose_openclaw_telegram_config(root)
+    if diagnosis.get("issues") and diagnosis["issues"][0].get("code") == "config_missing":
+        return {"ok": False, "applied": False, "diagnosis": diagnosis, "changes": []}
+
+    config_path = Path(str(diagnosis["config_path"]))
+    config = _read_openclaw_config(config_path)
+    telegram_config = _telegram_channel_config(config)
+    account_map = _telegram_account_map(telegram_config)
+    bindings = _binding_entries(config)
+    binding_lookup = _telegram_binding_lookup(config)
+    changes: List[Dict[str, Any]] = []
+
+    for account_id, account in account_map.items():
+        legacy_agent_id = account.get("agentId")
+        if not isinstance(legacy_agent_id, str) or not legacy_agent_id.strip():
+            continue
+        agent_id = legacy_agent_id.strip()
+        if binding_lookup.get(account_id) == agent_id:
+            changes.append(
+                {
+                    "kind": "remove_legacy_account_agent_id",
+                    "account_id": account_id,
+                    "agent_id": agent_id,
+                }
+            )
+            account.pop("agentId", None)
+            continue
+        bindings.append(
+            {
+                "agentId": agent_id,
+                "match": {"channel": "telegram", "accountId": account_id},
+            }
+        )
+        binding_lookup[account_id] = agent_id
+        account.pop("agentId", None)
+        changes.append(
+            {
+                "kind": "move_account_agent_id_to_binding",
+                "account_id": account_id,
+                "agent_id": agent_id,
+            }
+        )
+
+    if changes:
+        config["bindings"] = bindings
+        channels = config.setdefault("channels", {})
+        if isinstance(channels, dict):
+            telegram = channels.setdefault("telegram", {})
+            if isinstance(telegram, dict) and isinstance(telegram.get("accounts"), dict):
+                telegram["accounts"] = account_map
+                if len(account_map) > 1 and not telegram.get("defaultAccount"):
+                    if "default" in account_map:
+                        telegram["defaultAccount"] = "default"
+                    else:
+                        telegram["defaultAccount"] = sorted(account_map)[0]
+                    changes.append(
+                        {
+                            "kind": "set_default_account",
+                            "default_account": telegram["defaultAccount"],
+                        }
+                    )
+
+    if apply and changes:
+        backup_dir = _openclaw_control_backup_dir(root)
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup_path = backup_dir / f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-telegram-bindings-openclaw.json"
+        shutil.copy2(config_path, backup_path)
+        _write_openclaw_config(config_path, config)
+        post_diagnosis = diagnose_openclaw_telegram_config(root)
+        return {
+            "ok": post_diagnosis["ok"],
+            "applied": True,
+            "backup_path": str(backup_path),
+            "changes": changes,
+            "diagnosis": post_diagnosis,
+        }
+
+    post_diagnosis = diagnose_openclaw_telegram_config(root, config=config, config_path=config_path)
+    return {
+        "ok": post_diagnosis["ok"],
+        "applied": False,
+        "changes": changes,
+        "diagnosis": post_diagnosis,
     }
 
 
