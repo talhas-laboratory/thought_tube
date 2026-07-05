@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/candidate-pattern",
+  "title": "CandidatePattern",
+  "description": "Provisional inferred shape — hypothesis, not fact.",
+  "type": "object",
+  "required": ["id", "confidence"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "reference_count": { "type": "integer" },
+        "recurring_qualities": { "type": "array", "items": { "type": "string" } },
+        "recurring_relation_types": { "type": "array", "items": { "type": "string" } },
+        "recurring_entities": { "type": "array", "items": { "type": "string" } },
+        "recurring_transformations": { "type": "array", "items": { "type": "string" } },
+        "recurring_tensions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "stability": { "type": "string" },
+    "possible_names": { "type": "array", "items": { "type": "string" } },
+    "possible_abstraction": { "type": "string" },
+    "relational_configuration": { "type": "string" },
+    "stabilized_shape_id": { "type": "string" }
+  }
+}

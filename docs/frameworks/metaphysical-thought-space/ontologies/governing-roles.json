@@ -1,0 +1,67 @@
+{
+  "ontology_id": "mtsf.quality.governing_roles",
+  "version": "1.0.0",
+  "description": "Governing categorical roles for qualities-in-context",
+  "principle": "Role attaches to quality-in-context, not permanently to quality label",
+  "minimal_set": [
+    { "role": "defining", "function": "makes the entity recognizable" },
+    { "role": "stabilizing", "function": "keeps it coherent across shapes" },
+    { "role": "modifying", "function": "changes its flavor" },
+    { "role": "activating", "function": "wakes it up" },
+    { "role": "amplifying", "function": "increases force" },
+    { "role": "dampening", "function": "reduces force" },
+    { "role": "contrasting", "function": "creates tension" },
+    { "role": "mediating", "function": "connects parts" },
+    { "role": "reframing", "function": "changes interpretation" },
+    { "role": "attracting", "function": "pulls toward a shape" },
+    { "role": "destabilizing", "function": "shifts or breaks identity" },
+    { "role": "resolving", "function": "reduces tension" },
+    { "role": "generating", "function": "points toward artifact form" }
+  ],
+  "role_classes": {
+    "identity": {
+      "roles": ["core", "defining", "stabilizing", "boundary-setting", "anchoring"],
+      "governs": "whether entity remains itself"
+    },
+    "shape": {
+      "roles": ["modifier", "dominant", "accent", "background", "latent"],
+      "governs": "current mode of appearance"
+    },
+    "activation": {
+      "roles": ["triggering", "amplifying", "dampening", "foregrounding", "suppressing"],
+      "governs": "what becomes salient"
+    },
+    "relational": {
+      "roles": ["mediating", "contrasting", "fusing", "reframing", "polarizing"],
+      "governs": "how qualities interact"
+    },
+    "directional": {
+      "roles": ["attractor", "repeller", "vector", "threshold", "drift-force"],
+      "governs": "where entity is pulled"
+    },
+    "transformational": {
+      "roles": ["mutating", "destabilizing", "resolving", "fragmenting", "integrating"],
+      "governs": "how entity changes"
+    },
+    "generative": {
+      "roles": ["visualizing", "narrativizing", "sonifying", "spatializing", "formalizing", "symbolizing"],
+      "governs": "artifact formation direction"
+    }
+  },
+  "descriptive_roles": {
+    "defining": "without it entity stops being recognized",
+    "modifying": "changes flavor not base entity",
+    "activating": "wakes entity in context",
+    "relational": "exists only from configuration",
+    "stabilizing": "holds identity across shapes",
+    "destabilizing": "pulls toward transformation",
+    "dominant": "organizes current shape",
+    "latent": "present but inactive",
+    "generative": "suggests artifact form"
+  },
+  "entity_vs_shape": {
+    "entity_forming": "create stable identity",
+    "shape_forming": "create current mode of appearance"
+  },
+  "requirements": ["contextual", "weighted", "temporal", "multi_role", "open_ended"]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/quality-assignment",
+  "title": "QualityAssignment",
+  "description": "A quality region attached to an entity with intensity and optional role.",
+  "type": "object",
+  "required": ["quality_id", "intensity"],
+  "properties": {
+    "quality_id": { "type": "string" },
+    "quality_type": {
+      "type": "string",
+      "enum": [
+        "sensory", "emotional", "symbolic", "formal", "temporal",
+        "relational", "functional", "ontological", "generative", "meta_state"
+      ]
+    },
+    "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+    "kind": {
+      "type": "string",
+      "enum": ["intrinsic", "contextual", "emergent"]
+    },
+    "role": { "type": "string" },
+    "labels": { "type": "array", "items": { "type": "string" } },
+    "region": {
+      "type": "object",
+      "properties": {
+        "core_pattern": { "type": "string" },
+        "nearby_synonyms": { "type": "array", "items": { "type": "string" } },
+        "contrast_terms": { "type": "array", "items": { "type": "string" } },
+        "associated_imagery": { "type": "array", "items": { "type": "string" } },
+        "associated_emotions": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

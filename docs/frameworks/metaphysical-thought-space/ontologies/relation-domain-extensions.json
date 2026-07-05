@@ -1,0 +1,36 @@
+{
+  "ontology_id": "mtsf.relation.domain_extensions",
+  "version": "1.0.0",
+  "description": "Layer 2 domain-specific relation dialects mapped to cross-domain archetypes",
+  "mappings": [
+    { "domain": "film_story", "expression": "foreshadows", "archetype": "anticipates", "category": "temporal" },
+    { "domain": "film_story", "expression": "frames", "archetype": "contextualizes", "category": "boundary" },
+    { "domain": "film_story", "expression": "cuts-against", "archetype": "creates-friction", "category": "tension" },
+    { "domain": "film_story", "expression": "mirrors", "archetype": "structurally-echoes", "category": "similarity_echo" },
+    { "domain": "film_story", "expression": "isolates", "archetype": "encloses", "category": "boundary" },
+    { "domain": "film_story", "expression": "builds-suspense", "archetype": "delays-resolution", "category": "temporal" },
+    { "domain": "music", "expression": "harmonizes", "archetype": "aligns", "category": "resolution" },
+    { "domain": "music", "expression": "dissonates", "archetype": "creates-friction", "category": "tension" },
+    { "domain": "music", "expression": "resolves", "archetype": "reduces-tension", "category": "resolution" },
+    { "domain": "music", "expression": "syncopates", "archetype": "disrupts-expected-rhythm", "category": "tension" },
+    { "domain": "music", "expression": "modulates", "archetype": "shifts-state", "category": "transformation" },
+    { "domain": "visual_art", "expression": "contrasts", "archetype": "differentiates", "category": "tension" },
+    { "domain": "product_design", "expression": "affords", "archetype": "enables-action", "category": "functional" },
+    { "domain": "design_systems", "expression": "constrains", "archetype": "limits-possibility", "category": "functional" },
+    { "domain": "product_design", "expression": "guides", "archetype": "routes-attention", "category": "functional" },
+    { "domain": "product_design", "expression": "reduces-friction", "archetype": "enables-flow", "category": "functional" },
+    { "domain": "product_design", "expression": "signals-status", "archetype": "contextualizes-identity", "category": "interpretive" },
+    { "domain": "psychology", "expression": "triggers", "archetype": "activates", "category": "causal" },
+    { "domain": "psychology", "expression": "represses", "archetype": "suppresses", "category": "control" },
+    { "domain": "psychology", "expression": "projects", "archetype": "transfers-meaning", "category": "interpretive" },
+    { "domain": "psychology", "expression": "protects", "archetype": "shields", "category": "emotional" },
+    { "domain": "psychology", "expression": "compensates", "archetype": "balances-deficit", "category": "resolution" },
+    { "domain": "design_psychology_story", "expression": "anchors", "archetype": "stabilizes-meaning", "category": "interpretive" }
+  ],
+  "domain_packs": {
+    "film": ["frames", "foreshadows", "cuts-against", "mirrors", "isolates", "builds-suspense"],
+    "music": ["harmonizes", "dissonates", "resolves", "syncopates", "modulates"],
+    "product_design": ["affords", "constrains", "guides", "reduces-friction", "signals-status"],
+    "psychology": ["triggers", "represses", "projects", "protects", "compensates"]
+  }
+}

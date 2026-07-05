@@ -1,0 +1,44 @@
+{
+  "ontology_id": "mtsf.entity.sub_entity_types",
+  "version": "1.0.0",
+  "description": "Taxonomy for nested sub-entities inside composite idea-entities",
+  "sub_entity_types": [
+  {
+    "id": "sensory",
+    "description": "Perceptual-imaginative elements",
+    "examples": ["empty room", "silence", "cold light", "slow movement"]
+  },
+  {
+    "id": "emotional",
+    "description": "Affective components",
+    "examples": ["sadness", "longing", "numbness", "resentment", "peace"]
+  },
+  {
+    "id": "memory",
+    "description": "Past-linked elements",
+    "examples": ["specific past moments", "people", "places", "repeated experiences"]
+  },
+  {
+    "id": "symbolic",
+    "description": "Symbolic carriers",
+    "examples": ["desert", "island", "window", "abandoned house", "night", "fog"]
+  },
+  {
+    "id": "conceptual",
+    "description": "Abstract conceptual parts",
+    "examples": ["separation", "absence", "invisibility", "non-recognition", "disconnection"]
+  },
+  {
+    "id": "behavioral",
+    "description": "Action tendencies",
+    "examples": ["withdrawal", "scrolling", "overthinking", "seeking contact", "avoiding contact"]
+  },
+  {
+    "id": "aesthetic",
+    "description": "Formal/aesthetic carriers",
+    "examples": ["muted colors", "wide frames", "reverb", "minimal composition", "slow pacing"]
+  }
+  ],
+  "recursion": "sub_entity may contain further sub_entities",
+  "coalition_principle": "entity meaning = temporary coalition of active sub_entities weighted by intensity"
+}

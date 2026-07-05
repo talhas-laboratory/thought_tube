@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/entity",
+  "title": "IdeaEntity",
+  "description": "A stable identity carrier with qualities, relations, shapes, and temporal state.",
+  "type": "object",
+  "required": ["id", "name", "type"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["atomic", "composite", "sub_entity"]
+    },
+    "sub_entity_type": {
+      "type": "string",
+      "enum": [
+        "sensory", "emotional", "memory", "symbolic",
+        "conceptual", "behavioral", "aesthetic", "other"
+      ]
+    },
+    "stable_identity": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Core identity descriptors"
+    },
+    "parent_entity_id": { "type": "string" },
+    "intrinsic_qualities": {
+      "type": "array",
+      "items": { "$ref": "quality-assignment.schema.json" }
+    },
+    "contextual_qualities": {
+      "type": "array",
+      "items": { "$ref": "quality-assignment.schema.json" }
+    },
+    "relations": {
+      "type": "array",
+      "items": { "$ref": "relation.schema.json" }
+    },
+    "shape_states": {
+      "type": "array",
+      "items": { "$ref": "shape.schema.json" }
+    },
+    "current_activation": {
+      "type": "object",
+      "properties": {
+        "dominant_shape_id": { "type": "string" },
+        "secondary_shape_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "active_quality_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "latent_quality_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "clarity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "stability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "unresolvedness": { "type": "number", "minimum": 0, "maximum": 1 },
+        "generative_potential": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "formation_state": {
+          "type": "string",
+          "enum": [
+            "vague", "forming", "stable", "contradicted",
+            "unresolved", "ready_for_output"
+          ]
+        }
+      }
+    },
+    "temporal": {
+      "type": "object",
+      "properties": {
+        "emerged_from": { "type": "array", "items": { "type": "string" } },
+        "time_of_emergence": { "type": "string", "format": "date-time" },
+        "recurring": { "type": "boolean" },
+        "intensifying_around": { "type": "array", "items": { "type": "string" } },
+        "activation_intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source": { "type": "string" },
+        "directionality": { "type": "string" }
+      }
+    },
+    "artifact_pathways": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "ontology_id": "mtsf.relation.categories",
+  "version": "1.0.0",
+  "description": "Ten broad cross-domain relational categories with archetypes",
+  "categories": [
+    {
+      "id": "boundary",
+      "core_question": "What is inside, outside, allowed through, or held apart?",
+      "archetypes": [
+        "contains", "frames", "separates", "encloses", "protects", "excludes",
+        "opens", "gates", "filters", "boundary-of", "adjacent-to", "layer-above", "layer-below"
+      ]
+    },
+    {
+      "id": "force",
+      "core_question": "What moves, blocks, strengthens, or weakens what?",
+      "archetypes": [
+        "pulls-toward", "pushes-away", "resists", "amplifies", "dampens",
+        "accelerates", "delays", "dominates", "recedes", "charges", "drains"
+      ]
+    },
+    {
+      "id": "temporal",
+      "core_question": "How does meaning unfold, return, or transform over time?",
+      "archetypes": [
+        "precedes", "follows", "foreshadows", "anticipates", "returns", "recurs",
+        "interrupts", "escalates", "decays", "resolves", "loops", "stabilizes"
+      ]
+    },
+    {
+      "id": "similarity_echo",
+      "core_question": "What repeats the same structure in another form?",
+      "archetypes": [
+        "resembles", "mirrors", "echoes", "rhymes-with", "parallels",
+        "inverts", "variates", "maps-to"
+      ]
+    },
+    {
+      "id": "tension",
+      "core_question": "What creates unresolved difference or pressure?",
+      "archetypes": [
+        "contrasts", "opposes", "contradicts", "destabilizes", "competes-with",
+        "creates-friction", "polarizes", "disrupts", "cuts-against"
+      ]
+    },
+    {
+      "id": "resolution",
+      "core_question": "What makes the system feel complete, stable, or understood?",
+      "archetypes": [
+        "resolves", "completes", "answers", "integrates", "balances",
+        "reconciles", "stabilizes", "grounds"
+      ]
+    },
+    {
+      "id": "transformation",
+      "core_question": "How does one thing become another?",
+      "archetypes": [
+        "transforms-into", "translates-to", "mutates", "modulates", "abstracts",
+        "concretizes", "compresses-into", "expands-into", "materializes-as",
+        "distorts", "purifies"
+      ]
+    },
+    {
+      "id": "interpretive",
+      "core_question": "What changes how something is understood?",
+      "archetypes": [
+        "contextualizes", "reframes", "reveals", "hides", "symbolizes",
+        "means", "explains", "misdirects", "clarifies", "ambiguates", "abstracts-to", "instantiates"
+      ]
+    },
+    {
+      "id": "functional",
+      "core_question": "What does this allow, prevent, or guide?",
+      "archetypes": [
+        "enables", "affords", "constrains", "guides", "blocks", "routes",
+        "prioritizes", "optimizes", "coordinates", "selects", "filters"
+      ]
+    },
+    {
+      "id": "emergence",
+      "core_question": "What appears only because multiple parts interact?",
+      "archetypes": [
+        "combines-with", "emerges-from", "depends-on-configuration",
+        "interacts-with", "coheres-with", "forms-system-with", "produces-field-effect"
+      ]
+    }
+  ],
+  "standard_categories_detailed": {
+    "structural": ["contains", "part-of", "adjacent-to", "boundary-of", "layer-above", "layer-below"],
+    "causal": ["causes", "enables", "blocks", "triggers", "amplifies", "weakens"],
+    "temporal_detailed": ["precedes", "follows", "recurs", "interrupts", "accelerates", "delays", "decays", "stabilizes"],
+    "intensity": ["intensifies", "dampens", "charges", "drains", "dominates", "recedes", "pulls-toward"],
+    "semantic": ["means", "symbolizes", "resembles", "contrasts-with", "echoes", "reframes", "abstracts-to", "instantiates"],
+    "emotional": ["evokes", "soothes", "threatens", "protects", "wounds", "repairs", "longs-for", "fears"],
+    "motivational": ["seeks", "avoids", "needs", "sacrifices", "competes-with", "chooses-between", "commits-to"],
+    "logical": ["supports", "contradicts", "implies", "depends-on", "explains", "questions", "resolves", "generalizes", "specializes"],
+    "transformational": ["transforms-into", "translates-to", "compresses-into", "expands-into", "distorts", "purifies", "materializes-as"],
+    "control": ["filters", "gates", "selects", "prioritizes", "suppresses", "reveals", "hides", "stabilizes"]
+  }
+}

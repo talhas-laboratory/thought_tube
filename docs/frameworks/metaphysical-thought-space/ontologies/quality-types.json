@@ -1,0 +1,66 @@
+{
+  "ontology_id": "mtsf.quality.types",
+  "version": "1.0.0",
+  "description": "Quality type taxonomy for idea-entities",
+  "types": [
+    {
+      "id": "sensory",
+      "description": "Perception-like imaginative appearance",
+      "examples": ["bright", "dark", "blue", "metallic", "soft", "sharp", "wet", "hollow", "echoing", "warm", "granular", "blurred"]
+    },
+    {
+      "id": "emotional",
+      "description": "How the entity feels",
+      "examples": ["sad", "hopeful", "anxious", "reverent", "ashamed", "peaceful", "uncanny", "tender", "hostile", "nostalgic"]
+    },
+    {
+      "id": "symbolic",
+      "description": "Meaning-charge carried",
+      "examples": ["sacred", "forbidden", "royal", "childish", "decayed", "pure", "corrupted", "hidden", "ancestral", "futuristic"]
+    },
+    {
+      "id": "formal",
+      "description": "Shape or structural organization",
+      "examples": ["circular", "layered", "fragmented", "symmetrical", "branching", "compressed", "open", "enclosed", "recursive", "sparse"]
+    },
+    {
+      "id": "temporal",
+      "description": "Behavior over time",
+      "examples": ["recurring", "fading", "intensifying", "suspended", "delayed", "cyclical", "sudden", "ancient", "unfinished"]
+    },
+    {
+      "id": "relational",
+      "description": "Relation-density and position in field",
+      "examples": ["central", "peripheral", "dependent", "parasitic", "anchoring", "mediating", "conflicting", "unresolved"]
+    },
+    {
+      "id": "functional",
+      "description": "What it does inside thought-space",
+      "examples": ["anchors", "destabilizes", "protects", "reveals", "blocks", "attracts", "organizes", "transforms", "resolves"]
+    },
+    {
+      "id": "ontological",
+      "description": "Felt reality or stability of presence",
+      "examples": ["vague", "vivid", "stable", "dreamlike", "intrusive", "remembered", "imagined", "archetypal", "hypothetical", "embodied"]
+    },
+    {
+      "id": "generative",
+      "description": "Readiness for artifact forms",
+      "examples": ["visualizable", "narrativizable", "musical", "architectural", "poetic", "strategic", "interface-ready", "productizable"]
+    },
+    {
+      "id": "meta_state",
+      "description": "Scalar state dimensions on entity",
+      "fields": ["clarity", "intensity", "stability", "unresolvedness", "generative_potential"]
+    }
+  ],
+  "region_model": {
+    "layers": ["underlying_quality_pattern", "semantic_framing", "linguistic_expression"],
+    "mapping_types": ["many_to_one", "one_to_many"],
+    "storage_fields": [
+      "core_quality_region", "possible_labels", "nearby_synonyms", "contrast_terms",
+      "associated_imagery", "associated_emotions", "intensity", "contextual_shifts"
+    ]
+  },
+  "kind": ["intrinsic", "contextual", "emergent"]
+}

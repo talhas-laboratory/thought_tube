@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/relation",
+  "title": "Relation",
+  "description": "A typed connection at entity, quality, or artifact level with metadata.",
+  "type": "object",
+  "required": ["id", "source", "target", "relation_type", "level"],
+  "properties": {
+    "id": { "type": "string" },
+    "level": {
+      "type": "string",
+      "enum": [
+        "entity_entity",
+        "quality_entity",
+        "quality_quality",
+        "entity_artifact"
+      ]
+    },
+    "source": { "type": "string" },
+    "target": { "type": "string" },
+    "relation_type": { "type": "string" },
+    "primitive": { "type": "string" },
+    "domain_expression": { "type": "string" },
+    "cross_domain_archetype": { "type": "string" },
+    "broad_category": { "type": "string" },
+    "custom_phrase": { "type": "string" },
+    "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "context": { "type": "string" },
+    "polarity": {
+      "type": "string",
+      "enum": ["positive", "negative", "ambivalent", "neutral"]
+    },
+    "temporality": { "type": "string" },
+    "source_evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "defines", "modifies", "supports", "destabilizes", "resolves", "other"
+      ]
+    },
+    "composite_of": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of atomic relations if this is composite"
+    }
+  }
+}

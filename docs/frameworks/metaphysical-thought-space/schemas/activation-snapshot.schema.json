@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/activation-snapshot",
+  "title": "ActivationSnapshot",
+  "description": "Momentary capture of thought-field activation for shape discovery.",
+  "type": "object",
+  "required": ["id", "timestamp"],
+  "properties": {
+    "id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "dominant_entities": { "type": "array", "items": { "type": "string" } },
+    "dominant_qualities": { "type": "array", "items": { "type": "string" } },
+    "dominant_relations": {
+      "type": "array",
+      "items": { "$ref": "relation.schema.json" }
+    },
+    "candidate_shapes": {
+      "type": "array",
+      "items": { "$ref": "candidate-pattern.schema.json" }
+    },
+    "formation_phase": {
+      "type": "string",
+      "enum": [
+        "initial_spark", "partial_population", "nonlinear_activation",
+        "intensity_shifts", "structural_binding", "artifact_formation"
+      ]
+    }
+  }
+}

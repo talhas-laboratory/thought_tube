@@ -1,0 +1,59 @@
+{
+  "module_id": "framework.metaphysical-thought-space",
+  "name": "Metaphysical Thought-Space Framework",
+  "layer": "substrate",
+  "owner": "docs/frameworks/metaphysical-thought-space",
+  "status": "active",
+  "version": "1.0.0",
+  "contract_version": "1",
+  "purpose": "Formal modular extraction of the latent-space / transformers / thought-space framework discussed in the 2026-07-05 conversation. Preserves philosophical grounding, ontologies, schemas, and operational pipelines without loss.",
+  "source": {
+    "conversation_title": "05.07._Latent Space and Transformers",
+    "conversation_date": "2026-07-05",
+    "extracted_at": "2026-07-05"
+  },
+  "repo_paths": [
+    "docs/frameworks/metaphysical-thought-space/README.md",
+    "docs/frameworks/metaphysical-thought-space/modules/",
+    "docs/frameworks/metaphysical-thought-space/schemas/",
+    "docs/frameworks/metaphysical-thought-space/ontologies/",
+    "docs/frameworks/metaphysical-thought-space/mappings/"
+  ],
+  "entrypoints": [
+    "docs/frameworks/metaphysical-thought-space/README.md",
+    "docs/frameworks/metaphysical-thought-space/modules/00-framework-overview.md"
+  ],
+  "inputs": [
+    "raw thought material",
+    "references",
+    "session traces",
+    "latent-space embeddings (optional operational layer)"
+  ],
+  "outputs": [
+    "structured idea-entities",
+    "relation graphs",
+    "quality fields",
+    "candidate shapes",
+    "artifacts"
+  ],
+  "dependencies": [],
+  "used_by": [
+    "product/inner_world_v1",
+    "docs/product-thesis/02-glossary.md",
+    "docs/plans/2026-05-18-philosophical-framework-to-product.md"
+  ],
+  "modules": [
+    "01-foundation-spaces",
+    "02-actualization-bridge",
+    "03-academic-grounding",
+    "04-thought-field-dynamics",
+    "05-entity-composition",
+    "06-relation-ontology",
+    "07-quality-ontology",
+    "08-shape-system",
+    "09-association-engine",
+    "10-quality-roles",
+    "11-discovery-pipeline",
+    "12-actualization-engine"
+  ]
+}

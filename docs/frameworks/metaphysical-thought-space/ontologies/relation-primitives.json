@@ -1,0 +1,27 @@
+{
+  "ontology_id": "mtsf.relation.primitives",
+  "version": "1.0.0",
+  "description": "Layer 1 universal relation primitives — stable backbone",
+  "primitives": [
+    "is-part-of",
+    "contains",
+    "causes",
+    "enables",
+    "blocks",
+    "intensifies",
+    "weakens",
+    "precedes",
+    "symbolizes",
+    "contrasts",
+    "resembles",
+    "supports",
+    "contradicts",
+    "transforms-into",
+    "translates-to",
+    "requires",
+    "resolves",
+    "hides",
+    "reveals",
+    "pulls-toward"
+  ]
+}
