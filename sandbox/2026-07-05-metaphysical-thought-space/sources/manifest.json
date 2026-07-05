@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {
+      "id": "source-chatgpt-2026-07-05",
+      "type": "imported_conversation",
+      "title": "05.07._Latent Space and Transformers",
+      "date": "2026-07-05",
+      "original_upload": "/home/ubuntu/.cursor/projects/workspace/uploads/2026-07-05_chatgpt---05-07-latent-space-and-transformers_1_97b6.md",
+      "import_session_id": "import-60295cf68ac1",
+      "share_url": "https://chatgpt.com/share/6a4a9e11-ef4c-83ed-9606-d5042691c35f",
+      "turns": {
+        "user": 18,
+        "assistant": 17
+      },
+      "notes": "Primary source for MTSF extraction. Import produces derived analysis under memory/sessions/import-60295cf68ac1/ (gitignored)."
+    }
+  ]
+}

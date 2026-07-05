@@ -1,0 +1,24 @@
+{
+  "live_session": {
+    "session_id": "session-98b310abc3e0",
+    "title": "Metaphysical Thought-Space Sandbox",
+    "started_at": "2026-07-05T18:40:02+00:00",
+    "status": "active"
+  },
+  "source_import": {
+    "session_id": "import-60295cf68ac1",
+    "title": "05.07 Latent Space and Transformers (source)",
+    "source_path": "/home/ubuntu/.cursor/projects/workspace/uploads/2026-07-05_chatgpt---05-07-latent-space-and-transformers_1_97b6.md",
+    "materialized_cards": 8,
+    "derived_paths": {
+      "ordered_transcript": "memory/sessions/import-60295cf68ac1/ordered_transcript.md",
+      "session_synthesis": "memory/sessions/import-60295cf68ac1/analysis/session_synthesis.json",
+      "concept_synthesis": "memory/sessions/import-60295cf68ac1/analysis/concept_synthesis.json"
+    }
+  },
+  "commands": {
+    "append": "python3 tools/conversation_os.py session append --session-id session-98b310abc3e0 --actor {actor} --kind {kind} --content \"{content}\"",
+    "checkpoint": "python3 tools/conversation_os.py session checkpoint --session-id session-98b310abc3e0",
+    "close": "python3 tools/conversation_os.py session close --session-id session-98b310abc3e0"
+  }
+}

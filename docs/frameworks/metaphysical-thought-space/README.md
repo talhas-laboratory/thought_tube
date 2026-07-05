@@ -2,6 +2,8 @@
 
 Formal modular system extracted from the conversation **"05.07._Latent Space and Transformers"** (2026-07-05).
 
+**Sandbox for this thread:** [`sandbox/2026-07-05-metaphysical-thought-space/`](../../sandbox/2026-07-05-metaphysical-thought-space/README.md) (session `session-98b310abc3e0`)
+
 This framework models how pre-material thought becomes navigable, discoverable, and actualizable — with latent space and transformers as the first scalable machine-operational bridge to artifacts.
 
 ## Core thesis (compressed)

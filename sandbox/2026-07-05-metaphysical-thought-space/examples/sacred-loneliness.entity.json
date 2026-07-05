@@ -1,0 +1,128 @@
+{
+  "id": "entity-sacred-loneliness",
+  "name": "sacred loneliness",
+  "type": "composite",
+  "stable_identity": [
+    "spiritual solitude",
+    "reverent distance",
+    "pain elevated into meaning"
+  ],
+  "intrinsic_qualities": [
+    {
+      "quality_id": "q-vast",
+      "quality_type": "sensory",
+      "intensity": 0.85,
+      "kind": "intrinsic",
+      "role": "dominant",
+      "labels": ["vast", "wide", "expansive"]
+    },
+    {
+      "quality_id": "q-quiet",
+      "quality_type": "sensory",
+      "intensity": 0.8,
+      "kind": "intrinsic",
+      "role": "defining",
+      "labels": ["quiet", "silent", "still"]
+    },
+    {
+      "quality_id": "q-reverent",
+      "quality_type": "emotional",
+      "intensity": 0.9,
+      "kind": "intrinsic",
+      "role": "defining",
+      "labels": ["reverent", "sacred", "elevated"]
+    },
+    {
+      "quality_id": "q-distant",
+      "quality_type": "relational",
+      "intensity": 0.75,
+      "kind": "intrinsic",
+      "role": "modifying",
+      "labels": ["distant", "far", "removed"]
+    }
+  ],
+  "contextual_qualities": [
+    {
+      "quality_id": "q-painful-absence",
+      "quality_type": "emotional",
+      "intensity": 0.7,
+      "kind": "contextual",
+      "role": "modifying",
+      "labels": ["painful when related to absence"]
+    },
+    {
+      "quality_id": "q-peaceful-solitude",
+      "quality_type": "emotional",
+      "intensity": 0.5,
+      "kind": "contextual",
+      "role": "modifying",
+      "labels": ["peaceful when related to solitude"]
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-1",
+      "level": "quality_quality",
+      "source": "q-quiet",
+      "target": "q-reverent",
+      "relation_type": "intensifies",
+      "primitive": "intensifies",
+      "weight": 0.82,
+      "confidence": 0.74
+    },
+    {
+      "id": "rel-2",
+      "level": "entity_entity",
+      "source": "entity-sacred-loneliness",
+      "target": "entity-social-noise",
+      "relation_type": "contrasts-with",
+      "primitive": "contrasts",
+      "weight": 0.78,
+      "confidence": 0.8
+    },
+    {
+      "id": "rel-3",
+      "level": "entity_artifact",
+      "source": "entity-sacred-loneliness",
+      "target": "artifact-wide-empty-sky-shot",
+      "relation_type": "materializes-as",
+      "primitive": "translates-to",
+      "weight": 0.88,
+      "confidence": 0.85,
+      "context": "film"
+    }
+  ],
+  "shape_states": [
+    {
+      "id": "shape-sacred-loneliness-primary",
+      "name": "sacred-loneliness-as-devotion",
+      "kind": "stored",
+      "entity_id": "entity-sacred-loneliness",
+      "abstraction": "pain transformed into reverence through distance and silence",
+      "scale": "scene"
+    }
+  ],
+  "current_activation": {
+    "dominant_shape_id": "shape-sacred-loneliness-primary",
+    "active_quality_ids": ["q-vast", "q-quiet", "q-reverent", "q-distant"]
+  },
+  "state": {
+    "clarity": 0.72,
+    "intensity": 0.81,
+    "stability": 0.64,
+    "unresolvedness": 0.43,
+    "generative_potential": "high",
+    "formation_state": "forming"
+  },
+  "temporal": {
+    "emerged_from": ["memory", "image", "mood"],
+    "recurring": true,
+    "intensifying_around": ["sky", "silence", "distance"]
+  },
+  "artifact_pathways": [
+    "film shot",
+    "poem",
+    "soundscape",
+    "visual identity"
+  ]
+}

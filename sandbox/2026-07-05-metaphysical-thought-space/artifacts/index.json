@@ -1,0 +1,34 @@
+{
+  "sandbox_id": "sandbox.2026-07-05-metaphysical-thought-space",
+  "updated_at": "2026-07-05T18:40:00+00:00",
+  "artifacts": [
+    {
+      "id": "mtsf-framework",
+      "kind": "framework",
+      "status": "stable",
+      "path": "docs/frameworks/metaphysical-thought-space/",
+      "description": "Complete modular MTSF: 13 module specs, 6 ontologies, 6 schemas, 2 mappings",
+      "created": "2026-07-05",
+      "pr": "https://github.com/talhas-laboratory/thought_tube/pull/2"
+    },
+    {
+      "id": "mtsf-manifest",
+      "kind": "manifest",
+      "status": "stable",
+      "path": "docs/frameworks/metaphysical-thought-space/manifest.json"
+    },
+    {
+      "id": "example-sacred-loneliness",
+      "kind": "example",
+      "status": "stable",
+      "path": "sandbox/2026-07-05-metaphysical-thought-space/examples/sacred-loneliness.entity.json",
+      "schema": "docs/frameworks/metaphysical-thought-space/schemas/entity.schema.json"
+    },
+    {
+      "id": "sandbox-manifest",
+      "kind": "sandbox",
+      "status": "active",
+      "path": "sandbox/2026-07-05-metaphysical-thought-space/manifest.json"
+    }
+  ]
+}
