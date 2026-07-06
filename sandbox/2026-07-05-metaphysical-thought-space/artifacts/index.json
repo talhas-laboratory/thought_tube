@@ -25,6 +25,13 @@
       "schema": "docs/frameworks/metaphysical-thought-space/schemas/entity.schema.json"
     },
     {
+      "id": "mtsf-intelligence-integration",
+      "kind": "module_spec",
+      "status": "stable",
+      "path": "docs/frameworks/metaphysical-thought-space/modules/13-intelligence-integration.md",
+      "description": "Hybrid neuro-symbolic architecture: when to use models vs code, Thought Graph IR, validation sandwich, rollout phases"
+    },
+    {
       "id": "sandbox-manifest",
       "kind": "sandbox",
       "status": "active",

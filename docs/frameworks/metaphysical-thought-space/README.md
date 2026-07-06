@@ -43,6 +43,7 @@ thought-field
 | 10 | [Quality Roles](modules/10-quality-roles.md) | Governing categorical roles in formation |
 | 11 | [Discovery Pipeline](modules/11-discovery-pipeline.md) | Bottom-up shape detection, snapshots, detectors |
 | 12 | [Actualization Engine](modules/12-actualization-engine.md) | Materialization paths across domains |
+| 13 | [Intelligence Integration](modules/13-intelligence-integration.md) | Model vs code roles, adapters, validation sandwich |
 
 ## Artifact types
 
