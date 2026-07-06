@@ -25,6 +25,7 @@ from .development_router import route_development_idea
 from .engineering_guard import assess_change_request
 from .mtsf_kernel import run_replay_scenarios
 from .mtsf_session import materialize_session_mtsf
+from .mtsf_stencils import validate_seed_library
 from .library_tracker import (
     apply_pond_router_preset as apply_pond_router_preset_admin,
     apply_prune_candidates,
@@ -636,6 +637,7 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf = sub.add_parser("mtsf", help="Metaphysical Thought-Space Framework kernel")
     mtsf_sub = mtsf.add_subparsers(dest="mtsf_command", required=True)
     mtsf_sub.add_parser("replay-pilot-002", help="Run Pilot 002 shape activation replay scenarios")
+    mtsf_sub.add_parser("validate-stencils", help="Validate seed stencil library and fingerprints")
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1539,6 +1541,8 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "mtsf":
         if args.mtsf_command == "replay-pilot-002":
             result = run_replay_scenarios(root)
+        elif args.mtsf_command == "validate-stencils":
+            result = validate_seed_library(root)
         else:
             raise ValueError(args.mtsf_command)
     elif args.command == "openclaw":

@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/stencil-draft",
+  "title": "StencilDraft",
+  "description": "Agent-authored proposal for a domain-agnostic stencil. Code validates, normalizes role_ids, computes fingerprint, and commits a canonical Stencil record.",
+  "type": "object",
+  "required": [
+    "proposed_name",
+    "role_entities",
+    "relation_topology",
+    "evidence",
+    "confidence"
+  ],
+  "properties": {
+    "proposed_id": {
+      "type": "string",
+      "description": "Optional hint; code may assign a different canonical id after merge"
+    },
+    "proposed_name": {
+      "type": "string",
+      "description": "Hypothesis label — not canonical until stabilized"
+    },
+    "ontology_ref": {
+      "type": "string",
+      "default": "mtsf://ontologies/stencil-role-types@1.0.0",
+      "description": "Ontology version used for role_type and primitive validation"
+    },
+    "role_entities": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 7,
+      "description": "Abstract nodes only. Use role_type from stencil-role-types ontology.",
+      "items": {
+        "type": "object",
+        "required": ["role_type"],
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "description": "Optional in draft; code assigns stable ids if omitted"
+          },
+          "role_type": { "type": "string" },
+          "governing_roles": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "relation_topology": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "description": "Directed edges between roles using relation primitives",
+      "items": {
+        "type": "object",
+        "required": ["source_role_ref", "target_role_ref", "primitive"],
+        "properties": {
+          "source_role_ref": {
+            "type": "string",
+            "description": "role_id if present, otherwise role_type"
+          },
+          "target_role_ref": {
+            "type": "string",
+            "description": "role_id if present, otherwise role_type"
+          },
+          "primitive": { "type": "string" },
+          "relation_type": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "direction": {
+            "type": "string",
+            "enum": ["forward", "bidirectional", "feedback"]
+          }
+        }
+      }
+    },
+    "dynamics_class": {
+      "type": "string",
+      "enum": [
+        "feedback_reinforcing",
+        "feedback_balancing",
+        "bottleneck",
+        "reservoir",
+        "gradient",
+        "equilibrium",
+        "collapse",
+        "oscillation",
+        "tight_coupling",
+        "star_topology",
+        "mesh_topology",
+        "hierarchy",
+        "other"
+      ]
+    },
+    "symmetry_profile": {
+      "type": "string",
+      "enum": [
+        "symmetric",
+        "antisymmetric",
+        "asymmetric",
+        "chiral",
+        "broken_symmetry",
+        "mixed",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "temporal_profile": {
+      "type": "object",
+      "properties": {
+        "growth_class": {
+          "type": "string",
+          "enum": ["linear", "exponential", "step", "decay", "stable", "unknown"]
+        },
+        "phase": {
+          "type": "string",
+          "enum": ["emerging", "accelerating", "plateau", "depleting", "resolving", "unknown"]
+        }
+      }
+    },
+    "constraint_profile": {
+      "type": "object",
+      "properties": {
+        "limiting_factors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tradeoff_type": {
+          "type": "string",
+          "enum": ["zero_sum", "orthogonal", "aligned", "unknown"]
+        }
+      }
+    },
+    "facet_completeness": {
+      "type": "object",
+      "description": "Drafts must at minimum complete causal_geometry",
+      "properties": {
+        "causal_geometry": { "type": "boolean", "const": true },
+        "temporal_dynamics": { "type": "boolean", "default": false },
+        "constraint_landscape": { "type": "boolean", "default": false },
+        "cybernetic_feedback": { "type": "boolean", "default": false }
+      },
+      "required": ["causal_geometry"]
+    },
+    "facets_extracted_order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "causal_geometry",
+          "temporal_dynamics",
+          "constraint_landscape",
+          "cybernetic_feedback"
+        ]
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["spans"],
+      "properties": {
+        "source_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "spans": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Quoted or paraphrased evidence from source material"
+        },
+        "recurrence_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "possible_names": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "domain_skin_hint": {
+      "type": "string",
+      "description": "Optional local meaning hint; never used for cross-domain stencil match"
+    },
+    "views": {
+      "type": "object",
+      "description": "Optional agent perception aids; not part of structural fingerprint",
+      "properties": {
+        "gist": { "type": "string" },
+        "mermaid_topology": { "type": "string" },
+        "slot_table": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["slot_id", "role_type"],
+            "properties": {
+              "slot_id": { "type": "string" },
+              "role_type": { "type": "string" },
+              "transfer_note": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "linked_entities": {
+      "type": "array",
+      "description": "Pilot or session entities this stencil was abstracted from",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "ontology_id": "mtsf.stencil.role_types",
+  "version": "1.0.0",
+  "description": "Closed vocabulary for abstract nodes in stencil topology. Role types are domain-agnostic; domain nouns belong in full_shape.domain_skin only.",
+  "principle": "Agents assign role_type from this list. Code assigns stable role_id on canonicalization.",
+  "role_types": [
+    {
+      "role_type": "source",
+      "description": "Origin of flow, input, or activation energy"
+    },
+    {
+      "role_type": "sink",
+      "description": "Terminal absorber or outcome basin"
+    },
+    {
+      "role_type": "bottleneck",
+      "description": "Constraining gate that limits throughput"
+    },
+    {
+      "role_type": "mediator",
+      "description": "Transforms or routes between other roles without being the origin or terminus"
+    },
+    {
+      "role_type": "buffer",
+      "description": "Temporary holding or smoothing layer"
+    },
+    {
+      "role_type": "controller",
+      "description": "Regulates loop behavior or setpoints"
+    },
+    {
+      "role_type": "field",
+      "description": "Background conditioning layer that warps accessibility without changing core identity"
+    },
+    {
+      "role_type": "landscape",
+      "description": "Perceived navigable topology shaped by context or constraints"
+    },
+    {
+      "role_type": "probe",
+      "description": "Active search or traversal agent moving through a space"
+    },
+    {
+      "role_type": "template",
+      "description": "Reusable structural pattern to be matched or instantiated"
+    },
+    {
+      "role_type": "shadow",
+      "description": "Antisymmetric or inverse configuration used for guardrails"
+    },
+    {
+      "role_type": "bridge",
+      "description": "Connects previously separated regions; phase-transition carrier"
+    },
+    {
+      "role_type": "reservoir",
+      "description": "Stock that accumulates or depletes over time"
+    },
+    {
+      "role_type": "incubator",
+      "description": "Background process that develops latent connections before conscious reveal"
+    },
+    {
+      "role_type": "gate",
+      "description": "Approval, permission, or threshold checkpoint"
+    }
+  ]
+}

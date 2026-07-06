@@ -1,0 +1,455 @@
+{
+  "version": "1.1.0",
+  "status": "provisional",
+  "source": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-latent-topology-cognitive-system/third-space.json",
+  "ontology_refs": {
+    "role_types": "mtsf://ontologies/stencil-role-types@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0"
+  },
+  "facet_extraction_default": [
+    "causal_geometry",
+    "temporal_dynamics",
+    "constraint_landscape",
+    "cybernetic_feedback"
+  ],
+  "stencils": [
+    {
+      "id": "stencil-context-warps-topology",
+      "name": "context warps topology",
+      "status": "provisional",
+      "dynamics_class": "gradient",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": false,
+        "constraint_landscape": false,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": ["causal_geometry"],
+      "role_entities": [
+        { "role_id": "r-field", "role_type": "field" },
+        { "role_id": "r-landscape", "role_type": "landscape" },
+        { "role_id": "r-probe", "role_type": "probe" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-field",
+          "target_role_id": "r-landscape",
+          "primitive": "modulates",
+          "relation_type": "warps",
+          "weight": 0.92,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-field",
+          "target_role_id": "r-probe",
+          "primitive": "modulates",
+          "relation_type": "steers",
+          "weight": 0.9,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.94,
+      "possible_names": [
+        "contextual warping",
+        "KV weather on the manifold",
+        "prior runs as gravitational field"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "import-69ea1f64f744",
+          "rel-context-warps-topology"
+        ],
+        "recurrence_count": 3
+      },
+      "linked_entities": ["entity-context-field", "entity-effective-topology", "entity-agent-path"],
+      "views": {
+        "gist": "A conditioning field reshapes the accessible landscape and steers traversal without changing underlying weights.",
+        "mermaid_topology": "flowchart LR\n  field[r-field: field] -->|modulates| landscape[r-landscape: landscape]\n  field -->|modulates| probe[r-probe: probe]",
+        "slot_table": [
+          { "slot_id": "r-field", "role_type": "field", "transfer_note": "What contextual prior warps accessibility?" },
+          { "slot_id": "r-landscape", "role_type": "landscape", "transfer_note": "What perceived topology is being bent?" },
+          { "slot_id": "r-probe", "role_type": "probe", "transfer_note": "What path or query is being steered?" }
+        ]
+      }
+    },
+    {
+      "id": "stencil-symmetric-blueprint",
+      "name": "symmetric blueprint",
+      "status": "provisional",
+      "dynamics_class": "star_topology",
+      "symmetry_profile": "symmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": false,
+        "constraint_landscape": false,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": ["causal_geometry"],
+      "role_entities": [
+        { "role_id": "r-matcher", "role_type": "mediator" },
+        { "role_id": "r-seed", "role_type": "source" },
+        { "role_id": "r-template", "role_type": "template" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-seed",
+          "primitive": "resembles",
+          "relation_type": "matches",
+          "weight": 0.9,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-template",
+          "primitive": "instantiates",
+          "relation_type": "maps-to",
+          "weight": 0.88,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-seed",
+          "target_role_id": "r-template",
+          "primitive": "translates-to",
+          "relation_type": "isomorph-of",
+          "weight": 0.86,
+          "direction": "bidirectional"
+        }
+      ],
+      "confidence": 0.9,
+      "possible_names": [
+        "structural twin",
+        "symmetric blueprint",
+        "positive isomorph"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-symmetry-matches-shapes",
+          "move-symmetry-extension"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": ["entity-symmetry-engine", "entity-structural-shape"],
+      "views": {
+        "gist": "A matcher finds a structural twin and maps a local seed onto a reusable solution template.",
+        "mermaid_topology": "flowchart LR\n  matcher[r-matcher: mediator] -->|resembles| seed[r-seed: source]\n  matcher -->|instantiates| template[r-template: template]\n  seed <-->|translates-to| template",
+        "slot_table": [
+          { "slot_id": "r-seed", "role_type": "source", "transfer_note": "Local problem or soft creative seed" },
+          { "slot_id": "r-template", "role_type": "template", "transfer_note": "Cross-domain structural twin" },
+          { "slot_id": "r-matcher", "role_type": "mediator", "transfer_note": "Engine performing isomorph search" }
+        ]
+      }
+    },
+    {
+      "id": "stencil-antisymmetric-guardrail",
+      "name": "antisymmetric guardrail",
+      "status": "provisional",
+      "dynamics_class": "tight_coupling",
+      "symmetry_profile": "antisymmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": false,
+        "constraint_landscape": true,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": ["causal_geometry", "constraint_landscape"],
+      "constraint_profile": {
+        "limiting_factors": ["failure_mode", "inversion", "bounding_box"],
+        "tradeoff_type": "orthogonal"
+      },
+      "role_entities": [
+        { "role_id": "r-matcher", "role_type": "mediator" },
+        { "role_id": "r-candidate", "role_type": "template" },
+        { "role_id": "r-shadow", "role_type": "shadow" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-candidate",
+          "primitive": "contrasts",
+          "relation_type": "inverts",
+          "weight": 0.85,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-shadow",
+          "target_role_id": "r-candidate",
+          "primitive": "defines",
+          "relation_type": "bounds",
+          "weight": 0.83,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-shadow",
+          "primitive": "reveals",
+          "relation_type": "negative-inference",
+          "weight": 0.82,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.88,
+      "possible_names": [
+        "via negativa",
+        "antisymmetric shadow",
+        "negative inference guardrail"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-symmetry-inverts-seed",
+          "rel-negative-inference-sculpts",
+          "move-inversion"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": ["entity-symmetry-engine", "entity-hardened-idea"],
+      "views": {
+        "gist": "When no positive isomorph exists, inversion and failure shadows bound the solution space.",
+        "mermaid_topology": "flowchart LR\n  matcher[r-matcher: mediator] -->|contrasts| candidate[r-candidate: template]\n  matcher -->|reveals| shadow[r-shadow: shadow]\n  shadow -->|defines| candidate",
+        "slot_table": [
+          { "slot_id": "r-candidate", "role_type": "template", "transfer_note": "Hypothesis being stress-tested" },
+          { "slot_id": "r-shadow", "role_type": "shadow", "transfer_note": "Failure mode or antisymmetric inverse" },
+          { "slot_id": "r-matcher", "role_type": "mediator", "transfer_note": "Negative inference operator" }
+        ]
+      }
+    },
+    {
+      "id": "stencil-phase-transition-bridge",
+      "name": "phase transition bridge",
+      "status": "provisional",
+      "dynamics_class": "equilibrium",
+      "symmetry_profile": "broken_symmetry",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true,
+        "constraint_landscape": false,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": ["causal_geometry", "temporal_dynamics"],
+      "temporal_profile": {
+        "growth_class": "step",
+        "phase": "resolving"
+      },
+      "role_entities": [
+        { "role_id": "r-incubator", "role_type": "incubator" },
+        { "role_id": "r-bridge", "role_type": "bridge" },
+        { "role_id": "r-outcome", "role_type": "sink" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-incubator",
+          "target_role_id": "r-bridge",
+          "primitive": "enables",
+          "relation_type": "triggers",
+          "weight": 0.84,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-bridge",
+          "target_role_id": "r-outcome",
+          "primitive": "transforms-into",
+          "relation_type": "resolves",
+          "weight": 0.88,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.86,
+      "possible_names": [
+        "eureka bridge",
+        "latent connection snap",
+        "phase transition reveal"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-subconscious-triggers-eureka",
+          "rel-eureka-hardens-idea",
+          "entity-eureka-moment"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": [
+        "entity-synthetic-subconscious",
+        "entity-eureka-moment",
+        "entity-hardened-idea"
+      ],
+      "views": {
+        "gist": "Background incubation enables a sudden bridge reveal that resolves into a concrete outcome.",
+        "mermaid_topology": "flowchart LR\n  incubator[r-incubator: incubator] -->|enables| bridge[r-bridge: bridge]\n  bridge -->|transforms-into| outcome[r-outcome: sink]",
+        "slot_table": [
+          { "slot_id": "r-incubator", "role_type": "incubator", "transfer_note": "Background process holding latent links" },
+          { "slot_id": "r-bridge", "role_type": "bridge", "transfer_note": "Sudden felt connection or insight event" },
+          { "slot_id": "r-outcome", "role_type": "sink", "transfer_note": "Hardened idea or resolved form" }
+        ]
+      }
+    },
+    {
+      "id": "stencil-hardening-loop",
+      "name": "hardening loop",
+      "status": "provisional",
+      "dynamics_class": "feedback_reinforcing",
+      "symmetry_profile": "mixed",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true,
+        "constraint_landscape": false,
+        "cybernetic_feedback": true
+      },
+      "facets_extracted_order": [
+        "causal_geometry",
+        "temporal_dynamics",
+        "cybernetic_feedback"
+      ],
+      "temporal_profile": {
+        "growth_class": "exponential",
+        "phase": "accelerating"
+      },
+      "role_entities": [
+        { "role_id": "r-incubator", "role_type": "incubator" },
+        { "role_id": "r-library", "role_type": "reservoir" },
+        { "role_id": "r-seed", "role_type": "source" },
+        { "role_id": "r-outcome", "role_type": "sink" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-incubator",
+          "target_role_id": "r-library",
+          "primitive": "enables",
+          "relation_type": "scans",
+          "weight": 0.89,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-library",
+          "target_role_id": "r-seed",
+          "primitive": "modulates",
+          "relation_type": "cross-pollinates",
+          "weight": 0.87,
+          "direction": "bidirectional"
+        },
+        {
+          "source_role_id": "r-seed",
+          "target_role_id": "r-outcome",
+          "primitive": "transforms-into",
+          "relation_type": "hardens",
+          "weight": 0.88,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-outcome",
+          "target_role_id": "r-library",
+          "primitive": "intensifies",
+          "relation_type": "feeds-back",
+          "weight": 0.75,
+          "direction": "feedback"
+        }
+      ],
+      "confidence": 0.87,
+      "possible_names": [
+        "symbiotic hardening loop",
+        "incubation to concrete",
+        "spreading activation hardening"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-subconscious-scans-ocean",
+          "rel-eureka-hardens-idea",
+          "move-symbiotic-pivot"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": [
+        "entity-synthetic-subconscious",
+        "entity-thought-ocean",
+        "entity-hardened-idea"
+      ],
+      "views": {
+        "gist": "An incubator scans a personal library, cross-pollinates a seed, hardens it, and feeds the result back into the reservoir.",
+        "mermaid_topology": "flowchart LR\n  incubator[r-incubator: incubator] -->|enables| library[r-library: reservoir]\n  library <-->|modulates| seed[r-seed: source]\n  seed -->|transforms-into| outcome[r-outcome: sink]\n  outcome -->|intensifies| library",
+        "slot_table": [
+          { "slot_id": "r-library", "role_type": "reservoir", "transfer_note": "Corpus of notes, memories, or references" },
+          { "slot_id": "r-seed", "role_type": "source", "transfer_note": "Soft idea the user wants expanded or hardened" },
+          { "slot_id": "r-incubator", "role_type": "incubator", "transfer_note": "Background matcher or subconscious process" },
+          { "slot_id": "r-outcome", "role_type": "sink", "transfer_note": "Concrete scaffolded result" }
+        ]
+      }
+    },
+    {
+      "id": "stencil-reservoir-depletion",
+      "name": "reservoir depletion",
+      "status": "provisional",
+      "dynamics_class": "reservoir",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true,
+        "constraint_landscape": true,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": [
+        "causal_geometry",
+        "temporal_dynamics",
+        "constraint_landscape"
+      ],
+      "temporal_profile": {
+        "growth_class": "decay",
+        "phase": "depleting"
+      },
+      "constraint_profile": {
+        "limiting_factors": ["capacity", "recovery_lag", "withdrawal_exceeds_replenishment"],
+        "tradeoff_type": "zero_sum"
+      },
+      "role_entities": [
+        { "role_id": "r-reservoir", "role_type": "reservoir" },
+        { "role_id": "r-demand", "role_type": "source" },
+        { "role_id": "r-state", "role_type": "sink" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-demand",
+          "target_role_id": "r-reservoir",
+          "primitive": "weakens",
+          "relation_type": "draws-from",
+          "weight": 0.9,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-reservoir",
+          "target_role_id": "r-state",
+          "primitive": "modulates",
+          "relation_type": "conditions",
+          "weight": 0.88,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.84,
+      "possible_names": [
+        "burnout drain",
+        "emotional budget deficit",
+        "creative reservoir emptying"
+      ],
+      "evidence": {
+        "source_refs": [
+          "mappings/pilot-learnings.md",
+          "dynamics_class: reservoir + depleting phase"
+        ],
+        "recurrence_count": 1
+      },
+      "linked_entities": [],
+      "views": {
+        "gist": "Sustained demand drains a finite reservoir, degrading downstream state or mood.",
+        "mermaid_topology": "flowchart LR\n  demand[r-demand: source] -->|weakens| reservoir[r-reservoir: reservoir]\n  reservoir -->|modulates| state[r-state: sink]",
+        "slot_table": [
+          { "slot_id": "r-reservoir", "role_type": "reservoir", "transfer_note": "Energy, attention, budget, or emotional stock" },
+          { "slot_id": "r-demand", "role_type": "source", "transfer_note": "Ongoing pull without matching replenishment" },
+          { "slot_id": "r-state", "role_type": "sink", "transfer_note": "Mood, performance, or felt capacity" }
+        ]
+      }
+    }
+  ]
+}

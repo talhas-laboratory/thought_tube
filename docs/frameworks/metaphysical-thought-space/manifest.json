@@ -66,9 +66,18 @@
   ],
   "schemas_v1_1": [
     "stencil.schema.json",
+    "stencil-draft.schema.json",
     "shape-activation-condition.schema.json",
     "shape-instance.schema.json",
     "problem-shape.schema.json",
     "analogical-match.schema.json"
+  ],
+  "ontologies_v1_1": [
+    "stencil-role-types.json"
+  ],
+  "seeds_v1_1": [
+    "activation-conditions.json",
+    "entity-activation-catalog.json",
+    "stencils.json"
   ]
 }
