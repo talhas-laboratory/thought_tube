@@ -190,8 +190,9 @@ Cross-domain salience propagation uses **stencil id**, not full shape id.
 
 ## Implementation checklist
 
-- [ ] `activate(entity_id, activation_context)` in symbolic kernel
-- [ ] Condition registry (declared + discovered partitions)
-- [ ] Snapshot writer includes `matched_conditions`
-- [ ] Replay test: re-run session → compare predicted vs logged shapes
+- [x] `activate(entity, activation_context)` in symbolic kernel — `src/conversation_os/mtsf_kernel.py`
+- [x] Seed condition registry — `seed/activation-conditions.json`
+- [x] Pilot 002 replay scenarios — `python3 tools/conversation_os.py mtsf replay-pilot-002`
+- [ ] Snapshot writer includes `matched_conditions` in live session pipeline
+- [ ] Replay test on full session import (not just scenario fixtures)
 - [ ] Stencil projection on shape activation

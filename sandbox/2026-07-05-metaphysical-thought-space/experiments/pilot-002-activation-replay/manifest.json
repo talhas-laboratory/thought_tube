@@ -1,0 +1,9 @@
+{
+  "experiment_id": "pilot-002-activation-replay",
+  "description": "Validates seed activation conditions against Pilot 002 entity/shape scenarios",
+  "kernel_module": "src/conversation_os/mtsf_kernel.py",
+  "seed_conditions": "docs/frameworks/metaphysical-thought-space/seed/activation-conditions.json",
+  "run_command": "PYTHONPATH=src python3 tools/conversation_os.py mtsf replay-pilot-002",
+  "status": "passing",
+  "scenario_count": 7
+}

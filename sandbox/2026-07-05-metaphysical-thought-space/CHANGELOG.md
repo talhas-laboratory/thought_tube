@@ -7,6 +7,7 @@
 - Added `MTSF-v1.1-amendment.md` (stencil layer, shape index, activation, mind-web extensions)
 - Added Module 14 shape activation, 5 new schemas, pilot-learnings mapping
 - Extended entity, shape, activation-snapshot schemas; relation primitives `instantiates`, `modulates`
+- Implemented `mtsf_kernel.py` with `activate()` / `reduce_identity()` and Pilot 002 replay (7 scenarios)
 
 ### Pilot 003 — Meta reasoning pass
 

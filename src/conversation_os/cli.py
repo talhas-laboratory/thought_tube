@@ -23,6 +23,7 @@ from .development_intake import (
 )
 from .development_router import route_development_idea
 from .engineering_guard import assess_change_request
+from .mtsf_kernel import run_replay_scenarios
 from .library_tracker import (
     apply_pond_router_preset as apply_pond_router_preset_admin,
     apply_prune_candidates,
@@ -628,6 +629,10 @@ def build_parser() -> argparse.ArgumentParser:
     guard_assess.add_argument("--purpose", required=True)
     guard_assess.add_argument("--proposed-paths", default="")
     guard_assess.add_argument("--limit", type=int, default=6)
+
+    mtsf = sub.add_parser("mtsf", help="Metaphysical Thought-Space Framework kernel")
+    mtsf_sub = mtsf.add_subparsers(dest="mtsf_command", required=True)
+    mtsf_sub.add_parser("replay-pilot-002", help="Run Pilot 002 shape activation replay scenarios")
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1528,6 +1533,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             raise ValueError(args.guard_command)
+    elif args.command == "mtsf":
+        if args.mtsf_command == "replay-pilot-002":
+            result = run_replay_scenarios(root)
+        else:
+            raise ValueError(args.mtsf_command)
     elif args.command == "openclaw":
         if args.openclaw_command == "telegram-diagnose":
             result = diagnose_openclaw_telegram_config(root)

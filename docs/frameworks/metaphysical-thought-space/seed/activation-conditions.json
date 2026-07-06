@@ -1,0 +1,107 @@
+{
+  "version": "1.1.0",
+  "status": "provisional",
+  "source": "mappings/pilot-learnings.md",
+  "conditions": [
+    {
+      "id": "cond-cold-start",
+      "entity_id": "entity-context-field",
+      "activates_shape_id": "shape-cold-start",
+      "priority": 0.7,
+      "weight": 0.9,
+      "rule_source": "seed_pilot",
+      "predicate": { "type": "context_absent" },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-anchored-start",
+      "entity_id": "entity-context-field",
+      "activates_shape_id": "shape-anchored-start",
+      "priority": 0.85,
+      "weight": 0.92,
+      "rule_source": "seed_pilot",
+      "predicate": {
+        "type": "context_domain_overlap",
+        "min_overlap_score": 0.6
+      },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-polluted-start",
+      "entity_id": "entity-context-field",
+      "activates_shape_id": "shape-polluted-start",
+      "priority": 0.85,
+      "weight": 0.9,
+      "rule_source": "seed_pilot",
+      "predicate": {
+        "type": "context_domain_orthogonal",
+        "min_overlap_score": 0.6
+      },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-formalizing-skeleton",
+      "entity_id": "entity-thought-ocean",
+      "activates_shape_id": "shape-structural-skeleton",
+      "priority": 0.88,
+      "weight": 0.91,
+      "rule_source": "seed_pilot",
+      "predicate": {
+        "type": "meta_shape",
+        "meta_shape_id": "meta-shape-formalizing"
+      },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-symmetric-blueprint",
+      "entity_id": "entity-symmetry-engine",
+      "activates_shape_id": "shape-positive-isomorph",
+      "priority": 0.86,
+      "weight": 0.9,
+      "rule_source": "seed_pilot",
+      "predicate": {
+        "type": "meta_move",
+        "meta_move_id": "move-symmetry-extension"
+      },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-antisymmetric-guardrail",
+      "entity_id": "entity-symmetry-engine",
+      "activates_shape_id": "shape-negative-shadow",
+      "priority": 0.86,
+      "weight": 0.9,
+      "rule_source": "seed_pilot",
+      "predicate": {
+        "type": "meta_move",
+        "meta_move_id": "move-inversion"
+      },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-negative-inference",
+      "entity_id": "entity-hardened-idea",
+      "activates_shape_id": "shape-negative-inference-mode",
+      "priority": 0.84,
+      "weight": 0.88,
+      "rule_source": "seed_pilot",
+      "predicate": {
+        "type": "meta_move",
+        "meta_move_id": "move-negative-inference"
+      },
+      "evidence_sessions": ["import-69ea1f64f744"]
+    },
+    {
+      "id": "cond-explicit-structural-lens",
+      "entity_id": "entity-symmetry-engine",
+      "activates_shape_id": "shape-positive-isomorph",
+      "priority": 0.98,
+      "weight": 1.0,
+      "rule_source": "declared",
+      "predicate": {
+        "type": "explicit_lens",
+        "lens": "structural_isomorph"
+      }
+    }
+  ]
+}
