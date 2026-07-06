@@ -349,6 +349,22 @@ def materialize_extraction_draft(
             refs.update(projection["artifact_refs"])
             result["artifact_refs"] = refs
 
+    from .mtsf_graph import materialize_session_graph
+
+    shape_instances = []
+    projection_payload = result.get("projection") or {}
+    if isinstance(projection_payload, dict):
+        shape_instances = projection_payload.get("shape_instances", [])
+    graph_result = materialize_session_graph(
+        root,
+        session_id,
+        payload,
+        shape_instances=shape_instances,
+    )
+    refs.update(graph_result.get("artifact_refs", {}))
+    result["artifact_refs"] = refs
+    result["graph"] = graph_result
+
     return result
 
 

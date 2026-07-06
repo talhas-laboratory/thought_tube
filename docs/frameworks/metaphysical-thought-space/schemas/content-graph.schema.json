@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/content-graph",
+  "title": "ContentGraph",
+  "description": "Layer T2: canonical compressed graph projection with adjacency indexes for fast traversal. Hydrate detail via assertion store.",
+  "type": "object",
+  "required": ["version", "session_id", "subgraph_id", "assertion_store_ref", "nodes", "adjacency"],
+  "properties": {
+    "version": { "type": "string" },
+    "session_id": { "type": "string" },
+    "subgraph_id": { "type": "string" },
+    "draft_id": { "type": "string" },
+    "assertion_store_ref": { "type": "string" },
+    "materialized_at": { "type": "string", "format": "date-time" },
+    "nodes": {
+      "type": "object",
+      "description": "node_id -> compressed node handle",
+      "additionalProperties": { "$ref": "#/$defs/graph_node" }
+    },
+    "adjacency": {
+      "type": "object",
+      "required": ["semantic", "provenance"],
+      "properties": {
+        "semantic": {
+          "type": "object",
+          "description": "node_id -> neighbor node ids (relations + quality bindings)",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "description": "node_id -> assertion and evidence bundle ids",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "structural": {
+          "type": "object",
+          "description": "entity_id -> stencil instance / shape refs",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "graph_node": {
+      "type": "object",
+      "required": ["id", "kind", "detail_level", "assertion_id", "evidence_bundle_id"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "entity",
+            "quality",
+            "quality_role",
+            "relation",
+            "candidate_shape",
+            "stencil_draft"
+          ]
+        },
+        "name": { "type": "string" },
+        "detail_level": {
+          "type": "string",
+          "enum": ["handle", "identity", "configuration", "evidence", "substrate"]
+        },
+        "assertion_id": { "type": "string" },
+        "evidence_bundle_id": { "type": "string" },
+        "facet_completeness": { "type": "object" },
+        "summary": {
+          "type": "object",
+          "description": "Identity/configuration fields only — no inline evidence spans"
+        }
+      }
+    }
+  }
+}

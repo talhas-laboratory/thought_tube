@@ -751,6 +751,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mtsf_index_wormholes.add_argument("--stencil-id")
     mtsf_sub.add_parser("index-validate", help="Validate global shape index structure")
+    mtsf_graph_materialize = mtsf_sub.add_parser(
+        "graph-materialize",
+        help="Build assertion store and content graph from session extraction draft",
+    )
+    mtsf_graph_materialize.add_argument("--session-id", required=True)
+    mtsf_graph_follow = mtsf_sub.add_parser(
+        "graph-follow",
+        help="Traverse session content graph (semantic, structural, provenance, temporal)",
+    )
+    mtsf_graph_follow.add_argument("--session-id", required=True)
+    mtsf_graph_follow.add_argument("--start", required=True, help="Node id to start from")
+    mtsf_graph_follow.add_argument(
+        "--mode",
+        default="semantic",
+        choices=["semantic", "structural", "provenance", "temporal"],
+    )
+    mtsf_graph_follow.add_argument("--depth", type=int, default=1)
+    mtsf_graph_expand = mtsf_sub.add_parser(
+        "graph-expand",
+        help="Progressively hydrate a graph node (identity, configuration, evidence, substrate)",
+    )
+    mtsf_graph_expand.add_argument("--session-id", required=True)
+    mtsf_graph_expand.add_argument("--node-id", required=True)
+    mtsf_graph_expand.add_argument(
+        "--facets",
+        default="identity,configuration,evidence",
+        help="Comma-separated facets: identity, configuration, evidence, substrate, payload, all",
+    )
     mtsf_extract_deep = mtsf_sub.add_parser(
         "extract-deep",
         help="Run deep semantic shape extraction for a session (skill pipeline)",
@@ -1759,6 +1787,37 @@ def main(argv: list[str] | None = None) -> int:
                 "warnings": report.warnings,
                 "index_path": str(default_shape_index_path(root)),
             }
+        elif args.mtsf_command == "graph-materialize":
+            from .mtsf_graph import materialize_session_graph
+            from .storage import read_json, session_dir
+
+            draft_path = session_dir(root, args.session_id) / "mtsf" / "extraction_draft.json"
+            draft = read_json(draft_path, default={})
+            if not draft:
+                raise FileNotFoundError(f"extraction draft not found: {draft_path}")
+            shape_index_path = session_dir(root, args.session_id) / "mtsf" / "shape_index.json"
+            shape_instances = read_json(shape_index_path, default={}).get("instances", [])
+            result = materialize_session_graph(
+                root,
+                args.session_id,
+                draft,
+                shape_instances=shape_instances,
+            )
+        elif args.mtsf_command == "graph-follow":
+            from .mtsf_graph import follow_traversal
+
+            result = follow_traversal(
+                root,
+                args.session_id,
+                start=args.start,
+                mode=args.mode,
+                depth=args.depth,
+            )
+        elif args.mtsf_command == "graph-expand":
+            from .mtsf_graph import expand_node
+
+            facets = [item.strip() for item in str(args.facets).split(",") if item.strip()]
+            result = expand_node(root, args.session_id, args.node_id, facets=facets)
         elif args.mtsf_command == "compare-pilot-002":
             result = run_pilot_002_comparison(
                 root,
