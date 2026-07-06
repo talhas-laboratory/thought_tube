@@ -26,6 +26,7 @@ PUBLIC_API = (
     "infer_session_signals",
     "build_entity_context",
     "materialize_session_mtsf",
+    "mtsf_framework_available",
 )
 __all__ = list(PUBLIC_API)
 
@@ -117,6 +118,10 @@ def default_entity_catalog_path(root: Path) -> Path:
         / "seed"
         / "entity-activation-catalog.json"
     )
+
+
+def mtsf_framework_available(root: Path) -> bool:
+    return default_entity_catalog_path(root).exists()
 
 
 def load_entity_catalog(root: Path) -> List[EntityActivationRecord]:

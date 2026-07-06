@@ -29,6 +29,8 @@ from .mtsf_extraction import (
     run_extraction_evals,
     validate_extraction_draft,
 )
+from .mtsf_ingest import materialize_session_mtsf_ingest
+from .mtsf_session import materialize_session_mtsf, mtsf_framework_available
 from .mtsf_projector import (
     default_shape_index_path,
     materialize_stencil_projection,
@@ -36,7 +38,6 @@ from .mtsf_projector import (
     resolve_stencil_projections,
 )
 from .mtsf_kernel import run_replay_scenarios
-from .mtsf_session import materialize_session_mtsf
 from .mtsf_stencils import validate_seed_library
 from .library_tracker import (
     apply_pond_router_preset as apply_pond_router_preset_admin,
@@ -333,7 +334,17 @@ def session_checkpoint(root: Path, args: argparse.Namespace) -> dict:
 def session_close(root: Path, args: argparse.Namespace) -> dict:
     checkpoint = materialize_transcript(root, args.session_id)
     analysis_refs = analyze_session(root, args.session_id)
-    mtsf_refs = materialize_session_mtsf(root, args.session_id)
+    if mtsf_framework_available(root):
+        mtsf_refs = materialize_session_mtsf(root, args.session_id)
+        mtsf_mode = getattr(args, "mtsf_mode", "fast")
+        mtsf_ingest = materialize_session_mtsf_ingest(root, args.session_id, mtsf_mode)
+    else:
+        mtsf_refs = {}
+        mtsf_ingest = {
+            "mtsf_ingest": "skipped",
+            "reason": "mtsf_framework_unavailable",
+            "artifact_refs": {},
+        }
     cards = materialize_cards(root, args.session_id)
     refresh_indexes(root)
     manifest_payload = session_dir(root, args.session_id) / "manifest.json"
@@ -343,6 +354,7 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
     manifest.artifact_refs.update(checkpoint)
     manifest.artifact_refs.update(analysis_refs)
     manifest.artifact_refs.update(mtsf_refs)
+    manifest.artifact_refs.update(mtsf_ingest.get("artifact_refs", {}))
     update_manifest(root, manifest)
     concept_refs = rebuild_conversation_concepts(root)
     session_concept_ref = concept_refs.get("session_refs", {}).get(args.session_id)
@@ -355,6 +367,7 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
         "materialized_cards": len(cards),
         "concept_nodes": concept_refs.get("concept_count", 0),
         "concept_reviews": concept_refs.get("review_count", 0),
+        "mtsf_ingest": mtsf_ingest,
     }
     if args.task_id:
         result["task_pack"] = build_task_pack(
@@ -433,6 +446,7 @@ def session_import(root: Path, args: argparse.Namespace) -> dict:
             task_id=args.task_id,
             request=args.request or args.title,
             task_type=args.task_type or "import_review",
+            mtsf_mode=getattr(args, "mtsf_mode", "fast"),
         ),
     )
 
@@ -562,6 +576,7 @@ def build_parser() -> argparse.ArgumentParser:
     close.add_argument("--task-id")
     close.add_argument("--request")
     close.add_argument("--task-type")
+    close.add_argument("--mtsf-mode", default="fast", choices=["fast", "off"])
 
     importer = session_sub.add_parser("import")
     importer.add_argument("--source-path", required=True)
@@ -574,6 +589,7 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--task-id")
     importer.add_argument("--request")
     importer.add_argument("--task-type")
+    importer.add_argument("--mtsf-mode", default="fast", choices=["fast", "off"])
 
     task_pack = sub.add_parser("task-pack")
     task_sub = task_pack.add_subparsers(dest="task_command", required=True)
