@@ -1,0 +1,60 @@
+{
+  "draft_id": "draft-fast-capture-ref",
+  "input_id": "eval-fast-capture-input",
+  "input_type": "text",
+  "capture_mode": "fast",
+  "subgraph_id": "work",
+  "raw_content": "Quick thought: the revision is stuck until I approve the first paragraph.",
+  "ontology_refs": {
+    "governing_roles": "mtsf://ontologies/governing-roles@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0",
+    "stencil_role_types": "mtsf://ontologies/stencil-role-types@1.0.0"
+  },
+  "provenance": {
+    "skill_id": "semantic-shape-extraction",
+    "skill_version": "1.0.0",
+    "model_id": "reference",
+    "stages_completed": ["capture", "surface", "entities", "qualities", "candidate_shapes"]
+  },
+  "entities": [
+    {
+      "proposed_id": "entity-revision",
+      "name": "revision",
+      "type": "composite",
+      "stable_identity": ["writing revision process"],
+      "confidence": 0.88,
+      "evidence": { "spans": ["the revision is stuck"] }
+    }
+  ],
+  "qualities": [
+    {
+      "quality_id": "quality-stuck",
+      "quality_type": "meta_state",
+      "intensity": 0.84,
+      "kind": "emergent",
+      "entity_ref": "entity-revision",
+      "labels": ["stuck", "blocked"],
+      "confidence": 0.86,
+      "evidence": { "spans": ["revision is stuck"] }
+    }
+  ],
+  "relations": [],
+  "candidate_shapes": [
+    {
+      "proposed_id": "cand-approval-gate",
+      "possible_names": ["self-approval bottleneck"],
+      "relational_configuration": "revision blocked by first-paragraph approval gate",
+      "entity_refs": ["entity-revision"],
+      "quality_refs": ["quality-stuck"],
+      "confidence": 0.7,
+      "evidence": { "spans": ["stuck until I approve the first paragraph"] }
+    }
+  ],
+  "stencil_drafts": [],
+  "uncertainties": [
+    "Structural stencil not extracted in fast mode."
+  ],
+  "user_questions": [],
+  "confidence": 0.75,
+  "status": "proposed"
+}

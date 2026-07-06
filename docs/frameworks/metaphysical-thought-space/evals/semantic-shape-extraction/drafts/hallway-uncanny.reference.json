@@ -1,0 +1,189 @@
+{
+  "draft_id": "draft-hallway-uncanny-ref",
+  "input_id": "eval-hallway-uncanny-input",
+  "input_type": "text",
+  "capture_mode": "deep",
+  "subgraph_id": "personal",
+  "scope": "session",
+  "raw_content": "An empty hallway with cold fluorescent light feels peaceful but also watched.",
+  "ontology_refs": {
+    "governing_roles": "mtsf://ontologies/governing-roles@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0",
+    "stencil_role_types": "mtsf://ontologies/stencil-role-types@1.0.0"
+  },
+  "provenance": {
+    "skill_id": "semantic-shape-extraction",
+    "skill_version": "1.0.0",
+    "model_id": "reference",
+    "stages_completed": [
+      "capture",
+      "surface",
+      "entities",
+      "qualities",
+      "quality_roles",
+      "relations",
+      "candidate_shapes",
+      "stencil_drafts",
+      "activation_hint"
+    ]
+  },
+  "entities": [
+    {
+      "proposed_id": "entity-hallway",
+      "name": "hallway",
+      "type": "composite",
+      "stable_identity": ["architectural passage"],
+      "confidence": 0.93,
+      "evidence": { "spans": ["empty hallway"] }
+    },
+    {
+      "proposed_id": "entity-fluorescent-light",
+      "name": "fluorescent light",
+      "type": "sub_entity",
+      "sub_entity_type": "sensory",
+      "parent_entity_ref": "entity-hallway",
+      "stable_identity": ["cold artificial illumination"],
+      "confidence": 0.9,
+      "evidence": { "spans": ["cold fluorescent light"] }
+    }
+  ],
+  "sub_entities": [],
+  "qualities": [
+    {
+      "quality_id": "quality-empty",
+      "quality_type": "sensory",
+      "intensity": 0.88,
+      "kind": "contextual",
+      "entity_ref": "entity-hallway",
+      "labels": ["empty"],
+      "confidence": 0.92,
+      "evidence": { "spans": ["empty hallway"] }
+    },
+    {
+      "quality_id": "quality-cold",
+      "quality_type": "sensory",
+      "intensity": 0.8,
+      "kind": "intrinsic",
+      "entity_ref": "entity-fluorescent-light",
+      "labels": ["cold"],
+      "confidence": 0.9,
+      "evidence": { "spans": ["cold fluorescent light"] }
+    },
+    {
+      "quality_id": "quality-peaceful",
+      "quality_type": "emotional",
+      "intensity": 0.7,
+      "kind": "emergent",
+      "entity_ref": "entity-hallway",
+      "labels": ["peaceful", "calm"],
+      "confidence": 0.78,
+      "evidence": { "spans": ["feels peaceful"] }
+    },
+    {
+      "quality_id": "quality-watched",
+      "quality_type": "emotional",
+      "intensity": 0.82,
+      "kind": "emergent",
+      "entity_ref": "entity-hallway",
+      "labels": ["watched"],
+      "confidence": 0.85,
+      "evidence": { "spans": ["but also watched"] }
+    }
+  ],
+  "quality_roles": [
+    {
+      "quality_ref": "quality-empty",
+      "entity_ref": "entity-hallway",
+      "role": "defining",
+      "confidence": 0.86,
+      "evidence": { "spans": ["empty hallway"] }
+    },
+    {
+      "quality_ref": "quality-watched",
+      "entity_ref": "entity-hallway",
+      "role": "contrasting",
+      "confidence": 0.8,
+      "evidence": { "spans": ["peaceful but also watched"] }
+    }
+  ],
+  "relations": [
+    {
+      "source_ref": "quality-empty",
+      "target_ref": "quality-watched",
+      "level": "quality_quality",
+      "relation_type": "amplifies",
+      "primitive": "intensifies",
+      "domain_expression": "emptiness intensifies watchedness",
+      "weight": 0.78,
+      "confidence": 0.72,
+      "evidence": { "spans": ["peaceful but also watched"] }
+    },
+    {
+      "source_ref": "entity-fluorescent-light",
+      "target_ref": "quality-watched",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "cold artificial light conditions uncanny watched calm",
+      "weight": 0.74,
+      "confidence": 0.7,
+      "evidence": { "spans": ["cold fluorescent light", "watched"] }
+    }
+  ],
+  "candidate_shapes": [
+    {
+      "proposed_id": "cand-uncanny-calm",
+      "possible_names": ["uncanny calm", "artificial solitude"],
+      "relational_configuration": "empty + cold artificial light + quiet → watched stillness",
+      "entity_refs": ["entity-hallway"],
+      "quality_refs": ["quality-empty", "quality-watched", "quality-peaceful"],
+      "confidence": 0.76,
+      "evidence": { "spans": ["feels peaceful but also watched"] }
+    }
+  ],
+  "stencil_drafts": [
+    {
+      "proposed_name": "emptiness modulates watched landscape",
+      "role_entities": [
+        { "role_type": "field" },
+        { "role_type": "landscape" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "field",
+          "target_role_ref": "landscape",
+          "primitive": "modulates",
+          "relation_type": "warps"
+        }
+      ],
+      "dynamics_class": "gradient",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": { "causal_geometry": true },
+      "confidence": 0.74,
+      "evidence": {
+        "spans": ["empty hallway", "peaceful but also watched"],
+        "source_refs": ["seed:stencil-context-warps-topology"]
+      }
+    }
+  ],
+  "activation_snapshot_hint": {
+    "formation_phase": "partial_population",
+    "dominant_entity_refs": ["entity-hallway"],
+    "active_quality_refs": ["quality-empty", "quality-watched"]
+  },
+  "artifact_pathways": [
+    {
+      "medium": "scene",
+      "rationale": "Strong sensory/emotional scene configuration",
+      "confidence": 0.65
+    }
+  ],
+  "uncertainties": [
+    "Whether watchedness implies threat, surveillance, or sacred stillness is not fully determined."
+  ],
+  "user_questions": [
+    "Does the watched feeling feel threatening, curious, or sacred to you?"
+  ],
+  "confidence": 0.8,
+  "status": "proposed"
+}

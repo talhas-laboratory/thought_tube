@@ -1,0 +1,22 @@
+{
+  "id": "eval-hallway-uncanny",
+  "description": "Empty hallway with uncanny watched calm — must not over-speculate",
+  "input": {
+    "input_id": "eval-hallway-uncanny-input",
+    "input_type": "text",
+    "capture_mode": "deep",
+    "raw_content": "An empty hallway with cold fluorescent light feels peaceful but also watched."
+  },
+  "reference_draft_path": "drafts/hallway-uncanny.reference.json",
+  "expectations": {
+    "validation_must_pass": true,
+    "quarantine_must_pass": true,
+    "min_entities": 2,
+    "required_entity_name_fragments": ["hallway"],
+    "forbidden_entity_name_fragments": ["capitalism", "trauma"],
+    "required_quality_fragments": ["empty", "watched"],
+    "min_relations": 1,
+    "min_candidate_shapes": 1,
+    "max_uncertainties": 6
+  }
+}

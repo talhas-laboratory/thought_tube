@@ -1,0 +1,162 @@
+{
+  "draft_id": "draft-latent-triangulation-ref",
+  "input_id": "eval-latent-triangulation-input",
+  "input_type": "text",
+  "capture_mode": "deep",
+  "subgraph_id": "research",
+  "raw_content": "Explain how the same query would be processed by an agent without any prior context, with relevant prior context, and with unrelated prior context.",
+  "ontology_refs": {
+    "governing_roles": "mtsf://ontologies/governing-roles@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0",
+    "stencil_role_types": "mtsf://ontologies/stencil-role-types@1.0.0"
+  },
+  "provenance": {
+    "skill_id": "semantic-shape-extraction",
+    "skill_version": "1.0.0",
+    "model_id": "reference",
+    "stages_completed": [
+      "capture",
+      "entities",
+      "qualities",
+      "relations",
+      "candidate_shapes",
+      "stencil_drafts",
+      "activation_hint"
+    ]
+  },
+  "entities": [
+    {
+      "proposed_id": "entity-query",
+      "name": "query",
+      "type": "atomic",
+      "stable_identity": ["processing request"],
+      "confidence": 0.9,
+      "evidence": { "spans": ["the same query"] }
+    },
+    {
+      "proposed_id": "entity-context-field",
+      "name": "context field",
+      "type": "composite",
+      "stable_identity": ["prior runs as conditioning field"],
+      "confidence": 0.92,
+      "evidence": { "spans": ["prior context", "unrelated prior context"] }
+    },
+    {
+      "proposed_id": "entity-agent-path",
+      "name": "inference path",
+      "type": "composite",
+      "stable_identity": ["processing trajectory"],
+      "confidence": 0.88,
+      "evidence": { "spans": ["would be processed"] }
+    }
+  ],
+  "qualities": [
+    {
+      "quality_id": "quality-cold-start",
+      "quality_type": "meta_state",
+      "intensity": 0.85,
+      "kind": "contextual",
+      "entity_ref": "entity-context-field",
+      "labels": ["no prior context"],
+      "confidence": 0.9,
+      "evidence": { "spans": ["without any prior context"] }
+    },
+    {
+      "quality_id": "quality-anchored",
+      "quality_type": "meta_state",
+      "intensity": 0.88,
+      "kind": "contextual",
+      "entity_ref": "entity-context-field",
+      "labels": ["relevant prior context"],
+      "confidence": 0.9,
+      "evidence": { "spans": ["relevant prior context"] }
+    },
+    {
+      "quality_id": "quality-orthogonal",
+      "quality_type": "meta_state",
+      "intensity": 0.86,
+      "kind": "contextual",
+      "entity_ref": "entity-context-field",
+      "labels": ["unrelated prior context"],
+      "confidence": 0.9,
+      "evidence": { "spans": ["unrelated prior context"] }
+    }
+  ],
+  "relations": [
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-agent-path",
+      "level": "entity_entity",
+      "relation_type": "steers",
+      "primitive": "modulates",
+      "domain_expression": "context steers inference path",
+      "weight": 0.9,
+      "confidence": 0.88,
+      "evidence": { "spans": ["processed by an agent", "prior context"] }
+    },
+    {
+      "source_ref": "entity-query",
+      "target_ref": "entity-agent-path",
+      "level": "entity_entity",
+      "relation_type": "initiates",
+      "primitive": "enables",
+      "domain_expression": "query initiates processing path",
+      "weight": 0.85,
+      "confidence": 0.86,
+      "evidence": { "spans": ["the same query would be processed"] }
+    }
+  ],
+  "candidate_shapes": [
+    {
+      "proposed_id": "cand-triangulation",
+      "possible_names": ["three-case context triangulation"],
+      "relational_configuration": "cold start vs anchored vs orthogonal context → different paths",
+      "entity_refs": ["entity-context-field", "entity-agent-path", "entity-query"],
+      "quality_refs": ["quality-cold-start", "quality-anchored", "quality-orthogonal"],
+      "confidence": 0.91,
+      "evidence": { "spans": ["without any prior context", "relevant prior context", "unrelated prior context"] }
+    }
+  ],
+  "stencil_drafts": [
+    {
+      "proposed_name": "context field modulates probe path",
+      "role_entities": [
+        { "role_type": "field" },
+        { "role_type": "probe" },
+        { "role_type": "landscape" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "field",
+          "target_role_ref": "probe",
+          "primitive": "modulates",
+          "relation_type": "steers"
+        },
+        {
+          "source_role_ref": "field",
+          "target_role_ref": "landscape",
+          "primitive": "modulates",
+          "relation_type": "warps"
+        }
+      ],
+      "dynamics_class": "gradient",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": { "causal_geometry": true },
+      "confidence": 0.89,
+      "evidence": {
+        "spans": ["prior context", "unrelated prior context"],
+        "source_refs": ["seed:stencil-context-warps-topology", "move-triangulation"]
+      }
+    }
+  ],
+  "activation_snapshot_hint": {
+    "formation_phase": "partial_population",
+    "meta_move_id": "move-triangulation",
+    "dominant_entity_refs": ["entity-context-field"],
+    "active_quality_refs": ["quality-cold-start", "quality-anchored", "quality-orthogonal"]
+  },
+  "uncertainties": [],
+  "user_questions": [],
+  "confidence": 0.9,
+  "status": "proposed"
+}

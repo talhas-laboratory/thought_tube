@@ -23,6 +23,12 @@ from .development_intake import (
 )
 from .development_router import route_development_idea
 from .engineering_guard import assess_change_request
+from .mtsf_extraction import (
+    assess_quarantine,
+    materialize_extraction_draft,
+    run_extraction_evals,
+    validate_extraction_draft,
+)
 from .mtsf_kernel import run_replay_scenarios
 from .mtsf_session import materialize_session_mtsf
 from .mtsf_stencils import validate_seed_library
@@ -97,6 +103,7 @@ from .storage import (
     slugify,
     task_packs_dir,
     utc_now,
+    write_json,
     workspace_artifact_links_path as _workspace_artifact_links_path,
     workspace_context_dir as _workspace_context_dir,
     workspace_dir as _workspace_dir,
@@ -638,6 +645,18 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_sub = mtsf.add_subparsers(dest="mtsf_command", required=True)
     mtsf_sub.add_parser("replay-pilot-002", help="Run Pilot 002 shape activation replay scenarios")
     mtsf_sub.add_parser("validate-stencils", help="Validate seed stencil library and fingerprints")
+    mtsf_validate_extraction = mtsf_sub.add_parser(
+        "validate-extraction",
+        help="Validate an ExtractionDraft JSON file",
+    )
+    mtsf_validate_extraction.add_argument("--draft-path", required=True)
+    mtsf_materialize_extraction = mtsf_sub.add_parser(
+        "materialize-extraction",
+        help="Validate and materialize an ExtractionDraft into session MTSF artifacts",
+    )
+    mtsf_materialize_extraction.add_argument("--session-id", required=True)
+    mtsf_materialize_extraction.add_argument("--draft-path", required=True)
+    mtsf_sub.add_parser("run-extraction-evals", help="Run semantic shape extraction eval suite")
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1543,6 +1562,31 @@ def main(argv: list[str] | None = None) -> int:
             result = run_replay_scenarios(root)
         elif args.mtsf_command == "validate-stencils":
             result = validate_seed_library(root)
+        elif args.mtsf_command == "validate-extraction":
+            draft = read_json(Path(args.draft_path))
+            report = validate_extraction_draft(root, draft)
+            quarantine = assess_quarantine(draft, report)
+            result = {
+                "ok": report.ok,
+                "errors": report.errors,
+                "warnings": report.warnings,
+                "quarantine": quarantine.quarantine,
+                "quarantine_reasons": quarantine.reasons,
+                "stencil_matches": report.stencil_matches,
+            }
+        elif args.mtsf_command == "materialize-extraction":
+            draft = read_json(Path(args.draft_path))
+            result = materialize_extraction_draft(root, args.session_id, draft)
+            manifest_path = session_dir(root, args.session_id) / "manifest.json"
+            if manifest_path.exists():
+                from .analysis import update_manifest
+                from .models import SessionManifest
+
+                manifest = SessionManifest(**read_json(manifest_path))
+                manifest.artifact_refs.update(result["artifact_refs"])
+                update_manifest(root, manifest)
+        elif args.mtsf_command == "run-extraction-evals":
+            result = run_extraction_evals(root)
         else:
             raise ValueError(args.mtsf_command)
     elif args.command == "openclaw":

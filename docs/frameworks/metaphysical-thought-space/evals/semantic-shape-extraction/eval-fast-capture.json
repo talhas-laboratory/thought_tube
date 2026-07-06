@@ -1,0 +1,18 @@
+{
+  "id": "eval-fast-capture",
+  "description": "Fast mode note — minimal structure, no stencil required",
+  "input": {
+    "input_id": "eval-fast-capture-input",
+    "input_type": "text",
+    "capture_mode": "fast",
+    "raw_content": "Quick thought: the revision is stuck until I approve the first paragraph."
+  },
+  "reference_draft_path": "drafts/fast-capture.reference.json",
+  "expectations": {
+    "validation_must_pass": true,
+    "quarantine_must_pass": true,
+    "min_entities": 1,
+    "stencil_drafts_max": 0,
+    "min_candidate_shapes": 0
+  }
+}

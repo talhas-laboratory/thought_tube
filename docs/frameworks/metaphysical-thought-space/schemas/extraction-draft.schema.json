@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/extraction-draft",
+  "title": "ExtractionDraft",
+  "description": "Agent-proposed semantic shape extraction. Code validates, quarantines, and materializes; never auto-promotes to canonical graph.",
+  "type": "object",
+  "required": [
+    "draft_id",
+    "input_id",
+    "input_type",
+    "capture_mode",
+    "provenance",
+    "confidence"
+  ],
+  "properties": {
+    "draft_id": { "type": "string" },
+    "input_id": { "type": "string" },
+    "input_type": {
+      "type": "string",
+      "enum": ["text", "image", "audio", "video", "file", "memory", "artifact", "import"]
+    },
+    "capture_mode": {
+      "type": "string",
+      "enum": ["fast", "deep", "pattern_discovery"]
+    },
+    "session_id": { "type": "string" },
+    "subgraph_id": { "type": "string" },
+    "scope": {
+      "type": "string",
+      "enum": ["session", "project", "world", "global"],
+      "default": "session"
+    },
+    "raw_content": {
+      "type": "string",
+      "description": "Inline source text when no external ref is used"
+    },
+    "raw_content_ref": {
+      "type": "string",
+      "description": "Path or URI to preserved raw input"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "user_goal": { "type": "string" },
+        "project": { "type": "string" },
+        "domain": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "ontology_refs": {
+      "type": "object",
+      "properties": {
+        "governing_roles": { "type": "string" },
+        "relation_primitives": { "type": "string" },
+        "stencil_role_types": { "type": "string" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["skill_id", "skill_version", "stages_completed"],
+      "properties": {
+        "skill_id": { "type": "string" },
+        "skill_version": { "type": "string" },
+        "model_id": { "type": "string" },
+        "extracted_at": { "type": "string", "format": "date-time" },
+        "stages_completed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "capture",
+              "surface",
+              "entities",
+              "sub_entities",
+              "qualities",
+              "quality_roles",
+              "relations",
+              "candidate_shapes",
+              "stencil_drafts",
+              "activation_hint"
+            ]
+          }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity_draft" }
+    },
+    "sub_entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity_draft" }
+    },
+    "qualities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quality_draft" }
+    },
+    "quality_roles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quality_role_draft" }
+    },
+    "relations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relation_draft" }
+    },
+    "candidate_shapes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/candidate_shape_draft" }
+    },
+    "stencil_drafts": {
+      "type": "array",
+      "items": { "$ref": "stencil-draft.schema.json" }
+    },
+    "activation_snapshot_hint": {
+      "type": "object",
+      "properties": {
+        "formation_phase": { "type": "string" },
+        "meta_shape_id": { "type": "string" },
+        "meta_move_id": { "type": "string" },
+        "dominant_entity_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "active_quality_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "artifact_pathways": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "medium": { "type": "string" },
+          "rationale": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "user_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["proposed", "validated", "quarantined", "promoted"],
+      "default": "proposed"
+    }
+  },
+  "$defs": {
+    "evidence_bundle": {
+      "type": "object",
+      "required": ["spans"],
+      "properties": {
+        "spans": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "source_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "entity_draft": {
+      "type": "object",
+      "required": ["proposed_id", "name", "type", "evidence"],
+      "properties": {
+        "proposed_id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["atomic", "composite", "sub_entity"]
+        },
+        "sub_entity_type": { "type": "string" },
+        "parent_entity_ref": { "type": "string" },
+        "stable_identity": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["proposed", "provisional"],
+          "default": "proposed"
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidence_bundle" }
+      }
+    },
+    "quality_draft": {
+      "type": "object",
+      "required": ["quality_id", "intensity", "evidence"],
+      "properties": {
+        "quality_id": { "type": "string" },
+        "quality_type": {
+          "type": "string",
+          "enum": [
+            "sensory",
+            "emotional",
+            "symbolic",
+            "formal",
+            "temporal",
+            "relational",
+            "functional",
+            "ontological",
+            "generative",
+            "meta_state"
+          ]
+        },
+        "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["intrinsic", "contextual", "emergent"]
+        },
+        "entity_ref": { "type": "string" },
+        "labels": { "type": "array", "items": { "type": "string" } },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidence_bundle" }
+      }
+    },
+    "quality_role_draft": {
+      "type": "object",
+      "required": ["quality_ref", "role", "evidence"],
+      "properties": {
+        "quality_ref": { "type": "string" },
+        "entity_ref": { "type": "string" },
+        "role": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidence_bundle" }
+      }
+    },
+    "relation_draft": {
+      "type": "object",
+      "required": ["source_ref", "target_ref", "relation_type", "evidence"],
+      "properties": {
+        "source_ref": { "type": "string" },
+        "target_ref": { "type": "string" },
+        "level": {
+          "type": "string",
+          "enum": [
+            "entity_entity",
+            "quality_entity",
+            "quality_quality",
+            "entity_artifact"
+          ]
+        },
+        "relation_type": { "type": "string" },
+        "primitive": { "type": "string" },
+        "domain_expression": { "type": "string" },
+        "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidence_bundle" }
+      }
+    },
+    "candidate_shape_draft": {
+      "type": "object",
+      "required": ["proposed_id", "possible_names", "evidence"],
+      "properties": {
+        "proposed_id": { "type": "string" },
+        "possible_names": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "relational_configuration": { "type": "string" },
+        "entity_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "quality_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidence_bundle" }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "eval-latent-triangulation",
+  "description": "Pilot 002 triangulation pattern — context overlap vs orthogonal",
+  "input": {
+    "input_id": "eval-latent-triangulation-input",
+    "input_type": "text",
+    "capture_mode": "deep",
+    "raw_content": "Explain how the same query would be processed by an agent without any prior context, with relevant prior context, and with unrelated prior context."
+  },
+  "reference_draft_path": "drafts/latent-triangulation.reference.json",
+  "expectations": {
+    "validation_must_pass": true,
+    "quarantine_must_pass": true,
+    "min_entities": 2,
+    "required_entity_name_fragments": ["context", "query"],
+    "min_relations": 2,
+    "min_stencil_drafts": 1,
+    "required_stencil_seed_refs": ["stencil-context-warps-topology"]
+  }
+}

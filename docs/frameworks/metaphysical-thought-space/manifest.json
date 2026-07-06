@@ -67,6 +67,7 @@
   "schemas_v1_1": [
     "stencil.schema.json",
     "stencil-draft.schema.json",
+    "extraction-draft.schema.json",
     "shape-activation-condition.schema.json",
     "shape-instance.schema.json",
     "problem-shape.schema.json",
@@ -79,5 +80,11 @@
     "activation-conditions.json",
     "entity-activation-catalog.json",
     "stencils.json"
+  ],
+  "skills_v1_1": [
+    "semantic-shape-extraction"
+  ],
+  "evals_v1_1": [
+    "semantic-shape-extraction"
   ]
 }
