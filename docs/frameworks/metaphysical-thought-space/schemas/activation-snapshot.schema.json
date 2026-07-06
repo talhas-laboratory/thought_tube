@@ -25,6 +25,33 @@
         "initial_spark", "partial_population", "nonlinear_activation",
         "intensity_shifts", "structural_binding", "artifact_formation"
       ]
+    },
+    "subgraph_id": { "type": "string" },
+    "meta_shape_id": { "type": "string" },
+    "active_stencil_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "matched_conditions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "ShapeActivationCondition ids that fired for this snapshot"
+    },
+    "shape_activation_results": {
+      "type": "array",
+      "description": "Per-entity activation results at snapshot time",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity_id": { "type": "string" },
+          "dominant_shape_id": { "type": "string" },
+          "secondary_shape_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
     }
   }
 }

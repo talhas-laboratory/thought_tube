@@ -26,6 +26,49 @@
       "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
     },
     "context": { "type": "string" },
+    "stencil_id": {
+      "type": "string",
+      "description": "Reference to domain-agnostic stencil core (v1.1)"
+    },
+    "domain_skin": {
+      "type": "string",
+      "description": "Domain-specific surface layer; stripped for cross-domain match"
+    },
+    "dynamics_class": {
+      "type": "string",
+      "enum": [
+        "feedback_reinforcing",
+        "feedback_balancing",
+        "bottleneck",
+        "reservoir",
+        "gradient",
+        "equilibrium",
+        "collapse",
+        "oscillation",
+        "tight_coupling",
+        "star_topology",
+        "mesh_topology",
+        "hierarchy",
+        "other"
+      ]
+    },
+    "symmetry_profile": {
+      "type": "string",
+      "enum": [
+        "symmetric",
+        "antisymmetric",
+        "asymmetric",
+        "chiral",
+        "broken_symmetry",
+        "mixed",
+        "unknown"
+      ]
+    },
+    "problem_signal": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when shape represents a roadblock configuration"
+    },
     "scale": {
       "type": "string",
       "enum": [

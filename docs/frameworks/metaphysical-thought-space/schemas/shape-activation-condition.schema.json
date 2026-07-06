@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/shape-activation-condition",
+  "title": "ShapeActivationCondition",
+  "description": "Typed predicate that activates a shape state on an entity when matched.",
+  "type": "object",
+  "required": ["id", "entity_id", "activates_shape_id", "predicate"],
+  "properties": {
+    "id": { "type": "string" },
+    "entity_id": { "type": "string" },
+    "activates_shape_id": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["provisional", "stabilized", "deprecated"],
+      "default": "provisional"
+    },
+    "priority": { "type": "number", "minimum": 0, "maximum": 1 },
+    "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+    "predicate": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "context_domain_overlap",
+            "context_domain_orthogonal",
+            "context_absent",
+            "quality_threshold",
+            "relation_pattern",
+            "formation_phase",
+            "meta_move",
+            "meta_shape",
+            "explicit_lens",
+            "problem_signal",
+            "absence_of_isomorph",
+            "composite"
+          ]
+        },
+        "min_overlap_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_semantic_similarity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "quality_id": { "type": "string" },
+        "min_intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "formation_phase": { "type": "string" },
+        "meta_move_id": { "type": "string" },
+        "meta_shape_id": { "type": "string" },
+        "lens": { "type": "string" },
+        "relation_pattern_id": { "type": "string" },
+        "subpredicates": {
+          "type": "array",
+          "items": { "$ref": "#" },
+          "description": "For composite type: all must match (AND)"
+        }
+      }
+    },
+    "rule_source": {
+      "type": "string",
+      "enum": ["declared", "discovered", "seed_pilot", "user_confirmed"],
+      "default": "declared"
+    },
+    "evidence_sessions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "notes": { "type": "string" }
+  }
+}

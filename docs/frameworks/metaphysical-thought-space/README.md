@@ -1,10 +1,20 @@
 # Metaphysical Thought-Space Framework
 
-Formal modular system extracted from the conversation **"05.07._Latent Space and Transformers"** (2026-07-05).
+**Version 1.1.0** — see [MTSF-v1.1-amendment.md](MTSF-v1.1-amendment.md) for extensions after pilot experiments.
 
-**Sandbox for this thread:** [`sandbox/2026-07-05-metaphysical-thought-space/`](../../sandbox/2026-07-05-metaphysical-thought-space/README.md) (session `session-98b310abc3e0`)
+Formal modular system extracted from the conversation **"05.07._Latent Space and Transformers"** (2026-07-05), extended through Pilots 001–003 and mind-web design sessions.
 
-This framework models how pre-material thought becomes navigable, discoverable, and actualizable — with latent space and transformers as the first scalable machine-operational bridge to artifacts.
+**Sandbox:** [`sandbox/2026-07-05-metaphysical-thought-space/`](../../sandbox/2026-07-05-metaphysical-thought-space/README.md)
+
+## Essence (v1.1 north star)
+
+```text
+qualities + relations → shape (stencil at core, domain skin at surface)
+entities carry shapes in scoped subgraphs
+activation conditions determine what is live
+shape index connects domains through shared stencils
+problem-solving = stencil match + slot transfer + domain translation
+```
 
 ## Core thesis (compressed)
 
@@ -44,10 +54,14 @@ thought-field
 | 11 | [Discovery Pipeline](modules/11-discovery-pipeline.md) | Bottom-up shape detection, snapshots, detectors |
 | 12 | [Actualization Engine](modules/12-actualization-engine.md) | Materialization paths across domains |
 | 13 | [Intelligence Integration](modules/13-intelligence-integration.md) | Model vs code roles, adapters, validation sandwich |
+| 14 | [Shape Activation](modules/14-shape-activation.md) | Conditions → shape states; `reduce_identity` contract |
+| — | [v1.1 Amendment](MTSF-v1.1-amendment.md) | Stencil layer, shape index, meta/problem/mind-web extensions |
+
+**Planned (v1.1):** 15 Meta Reasoning, 16 Problem Shaping, 17 Mind-Web Operations
 
 ## Artifact types
 
-- **Schemas** (`schemas/`): JSON Schema for runtime records
+- **Schemas** (`schemas/`): JSON Schema for runtime records (v1.1 adds stencil, activation, shape-instance, problem-shape, analogical-match)
 - **Ontologies** (`ontologies/`): Machine-readable vocabularies
 - **Mappings** (`mappings/`): Alignment with Inner World glossary and latent-space correspondence
 
@@ -58,9 +72,15 @@ thought-field
 entity = identity + qualities + relations + intensity + temporal_state + potential_actualizations
 ```
 
-**Shape definition:**
+**Shape definition (v1.0):**
 ```text
 shape = selected_qualities + relation_configuration + intensity_weights + context + time
+```
+
+**Stencil + shape (v1.1):**
+```text
+stencil = role_entities + relation_topology + dynamics_class + symmetry_profile
+full_shape = stencil + domain_skin + contextual qualities + time
 ```
 
 **Object emergence:**
@@ -105,7 +125,10 @@ capture_traces
 5. **One entity, many simultaneous shape-states**
 6. **Temporary shape first; promote to entity when recurring and rich**
 7. **Latent space approximates semantic possibility; it is not metaphysical space**
+8. **Match on stencil; mean in context** (v1.1)
+9. **Implicit cross-domain links go through shape index** (v1.1)
+10. **Silence is valid output** (v1.1)
 
 ## Inner World alignment
 
-See [mappings/inner-world-glossary.md](mappings/inner-world-glossary.md) for term correspondence (`formation` ↔ shape/configuration, `entity` ↔ idea-entity/sub-entity, etc.).
+See [mappings/inner-world-glossary.md](mappings/inner-world-glossary.md) and [mappings/pilot-learnings.md](mappings/pilot-learnings.md).

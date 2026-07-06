@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/stencil",
+  "title": "Stencil",
+  "description": "Domain-agnostic structural core of a shape. Used for cross-domain matching and problem shaping.",
+  "type": "object",
+  "required": ["id", "name"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["provisional", "stabilized", "deprecated"],
+      "default": "provisional"
+    },
+    "role_entities": {
+      "type": "array",
+      "description": "Abstract nodes (roles, not domain nouns)",
+      "items": {
+        "type": "object",
+        "required": ["role_id", "role_type"],
+        "properties": {
+          "role_id": { "type": "string" },
+          "role_type": {
+            "type": "string",
+            "description": "e.g. source, sink, bottleneck, mediator, buffer, controller"
+          },
+          "governing_roles": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "relation_topology": {
+      "type": "array",
+      "description": "Directed relational structure between role_entities",
+      "items": {
+        "type": "object",
+        "required": ["source_role_id", "target_role_id", "primitive"],
+        "properties": {
+          "source_role_id": { "type": "string" },
+          "target_role_id": { "type": "string" },
+          "primitive": { "type": "string" },
+          "relation_type": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "direction": {
+            "type": "string",
+            "enum": ["forward", "bidirectional", "feedback"]
+          }
+        }
+      }
+    },
+    "dynamics_class": {
+      "type": "string",
+      "enum": [
+        "feedback_reinforcing",
+        "feedback_balancing",
+        "bottleneck",
+        "reservoir",
+        "gradient",
+        "equilibrium",
+        "collapse",
+        "oscillation",
+        "tight_coupling",
+        "star_topology",
+        "mesh_topology",
+        "hierarchy",
+        "other"
+      ]
+    },
+    "temporal_profile": {
+      "type": "object",
+      "properties": {
+        "growth_class": {
+          "type": "string",
+          "enum": ["linear", "exponential", "step", "decay", "stable", "unknown"]
+        },
+        "phase": {
+          "type": "string",
+          "enum": ["emerging", "accelerating", "plateau", "depleting", "resolving", "unknown"]
+        }
+      }
+    },
+    "constraint_profile": {
+      "type": "object",
+      "properties": {
+        "limiting_factors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tradeoff_type": {
+          "type": "string",
+          "enum": ["zero_sum", "orthogonal", "aligned", "unknown"]
+        }
+      }
+    },
+    "symmetry_profile": {
+      "type": "string",
+      "enum": [
+        "symmetric",
+        "antisymmetric",
+        "asymmetric",
+        "chiral",
+        "broken_symmetry",
+        "mixed",
+        "unknown"
+      ]
+    },
+    "facet_completeness": {
+      "type": "object",
+      "description": "Which abstraction facets have been extracted",
+      "properties": {
+        "causal_geometry": { "type": "boolean", "default": false },
+        "temporal_dynamics": { "type": "boolean", "default": false },
+        "constraint_landscape": { "type": "boolean", "default": false },
+        "cybernetic_feedback": { "type": "boolean", "default": false }
+      }
+    },
+    "facets_extracted_order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "causal_geometry",
+          "temporal_dynamics",
+          "constraint_landscape",
+          "cybernetic_feedback"
+        ]
+      }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "source_refs": { "type": "array", "items": { "type": "string" } },
+        "recurrence_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "possible_names": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hypothesis labels — not canonical until stabilized"
+    }
+  }
+}

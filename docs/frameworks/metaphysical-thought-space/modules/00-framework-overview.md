@@ -12,6 +12,8 @@ A modular formal system for modeling pre-material thought as navigable, discover
 ┌─────────────────────────────────────────────────────────────┐
 │  Layer 12: Actualization Engine → artifacts                 │
 ├─────────────────────────────────────────────────────────────┤
+│  Layer 14: Shape Activation → conditions, reduce_identity   │
+├─────────────────────────────────────────────────────────────┤
 │  Layer 11: Discovery Pipeline → latent shapes, detectors    │
 ├─────────────────────────────────────────────────────────────┤
 │  Layer 08: Shape System → configurations, multi-scale       │
@@ -77,6 +79,21 @@ metaphysical_object = weighted_relational_graph_of_qualities → emergent_identi
 6. Relations form objects, not only connect them
 7. Discovery must work without pre-known shape
 8. Generation is constraint-binding, not pure manifestation
+9. Stencil ≠ full shape — match on stencil, mean in context
+10. Meta graph ≠ content graph
+11. Implicit cross-domain links go through shape index, not entity mesh
+12. Silence is valid system output
+13. Contradiction may remain unresolved
+
+## v1.1 extensions
+
+See [MTSF-v1.1-amendment.md](../MTSF-v1.1-amendment.md).
+
+```text
+full_shape → stencil projection → shape index
+activation_context → reduce_identity → shape_activation_result
+problem_signal → problem_shape → analogical_match (quarantined)
+```
 
 ## Conversation coverage map
 
@@ -98,6 +115,9 @@ metaphysical_object = weighted_relational_graph_of_qualities → emergent_identi
 | Multiple shapes per entity | 05, 08 |
 | Quality roles in formation | 10 |
 | Governing categorical roles | 10 |
+| Shape activation / conditions | 14 |
+| Cross-domain stencil match | 14, amendment |
+| Problem shaping / transfer | amendment (Module 16 planned) |
 
 ## Implementation stance
 

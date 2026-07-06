@@ -4,8 +4,9 @@
   "layer": "substrate",
   "owner": "docs/frameworks/metaphysical-thought-space",
   "status": "active",
-  "version": "1.0.0",
-  "contract_version": "1",
+  "version": "1.1.0",
+  "contract_version": "2",
+  "amendment": "MTSF-v1.1-amendment.md",
   "purpose": "Formal modular extraction of the latent-space / transformers / thought-space framework discussed in the 2026-07-05 conversation. Preserves philosophical grounding, ontologies, schemas, and operational pipelines without loss.",
   "source": {
     "conversation_title": "05.07._Latent Space and Transformers",
@@ -55,6 +56,19 @@
     "10-quality-roles",
     "11-discovery-pipeline",
     "12-actualization-engine",
-    "13-intelligence-integration"
+    "13-intelligence-integration",
+    "14-shape-activation"
+  ],
+  "planned_modules": [
+    "15-meta-reasoning-layer",
+    "16-problem-shaping-transfer",
+    "17-mind-web-operations"
+  ],
+  "schemas_v1_1": [
+    "stencil.schema.json",
+    "shape-activation-condition.schema.json",
+    "shape-instance.schema.json",
+    "problem-shape.schema.json",
+    "analogical-match.schema.json"
   ]
 }

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/problem-shape",
+  "title": "ProblemShape",
+  "description": "Stencil specialized for roadblock detection and analogical transfer.",
+  "type": "object",
+  "allOf": [
+    { "$ref": "stencil.schema.json" }
+  ],
+  "properties": {
+    "problem_signal": {
+      "type": "boolean",
+      "default": true
+    },
+    "roadblock_type": {
+      "type": "string",
+      "enum": [
+        "bottleneck",
+        "deadlock",
+        "resource_depletion",
+        "feedback_runaway",
+        "constraint_conflict",
+        "missing_mediator",
+        "broken_symmetry",
+        "novel_unmapped",
+        "other"
+      ]
+    },
+    "desired_state_delta": {
+      "type": "string",
+      "description": "What change in state dynamics is sought"
+    },
+    "missing_role_slots": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Role types present in matched foreign cases but absent here"
+    },
+    "source_session_id": { "type": "string" },
+    "target_domain": { "type": "string" }
+  }
+}

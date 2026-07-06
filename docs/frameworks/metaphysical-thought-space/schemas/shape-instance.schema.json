@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/shape-instance",
+  "title": "ShapeInstance",
+  "description": "Binding of an entity in a subgraph to a stencil. Enables cross-domain wormhole links.",
+  "type": "object",
+  "required": ["id", "entity_id", "stencil_id", "subgraph_id"],
+  "properties": {
+    "id": { "type": "string" },
+    "entity_id": { "type": "string" },
+    "stencil_id": { "type": "string" },
+    "full_shape_id": {
+      "type": "string",
+      "description": "Optional link to contextual full shape record"
+    },
+    "subgraph_id": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["provisional", "stabilized", "deprecated"],
+      "default": "provisional"
+    },
+    "structural_match_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "How fully the entity instantiates the stencil"
+    },
+    "domain_skin_summary": {
+      "type": "string",
+      "description": "Short domain-specific label for index display"
+    },
+    "outcome_class": {
+      "type": "string",
+      "enum": ["success", "failure", "mixed", "unknown", "not_applicable"],
+      "description": "For analogical transfer: did this configuration resolve or fail?"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "instantiated_at": { "type": "string", "format": "date-time" }
+  }
+}

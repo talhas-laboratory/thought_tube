@@ -25,6 +25,23 @@
       "description": "Core identity descriptors"
     },
     "parent_entity_id": { "type": "string" },
+    "parent_operator_id": {
+      "type": "string",
+      "description": "Parent operator entity (e.g. formation-agent mode nesting)"
+    },
+    "alias_of": {
+      "type": "string",
+      "description": "Canonical entity id if this record is an alias"
+    },
+    "subgraph_id": {
+      "type": "string",
+      "description": "Scoped bubble / field for mind-web federation"
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["session", "project", "world", "global"],
+      "default": "session"
+    },
     "intrinsic_qualities": {
       "type": "array",
       "items": { "$ref": "quality-assignment.schema.json" }

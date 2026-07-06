@@ -2,6 +2,12 @@
 
 ## 2026-07-06
 
+### MTSF v1.1 framework amendment
+
+- Added `MTSF-v1.1-amendment.md` (stencil layer, shape index, activation, mind-web extensions)
+- Added Module 14 shape activation, 5 new schemas, pilot-learnings mapping
+- Extended entity, shape, activation-snapshot schemas; relation primitives `instantiates`, `modulates`
+
 ### Pilot 003 — Meta reasoning pass
 
 - Same source as Pilot 002, second pass modeling user reasoning structure
