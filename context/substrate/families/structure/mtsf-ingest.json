@@ -1,0 +1,27 @@
+{
+  "id": "structure.mtsf.ingest",
+  "title": "MTSF Session Ingest",
+  "family": "structure",
+  "purpose": "Orchestrates fast or deep semantic capture when sessions close or import. Builds extraction drafts and hands them to validation and graph materialization.",
+  "extracts": ["session events", "session manifest", "conversation text"],
+  "depends_on": ["structure.mtsf.system-map"],
+  "feeds_into": ["structure.mtsf.extraction", "structure.mtsf.extraction-skill"],
+  "graph_layer": "pipeline",
+  "code_module": "src/conversation_os/mtsf_ingest.py",
+  "module_id": "kernel.mtsf.ingest",
+  "inputs": ["events.jsonl", "manifest.json", "mtsf_mode", "mtsf_llm preference"],
+  "outputs": ["extraction_draft.json", "skill_input.json (deep)"],
+  "artifacts": [
+    {
+      "name": "extraction_draft",
+      "path": "memory/sessions/{id}/mtsf/extraction_draft.json",
+      "purpose": "Agent-proposed semantic graph before promotion"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py session close --mtsf-mode fast|deep|off",
+    "python tools/conversation_os.py session import --mtsf-mode deep --mtsf-llm agent"
+  ],
+  "when_to_use": ["Every session close or import that should capture semantic structure"],
+  "do_not": ["Skip ingest and write directly to global shape index", "Run ingest with mtsf-mode off when evaluating pipeline recall"]
+}

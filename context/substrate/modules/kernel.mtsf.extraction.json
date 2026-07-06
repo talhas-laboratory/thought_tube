@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.extraction",
+  "path": "src/conversation_os/mtsf_extraction.py",
+  "layer": "kernel",
+  "owner": "ExtractionDraft validation, quarantine assessment, and materialization pipeline.",
+  "purpose": "Validate agent-proposed extraction JSON, quarantine weak drafts, materialize session artifacts, and trigger projection plus graph build.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["validate_extraction_draft", "assess_quarantine", "materialize_extraction_draft", "run_extraction_evals"],
+  "contains": ["schema validation", "quarantine gates", "eval suite", "materialize orchestration"],
+  "depends_on": ["kernel.mtsf.projector", "kernel.mtsf.graph", "kernel.mtsf.stencils"],
+  "feeds_into": ["kernel.mtsf.graph", "kernel.mtsf.projector"],
+  "inputs": ["ExtractionDraft"],
+  "outputs": ["extraction_draft.json", "quarantine.json"],
+  "state_owned": ["memory/sessions/*/mtsf/extraction_draft.json", "memory/sessions/*/mtsf/quarantine.json"],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.extraction",
+  "test_targets": ["tests/test_mtsf_extraction.py"]
+}

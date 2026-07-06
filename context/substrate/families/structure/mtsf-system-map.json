@@ -1,0 +1,32 @@
+{
+  "id": "structure.mtsf.system-map",
+  "title": "MTSF Progressive Graph System Map",
+  "family": "structure",
+  "purpose": "Entry-point architectural map for the Metaphysical Thought-Space runtime: progressive layers T0–T4, pipeline order, invariants, and where to look before editing kernel code.",
+  "extracts": ["framework docs", "session artifacts", "pilot learnings"],
+  "depends_on": [],
+  "feeds_into": [
+    "structure.mtsf.ingest",
+    "structure.mtsf.extraction",
+    "structure.mtsf.graph",
+    "structure.mtsf.index",
+    "structure.mtsf.session-activation"
+  ],
+  "graph_layer": "map",
+  "inputs": ["conversation sessions", "imported transcripts"],
+  "outputs": ["navigation model for agents", "layer assignment for new artifacts"],
+  "artifacts": [],
+  "cli_commands": [
+    "python tools/substrate_index.py refresh",
+    "python tools/conversation_os.py repo-overview lookup --query \"mtsf\""
+  ],
+  "when_to_use": [
+    "Before adding a new MTSF artifact type or module",
+    "When deciding which tier (T0–T4) owns new data",
+    "When onboarding an agent to the thought-graph pipeline"
+  ],
+  "do_not": [
+    "Treat this map as runtime state — it is documentation substrate",
+    "Collapse T1 assertions into T2 nodes with inline prose"
+  ]
+}

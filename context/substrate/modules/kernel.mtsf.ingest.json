@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.ingest",
+  "path": "src/conversation_os/mtsf_ingest.py",
+  "layer": "kernel",
+  "owner": "Session-level MTSF ingest orchestration for fast and deep capture modes.",
+  "purpose": "Run MTSF extraction on session close and import, wiring mode selection, draft building, and materialization.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["materialize_session_mtsf_ingest", "build_fast_extraction_draft", "should_run_mtsf_ingest"],
+  "contains": ["fast heuristic extraction", "deep skill resolution", "session ingest orchestration"],
+  "depends_on": ["kernel.mtsf.extraction", "kernel.mtsf.extraction_skill"],
+  "feeds_into": ["kernel.mtsf.extraction"],
+  "inputs": ["session events", "manifest", "mtsf_mode", "mtsf_llm"],
+  "outputs": ["extraction_draft.json", "ingest result payload"],
+  "state_owned": ["memory/sessions/*/mtsf/extraction_draft.json"],
+  "surfaces_using": ["cli.session"],
+  "substrate_algorithm_id": "structure.mtsf.ingest",
+  "test_targets": ["tests/test_mtsf_ingest.py"]
+}

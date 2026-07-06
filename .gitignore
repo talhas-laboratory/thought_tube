@@ -13,7 +13,11 @@ venv/
 .git.abandoned-*
 
 # Generated Conversation OS state
-context/
+context/*
+!context/substrate/
+context/substrate/*
+!context/substrate/families/
+!context/substrate/modules/
 memory/
 mobile_artifacts/
 output/

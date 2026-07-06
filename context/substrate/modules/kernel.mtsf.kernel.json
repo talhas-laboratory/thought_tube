@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.kernel",
+  "path": "src/conversation_os/mtsf_kernel.py",
+  "layer": "kernel",
+  "owner": "Shape activation condition evaluation and pilot replay scenarios.",
+  "purpose": "Evaluate activation conditions deterministically and run Pilot 002 activation regression scenarios.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["activate", "run_replay_scenarios", "build_activation_snapshot"],
+  "contains": ["condition evaluation", "activation results", "pilot replay"],
+  "depends_on": ["kernel.mtsf.stencils"],
+  "feeds_into": ["kernel.mtsf.session"],
+  "inputs": ["EntityActivationRecord", "ShapeActivationCondition"],
+  "outputs": ["ShapeActivationResult"],
+  "state_owned": [],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.kernel",
+  "test_targets": ["tests/test_mtsf_activation.py"]
+}

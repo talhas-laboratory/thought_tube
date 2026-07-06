@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.index",
+  "path": "src/conversation_os/mtsf_index.py",
+  "layer": "kernel",
+  "owner": "Global and session shape index, wormhole queries, promotion.",
+  "purpose": "Merge stencil registries, maintain fingerprint wormholes, promote sessions to global index, and append index events.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["rebuild_global_index", "promote_session_to_global", "find_wormhole_links", "query_shape_index"],
+  "contains": ["shape index merge", "wormhole lookup", "promotion", "index events"],
+  "depends_on": ["kernel.mtsf.stencils", "kernel.foundation.storage"],
+  "feeds_into": [],
+  "inputs": ["session shape indexes", "seed stencils"],
+  "outputs": ["memory/mtsf/shape_index.json", "memory/mtsf/index_events.jsonl"],
+  "state_owned": ["memory/mtsf/shape_index.json", "memory/mtsf/index_events.jsonl"],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.index",
+  "test_targets": ["tests/test_mtsf_index.py"]
+}

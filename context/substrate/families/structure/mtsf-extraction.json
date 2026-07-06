@@ -1,0 +1,32 @@
+{
+  "id": "structure.mtsf.extraction",
+  "title": "MTSF Extraction Validation",
+  "family": "structure",
+  "purpose": "Validates ExtractionDraft JSON against ontology and schema, assesses quarantine, materializes session artifacts, and triggers projection plus progressive graph build.",
+  "extracts": ["extraction drafts", "governing roles", "relation primitives", "seed stencils"],
+  "depends_on": ["structure.mtsf.ingest", "structure.mtsf.extraction-skill"],
+  "feeds_into": ["structure.mtsf.graph", "structure.mtsf.projector"],
+  "graph_layer": "pipeline",
+  "code_module": "src/conversation_os/mtsf_extraction.py",
+  "module_id": "kernel.mtsf.extraction",
+  "inputs": ["ExtractionDraft JSON"],
+  "outputs": ["validated extraction_draft", "quarantine.json", "eval reports"],
+  "artifacts": [
+    {
+      "name": "extraction_draft",
+      "path": "memory/sessions/{id}/mtsf/extraction_draft.json",
+      "purpose": "Validated draft with status and quarantine metadata"
+    },
+    {
+      "name": "quarantine",
+      "path": "memory/sessions/{id}/mtsf/quarantine.json",
+      "purpose": "Blocking reasons when promotion gates fail"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf validate-extraction --draft-path ...",
+    "python tools/conversation_os.py mtsf materialize-extraction --session-id ... --draft-path ..."
+  ],
+  "when_to_use": ["After any agent or heuristic produces an ExtractionDraft"],
+  "do_not": ["Auto-promote to global canonical graph without quarantine check"]
+}

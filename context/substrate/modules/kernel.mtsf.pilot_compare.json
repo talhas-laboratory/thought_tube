@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.pilot_compare",
+  "path": "src/conversation_os/mtsf_pilot_compare.py",
+  "layer": "kernel",
+  "owner": "Pilot 002 baseline comparison and pipeline replay experiments.",
+  "purpose": "Compare manual third-space baseline against automated fast/deep/agent pipeline extractions with recall metrics.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["run_pilot_002_comparison", "compare_extractions", "run_pipeline_replay"],
+  "contains": ["baseline snapshot", "pipeline replay", "comparison reports"],
+  "depends_on": ["kernel.mtsf.ingest", "kernel.mtsf.extraction"],
+  "feeds_into": [],
+  "inputs": ["third-space.json", "Gemini transcript"],
+  "outputs": ["comparison.json", "comparison.md"],
+  "state_owned": ["sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-pipeline-replay/"],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.pilot-compare",
+  "test_targets": ["tests/test_mtsf_pilot_compare.py"]
+}

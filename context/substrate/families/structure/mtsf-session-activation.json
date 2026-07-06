@@ -1,0 +1,29 @@
+{
+  "id": "structure.mtsf.session-activation",
+  "title": "MTSF Session Activation",
+  "family": "structure",
+  "purpose": "Infers session activation signals, runs seed activation conditions against the entity catalog, and writes activation snapshots plus session activation graph overlay (T4).",
+  "extracts": ["session events", "entity activation catalog", "seed conditions"],
+  "depends_on": ["structure.mtsf.system-map", "structure.mtsf.kernel"],
+  "feeds_into": [],
+  "graph_layer": "T4",
+  "code_module": "src/conversation_os/mtsf_session.py",
+  "module_id": "kernel.mtsf.session",
+  "inputs": ["events.jsonl", "domains", "tags"],
+  "outputs": ["activation_snapshot.json", "graph.json"],
+  "artifacts": [
+    {
+      "name": "activation_snapshot",
+      "path": "memory/sessions/{id}/mtsf/activation_snapshot.json",
+      "purpose": "Dominant entities, active stencils, formation phase"
+    },
+    {
+      "name": "activation_graph",
+      "path": "memory/sessions/{id}/mtsf/graph.json",
+      "purpose": "Lightweight activation overlay on entity catalog"
+    }
+  ],
+  "cli_commands": [],
+  "when_to_use": ["Session close (automatic)", "Evaluating what configuration is live"],
+  "do_not": ["Confuse activation graph with T2 content graph"]
+}

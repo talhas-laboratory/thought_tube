@@ -1,0 +1,18 @@
+{
+  "id": "structure.mtsf.agent-extractor",
+  "title": "MTSF Agent Skill Extractor",
+  "family": "structure",
+  "purpose": "Full-text phrase analysis extractor for Pilot-class entity, relation, and stencil detection when OpenClaw is unavailable. Implements the semantic-shape-extraction skill contract without an external LLM.",
+  "extracts": ["conversation text", "pilot entity hints", "relation templates", "stencil detectors"],
+  "depends_on": ["structure.mtsf.extraction-skill"],
+  "feeds_into": ["structure.mtsf.extraction"],
+  "graph_layer": "pipeline",
+  "code_module": "src/conversation_os/mtsf_agent_extractor.py",
+  "module_id": "kernel.mtsf.agent_extractor",
+  "inputs": ["events", "manifest", "raw_content"],
+  "outputs": ["ExtractionDraft (deep, agent_skill provenance)"],
+  "artifacts": [],
+  "cli_commands": [],
+  "when_to_use": ["Default deep backend in cloud agents", "Pilot 002 replay without OpenClaw"],
+  "do_not": ["Treat as canonical truth without validate_extraction_draft pass"]
+}

@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.stencils",
+  "path": "src/conversation_os/mtsf_stencils.py",
+  "layer": "kernel",
+  "owner": "Seed stencil library, fingerprints, and stencil draft normalization.",
+  "purpose": "Load seed stencils, validate records, compute structural fingerprints, and normalize agent stencil drafts to grammar.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["load_seed_stencils", "compute_structural_fingerprint", "normalize_stencil_draft", "validate_seed_library"],
+  "contains": ["seed library", "fingerprints", "role types", "facet completeness"],
+  "depends_on": [],
+  "feeds_into": ["kernel.mtsf.projector", "kernel.mtsf.index", "kernel.mtsf.kernel"],
+  "inputs": ["stencil records", "stencil drafts"],
+  "outputs": ["fingerprints", "normalized drafts"],
+  "state_owned": ["docs/frameworks/metaphysical-thought-space/seed/stencils.json"],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.stencils",
+  "test_targets": ["tests/test_mtsf_stencils.py"]
+}

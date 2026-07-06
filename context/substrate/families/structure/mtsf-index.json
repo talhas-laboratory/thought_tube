@@ -1,0 +1,34 @@
+{
+  "id": "structure.mtsf.index",
+  "title": "MTSF Shape Index",
+  "family": "structure",
+  "purpose": "Owns global and session shape indexes: stencil registry, fingerprint wormholes, instance bindings, promotion events, and orthogonal cross-subgraph queries.",
+  "extracts": ["session projections", "seed stencils", "index events"],
+  "depends_on": ["structure.mtsf.projector", "structure.mtsf.stencils"],
+  "feeds_into": [],
+  "graph_layer": "T3",
+  "code_module": "src/conversation_os/mtsf_index.py",
+  "module_id": "kernel.mtsf.index",
+  "inputs": ["session shape_index", "global shape_index"],
+  "outputs": ["merged global index", "wormhole links", "index_events.jsonl"],
+  "artifacts": [
+    {
+      "name": "global_shape_index",
+      "path": "memory/mtsf/shape_index.json",
+      "purpose": "Cross-session stencil and instance registry"
+    },
+    {
+      "name": "index_events",
+      "path": "memory/mtsf/index_events.jsonl",
+      "purpose": "Append-only promotion and merge audit log"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf index-rebuild",
+    "python tools/conversation_os.py mtsf index-promote --session-id ...",
+    "python tools/conversation_os.py mtsf index-query --stencil-id ...",
+    "python tools/conversation_os.py mtsf index-wormholes"
+  ],
+  "when_to_use": ["Cross-domain structural match", "Promoting session shapes to global mind-web"],
+  "do_not": ["Use vector DB as primary store", "Link entities across subgraphs without stencil wormhole"]
+}

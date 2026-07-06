@@ -142,6 +142,8 @@ Use that guide for the full OpenClaw, backend, UI sync, portable pack, Personal 
 - Refresh or watch the generated browse indexes:
   - `python tools/substrate_index.py refresh`
   - `python tools/substrate_index.py watch`
+- MTSF runtime system map (structure family): `context/substrate/generated/purpose/structure.mtsf.system-map.md`
+- Per-module purpose artifacts: `context/substrate/generated/purpose/` and `context/substrate/generated/purpose-modules/`
 
 ## Handoff rule
 

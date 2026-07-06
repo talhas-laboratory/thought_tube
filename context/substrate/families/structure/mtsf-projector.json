@@ -1,0 +1,31 @@
+{
+  "id": "structure.mtsf.projector",
+  "title": "MTSF Stencil Projector",
+  "family": "structure",
+  "purpose": "Projects stencil drafts from extraction into session shape index instances, merges seed stencils, and optionally promotes to global index when quarantine gates pass.",
+  "extracts": ["stencil drafts", "seed stencil library", "extraction draft"],
+  "depends_on": ["structure.mtsf.extraction", "structure.mtsf.stencils"],
+  "feeds_into": ["structure.mtsf.index", "structure.mtsf.graph"],
+  "graph_layer": "T3",
+  "code_module": "src/conversation_os/mtsf_projector.py",
+  "module_id": "kernel.mtsf.projector",
+  "inputs": ["validated ExtractionDraft"],
+  "outputs": ["shape_index.json", "stencil_projection.json"],
+  "artifacts": [
+    {
+      "name": "shape_index",
+      "path": "memory/sessions/{id}/mtsf/shape_index.json",
+      "purpose": "Session stencil registry and shape instances"
+    },
+    {
+      "name": "stencil_projection",
+      "path": "memory/sessions/{id}/mtsf/stencil_projection.json",
+      "purpose": "Projection audit trail and match scores"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf project-extraction --session-id ... --draft-path ..."
+  ],
+  "when_to_use": ["After validated extraction with stencil_drafts"],
+  "do_not": ["Invent stencil topology without seed pattern-match attempt"]
+}

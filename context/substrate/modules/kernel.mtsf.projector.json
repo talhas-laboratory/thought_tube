@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.projector",
+  "path": "src/conversation_os/mtsf_projector.py",
+  "layer": "kernel",
+  "owner": "Stencil draft projection into session and global shape indexes.",
+  "purpose": "Match stencil drafts to seed library, build shape instances, and materialize stencil projection artifacts.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["project_extraction_draft", "materialize_stencil_projection"],
+  "contains": ["stencil resolution", "shape instances", "projection audit"],
+  "depends_on": ["kernel.mtsf.index", "kernel.mtsf.stencils", "kernel.mtsf.extraction"],
+  "feeds_into": ["kernel.mtsf.index", "kernel.mtsf.graph"],
+  "inputs": ["ExtractionDraft"],
+  "outputs": ["shape_index.json", "stencil_projection.json"],
+  "state_owned": ["memory/sessions/*/mtsf/shape_index.json", "memory/sessions/*/mtsf/stencil_projection.json"],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.projector",
+  "test_targets": ["tests/test_mtsf_projector.py"]
+}

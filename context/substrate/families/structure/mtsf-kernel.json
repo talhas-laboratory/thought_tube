@@ -1,0 +1,20 @@
+{
+  "id": "structure.mtsf.kernel",
+  "title": "MTSF Activation Kernel",
+  "family": "structure",
+  "purpose": "Evaluates shape activation conditions and entity activation records. Core reduce_identity and replay scenario runner for Pilot regression tests.",
+  "extracts": ["activation conditions", "entity contexts", "session signals"],
+  "depends_on": ["structure.mtsf.stencils"],
+  "feeds_into": ["structure.mtsf.session-activation"],
+  "graph_layer": "T4",
+  "code_module": "src/conversation_os/mtsf_kernel.py",
+  "module_id": "kernel.mtsf.kernel",
+  "inputs": ["EntityActivationRecord", "ShapeActivationCondition"],
+  "outputs": ["ShapeActivationResult", "replay scenario reports"],
+  "artifacts": [],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf replay-pilot-002"
+  ],
+  "when_to_use": ["Extending activation rules", "Pilot activation regression"],
+  "do_not": ["Embed domain-specific branching for non-MTSF products"]
+}

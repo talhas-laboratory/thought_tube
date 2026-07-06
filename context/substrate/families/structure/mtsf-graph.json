@@ -1,0 +1,33 @@
+{
+  "id": "structure.mtsf.graph",
+  "title": "MTSF Progressive Graph",
+  "family": "structure",
+  "purpose": "Materializes T1 assertion store with substrate anchors and T2 content graph with adjacency indexes. Provides follow/expand traversal for semantic, provenance, structural, and temporal modes.",
+  "extracts": ["extraction drafts", "session events", "shape instances"],
+  "depends_on": ["structure.mtsf.extraction"],
+  "feeds_into": ["structure.mtsf.index"],
+  "graph_layer": "T1",
+  "code_module": "src/conversation_os/mtsf_graph.py",
+  "module_id": "kernel.mtsf.graph",
+  "inputs": ["ExtractionDraft", "events.jsonl"],
+  "outputs": ["assertion_store.json", "content_graph.json"],
+  "artifacts": [
+    {
+      "name": "assertion_store",
+      "path": "memory/sessions/{id}/mtsf/assertion_store.json",
+      "purpose": "T1 typed assertions, evidence bundles, event anchors"
+    },
+    {
+      "name": "content_graph",
+      "path": "memory/sessions/{id}/mtsf/content_graph.json",
+      "purpose": "T2 compressed nodes and semantic/provenance/structural adjacency"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf graph-materialize --session-id ...",
+    "python tools/conversation_os.py mtsf graph-follow --session-id ... --start entity-id --mode semantic --depth 1",
+    "python tools/conversation_os.py mtsf graph-expand --session-id ... --node-id entity-id --facets identity,evidence,substrate"
+  ],
+  "when_to_use": ["After extraction materialize", "When auditing provenance or walking entity neighborhoods"],
+  "do_not": ["Inline evidence spans in content_graph nodes", "Edit assertion_store by hand without re-ingest"]
+}

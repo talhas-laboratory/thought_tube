@@ -1,0 +1,40 @@
+{
+  "module_id": "kernel.mtsf.graph",
+  "path": "src/conversation_os/mtsf_graph.py",
+  "layer": "kernel",
+  "owner": "Progressive thought graph: assertion store (T1), content graph (T2), traversal and expand.",
+  "purpose": "Materialize evidence-backed assertions with substrate anchors, project compressed content graphs with adjacency indexes, and provide follow/expand traversal APIs.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_assertion_store_from_draft",
+    "project_content_graph",
+    "materialize_session_graph",
+    "follow_traversal",
+    "expand_node"
+  ],
+  "contains": [
+    "substrate indexing",
+    "evidence bundles",
+    "assertion records",
+    "content graph projection",
+    "semantic/provenance/structural adjacency",
+    "graph traversal and facet expansion"
+  ],
+  "depends_on": ["kernel.mtsf.extraction", "kernel.foundation.storage"],
+  "feeds_into": ["kernel.mtsf.index"],
+  "inputs": ["ExtractionDraft", "session events.jsonl", "shape instances"],
+  "outputs": ["assertion_store.json", "content_graph.json"],
+  "state_owned": [
+    "memory/sessions/*/mtsf/assertion_store.json",
+    "memory/sessions/*/mtsf/content_graph.json"
+  ],
+  "surfaces_using": ["cli.mtsf"],
+  "substrate_algorithm_id": "structure.mtsf.graph",
+  "adjacent_docs": [
+    "docs/frameworks/metaphysical-thought-space/schemas/assertion-store.schema.json",
+    "docs/frameworks/metaphysical-thought-space/schemas/content-graph.schema.json",
+    "context/substrate/generated/purpose/structure.mtsf.graph.md"
+  ],
+  "test_targets": ["tests/test_mtsf_graph.py"]
+}

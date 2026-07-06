@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.agent_extractor",
+  "path": "src/conversation_os/mtsf_agent_extractor.py",
+  "layer": "kernel",
+  "owner": "Built-in agent-skill semantic extraction without external LLM.",
+  "purpose": "Produce Pilot-tuned ExtractionDraft objects via phrase analysis when OpenClaw is unavailable.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["build_agent_skill_extraction_draft"],
+  "contains": ["entity hints", "relation templates", "stencil detectors"],
+  "depends_on": ["kernel.mtsf.extraction", "kernel.mtsf.ingest", "kernel.mtsf.session"],
+  "feeds_into": ["kernel.mtsf.extraction_skill"],
+  "inputs": ["events", "manifest", "raw_content"],
+  "outputs": ["ExtractionDraft agent_skill"],
+  "state_owned": [],
+  "surfaces_using": ["kernel.mtsf.extraction_skill"],
+  "substrate_algorithm_id": "structure.mtsf.agent-extractor",
+  "test_targets": ["tests/test_mtsf_extraction_skill.py"]
+}

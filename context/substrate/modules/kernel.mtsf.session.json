@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.session",
+  "path": "src/conversation_os/mtsf_session.py",
+  "layer": "kernel",
+  "owner": "Session activation signal inference and MTSF artifact materialization on close.",
+  "purpose": "Infer formation signals from events, run activation against entity catalog, write snapshots and activation graph overlay.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["materialize_session_mtsf", "infer_session_signals", "load_entity_catalog"],
+  "contains": ["signal inference", "activation snapshot", "session graph overlay"],
+  "depends_on": ["kernel.mtsf.kernel", "kernel.foundation.storage"],
+  "feeds_into": [],
+  "inputs": ["events.jsonl", "domains", "tags"],
+  "outputs": ["activation_snapshot.json", "graph.json"],
+  "state_owned": ["memory/sessions/*/mtsf/activation_snapshot.json", "memory/sessions/*/mtsf/graph.json"],
+  "surfaces_using": ["cli.session"],
+  "substrate_algorithm_id": "structure.mtsf.session-activation",
+  "test_targets": ["tests/test_mtsf_session.py"]
+}

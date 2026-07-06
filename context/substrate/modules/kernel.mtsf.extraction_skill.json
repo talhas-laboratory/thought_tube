@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.mtsf.extraction_skill",
+  "path": "src/conversation_os/mtsf_extraction_skill.py",
+  "layer": "kernel",
+  "owner": "Deep extraction skill envelope, OpenClaw LLM path, and resolution routing.",
+  "purpose": "Prepare skill input, resolve deep drafts via OpenClaw or agent fallback, and parse structured LLM responses into ExtractionDraft.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["resolve_deep_extraction_draft", "build_skill_input_envelope", "materialize_skill_input"],
+  "contains": ["skill envelope", "OpenClaw adapter", "heuristic deep fallback", "JSON parse"],
+  "depends_on": ["kernel.mtsf.agent_extractor", "kernel.mtsf.extraction", "kernel.mtsf.ingest"],
+  "feeds_into": ["kernel.mtsf.extraction"],
+  "inputs": ["session events", "manifest", "llm_preference"],
+  "outputs": ["ExtractionDraft deep", "skill_input.json"],
+  "state_owned": ["memory/sessions/*/mtsf/skill_input.json"],
+  "surfaces_using": ["cli.mtsf", "cli.session"],
+  "substrate_algorithm_id": "structure.mtsf.extraction-skill",
+  "test_targets": ["tests/test_mtsf_extraction_skill.py"]
+}

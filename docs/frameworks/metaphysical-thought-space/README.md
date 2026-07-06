@@ -132,3 +132,13 @@ capture_traces
 ## Inner World alignment
 
 See [mappings/inner-world-glossary.md](mappings/inner-world-glossary.md) and [mappings/pilot-learnings.md](mappings/pilot-learnings.md).
+
+## Runtime system map (substrate atlas)
+
+Operational architecture for the implemented kernel lives in the **substrate structure family**:
+
+- Entry: [../../context/substrate/generated/purpose/structure.mtsf.system-map.md](../../context/substrate/generated/purpose/structure.mtsf.system-map.md)
+- Browse: [../../context/substrate/families/structure/INDEX.md](../../context/substrate/families/structure/INDEX.md)
+- Refresh: `python tools/substrate_index.py refresh`
+
+Each MTSF module has a generated purpose artifact under `context/substrate/generated/purpose/` and a code module manifest under `context/substrate/modules/`.

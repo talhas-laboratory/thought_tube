@@ -18,11 +18,15 @@
     "docs/frameworks/metaphysical-thought-space/modules/",
     "docs/frameworks/metaphysical-thought-space/schemas/",
     "docs/frameworks/metaphysical-thought-space/ontologies/",
-    "docs/frameworks/metaphysical-thought-space/mappings/"
+    "docs/frameworks/metaphysical-thought-space/mappings/",
+    "context/substrate/families/structure/",
+    "context/substrate/generated/purpose/"
   ],
   "entrypoints": [
     "docs/frameworks/metaphysical-thought-space/README.md",
-    "docs/frameworks/metaphysical-thought-space/modules/00-framework-overview.md"
+    "docs/frameworks/metaphysical-thought-space/modules/00-framework-overview.md",
+    "context/substrate/generated/purpose/structure.mtsf.system-map.md",
+    "context/substrate/AGENT_INDEX.md"
   ],
   "inputs": [
     "raw thought material",

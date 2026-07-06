@@ -24,6 +24,7 @@ PUBLIC_API = (
     "render_codebase_overview",
     "render_codebase_atlas",
     "render_agent_operating_brief",
+    "render_module_purpose_artifact",
     "refresh_codebase_overview",
     "validate_codebase_index",
     "watch_codebase_overview",
@@ -45,6 +46,8 @@ MODULE_BROWSE_FILENAME = "module_browse_map.json"
 DEPENDENCY_GRAPH_FILENAME = "dependency_graph.json"
 SURFACE_INDEX_FILENAME = "surface_index.json"
 OWNER_INDEX_FILENAME = "owner_index.json"
+PURPOSE_MODULES_DIRNAME = "purpose-modules"
+PURPOSE_MODULES_INDEX_FILENAME = "purpose-modules-index.json"
 TRACKED_ROOTS = [
     ("src/conversation_os", {".py"}),
     ("tools", {".py"}),
@@ -80,6 +83,7 @@ MANIFEST_RECOMMENDED_FIELDS = {
     "gitnexus_hints": list,
     "test_targets": list,
     "constraints": list,
+    "substrate_algorithm_id": str,
 }
 ALLOWED_LAYERS = {"kernel", "assembly", "surface", "builder-support", "tooling", "document"}
 ALLOWED_STATUSES = {"active", "compatibility", "experimental", "legacy"}
@@ -95,6 +99,7 @@ AGENT_SURFACE_LINKS = [
     ("Codebase Overview", "./CODEBASE_OVERVIEW.md"),
     ("Codebase Atlas", "./CODEBASE_ATLAS.md"),
     ("Substrate Agent Index", "./AGENT_INDEX.md"),
+    ("MTSF System Map", "./generated/purpose/structure.mtsf.system-map.md"),
 ]
 ARCHITECTURE_LINKS = [
     ("Conversation OS Foundation Design", "../../docs/plans/2026-04-13-conversation-os-foundation-design.md"),
@@ -167,6 +172,14 @@ def _surface_index_path(root: Path) -> Path:
 
 def _owner_index_path(root: Path) -> Path:
     return _registry_dir(root) / OWNER_INDEX_FILENAME
+
+
+def _purpose_modules_dir(root: Path) -> Path:
+    return _overview_dir(root) / "generated" / PURPOSE_MODULES_DIRNAME
+
+
+def _purpose_modules_index_path(root: Path) -> Path:
+    return _overview_dir(root) / "generated" / PURPOSE_MODULES_INDEX_FILENAME
 
 
 def _generated_artifact_paths(root: Path) -> list[Path]:
@@ -690,8 +703,80 @@ def render_codebase_atlas(payload: dict[str, Any]) -> str:
                 lines.append(f"- internal_imports: {', '.join(entry['imports_internal'][:10])}")
             if manifest.get("test_targets"):
                 lines.append(f"- test_targets: {', '.join(manifest['test_targets'])}")
+            if manifest.get("substrate_algorithm_id"):
+                lines.append(f"- substrate_algorithm_id: `{manifest['substrate_algorithm_id']}`")
+                purpose_rel = f"generated/purpose-modules/{manifest['module_id']}.md"
+                lines.append(f"- purpose_artifact: `{purpose_rel}`")
             lines.append("")
     return "\n".join(lines)
+
+
+def render_module_purpose_artifact(manifest: dict[str, Any]) -> str:
+    lines = [
+        GENERATED_NOTICE,
+        f"# {manifest['module_id']}",
+        "",
+        f"- module_id: `{manifest['module_id']}`",
+        f"- path: `{manifest['path']}`",
+        f"- layer: `{manifest['layer']}`",
+        f"- status: `{manifest['status']}`",
+        f"- version: `{manifest['version']}`",
+    ]
+    if manifest.get("substrate_algorithm_id"):
+        lines.append(f"- substrate_algorithm_id: `{manifest['substrate_algorithm_id']}`")
+    lines.extend(
+        [
+            "",
+            "## Owner",
+            "",
+            str(manifest.get("owner", "")),
+            "",
+            "## Purpose",
+            "",
+            str(manifest.get("purpose", "")),
+            "",
+        ]
+    )
+    for title, key in (
+        ("Contains", "contains"),
+        ("Public API", "public_api"),
+        ("Inputs", "inputs"),
+        ("Outputs", "outputs"),
+        ("State owned", "state_owned"),
+        ("Depends on", "depends_on"),
+        ("Feeds into", "feeds_into"),
+        ("Surfaces using", "surfaces_using"),
+        ("Test targets", "test_targets"),
+        ("Adjacent docs", "adjacent_docs"),
+    ):
+        values = manifest.get(key, [])
+        if not values:
+            continue
+        lines.append(f"## {title}")
+        lines.append("")
+        for value in values:
+            lines.append(f"- {value}")
+        lines.append("")
+    if manifest.get("notes"):
+        lines.extend(["## Notes", "", str(manifest["notes"]), ""])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _render_purpose_modules_index(manifests: list[dict[str, Any]], root: Path) -> dict[str, Any]:
+    return {
+        "generated_at": utc_now(),
+        "count": len(manifests),
+        "modules": [
+            {
+                "module_id": manifest["module_id"],
+                "path": manifest["path"],
+                "layer": manifest["layer"],
+                "substrate_algorithm_id": manifest.get("substrate_algorithm_id"),
+                "purpose_path": str((_purpose_modules_dir(root) / f"{manifest['module_id']}.md").relative_to(_overview_dir(root))),
+            }
+            for manifest in manifests
+        ],
+    }
 
 
 def render_agent_operating_brief(payload: dict[str, Any]) -> str:
@@ -747,7 +832,14 @@ def render_agent_operating_brief(payload: dict[str, Any]) -> str:
 def refresh_codebase_overview(root: Path) -> dict[str, Any]:
     ensure_dir(_overview_dir(root))
     ensure_dir(_registry_dir(root))
+    purpose_dir = _purpose_modules_dir(root)
+    purpose_dir.mkdir(parents=True, exist_ok=True)
     payload = build_codebase_map(root)
+    manifests = payload["module_index"].get("manifests", [])
+    for manifest in manifests:
+        purpose_path = purpose_dir / f"{manifest['module_id']}.md"
+        purpose_path.write_text(render_module_purpose_artifact(manifest), encoding="utf-8")
+    write_json(_purpose_modules_index_path(root), _render_purpose_modules_index(manifests, root))
     write_json(_map_path(root), payload)
     write_json(_module_registry_path(root), payload["module_index"])
     write_json(_module_browse_path(root), _render_module_browse_map(payload["module_index"]))
@@ -772,6 +864,8 @@ def refresh_codebase_overview(root: Path) -> dict[str, Any]:
         "dependency_graph_path": str(_dependency_graph_path(root)),
         "surface_index_path": str(_surface_index_path(root)),
         "owner_index_path": str(_owner_index_path(root)),
+        "purpose_modules_dir": str(_purpose_modules_dir(root)),
+        "purpose_modules_index_path": str(_purpose_modules_index_path(root)),
     }
 
 

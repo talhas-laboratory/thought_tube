@@ -1,0 +1,26 @@
+{
+  "id": "structure.mtsf.pilot-compare",
+  "title": "MTSF Pilot 002 Comparison",
+  "family": "structure",
+  "purpose": "Snapshots Pilot 002 manual baseline and replays fast/deep/agent pipelines for recall metrics against third-space.json.",
+  "extracts": ["pilot baseline third-space", "pipeline session summaries"],
+  "depends_on": ["structure.mtsf.ingest", "structure.mtsf.extraction", "structure.mtsf.graph"],
+  "feeds_into": [],
+  "graph_layer": "eval",
+  "code_module": "src/conversation_os/mtsf_pilot_compare.py",
+  "module_id": "kernel.mtsf.pilot_compare",
+  "inputs": ["Gemini transcript", "replay sessions"],
+  "outputs": ["comparison.json", "comparison.md", "replay artifacts"],
+  "artifacts": [
+    {
+      "name": "comparison",
+      "path": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-pipeline-replay/comparison.md",
+      "purpose": "Human-readable baseline vs pipeline report"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf compare-pilot-002"
+  ],
+  "when_to_use": ["Regression after extractor or graph changes"],
+  "do_not": ["Treat manual third-space as automated pipeline output"]
+}

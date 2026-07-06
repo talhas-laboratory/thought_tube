@@ -1,0 +1,26 @@
+{
+  "id": "structure.mtsf.extraction-skill",
+  "title": "MTSF Deep Extraction Skill",
+  "family": "structure",
+  "purpose": "Builds skill input envelopes, resolves deep extraction via OpenClaw or agent fallback, and parses LLM JSON into validated drafts.",
+  "extracts": ["session events", "skill SKILL.md", "skill input envelope"],
+  "depends_on": ["structure.mtsf.ingest"],
+  "feeds_into": ["structure.mtsf.extraction", "structure.mtsf.agent-extractor"],
+  "graph_layer": "pipeline",
+  "code_module": "src/conversation_os/mtsf_extraction_skill.py",
+  "module_id": "kernel.mtsf.extraction_skill",
+  "inputs": ["session events", "manifest", "llm_preference"],
+  "outputs": ["ExtractionDraft (deep)", "skill_input.json"],
+  "artifacts": [
+    {
+      "name": "skill_input",
+      "path": "memory/sessions/{id}/mtsf/skill_input.json",
+      "purpose": "Envelope passed to skill or agent extractor"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf extract-deep --session-id ... --llm agent|auto|off|force"
+  ],
+  "when_to_use": ["Deep capture on session close, import, or explicit extract-deep"],
+  "do_not": ["Use force mode in CI without OpenClaw gateway"]
+}

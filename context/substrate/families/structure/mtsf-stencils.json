@@ -1,0 +1,26 @@
+{
+  "id": "structure.mtsf.stencils",
+  "title": "MTSF Stencil Library",
+  "family": "structure",
+  "purpose": "Loads and validates seed stencil exemplars, computes structural fingerprints, normalizes stencil drafts, and enforces role-type vocabulary.",
+  "extracts": ["seed/stencils.json", "stencil-role-types ontology"],
+  "depends_on": ["structure.mtsf.system-map"],
+  "feeds_into": ["structure.mtsf.projector", "structure.mtsf.index", "structure.mtsf.kernel"],
+  "graph_layer": "ontology",
+  "code_module": "src/conversation_os/mtsf_stencils.py",
+  "module_id": "kernel.mtsf.stencils",
+  "inputs": ["stencil records", "stencil drafts"],
+  "outputs": ["fingerprints", "normalized drafts", "validation reports"],
+  "artifacts": [
+    {
+      "name": "seed_stencils",
+      "path": "docs/frameworks/metaphysical-thought-space/seed/stencils.json",
+      "purpose": "Six exemplar stencils and facet extraction order"
+    }
+  ],
+  "cli_commands": [
+    "python tools/conversation_os.py mtsf validate-stencils"
+  ],
+  "when_to_use": ["Adding seed stencils", "Debugging fingerprint collisions"],
+  "do_not": ["Store domain nouns as stencil role types"]
+}
