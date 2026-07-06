@@ -1,0 +1,344 @@
+{
+  "experiment_id": "pilot-001-latent-space-conversation",
+  "source": {
+    "title": "05.07._Latent Space and Transformers",
+    "import_session_id": "import-60295cf68ac1",
+    "turns": { "user": 18, "assistant": 17 },
+    "formation_phase": "structural_binding"
+  },
+  "intake_assessment": {
+    "confidence": 0.84,
+    "dominant_tension": "operational_model vs metaphysical_claim",
+    "recommended_action": "attach_provisional",
+    "missing_for_binding": [
+      {
+        "gap": "product_surface",
+        "note": "Thought Tube named but no UI/workflow constraints in source — generative pathways remain abstract"
+      },
+      {
+        "gap": "latent_backend_choice",
+        "note": "Framework assumes latent/transformers; specific model stack not chosen"
+      }
+    ]
+  },
+  "candidate_pattern": {
+    "id": "cand-mtsf-emergence",
+    "confidence": "high",
+    "confidence_score": 0.84,
+    "stability": "strengthening",
+    "possible_names": [
+      "operational thought compiler",
+      "hybrid semantic actualization stack",
+      "pre-material to artifact bridge"
+    ],
+    "relational_configuration": "pre_material_thought + semantic_structure + relation_grammar + temporal_activation → codified_thought_graph → artifact",
+    "recurring_tensions": [
+      "metaphysical_claim vs operational_approximation",
+      "model_interpretation vs code_governance",
+      "known_shape_search vs unknown_shape_discovery"
+    ],
+    "evidence": {
+      "reference_count": 18,
+      "recurring_qualities": [
+        "navigable",
+        "relational",
+        "provisional",
+        "emergent",
+        "cross_domain",
+        "temporal",
+        "operational"
+      ],
+      "recurring_relation_types": [
+        "transforms-into",
+        "intensifies",
+        "symbolizes",
+        "materializes-as",
+        "contrasts-with",
+        "emerges-from"
+      ]
+    }
+  },
+  "entities": [
+    {
+      "id": "entity-metaphysical-idea-space",
+      "name": "metaphysical idea space",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["pre_material", "associative", "vague", "intentional", "possible_forms"],
+      "stable_identity": ["realm of ideas before material expression"],
+      "state": { "formation_state": "stable", "clarity": 0.88, "unresolvedness": 0.35 }
+    },
+    {
+      "id": "entity-latent-space",
+      "name": "latent space",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["computational", "geometric", "dataset_bound", "navigable", "approximate"],
+      "stable_identity": ["learned semantic possibility geometry"],
+      "state": { "formation_state": "stable", "clarity": 0.9, "unresolvedness": 0.2 }
+    },
+    {
+      "id": "entity-actual-space",
+      "name": "actual space",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["material", "produced", "concrete", "constraint_bound"],
+      "stable_identity": ["world of artifacts and actions"],
+      "state": { "formation_state": "stable", "clarity": 0.92, "unresolvedness": 0.1 }
+    },
+    {
+      "id": "entity-thought-space",
+      "name": "codified thought-space",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["dynamic", "temporal", "relational", "navigable", "replayable"],
+      "stable_identity": ["formal third space between lived thought and artifacts"],
+      "shape_states": [
+        {
+          "id": "shape-thought-field",
+          "name": "thought-space-as-dynamic-field",
+          "kind": "stored",
+          "shape_forming_qualities": ["nonlinear", "partially_populated", "intensity_shifting"]
+        },
+        {
+          "id": "shape-thought-graph-ir",
+          "name": "thought-space-as-graph-compiler",
+          "kind": "live",
+          "shape_forming_qualities": ["validated", "event_sourced", "hypothesis_aware"]
+        }
+      ],
+      "current_activation": {
+        "dominant_shape_id": "shape-thought-graph-ir",
+        "secondary_shape_ids": ["shape-thought-field"]
+      },
+      "state": { "formation_state": "forming", "clarity": 0.86, "generative_potential": "high" }
+    },
+    {
+      "id": "entity-idea-entity",
+      "name": "idea-entity",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["nested", "composite", "identity_bearing"],
+      "sub_entity_types_present": ["sensory", "emotional", "memory", "symbolic", "conceptual", "behavioral", "aesthetic"],
+      "state": { "formation_state": "stable", "clarity": 0.85 }
+    },
+    {
+      "id": "entity-quality-region",
+      "name": "quality region",
+      "type": "atomic",
+      "status": "provisional",
+      "entity_forming_qualities": ["semantic", "associative", "region_not_label", "intensity_bearing"],
+      "state": { "formation_state": "stable", "clarity": 0.83 }
+    },
+    {
+      "id": "entity-relation-grammar",
+      "name": "relation grammar",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["layered", "cross_domain", "open_ended", "composite_allowed"],
+      "state": { "formation_state": "stable", "clarity": 0.87 }
+    },
+    {
+      "id": "entity-shape",
+      "name": "associative shape",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["configurational", "multi_scale", "temporary", "hypothesis_capable"],
+      "state": { "formation_state": "stable", "clarity": 0.88 }
+    },
+    {
+      "id": "entity-formation-agent",
+      "name": "formation agent",
+      "type": "composite",
+      "status": "provisional",
+      "entity_forming_qualities": ["gap_aware", "provisional_by_default", "question_sparing"],
+      "state": { "formation_state": "forming", "clarity": 0.75, "unresolvedness": 0.45 }
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-metaphysical-latent",
+      "level": "entity_entity",
+      "source": "entity-metaphysical-idea-space",
+      "target": "entity-latent-space",
+      "relation_type": "resembles",
+      "primitive": "resembles",
+      "weight": 0.72,
+      "confidence": 0.9,
+      "role": "defines",
+      "evidence": "conversation explicitly distinguishes but maps functional approximation"
+    },
+    {
+      "id": "rel-latent-not-metaphysical",
+      "level": "entity_entity",
+      "source": "entity-latent-space",
+      "target": "entity-metaphysical-idea-space",
+      "relation_type": "contrasts-with",
+      "primitive": "contrasts",
+      "weight": 0.88,
+      "confidence": 0.95,
+      "evidence": "latent space is not metaphysical space itself"
+    },
+    {
+      "id": "rel-latent-bridge-actual",
+      "level": "entity_entity",
+      "source": "entity-latent-space",
+      "target": "entity-actual-space",
+      "relation_type": "enables",
+      "primitive": "enables",
+      "weight": 0.85,
+      "confidence": 0.9,
+      "evidence": "transformers + latent space as machine-operational bridge"
+    },
+    {
+      "id": "rel-thoughtspace-third",
+      "level": "entity_entity",
+      "source": "entity-thought-space",
+      "target": "entity-metaphysical-idea-space",
+      "relation_type": "operationalizes",
+      "primitive": "translates-to",
+      "weight": 0.8,
+      "confidence": 0.85,
+      "evidence": "codified graph as operational model, not ontological proof"
+    },
+    {
+      "id": "rel-thoughtspace-actual",
+      "level": "entity_entity",
+      "source": "entity-thought-space",
+      "target": "entity-actual-space",
+      "relation_type": "materializes-as",
+      "primitive": "translates-to",
+      "weight": 0.9,
+      "confidence": 0.88,
+      "evidence": "actualization engine pathway"
+    },
+    {
+      "id": "rel-entity-contains-sub",
+      "level": "entity_entity",
+      "source": "entity-idea-entity",
+      "target": "entity-quality-region",
+      "relation_type": "contains",
+      "primitive": "contains",
+      "weight": 0.9,
+      "confidence": 0.92
+    },
+    {
+      "id": "rel-quality-forms-object",
+      "level": "quality_quality",
+      "source": "entity-quality-region",
+      "target": "entity-idea-entity",
+      "relation_type": "emerges-from",
+      "primitive": "combines-with",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": "object identity emerges from weighted quality relations"
+    },
+    {
+      "id": "rel-relation-forms-object",
+      "level": "quality_entity",
+      "source": "entity-relation-grammar",
+      "target": "entity-idea-entity",
+      "relation_type": "defines",
+      "primitive": "defines",
+      "weight": 0.88,
+      "confidence": 0.87
+    },
+    {
+      "id": "rel-shape-hypothesis",
+      "level": "entity_entity",
+      "source": "entity-shape",
+      "target": "entity-idea-entity",
+      "relation_type": "modulates",
+      "primitive": "modulates",
+      "weight": 0.82,
+      "confidence": 0.86,
+      "evidence": "one entity, many simultaneous shape-states"
+    },
+    {
+      "id": "rel-agent-proposes",
+      "level": "entity_entity",
+      "source": "entity-formation-agent",
+      "target": "entity-thought-space",
+      "relation_type": "feeds",
+      "primitive": "enables",
+      "weight": 0.78,
+      "confidence": 0.8,
+      "evidence": "agent proposes; code governs canonical state"
+    }
+  ],
+  "activation_snapshots": [
+    {
+      "id": "snap-01-bridge-claim",
+      "timestamp_order": 1,
+      "formation_phase": "initial_spark",
+      "dominant_entities": ["entity-metaphysical-idea-space", "entity-latent-space", "entity-actual-space"],
+      "dominant_qualities": ["bridge", "operational", "scalable", "semantic"],
+      "candidate_shape": "metaphysical-to-actual bridge"
+    },
+    {
+      "id": "snap-02-field-dynamics",
+      "timestamp_order": 5,
+      "formation_phase": "partial_population",
+      "dominant_entities": ["entity-idea-entity", "entity-thought-space"],
+      "dominant_qualities": ["nonlinear", "temporal", "intensity_shifting", "partial"],
+      "candidate_shape": "dynamic thought field"
+    },
+    {
+      "id": "snap-03-relation-ontology",
+      "timestamp_order": 8,
+      "formation_phase": "structural_binding",
+      "dominant_entities": ["entity-relation-grammar", "entity-quality-region", "entity-idea-entity"],
+      "dominant_qualities": ["layered", "cross_domain", "composite", "weighted"],
+      "candidate_shape": "relational object formation"
+    },
+    {
+      "id": "snap-04-shape-discovery",
+      "timestamp_order": 12,
+      "formation_phase": "structural_binding",
+      "dominant_entities": ["entity-shape"],
+      "dominant_qualities": ["temporary", "hypothesis", "multi_scale", "latent"],
+      "dominant_tension": "known_shape_search vs unknown_shape_discovery",
+      "candidate_shape": "latent shape inference"
+    },
+    {
+      "id": "snap-05-hybrid-system",
+      "timestamp_order": 16,
+      "formation_phase": "artifact_formation",
+      "dominant_entities": ["entity-thought-space", "entity-formation-agent"],
+      "dominant_qualities": ["code_governed", "model_interpretive", "provisional", "validated"],
+      "candidate_shape": "thought graph compiler with formation agent"
+    }
+  ],
+  "conversation_arc": {
+    "description": "The conversation does not merely discuss examples — it performs structural binding on its own subject matter, iteratively producing MTSF.",
+    "phases_mapped": [
+      "bridge thesis",
+      "academic grounding",
+      "navigable semantic space",
+      "nonlinear population",
+      "nested entities",
+      "relation ontology",
+      "quality regions",
+      "shape discovery problem",
+      "multi-shape entities",
+      "quality roles",
+      "intelligence integration",
+      "ingest reliability",
+      "formation agent",
+      "experiment proposal"
+    ]
+  },
+  "artifact_pathways": [
+    "framework modules",
+    "JSON schemas",
+    "sandbox experiment",
+    "thought graph kernel",
+    "formation agent spec"
+  ],
+  "epistemic_guards": [
+    "latent_space_not_metaphysical_space",
+    "models_propose_code_commits",
+    "shapes_are_hypotheses_until_stabilized",
+    "extraction_is_provisional_by_default"
+  ]
+}
