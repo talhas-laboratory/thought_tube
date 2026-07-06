@@ -1,0 +1,105 @@
+{
+  "session_id": "pilot-002-replay-fast",
+  "subgraph_id": "session-pilot-002-replay-fast",
+  "formation_phase": "partial_population",
+  "meta_shape_id": null,
+  "meta_move_id": "move-symmetry-extension",
+  "entities": [
+    {
+      "id": "entity-context-field",
+      "shape_state_ids": [
+        "shape-cold-start",
+        "shape-anchored-start",
+        "shape-polluted-start"
+      ],
+      "default_shape_id": "shape-cold-start",
+      "activation": {
+        "entity_id": "entity-context-field",
+        "dominant_shape_id": "shape-polluted-start",
+        "secondary_shape_ids": [],
+        "shape_weights": {
+          "shape-polluted-start": 0.8415000000000001
+        },
+        "matched_conditions": [
+          "cond-polluted-start"
+        ],
+        "confidence": 0.8415000000000001,
+        "evidence": [
+          "cond-polluted-start -> shape-polluted-start (score=0.842)"
+        ],
+        "active_stencil_ids": []
+      }
+    },
+    {
+      "id": "entity-thought-ocean",
+      "shape_state_ids": [
+        "shape-raw-manifold",
+        "shape-structural-skeleton",
+        "shape-knowledge-reef"
+      ],
+      "default_shape_id": "shape-raw-manifold",
+      "activation": {
+        "entity_id": "entity-thought-ocean",
+        "dominant_shape_id": "shape-raw-manifold",
+        "secondary_shape_ids": [],
+        "shape_weights": {
+          "shape-raw-manifold": 0.25
+        },
+        "matched_conditions": [],
+        "confidence": 0.25,
+        "evidence": [
+          "default_geodesic -> shape-raw-manifold"
+        ],
+        "active_stencil_ids": []
+      }
+    },
+    {
+      "id": "entity-symmetry-engine",
+      "shape_state_ids": [
+        "shape-positive-isomorph",
+        "shape-negative-shadow"
+      ],
+      "default_shape_id": null,
+      "activation": {
+        "entity_id": "entity-symmetry-engine",
+        "dominant_shape_id": "shape-positive-isomorph",
+        "secondary_shape_ids": [],
+        "shape_weights": {
+          "shape-positive-isomorph": 2.1538
+        },
+        "matched_conditions": [
+          "cond-symmetric-blueprint",
+          "cond-explicit-structural-lens"
+        ],
+        "confidence": 1.0,
+        "evidence": [
+          "cond-symmetric-blueprint -> shape-positive-isomorph (score=0.929)",
+          "cond-explicit-structural-lens -> shape-positive-isomorph (score=1.225)"
+        ],
+        "active_stencil_ids": []
+      }
+    },
+    {
+      "id": "entity-hardened-idea",
+      "shape_state_ids": [
+        "shape-negative-inference-mode"
+      ],
+      "default_shape_id": "shape-negative-inference-mode",
+      "activation": {
+        "entity_id": "entity-hardened-idea",
+        "dominant_shape_id": "shape-negative-inference-mode",
+        "secondary_shape_ids": [],
+        "shape_weights": {
+          "shape-negative-inference-mode": 0.25
+        },
+        "matched_conditions": [],
+        "confidence": 0.25,
+        "evidence": [
+          "default_geodesic -> shape-negative-inference-mode"
+        ],
+        "active_stencil_ids": []
+      }
+    }
+  ],
+  "activation_snapshot_ref": "/workspace/memory/sessions/pilot-002-replay-fast/mtsf/activation_snapshot.json"
+}

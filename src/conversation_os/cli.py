@@ -40,9 +40,7 @@ from .mtsf_index import (
     default_shape_index_path,
 )
 from .mtsf_session import materialize_session_mtsf, mtsf_framework_available
-from .mtsf_projector import (
-    materialize_stencil_projection,
-)
+from .mtsf_pilot_compare import run_pilot_002_comparison
 from .mtsf_kernel import run_replay_scenarios
 from .mtsf_stencils import validate_seed_library
 from .library_tracker import (
@@ -763,6 +761,21 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         choices=["auto", "off", "force"],
         help="LLM preference: auto tries OpenClaw then heuristic fallback",
+    )
+    mtsf_pilot_compare = mtsf_sub.add_parser(
+        "compare-pilot-002",
+        help="Snapshot Pilot 002 baseline and compare against MTSF pipeline replays",
+    )
+    mtsf_pilot_compare.add_argument(
+        "--no-rerun",
+        action="store_true",
+        help="Reuse existing replay sessions if artifacts already exist",
+    )
+    mtsf_pilot_compare.add_argument(
+        "--llm",
+        default="off",
+        choices=["auto", "off", "force"],
+        help="LLM preference for deep replay (default off for reproducible compare)",
     )
 
     openclaw = sub.add_parser("openclaw")
@@ -1741,6 +1754,12 @@ def main(argv: list[str] | None = None) -> int:
                 "warnings": report.warnings,
                 "index_path": str(default_shape_index_path(root)),
             }
+        elif args.mtsf_command == "compare-pilot-002":
+            result = run_pilot_002_comparison(
+                root,
+                llm_preference=args.llm,
+                rerun=not bool(args.no_rerun),
+            )
         elif args.mtsf_command == "extract-deep":
             result = materialize_session_mtsf_ingest(
                 root,

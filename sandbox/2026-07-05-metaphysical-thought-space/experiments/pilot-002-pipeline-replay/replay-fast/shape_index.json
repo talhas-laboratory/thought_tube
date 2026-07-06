@@ -1,0 +1,100 @@
+{
+  "version": "1.2.0",
+  "scope": "session",
+  "stencils": {
+    "stencil-context-warps-topology": {
+      "id": "stencil-context-warps-topology",
+      "name": "context warps topology",
+      "status": "provisional",
+      "dynamics_class": "gradient",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": false,
+        "constraint_landscape": false,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": [
+        "causal_geometry"
+      ],
+      "role_entities": [
+        {
+          "role_id": "r-field",
+          "role_type": "field"
+        },
+        {
+          "role_id": "r-landscape",
+          "role_type": "landscape"
+        },
+        {
+          "role_id": "r-probe",
+          "role_type": "probe"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-field",
+          "target_role_id": "r-landscape",
+          "primitive": "modulates",
+          "relation_type": "warps",
+          "weight": 0.92,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-field",
+          "target_role_id": "r-probe",
+          "primitive": "modulates",
+          "relation_type": "steers",
+          "weight": 0.9,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.94,
+      "possible_names": [
+        "contextual warping",
+        "KV weather on the manifold",
+        "prior runs as gravitational field"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "import-69ea1f64f744",
+          "rel-context-warps-topology"
+        ],
+        "recurrence_count": 3
+      },
+      "linked_entities": [
+        "entity-context-field",
+        "entity-effective-topology",
+        "entity-agent-path"
+      ],
+      "structural_fingerprint": "12101af5b55a8e28"
+    }
+  },
+  "fingerprints": {
+    "12101af5b55a8e28": "stencil-context-warps-topology"
+  },
+  "instances": [
+    {
+      "id": "shape-inst-981afd5d1a44",
+      "entity_id": "entity-context-field",
+      "stencil_id": "stencil-context-warps-topology",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-005277020857",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:16:57+00:00"
+    }
+  ],
+  "provisional_stencils": [],
+  "stencil_stats": {},
+  "sessions_contributed": {},
+  "updated_at": "2026-07-06T14:16:57+00:00",
+  "last_session_id": "pilot-002-replay-fast",
+  "last_draft_id": "mtsf-draft-005277020857"
+}

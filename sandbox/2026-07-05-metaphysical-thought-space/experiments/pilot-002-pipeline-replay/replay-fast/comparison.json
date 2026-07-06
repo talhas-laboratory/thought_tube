@@ -1,0 +1,103 @@
+{
+  "baseline_artifact": "third_space",
+  "pipeline_artifact": "mtsf_pipeline",
+  "pipeline_mode": "fast",
+  "pipeline_source": "mtsf_ingest.fast",
+  "counts": {
+    "baseline_entities": 12,
+    "pipeline_entities": 6,
+    "baseline_relations": 14,
+    "pipeline_relations": 0,
+    "pipeline_qualities": 1,
+    "pipeline_quality_roles": 0,
+    "pipeline_stencil_drafts": 1,
+    "pipeline_active_stencils": 1,
+    "baseline_activation_snapshots": 10,
+    "pipeline_shape_instances": 1
+  },
+  "entities": {
+    "id_overlap": [
+      "entity-context-field",
+      "entity-effective-topology",
+      "entity-latent-manifold",
+      "entity-symmetry-engine",
+      "entity-synthetic-subconscious",
+      "entity-thought-ocean"
+    ],
+    "id_overlap_count": 6,
+    "id_missing_from_pipeline": [
+      "entity-agent-path",
+      "entity-dimensional-fiber",
+      "entity-entity-relationship-state",
+      "entity-eureka-moment",
+      "entity-hardened-idea",
+      "entity-structural-shape"
+    ],
+    "id_novel_in_pipeline": [],
+    "name_overlap": [
+      "context-field",
+      "effective-topology",
+      "latent-manifold",
+      "symmetry-engine",
+      "synthetic-subconscious",
+      "thought-ocean"
+    ],
+    "name_overlap_count": 6,
+    "recall_by_id": 0.5,
+    "precision_by_id": 1.0
+  },
+  "relations": {
+    "overlap": [],
+    "overlap_count": 0,
+    "missing_from_pipeline": [
+      "entity-agent-path|contains|entity-latent-manifold",
+      "entity-context-field|modulates|entity-agent-path",
+      "entity-context-field|modulates|entity-effective-topology",
+      "entity-context-field|modulates|entity-latent-manifold",
+      "entity-dimensional-fiber|combines-with|entity-effective-topology",
+      "entity-eureka-moment|transforms-into|entity-hardened-idea",
+      "entity-structural-shape|defines|entity-entity-relationship-state",
+      "entity-symmetry-engine|contrasts|entity-structural-shape",
+      "entity-symmetry-engine|defines|entity-hardened-idea",
+      "entity-symmetry-engine|resembles|entity-structural-shape",
+      "entity-synthetic-subconscious|enables|entity-eureka-moment",
+      "entity-synthetic-subconscious|enables|entity-thought-ocean",
+      "entity-thought-ocean|contains|entity-structural-shape"
+    ],
+    "novel_in_pipeline": [],
+    "recall": 0.0
+  },
+  "patterns": {
+    "baseline_candidate_pattern_id": "cand-synthetic-subconscious",
+    "baseline_candidate_names": [
+      "synthetic subconscious",
+      "symmetry engine for thought",
+      "topological thought ocean",
+      "isomorphic hardening loop"
+    ],
+    "pipeline_candidate_shape_ids": [
+      "cand-context-triangulation",
+      "cand-symmetry-match"
+    ],
+    "pipeline_candidate_shape_names": [
+      "context triangulation",
+      "symmetric blueprint"
+    ],
+    "pipeline_active_stencil_ids": [
+      "stencil-context-warps-topology"
+    ],
+    "baseline_had_stencils": false,
+    "pipeline_has_stencils": true
+  },
+  "confidence": {
+    "baseline": 0.88,
+    "pipeline": 0.8799999999999999,
+    "pipeline_promotion_ready": true,
+    "pipeline_validation_ok": true
+  },
+  "gaps_closed": [
+    "machine_readable_stencil_schema",
+    "seed_stencil_projection",
+    "shape_instance_bindings"
+  ]
+}

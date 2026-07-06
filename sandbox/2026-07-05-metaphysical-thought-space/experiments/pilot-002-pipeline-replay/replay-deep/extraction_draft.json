@@ -1,0 +1,429 @@
+{
+  "draft_id": "mtsf-draft-bd9a98c244da",
+  "input_id": "session:pilot-002-replay-deep",
+  "input_type": "import",
+  "capture_mode": "deep",
+  "session_id": "pilot-002-replay-deep",
+  "subgraph_id": "research",
+  "scope": "session",
+  "raw_content": "---\ntitle: \"You said\"\ndate: 2026-05-07\ntime: \"11:07\"\nsource_url: \"https://gemini.google.com/share/88b7ff37e5b7\"\n---\nYou said\ndo agents move in a set latent space? if so how is that space defined?\nWhether \"agents\" (AI models) move in a set latent space depends on how you define \"movement\" and which type of agent you are analyzing. In the context of Large Language Models (LLMs) and generative AI, the answer is generally\nyes\n, but with important nuances regarding how that space is structured.\n1. The Geometry of the Latent Space\nA latent space is a multi-dimensional mathematical manifold where complex data (like words, images, or concepts) is represented as numerical vectors.\n- Fixed Coordinates:In a standard transformer model, the \"space\" is defined during training. The dimensions are set by the model's architecture (e.g., a 4096-dimensional space for GPT-3).\n- Semantic Mapping:Points that are close together in this space share semantic meaning. For instance, the vector for \"Apple\" is geometrically closer to \"Fruit\" than it is to \"Architecture.\"\n2. How the Space is Defined\nThe \"walls\" and \"directions\" of a latent space are defined by three primary factors:\n- Embeddings:This is the entry point. Discrete inputs (tokens) are mapped into continuous vectors. This mapping defines the initial \"neighborhoods\" of the space.\n- Weights and Biases:The parameters learned during training act as the \"physics\" of the space. They determine how a vector is transformed as it passes through the model's layers.\n- Linear Separability:Research (like the \"Logit Lens\" or Mechanistic Interpretability studies) shows that specific directions in the space often correspond to specific concepts, such as \"past tense,\" \"sentiment,\" or \"gender.\"\n3. Does the Agent \"Move\"?\n\"Movement\" in latent space happens in two distinct ways:\n| Type of Movement | Mechanism |\n| --- | --- |\n| Inference Pathing | As a model processes a prompt, the hidden states \"move\" through different regions of the latent space across successive layers. You can visualize this as a trajectory from a broad concept toward a specific prediction. |\n| Latent Shifting | Through techniques likeActivation Steering, researchers can manually \"push\" an agent’s representation in a certain direction (e.g., making it more helpful or more talkative) by adding a vector to its internal state. |\n4. Constraints and Static Nature\nWhile the\npath\nan agent takes can vary, the\nlatent space itself is static\nafter training.\n- The Freeze:For a standard pre-trained model, the \"map\" does not change. The model cannot \"discover\" a new continent in its latent space; it can only navigate the coordinates it was given during the training phase.\n- The Exception:Agents that undergoOnline Learningor continuous fine-tuning are effectively reshaping their latent space in real-time, though this is computationally expensive and less common in standard deployments.\nSummary\nAgents move through a\npre-defined, high-dimensional manifold\n. This space is defined by the\nstatistical relationships\nfound in the training data, structured into a vector space where geometry equals meaning. When an agent \"thinks,\" it is essentially performing high-speed geometric transformations within those fixed boundaries.\nYou said\nwhat determines which \"path\" the agent takes?\nThe \"path\" an agent takes through its latent space is not a random walk; it is a deterministic sequence of mathematical transformations governed by the interaction between the input and the model's internal structure.\nHere are the primary factors that determine the trajectory:\n1. The Initial Vector (The Anchor)\nThe starting point of the path is determined by the\ninput tokens\n. Each word or sub-word is converted into a high-dimensional embedding.\n- Contextual Encoding:Because modern agents use self-attention, the starting position of a word like \"bank\" will be different if the surrounding tokens are \"river\" versus \"money.\" This initial placement sets the entire \"latitude and longitude\" for the rest of the journey.\n2. The Attention Mechanism (The Navigation)\nIf the latent space is a map, the\nAttention Mechanism\nis the steering wheel. At each layer, the model looks back at all previous tokens to determine which ones are most relevant to the current step.\n- Information Gathering:The \"path\" shifts toward specific clusters in the latent space based on which previous data points are weighted most heavily.\n- Dynamic Weighting:If the prompt asks for a \"legal analysis,\" the attention mechanism will steer the hidden states toward the \"legal/formal\" regions of the latent space, effectively filtering out \"casual/slang\" regions.\n3. Layer-by-Layer Transformations\nAn agent doesn't jump straight to an answer; it moves through layers (often 32, 96, or more).\n- Abstractive Ascent:Lower layers often handle \"surface-level\" features (syntax and grammar). As the data moves to higher layers, the path shifts toward \"semantic\" features (intent and logic).\n- Residual Connections:These act as \"highways\" that allow the model to preserve original information from the prompt while it calculates new transformations, ensuring the path doesn't veer too far into hallucinations.\n4. The \"Topographic\" Constraints (Model Weights)\nThe path is physically constrained by the\nweights\nlearned during training. These weights define the \"valleys\" and \"peaks\" of the mathematical landscape.\n- Probabilistic Flow:The weights essentially create a gravitational pull toward certain outcomes. If the training data contains millions of examples where \"Once upon a...\" is followed by \"time,\" the latent path is heavily biased to flow toward the \"time\" coordinate.\n5. Temperature and Top-P (The \"Drift\" Factor)\nWhile the path through the internal layers is largely deterministic, the\nfinal output selection\nintroduces controlled randomness.\n- Temperature:A high temperature allows the agent to deviate from the most \"obvious\" path (the highest probability vector) and explore \"scenic routes\" (lower probability vectors).\n- Top-P (Nucleus Sampling):This cuts off the path if it starts heading toward low-probability \"dead ends\" in the latent space, keeping the trajectory within a logical neighborhood.\nSummary Table: Path Determinants\n| Element | Function | Effect on Path |\n| --- | --- | --- |\n| Prompt | Entry Point | Sets the starting coordinates in the manifold. |\n| Attention | Contextual Pivot | Adjusts the direction based on relationships between tokens. |\n| Weights | Terrain | Defines the \"valid\" routes established during training. |\n| Temperature | Exploration | Determines how strictly the agent must follow the \"most traveled\" path. |\nWould you like to explore how \"activation steering\" can manually force an agent onto a specific path regardless of the prompt?\nYou said\nwhich role does context gathered in previous runs have on this \"path\" when the agents gets a new query?\nContext from previous runs acts as a\ncoordinate shift\nthat repositions the agent’s starting point in the latent space. If a standalone query is a \"cold start,\" a query with context is a \"running start\"—the agent begins with a pre-existing vector trajectory.\nTechnically, context influences the \"path\" through three distinct mechanisms:\n1. The KV Cache (Short-Term Neural Footprint)\nIn modern Transformers, context isn't just \"read\" again; it is preserved in the\nKey-Value (KV) Cache\n.\n- How it works:When the agent processes the first few messages in a chat, it calculates mathematical representations (Keys and Values) for those tokens.\n- The Path Effect:When the new query arrives, the agent doesn't start at coordinate(0,0). The KV Cache provides a \"pre-computed landscape.\" The new tokens immediately attend to these cached vectors, which pulls the current \"path\" toward the semantic neighborhood of the previous conversation.\n2. Contextual Priming (Anchoring)\nContext acts as a\nsemantic anchor\n. In a high-dimensional latent space, words are polysemous (they have multiple meanings).\n- The Path Effect:If you’ve been talking about \"Python\" as a programming language, the latent vectors for that conversation have already gravitated toward the \"Technology\" region of the manifold.\n- The Result:When you type a new, ambiguous query like\"How do I handle exceptions?\", the existing context creates a \"gravitational pull\" that prevents the path from wandering toward \"Legal Exceptions\" or \"Medical Anomalies.\" It stays firmly in the \"Coding\" sector.\n3. State Drift and \"Context Rot\"\nAs context accumulates, the latent space path can become \"heavy\" or \"noisy.\"\n- Information Dilution:In a very long session, the \"signal\" of your new query has to compete with thousands of previous vectors.The attention mechanism begins to spread its \"focus\" thin.\n- Path Collapse:Researchers call thisContext Rot. If earlier runs contained errors or contradictions, those \"bad coordinates\" stay in the cache. The agent’s path for the new query is then built on a \"tilted\" foundation, making it more likely to hallucinate or lose track of instructions.\nComparison: Cold Start vs. Contextual Start\n| Feature | Cold Start (No Context) | Contextual Start (Previous Runs) |\n| --- | --- | --- |\n| Initial Vector | Generic embedding of the first word. | Embedding influenced by thousands of cached Key-Value pairs. |\n| Path Flexibility | Highly flexible; can go in any semantic direction. | Heavily constrained by the \"gravity\" of the existing dialogue. |\n| Precision | May require \"prompt engineering\" to define the domain. | High precision; the agent \"knows\" the domain already. |\n| Risk | Misunderstanding intent. | Context Pollution: Inheriting mistakes from previous turns. |\n4. Long-Term Memory (External Shifting)\nFor agents that persist across days or weeks, the context isn't just in the KV Cache (which clears when the session ends). Instead, the agent uses\nRetrieval-Augmented Generation (RAG)\n.\n- The Mechanism:The agent searches a database for \"memories\" and injects them into the current prompt.\n- The Path Effect:This essentially \"teleports\" the agent to a specific coordinate in the latent space that it occupied weeks ago, ensuring that its new \"path\" is consistent with its \"past self.\"\nDoes this make sense in terms of the \"geometry\" we discussed earlier, or should we dive deeper into how \"Attention\" specifically pulls the path toward those previous coordinates?\nYou said\ncan you explain this how the same query would be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with unrelated prior context.\nTo visualize how these three scenarios differ, imagine the latent space as a\nmassive, multi-dimensional museum\n. Each \"room\" represents a topic (Coding, Cooking, Law, History).\nThe agent's \"path\" is the route it takes through these rooms to reach an answer.\nThe Query:\n\"How do I split the strings?\"\n1. The Agent Without Prior Context (The \"Cold Start\")\n- Starting Point:The agent lands in aneutral, high-traffic lobby. Because \"strings\" is an ambiguous term, the latent space has multiple valid directions (Musical instruments? Computer science? Physical twine?).\n- The Path:The model looks at the most statistically probable meaning in its training data. For AI models, \"strings\" often defaults to programming.\n- The Trajectory:It takes astraight, generic pathtoward the \"Coding\" wing, likely providing a Python or JavaScript`.split()`example. It is efficient but risks being irrelevant if you were actually asking about a tennis racket.\n2. The Agent with Relevant Prior Context (The \"Anchored Start\")\n- Scenario:You’ve been discussingC++ memory managementfor the last 10 minutes.\n- Starting Point:The agent is already standing deep inside the\"C++ Programming\" room. The KV Cache (its short-term memory) is filled with vectors related to pointers, arrays, and syntax.\n- The Path:When the query arrives, theAttention Mechanisminstantly \"pulls\" the word \"strings\" toward the existing C++ vectors.\n- The Trajectory:Instead of a generic path, it takes ahighly specialized ",
+  "context": {
+    "project": "Pilot 002 replay (deep)",
+    "domain": "research, topology",
+    "tags": [
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay"
+    ]
+  },
+  "ontology_refs": {
+    "governing_roles": "mtsf://ontologies/governing-roles@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0",
+    "stencil_role_types": "mtsf://ontologies/stencil-role-types@1.0.0"
+  },
+  "provenance": {
+    "skill_id": "semantic-shape-extraction",
+    "skill_version": "1.0.0",
+    "model_id": "mtsf_ingest.deep_heuristic",
+    "extracted_at": "2026-07-06T14:17:17+00:00",
+    "stages_completed": [
+      "activation_hint",
+      "candidate_shapes",
+      "capture",
+      "entities",
+      "qualities",
+      "quality_roles",
+      "relations",
+      "stencil_drafts",
+      "sub_entities",
+      "surface"
+    ]
+  },
+  "entities": [
+    {
+      "proposed_id": "entity-context-field",
+      "name": "context field",
+      "type": "composite",
+      "stable_identity": [
+        "contextual conditioning on inference"
+      ],
+      "confidence": 0.72,
+      "evidence": {
+        "spans": [
+          "type of agent you are analyzing. In the context of Large Language Models (LLMs) and generative AI, the answ"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-latent-manifold",
+      "name": "latent manifold",
+      "type": "composite",
+      "stable_identity": [
+        "learned semantic geometry"
+      ],
+      "confidence": 0.72,
+      "evidence": {
+        "spans": [
+          "7\"\n---\nYou said\ndo agents move in a set latent space? if so how is that space defined?\nWhether \"agents\" (A"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-effective-topology",
+      "name": "effective topology",
+      "type": "composite",
+      "stable_identity": [
+        "context-warped accessible landscape"
+      ],
+      "confidence": 0.72,
+      "evidence": {
+        "spans": [
+          "t) move a point across that surface.\nIn topology, the \"path\" is a trajectory on a high-dimensional landscape"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-symmetry-engine",
+      "name": "symmetry engine",
+      "type": "composite",
+      "stable_identity": [
+        "structural matching operator"
+      ],
+      "confidence": 0.72,
+      "evidence": {
+        "spans": [
+          "ithin them possess geometry/smmetry/antisymmetry?\nPrecisely. When you strip away the prose and look at the\nD"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-thought-ocean",
+      "name": "thought ocean",
+      "type": "composite",
+      "stable_identity": [
+        "personal knowledge library"
+      ],
+      "confidence": 0.72,
+      "evidence": {
+        "spans": [
+          "you have a user library of thousands of notes and concepts. how to find connecting ones without bloating"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-synthetic-subconscious",
+      "name": "synthetic subconscious",
+      "type": "composite",
+      "stable_identity": [
+        "background cross-domain matcher"
+      ],
+      "confidence": 0.72,
+      "evidence": {
+        "spans": [
+          "ely thinking about a problem, and their subconsciousnes also thinking about that problem. while they are not act"
+        ]
+      }
+    }
+  ],
+  "sub_entities": [],
+  "qualities": [
+    {
+      "quality_id": "quality-domain-orthogonal",
+      "quality_type": "meta_state",
+      "intensity": 1.0,
+      "kind": "contextual",
+      "entity_ref": "entity-context-field",
+      "labels": [
+        "orthogonal",
+        "polluted"
+      ],
+      "confidence": 0.75,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
+    }
+  ],
+  "quality_roles": [
+    {
+      "quality_ref": "quality-domain-orthogonal",
+      "entity_ref": "entity-context-field",
+      "role": "contrasting",
+      "confidence": 0.75,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
+    }
+  ],
+  "relations": [
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-latent-manifold",
+      "level": "entity_entity",
+      "relation_type": "steers",
+      "primitive": "modulates",
+      "domain_expression": "context field modulates inference path or topology",
+      "weight": 0.88,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "type of agent you are analyzing. In the context of Large Language Models (LLMs) and generative AI, the answ"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-domain-orthogonal",
+      "target_ref": "entity-context-field",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "quality-domain-orthogonal conditions entity-context-field",
+      "weight": 1.0,
+      "confidence": 0.75,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
+    }
+  ],
+  "candidate_shapes": [
+    {
+      "proposed_id": "cand-context-triangulation",
+      "possible_names": [
+        "context triangulation",
+        "three-case context contrast"
+      ],
+      "relational_configuration": "cold vs anchored vs orthogonal context",
+      "entity_refs": [
+        "entity-context-field",
+        "entity-latent-manifold",
+        "entity-effective-topology"
+      ],
+      "confidence": 0.8,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
+    },
+    {
+      "proposed_id": "cand-symmetry-match",
+      "possible_names": [
+        "symmetric blueprint",
+        "structural twin search"
+      ],
+      "relational_configuration": "seed → isomorph template",
+      "entity_refs": [
+        "entity-context-field",
+        "entity-latent-manifold"
+      ],
+      "confidence": 0.74,
+      "evidence": {
+        "spans": [
+          "ithin them possess geometry/smmetry/antisymmetry?\nPrecisely. When you strip away the prose and look at the\nD"
+        ]
+      }
+    }
+  ],
+  "stencil_drafts": [
+    {
+      "proposed_name": "context field modulates probe path",
+      "role_entities": [
+        {
+          "role_type": "field"
+        },
+        {
+          "role_type": "probe"
+        },
+        {
+          "role_type": "landscape"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "field",
+          "target_role_ref": "probe",
+          "primitive": "modulates",
+          "relation_type": "steers"
+        },
+        {
+          "source_role_ref": "field",
+          "target_role_ref": "landscape",
+          "primitive": "modulates",
+          "relation_type": "warps"
+        }
+      ],
+      "dynamics_class": "gradient",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": {
+        "causal_geometry": true
+      },
+      "confidence": 0.82,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ],
+        "source_refs": [
+          "seed:stencil-context-warps-topology",
+          "ingest:fast"
+        ]
+      }
+    }
+  ],
+  "activation_snapshot_hint": {
+    "formation_phase": "partial_population",
+    "meta_shape_id": null,
+    "meta_move_id": "move-symmetry-extension",
+    "dominant_entity_refs": [
+      "entity-context-field",
+      "entity-latent-manifold"
+    ],
+    "active_quality_refs": [
+      "quality-domain-orthogonal"
+    ]
+  },
+  "artifact_pathways": [],
+  "uncertainties": [
+    "Deep heuristic extraction from session events; LLM skill pass may refine relations and stencil topology."
+  ],
+  "user_questions": [],
+  "confidence": 0.93,
+  "status": "validated",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "stencil_matches": [
+      {
+        "draft_index": 0,
+        "proposed_name": "context field modulates probe path",
+        "fingerprint": "12101af5b55a8e28",
+        "best_seed_match_id": "stencil-context-warps-topology",
+        "structural_score": 1.0,
+        "declared_seed_refs": [
+          "stencil-context-warps-topology"
+        ]
+      }
+    ]
+  },
+  "quarantine": {
+    "quarantine": false,
+    "reasons": [],
+    "promotion_ready": true
+  }
+}

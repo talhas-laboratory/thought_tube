@@ -1,0 +1,57 @@
+{
+  "artifact_type": "mtsf_pipeline",
+  "session_id": "pilot-002-replay-deep",
+  "capture_mode": "deep",
+  "extraction_source": "mtsf_ingest.deep_heuristic",
+  "entity_ids": [
+    "entity-context-field",
+    "entity-latent-manifold",
+    "entity-effective-topology",
+    "entity-symmetry-engine",
+    "entity-thought-ocean",
+    "entity-synthetic-subconscious"
+  ],
+  "entity_names": [
+    "context field",
+    "latent manifold",
+    "effective topology",
+    "symmetry engine",
+    "thought ocean",
+    "synthetic subconscious"
+  ],
+  "entity_count": 6,
+  "relation_count": 2,
+  "relation_signatures": [
+    "entity-context-field|modulates|entity-latent-manifold",
+    "quality-domain-orthogonal|modulates|entity-context-field"
+  ],
+  "quality_count": 1,
+  "quality_role_count": 1,
+  "candidate_shape_ids": [
+    "cand-context-triangulation",
+    "cand-symmetry-match"
+  ],
+  "candidate_shape_names": [
+    "context triangulation",
+    "symmetric blueprint"
+  ],
+  "stencil_draft_count": 1,
+  "stencil_draft_names": [
+    "context field modulates probe path"
+  ],
+  "active_stencil_ids": [
+    "stencil-context-warps-topology"
+  ],
+  "stencil_count": 1,
+  "shape_instance_count": 1,
+  "activation_entity_count": 0,
+  "confidence": 0.93,
+  "promotion_ready": true,
+  "validation_ok": true,
+  "artifact_paths": {
+    "extraction_draft": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/extraction_draft.json",
+    "shape_index": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/shape_index.json",
+    "activation_snapshot": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/activation_snapshot.json",
+    "stencil_projection": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/stencil_projection.json"
+  }
+}

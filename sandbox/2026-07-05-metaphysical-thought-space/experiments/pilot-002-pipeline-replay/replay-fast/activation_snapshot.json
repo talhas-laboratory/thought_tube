@@ -1,0 +1,86 @@
+{
+  "id": "mtsf-snap-41dcaf0c0bee",
+  "session_id": "pilot-002-replay-fast",
+  "subgraph_id": "session-pilot-002-replay-fast",
+  "formation_phase": "partial_population",
+  "meta_shape_id": null,
+  "matched_conditions": [
+    "cond-explicit-structural-lens",
+    "cond-polluted-start",
+    "cond-symmetric-blueprint"
+  ],
+  "active_stencil_ids": [],
+  "shape_activation_results": [
+    {
+      "entity_id": "entity-context-field",
+      "dominant_shape_id": "shape-polluted-start",
+      "secondary_shape_ids": [],
+      "shape_weights": {
+        "shape-polluted-start": 0.8415000000000001
+      },
+      "matched_conditions": [
+        "cond-polluted-start"
+      ],
+      "confidence": 0.8415000000000001,
+      "evidence": [
+        "cond-polluted-start -> shape-polluted-start (score=0.842)"
+      ],
+      "active_stencil_ids": []
+    },
+    {
+      "entity_id": "entity-thought-ocean",
+      "dominant_shape_id": "shape-raw-manifold",
+      "secondary_shape_ids": [],
+      "shape_weights": {
+        "shape-raw-manifold": 0.25
+      },
+      "matched_conditions": [],
+      "confidence": 0.25,
+      "evidence": [
+        "default_geodesic -> shape-raw-manifold"
+      ],
+      "active_stencil_ids": []
+    },
+    {
+      "entity_id": "entity-symmetry-engine",
+      "dominant_shape_id": "shape-positive-isomorph",
+      "secondary_shape_ids": [],
+      "shape_weights": {
+        "shape-positive-isomorph": 2.1538
+      },
+      "matched_conditions": [
+        "cond-symmetric-blueprint",
+        "cond-explicit-structural-lens"
+      ],
+      "confidence": 1.0,
+      "evidence": [
+        "cond-symmetric-blueprint -> shape-positive-isomorph (score=0.929)",
+        "cond-explicit-structural-lens -> shape-positive-isomorph (score=1.225)"
+      ],
+      "active_stencil_ids": []
+    },
+    {
+      "entity_id": "entity-hardened-idea",
+      "dominant_shape_id": "shape-negative-inference-mode",
+      "secondary_shape_ids": [],
+      "shape_weights": {
+        "shape-negative-inference-mode": 0.25
+      },
+      "matched_conditions": [],
+      "confidence": 0.25,
+      "evidence": [
+        "default_geodesic -> shape-negative-inference-mode"
+      ],
+      "active_stencil_ids": []
+    }
+  ],
+  "inference": {
+    "context_absent": false,
+    "context_domain_overlap": 0.4,
+    "context_domain_orthogonal": 1.0,
+    "meta_move_id": "move-symmetry-extension",
+    "explicit_lens": "structural_isomorph",
+    "problem_signal": false,
+    "user_turn_count": 29
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "session_id": "pilot-002-replay-fast",
+  "draft_id": "mtsf-draft-005277020857",
+  "subgraph_id": "research",
+  "validation_quarantine": false,
+  "active_stencil_ids": [
+    "stencil-context-warps-topology"
+  ],
+  "stencil_projections": [
+    {
+      "draft_index": 0,
+      "proposed_name": "context field modulates probe path",
+      "fingerprint": "12101af5b55a8e28",
+      "action": "merge_declared_seed",
+      "stencil_id": "stencil-context-warps-topology",
+      "structural_match_score": 1.0,
+      "matched_seed_id": "stencil-context-warps-topology",
+      "quarantine": false
+    }
+  ],
+  "shape_instances": [
+    {
+      "id": "shape-inst-981afd5d1a44",
+      "entity_id": "entity-context-field",
+      "stencil_id": "stencil-context-warps-topology",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-005277020857",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:16:57+00:00"
+    }
+  ],
+  "quarantined_stencil_count": 0
+}

@@ -1,0 +1,464 @@
+{
+  "experiment_id": "pilot-002-pipeline-replay",
+  "generated_at": "2026-07-06T14:17:43+00:00",
+  "baseline_snapshot": {
+    "snapshot_dir": "/workspace/sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-pipeline-replay/baseline_snapshot",
+    "snapshot_path": "/workspace/sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-pipeline-replay/baseline_snapshot/third-space.json",
+    "manifest_path": "/workspace/sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-pipeline-replay/baseline_snapshot/snapshot_manifest.json",
+    "summary": {
+      "artifact_type": "third_space",
+      "entity_ids": [
+        "entity-latent-manifold",
+        "entity-agent-path",
+        "entity-context-field",
+        "entity-effective-topology",
+        "entity-dimensional-fiber",
+        "entity-thought-ocean",
+        "entity-structural-shape",
+        "entity-entity-relationship-state",
+        "entity-synthetic-subconscious",
+        "entity-symmetry-engine",
+        "entity-hardened-idea",
+        "entity-eureka-moment"
+      ],
+      "entity_names": [
+        "latent manifold",
+        "inference path",
+        "context field",
+        "effective topology",
+        "dimensional fiber",
+        "thought ocean",
+        "structural shape",
+        "entity-relationship-state model",
+        "synthetic subconscious",
+        "symmetry engine",
+        "hardened idea",
+        "eureka moment"
+      ],
+      "entity_count": 12,
+      "relation_count": 14,
+      "relation_signatures": [
+        "entity-context-field|modulates|entity-effective-topology",
+        "entity-context-field|modulates|entity-agent-path",
+        "entity-agent-path|contains|entity-latent-manifold",
+        "entity-dimensional-fiber|combines-with|entity-effective-topology",
+        "entity-context-field|modulates|entity-latent-manifold",
+        "entity-thought-ocean|contains|entity-structural-shape",
+        "entity-structural-shape|defines|entity-entity-relationship-state",
+        "entity-synthetic-subconscious|enables|entity-thought-ocean",
+        "entity-symmetry-engine|resembles|entity-structural-shape",
+        "entity-symmetry-engine|contrasts|entity-structural-shape",
+        "entity-synthetic-subconscious|enables|entity-eureka-moment",
+        "entity-eureka-moment|transforms-into|entity-hardened-idea",
+        "entity-context-field|modulates|entity-agent-path",
+        "entity-symmetry-engine|defines|entity-hardened-idea"
+      ],
+      "activation_snapshot_count": 10,
+      "candidate_pattern_id": "cand-synthetic-subconscious",
+      "candidate_pattern_names": [
+        "synthetic subconscious",
+        "symmetry engine for thought",
+        "topological thought ocean",
+        "isomorphic hardening loop"
+      ],
+      "dominant_tension": "operational_AI_mechanics vs cognitive_system_vision",
+      "confidence": 0.88,
+      "stencil_count": 0,
+      "stencil_ids": []
+    }
+  },
+  "baseline": {
+    "artifact_type": "third_space",
+    "entity_ids": [
+      "entity-latent-manifold",
+      "entity-agent-path",
+      "entity-context-field",
+      "entity-effective-topology",
+      "entity-dimensional-fiber",
+      "entity-thought-ocean",
+      "entity-structural-shape",
+      "entity-entity-relationship-state",
+      "entity-synthetic-subconscious",
+      "entity-symmetry-engine",
+      "entity-hardened-idea",
+      "entity-eureka-moment"
+    ],
+    "entity_names": [
+      "latent manifold",
+      "inference path",
+      "context field",
+      "effective topology",
+      "dimensional fiber",
+      "thought ocean",
+      "structural shape",
+      "entity-relationship-state model",
+      "synthetic subconscious",
+      "symmetry engine",
+      "hardened idea",
+      "eureka moment"
+    ],
+    "entity_count": 12,
+    "relation_count": 14,
+    "relation_signatures": [
+      "entity-context-field|modulates|entity-effective-topology",
+      "entity-context-field|modulates|entity-agent-path",
+      "entity-agent-path|contains|entity-latent-manifold",
+      "entity-dimensional-fiber|combines-with|entity-effective-topology",
+      "entity-context-field|modulates|entity-latent-manifold",
+      "entity-thought-ocean|contains|entity-structural-shape",
+      "entity-structural-shape|defines|entity-entity-relationship-state",
+      "entity-synthetic-subconscious|enables|entity-thought-ocean",
+      "entity-symmetry-engine|resembles|entity-structural-shape",
+      "entity-symmetry-engine|contrasts|entity-structural-shape",
+      "entity-synthetic-subconscious|enables|entity-eureka-moment",
+      "entity-eureka-moment|transforms-into|entity-hardened-idea",
+      "entity-context-field|modulates|entity-agent-path",
+      "entity-symmetry-engine|defines|entity-hardened-idea"
+    ],
+    "activation_snapshot_count": 10,
+    "candidate_pattern_id": "cand-synthetic-subconscious",
+    "candidate_pattern_names": [
+      "synthetic subconscious",
+      "symmetry engine for thought",
+      "topological thought ocean",
+      "isomorphic hardening loop"
+    ],
+    "dominant_tension": "operational_AI_mechanics vs cognitive_system_vision",
+    "confidence": 0.88,
+    "stencil_count": 0,
+    "stencil_ids": []
+  },
+  "source_path": "/home/ubuntu/.cursor/projects/workspace/uploads/2026-05-07_you-said_ca8c.md",
+  "legacy_session_id": "import-69ea1f64f744",
+  "pipeline_runs": {
+    "fast": {
+      "session_id": "pilot-002-replay-fast",
+      "mode": "fast",
+      "summary": {
+        "artifact_type": "mtsf_pipeline",
+        "session_id": "pilot-002-replay-fast",
+        "capture_mode": "fast",
+        "extraction_source": "mtsf_ingest.fast",
+        "entity_ids": [
+          "entity-context-field",
+          "entity-latent-manifold",
+          "entity-effective-topology",
+          "entity-symmetry-engine",
+          "entity-thought-ocean",
+          "entity-synthetic-subconscious"
+        ],
+        "entity_names": [
+          "context field",
+          "latent manifold",
+          "effective topology",
+          "symmetry engine",
+          "thought ocean",
+          "synthetic subconscious"
+        ],
+        "entity_count": 6,
+        "relation_count": 0,
+        "relation_signatures": [],
+        "quality_count": 1,
+        "quality_role_count": 0,
+        "candidate_shape_ids": [
+          "cand-context-triangulation",
+          "cand-symmetry-match"
+        ],
+        "candidate_shape_names": [
+          "context triangulation",
+          "symmetric blueprint"
+        ],
+        "stencil_draft_count": 1,
+        "stencil_draft_names": [
+          "context field modulates probe path"
+        ],
+        "active_stencil_ids": [
+          "stencil-context-warps-topology"
+        ],
+        "stencil_count": 1,
+        "shape_instance_count": 1,
+        "activation_entity_count": 0,
+        "confidence": 0.8799999999999999,
+        "promotion_ready": true,
+        "validation_ok": true,
+        "artifact_paths": {
+          "extraction_draft": "/workspace/memory/sessions/pilot-002-replay-fast/mtsf/extraction_draft.json",
+          "shape_index": "/workspace/memory/sessions/pilot-002-replay-fast/mtsf/shape_index.json",
+          "activation_snapshot": "/workspace/memory/sessions/pilot-002-replay-fast/mtsf/activation_snapshot.json",
+          "stencil_projection": "/workspace/memory/sessions/pilot-002-replay-fast/mtsf/stencil_projection.json"
+        }
+      },
+      "comparison": {
+        "baseline_artifact": "third_space",
+        "pipeline_artifact": "mtsf_pipeline",
+        "pipeline_mode": "fast",
+        "pipeline_source": "mtsf_ingest.fast",
+        "counts": {
+          "baseline_entities": 12,
+          "pipeline_entities": 6,
+          "baseline_relations": 14,
+          "pipeline_relations": 0,
+          "pipeline_qualities": 1,
+          "pipeline_quality_roles": 0,
+          "pipeline_stencil_drafts": 1,
+          "pipeline_active_stencils": 1,
+          "baseline_activation_snapshots": 10,
+          "pipeline_shape_instances": 1
+        },
+        "entities": {
+          "id_overlap": [
+            "entity-context-field",
+            "entity-effective-topology",
+            "entity-latent-manifold",
+            "entity-symmetry-engine",
+            "entity-synthetic-subconscious",
+            "entity-thought-ocean"
+          ],
+          "id_overlap_count": 6,
+          "id_missing_from_pipeline": [
+            "entity-agent-path",
+            "entity-dimensional-fiber",
+            "entity-entity-relationship-state",
+            "entity-eureka-moment",
+            "entity-hardened-idea",
+            "entity-structural-shape"
+          ],
+          "id_novel_in_pipeline": [],
+          "name_overlap": [
+            "context-field",
+            "effective-topology",
+            "latent-manifold",
+            "symmetry-engine",
+            "synthetic-subconscious",
+            "thought-ocean"
+          ],
+          "name_overlap_count": 6,
+          "recall_by_id": 0.5,
+          "precision_by_id": 1.0
+        },
+        "relations": {
+          "overlap": [],
+          "overlap_count": 0,
+          "missing_from_pipeline": [
+            "entity-agent-path|contains|entity-latent-manifold",
+            "entity-context-field|modulates|entity-agent-path",
+            "entity-context-field|modulates|entity-effective-topology",
+            "entity-context-field|modulates|entity-latent-manifold",
+            "entity-dimensional-fiber|combines-with|entity-effective-topology",
+            "entity-eureka-moment|transforms-into|entity-hardened-idea",
+            "entity-structural-shape|defines|entity-entity-relationship-state",
+            "entity-symmetry-engine|contrasts|entity-structural-shape",
+            "entity-symmetry-engine|defines|entity-hardened-idea",
+            "entity-symmetry-engine|resembles|entity-structural-shape",
+            "entity-synthetic-subconscious|enables|entity-eureka-moment",
+            "entity-synthetic-subconscious|enables|entity-thought-ocean",
+            "entity-thought-ocean|contains|entity-structural-shape"
+          ],
+          "novel_in_pipeline": [],
+          "recall": 0.0
+        },
+        "patterns": {
+          "baseline_candidate_pattern_id": "cand-synthetic-subconscious",
+          "baseline_candidate_names": [
+            "synthetic subconscious",
+            "symmetry engine for thought",
+            "topological thought ocean",
+            "isomorphic hardening loop"
+          ],
+          "pipeline_candidate_shape_ids": [
+            "cand-context-triangulation",
+            "cand-symmetry-match"
+          ],
+          "pipeline_candidate_shape_names": [
+            "context triangulation",
+            "symmetric blueprint"
+          ],
+          "pipeline_active_stencil_ids": [
+            "stencil-context-warps-topology"
+          ],
+          "baseline_had_stencils": false,
+          "pipeline_has_stencils": true
+        },
+        "confidence": {
+          "baseline": 0.88,
+          "pipeline": 0.8799999999999999,
+          "pipeline_promotion_ready": true,
+          "pipeline_validation_ok": true
+        },
+        "gaps_closed": [
+          "machine_readable_stencil_schema",
+          "seed_stencil_projection",
+          "shape_instance_bindings"
+        ]
+      }
+    },
+    "deep": {
+      "session_id": "pilot-002-replay-deep",
+      "mode": "deep",
+      "summary": {
+        "artifact_type": "mtsf_pipeline",
+        "session_id": "pilot-002-replay-deep",
+        "capture_mode": "deep",
+        "extraction_source": "mtsf_ingest.deep_heuristic",
+        "entity_ids": [
+          "entity-context-field",
+          "entity-latent-manifold",
+          "entity-effective-topology",
+          "entity-symmetry-engine",
+          "entity-thought-ocean",
+          "entity-synthetic-subconscious"
+        ],
+        "entity_names": [
+          "context field",
+          "latent manifold",
+          "effective topology",
+          "symmetry engine",
+          "thought ocean",
+          "synthetic subconscious"
+        ],
+        "entity_count": 6,
+        "relation_count": 2,
+        "relation_signatures": [
+          "entity-context-field|modulates|entity-latent-manifold",
+          "quality-domain-orthogonal|modulates|entity-context-field"
+        ],
+        "quality_count": 1,
+        "quality_role_count": 1,
+        "candidate_shape_ids": [
+          "cand-context-triangulation",
+          "cand-symmetry-match"
+        ],
+        "candidate_shape_names": [
+          "context triangulation",
+          "symmetric blueprint"
+        ],
+        "stencil_draft_count": 1,
+        "stencil_draft_names": [
+          "context field modulates probe path"
+        ],
+        "active_stencil_ids": [
+          "stencil-context-warps-topology"
+        ],
+        "stencil_count": 1,
+        "shape_instance_count": 1,
+        "activation_entity_count": 0,
+        "confidence": 0.93,
+        "promotion_ready": true,
+        "validation_ok": true,
+        "artifact_paths": {
+          "extraction_draft": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/extraction_draft.json",
+          "shape_index": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/shape_index.json",
+          "activation_snapshot": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/activation_snapshot.json",
+          "stencil_projection": "/workspace/memory/sessions/pilot-002-replay-deep/mtsf/stencil_projection.json"
+        }
+      },
+      "comparison": {
+        "baseline_artifact": "third_space",
+        "pipeline_artifact": "mtsf_pipeline",
+        "pipeline_mode": "deep",
+        "pipeline_source": "mtsf_ingest.deep_heuristic",
+        "counts": {
+          "baseline_entities": 12,
+          "pipeline_entities": 6,
+          "baseline_relations": 14,
+          "pipeline_relations": 2,
+          "pipeline_qualities": 1,
+          "pipeline_quality_roles": 1,
+          "pipeline_stencil_drafts": 1,
+          "pipeline_active_stencils": 1,
+          "baseline_activation_snapshots": 10,
+          "pipeline_shape_instances": 1
+        },
+        "entities": {
+          "id_overlap": [
+            "entity-context-field",
+            "entity-effective-topology",
+            "entity-latent-manifold",
+            "entity-symmetry-engine",
+            "entity-synthetic-subconscious",
+            "entity-thought-ocean"
+          ],
+          "id_overlap_count": 6,
+          "id_missing_from_pipeline": [
+            "entity-agent-path",
+            "entity-dimensional-fiber",
+            "entity-entity-relationship-state",
+            "entity-eureka-moment",
+            "entity-hardened-idea",
+            "entity-structural-shape"
+          ],
+          "id_novel_in_pipeline": [],
+          "name_overlap": [
+            "context-field",
+            "effective-topology",
+            "latent-manifold",
+            "symmetry-engine",
+            "synthetic-subconscious",
+            "thought-ocean"
+          ],
+          "name_overlap_count": 6,
+          "recall_by_id": 0.5,
+          "precision_by_id": 1.0
+        },
+        "relations": {
+          "overlap": [
+            "entity-context-field|modulates|entity-latent-manifold"
+          ],
+          "overlap_count": 1,
+          "missing_from_pipeline": [
+            "entity-agent-path|contains|entity-latent-manifold",
+            "entity-context-field|modulates|entity-agent-path",
+            "entity-context-field|modulates|entity-effective-topology",
+            "entity-dimensional-fiber|combines-with|entity-effective-topology",
+            "entity-eureka-moment|transforms-into|entity-hardened-idea",
+            "entity-structural-shape|defines|entity-entity-relationship-state",
+            "entity-symmetry-engine|contrasts|entity-structural-shape",
+            "entity-symmetry-engine|defines|entity-hardened-idea",
+            "entity-symmetry-engine|resembles|entity-structural-shape",
+            "entity-synthetic-subconscious|enables|entity-eureka-moment",
+            "entity-synthetic-subconscious|enables|entity-thought-ocean",
+            "entity-thought-ocean|contains|entity-structural-shape"
+          ],
+          "novel_in_pipeline": [
+            "quality-domain-orthogonal|modulates|entity-context-field"
+          ],
+          "recall": 0.0769
+        },
+        "patterns": {
+          "baseline_candidate_pattern_id": "cand-synthetic-subconscious",
+          "baseline_candidate_names": [
+            "synthetic subconscious",
+            "symmetry engine for thought",
+            "topological thought ocean",
+            "isomorphic hardening loop"
+          ],
+          "pipeline_candidate_shape_ids": [
+            "cand-context-triangulation",
+            "cand-symmetry-match"
+          ],
+          "pipeline_candidate_shape_names": [
+            "context triangulation",
+            "symmetric blueprint"
+          ],
+          "pipeline_active_stencil_ids": [
+            "stencil-context-warps-topology"
+          ],
+          "baseline_had_stencils": false,
+          "pipeline_has_stencils": true
+        },
+        "confidence": {
+          "baseline": 0.88,
+          "pipeline": 0.93,
+          "pipeline_promotion_ready": true,
+          "pipeline_validation_ok": true
+        },
+        "gaps_closed": [
+          "machine_readable_stencil_schema",
+          "typed_relation_edges_in_pipeline",
+          "seed_stencil_projection",
+          "shape_instance_bindings"
+        ]
+      }
+    }
+  }
+}
