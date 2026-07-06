@@ -777,6 +777,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["auto", "off", "force"],
         help="LLM preference for deep replay (default off for reproducible compare)",
     )
+    mtsf_pilot_compare.add_argument(
+        "--no-agent-skill",
+        action="store_true",
+        help="Skip agent skill draft replay if pilot-002-agent-skill-draft.json exists",
+    )
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1759,6 +1764,7 @@ def main(argv: list[str] | None = None) -> int:
                 root,
                 llm_preference=args.llm,
                 rerun=not bool(args.no_rerun),
+                include_agent_skill=not bool(args.no_agent_skill),
             )
         elif args.mtsf_command == "extract-deep":
             result = materialize_session_mtsf_ingest(

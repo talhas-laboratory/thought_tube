@@ -1,0 +1,127 @@
+{
+  "baseline_artifact": "third_space",
+  "pipeline_artifact": "mtsf_pipeline",
+  "pipeline_mode": "deep",
+  "pipeline_source": "agent_skill_pass",
+  "counts": {
+    "baseline_entities": 12,
+    "pipeline_entities": 12,
+    "baseline_relations": 14,
+    "pipeline_relations": 16,
+    "pipeline_qualities": 12,
+    "pipeline_quality_roles": 10,
+    "pipeline_stencil_drafts": 5,
+    "pipeline_active_stencils": 5,
+    "baseline_activation_snapshots": 10,
+    "pipeline_shape_instances": 5
+  },
+  "entities": {
+    "id_overlap": [
+      "entity-agent-path",
+      "entity-context-field",
+      "entity-dimensional-fiber",
+      "entity-effective-topology",
+      "entity-entity-relationship-state",
+      "entity-eureka-moment",
+      "entity-hardened-idea",
+      "entity-latent-manifold",
+      "entity-structural-shape",
+      "entity-symmetry-engine",
+      "entity-synthetic-subconscious",
+      "entity-thought-ocean"
+    ],
+    "id_overlap_count": 12,
+    "id_missing_from_pipeline": [],
+    "id_novel_in_pipeline": [],
+    "name_overlap": [
+      "context-field",
+      "dimensional-fiber",
+      "effective-topology",
+      "entity-relationship-state-model",
+      "eureka-moment",
+      "hardened-idea",
+      "inference-path",
+      "latent-manifold",
+      "structural-shape",
+      "symmetry-engine",
+      "synthetic-subconscious",
+      "thought-ocean"
+    ],
+    "name_overlap_count": 12,
+    "recall_by_id": 1.0,
+    "precision_by_id": 1.0
+  },
+  "relations": {
+    "overlap": [
+      "entity-agent-path|contains|entity-latent-manifold",
+      "entity-context-field|modulates|entity-agent-path",
+      "entity-context-field|modulates|entity-effective-topology",
+      "entity-context-field|modulates|entity-latent-manifold",
+      "entity-eureka-moment|transforms-into|entity-hardened-idea",
+      "entity-symmetry-engine|contrasts|entity-structural-shape",
+      "entity-symmetry-engine|resembles|entity-structural-shape",
+      "entity-synthetic-subconscious|enables|entity-eureka-moment",
+      "entity-synthetic-subconscious|enables|entity-thought-ocean",
+      "entity-thought-ocean|contains|entity-structural-shape"
+    ],
+    "overlap_count": 10,
+    "missing_from_pipeline": [
+      "entity-dimensional-fiber|combines-with|entity-effective-topology",
+      "entity-structural-shape|defines|entity-entity-relationship-state",
+      "entity-symmetry-engine|defines|entity-hardened-idea"
+    ],
+    "novel_in_pipeline": [
+      "entity-dimensional-fiber|enables|entity-effective-topology",
+      "entity-kv-cache|is-part-of|entity-context-field",
+      "entity-structural-shape|transforms-into|entity-entity-relationship-state",
+      "entity-symmetry-engine|reveals|entity-hardened-idea",
+      "quality-constructive-interference|intensifies|entity-agent-path",
+      "quality-destructive-interference|weakens|entity-agent-path"
+    ],
+    "recall": 0.7692
+  },
+  "patterns": {
+    "baseline_candidate_pattern_id": "cand-synthetic-subconscious",
+    "baseline_candidate_names": [
+      "synthetic subconscious",
+      "symmetry engine for thought",
+      "topological thought ocean",
+      "isomorphic hardening loop"
+    ],
+    "pipeline_candidate_shape_ids": [
+      "cand-context-triangulation",
+      "cand-manifold-engineering",
+      "cand-synthetic-subconscious-loop",
+      "cand-dual-lens-symmetry",
+      "cand-stencil-twin-matching"
+    ],
+    "pipeline_candidate_shape_names": [
+      "context triangulation",
+      "manifold engineering",
+      "synthetic subconscious loop",
+      "dual-lens symmetry matcher",
+      "stencil and twin"
+    ],
+    "pipeline_active_stencil_ids": [
+      "stencil-antisymmetric-guardrail",
+      "stencil-context-warps-topology",
+      "stencil-hardening-loop",
+      "stencil-phase-transition-bridge",
+      "stencil-symmetric-blueprint"
+    ],
+    "baseline_had_stencils": false,
+    "pipeline_has_stencils": true
+  },
+  "confidence": {
+    "baseline": 0.88,
+    "pipeline": 0.88,
+    "pipeline_promotion_ready": true,
+    "pipeline_validation_ok": true
+  },
+  "gaps_closed": [
+    "machine_readable_stencil_schema",
+    "typed_relation_edges_in_pipeline",
+    "seed_stencil_projection",
+    "shape_instance_bindings"
+  ]
+}

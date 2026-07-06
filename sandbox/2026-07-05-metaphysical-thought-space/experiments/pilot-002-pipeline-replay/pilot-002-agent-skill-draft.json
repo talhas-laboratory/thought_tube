@@ -1,0 +1,1323 @@
+{
+  "draft_id": "mtsf-draft-pilot-002-agent-skill",
+  "input_id": "session:pilot-002-replay-llm-agent",
+  "input_type": "import",
+  "capture_mode": "deep",
+  "session_id": "pilot-002-replay-llm-agent",
+  "subgraph_id": "research",
+  "scope": "session",
+  "raw_content_ref": "/home/ubuntu/.cursor/projects/workspace/uploads/2026-05-07_you-said_ca8c.md",
+  "context": {
+    "user_goal": "Extract semantic shapes from latent-space → cognitive-system product vision conversation",
+    "project": "Pilot 002 pipeline replay (LLM agent skill pass)",
+    "domain": "research",
+    "tags": [
+      "pilot-002",
+      "latent-topology",
+      "thought-ocean",
+      "symmetry-engine",
+      "synthetic-subconscious",
+      "structural-isomorphism",
+      "negative-inference"
+    ]
+  },
+  "ontology_refs": {
+    "governing_roles": "mtsf://ontologies/governing-roles@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0",
+    "stencil_role_types": "mtsf://ontologies/stencil-role-types@1.0.0"
+  },
+  "provenance": {
+    "skill_id": "semantic-shape-extraction",
+    "skill_version": "1.0.0",
+    "model_id": "agent_skill_pass",
+    "extracted_at": "2026-07-06T14:30:00+00:00",
+    "stages_completed": [
+      "capture",
+      "surface",
+      "entities",
+      "sub_entities",
+      "qualities",
+      "quality_roles",
+      "relations",
+      "candidate_shapes",
+      "stencil_drafts",
+      "activation_hint"
+    ]
+  },
+  "entities": [
+    {
+      "proposed_id": "entity-latent-manifold",
+      "name": "latent manifold",
+      "type": "composite",
+      "stable_identity": [
+        "fixed high-dimensional semantic geometry learned at training"
+      ],
+      "confidence": 0.94,
+      "evidence": {
+        "spans": [
+          "Agents move through a pre-defined, high-dimensional manifold",
+          "the latent space itself is static after training"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-agent-path",
+      "name": "inference path",
+      "type": "composite",
+      "stable_identity": [
+        "trajectory of hidden states across layers during processing"
+      ],
+      "confidence": 0.92,
+      "evidence": {
+        "spans": [
+          "the hidden states \"move\" through different regions of the latent space across successive layers",
+          "the \"path\" is a trajectory on a high-dimensional landscape"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-context-field",
+      "name": "context field",
+      "type": "composite",
+      "stable_identity": [
+        "prior runs as gravitational weather on the manifold"
+      ],
+      "confidence": 0.93,
+      "evidence": {
+        "spans": [
+          "Context from previous runs acts as a coordinate shift",
+          "The KV Cache provides a \"pre-computed landscape\""
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-effective-topology",
+      "name": "effective topology",
+      "type": "composite",
+      "stable_identity": [
+        "context-warped accessible landscape without weight change"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "context does not change the fundamental geometry (the weights) of the model, but it radically alters the topological landscape",
+          "The Effective Topology: Context creates Conditional Manifolds"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-dimensional-fiber",
+      "name": "dimensional fiber",
+      "type": "atomic",
+      "stable_identity": [
+        "independent meaning dimension within a concept vector"
+      ],
+      "confidence": 0.87,
+      "evidence": {
+        "spans": [
+          "The path isn't a single line; it's a bundle of fibers",
+          "objects are almost never \"singular.\" They are composed of hundreds of independent features"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-thought-ocean",
+      "name": "thought ocean",
+      "type": "composite",
+      "stable_identity": [
+        "personal library of notes organized by geometry not folders"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "how should a system that stores all the users thoughts and ideas in one well organized ocean work?",
+          "To organize an \"ocean\" of thoughts without drowning in them"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-structural-shape",
+      "name": "structural shape",
+      "type": "composite",
+      "stable_identity": [
+        "directed relational topology abstracted from prose"
+      ],
+      "confidence": 0.91,
+      "evidence": {
+        "spans": [
+          "that \"shape\" is technically defined as a Directed Relational Topology",
+          "It turns a complex story into a Relational Stencil"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-entity-relationship-state",
+      "name": "entity-relationship-state model",
+      "type": "composite",
+      "stable_identity": [
+        "thought as nodes, edges, and evolving state"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "a \"thought\" is no longer a static piece of text; it is a Dynamic State-Space Model",
+          "Entities (the variables) interact through Relationships (the functions) to change the State"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-synthetic-subconscious",
+      "name": "synthetic subconscious",
+      "type": "composite",
+      "stable_identity": [
+        "AI layer performing background spreading activation across personal library"
+      ],
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "the AI acts as a Synthetic Subconsciousness to accelerate this process",
+          "It performs the \"Spreading Activation\" across your thousands of notes"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-symmetry-engine",
+      "name": "symmetry engine",
+      "type": "composite",
+      "stable_identity": [
+        "matcher finding symmetric twins and antisymmetric inverses"
+      ],
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "The system becomes a \"Symmetry Engine\" that proves your intuition is actually a recognition of mathematical truth",
+          "Symmetry is the ultimate indicator of a \"Structural Isomorph\""
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-eureka-moment",
+      "name": "eureka moment",
+      "type": "composite",
+      "stable_identity": [
+        "conscious reveal of a latent topological bridge"
+      ],
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "The \"Aha!\" moment is a Topological Bridge suddenly snapping into place",
+          "this latent connections is then revealed to the human in a \"eureka\" moment"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-hardened-idea",
+      "name": "hardened idea",
+      "type": "composite",
+      "stable_identity": [
+        "soft creative seed made concrete through structural mapping"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "navigate toward a more complex, \"hardened\" version of that idea",
+          "It \"hardens\" the idea by filling in the technical details"
+        ]
+      }
+    }
+  ],
+  "sub_entities": [
+    {
+      "proposed_id": "entity-kv-cache",
+      "name": "KV cache",
+      "type": "sub_entity",
+      "sub_entity_type": "mechanism",
+      "parent_entity_ref": "entity-context-field",
+      "stable_identity": [
+        "short-term neural footprint of prior tokens"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "context isn't just \"read\" again; it is preserved in the Key-Value (KV) Cache"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-structural-skeleton-layer",
+      "name": "structural skeleton layer",
+      "type": "sub_entity",
+      "sub_entity_type": "storage_layer",
+      "parent_entity_ref": "entity-thought-ocean",
+      "stable_identity": [
+        "verbs-of-force abstraction layer for isomorphic matching"
+      ],
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "Layer 2: The Structural Skeleton (The Currents)",
+          "It extracts the \"Verbs of Force\" (e.g., accumulation, friction, decay, feedback loop)"
+        ]
+      }
+    }
+  ],
+  "qualities": [
+    {
+      "quality_id": "quality-static-weights",
+      "quality_type": "ontological",
+      "intensity": 0.92,
+      "kind": "intrinsic",
+      "entity_ref": "entity-latent-manifold",
+      "labels": [
+        "static",
+        "frozen"
+      ],
+      "confidence": 0.93,
+      "evidence": {
+        "spans": [
+          "the latent space itself is static after training",
+          "Model Weights | No | The \"brain\" is frozen"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-cold-start",
+      "quality_type": "relational",
+      "intensity": 0.8,
+      "kind": "contextual",
+      "entity_ref": "entity-context-field",
+      "labels": [
+        "neutral",
+        "high_flexibility"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "Cold Start (No Context)",
+          "the agent lands in a neutral, high-traffic lobby"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-anchored",
+      "quality_type": "relational",
+      "intensity": 0.88,
+      "kind": "contextual",
+      "entity_ref": "entity-context-field",
+      "labels": [
+        "anchored",
+        "constructive"
+      ],
+      "confidence": 0.91,
+      "evidence": {
+        "spans": [
+          "The Agent with Relevant Prior Context (The \"Anchored Start\")",
+          "Constructive Interference: Local \"wells\" align with the query"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-polluted",
+      "quality_type": "relational",
+      "intensity": 0.82,
+      "kind": "emergent",
+      "entity_ref": "entity-context-field",
+      "labels": [
+        "polluted",
+        "semantic_drift"
+      ],
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "The Agent with Unrelated Prior Context (The \"Polluted Start\")",
+          "the agent suffers from what researchers call \"Semantic Drift\""
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-constructive-interference",
+      "quality_type": "relational",
+      "intensity": 0.87,
+      "kind": "emergent",
+      "entity_ref": "entity-effective-topology",
+      "labels": [
+        "constructive",
+        "aligned"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "Constructive Interference: This occurs when the \"directions\" of your previous context and your new query point toward the same conceptual cluster",
+          "Relevant Context: Constructive Interference.Local \"wells\" align with the query"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-destructive-interference",
+      "quality_type": "relational",
+      "intensity": 0.85,
+      "kind": "emergent",
+      "entity_ref": "entity-effective-topology",
+      "labels": [
+        "destructive",
+        "torsion"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "Destructive Interference: This occurs when the vectors are orthogonal (unrelated) or opposite",
+          "Unrelated Context: Destructive Interference.The \"peaks\" of the old topic block the \"valleys\" of the new one"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-basin-attraction",
+      "quality_type": "formal",
+      "intensity": 0.86,
+      "kind": "contextual",
+      "entity_ref": "entity-effective-topology",
+      "labels": [
+        "basin",
+        "gravity_well"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "Previous conversation has created a Basin of Attraction (a \"dip\" or \"well\" in the manifold)",
+          "the topology of the session has become more refined than the global model"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-orthogonal-fiber",
+      "quality_type": "formal",
+      "intensity": 0.84,
+      "kind": "intrinsic",
+      "entity_ref": "entity-dimensional-fiber",
+      "labels": [
+        "orthogonal",
+        "parallel"
+      ],
+      "confidence": 0.87,
+      "evidence": {
+        "spans": [
+          "In the \"Material\" dimension: They are orthogonal",
+          "context can rotate the coordinate system so that two concepts, which share nothing in common globally, suddenly become parallel"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-structural-stencil",
+      "quality_type": "generative",
+      "intensity": 0.9,
+      "kind": "intrinsic",
+      "entity_ref": "entity-structural-shape",
+      "labels": [
+        "stencil",
+        "causal_geometry"
+      ],
+      "confidence": 0.91,
+      "evidence": {
+        "spans": [
+          "It turns a complex story into a Relational Stencil",
+          "A \"star-topology network with a central bottleneck where processing power is high but throughput is restricted by a single node\""
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-symmetric-match",
+      "quality_type": "formal",
+      "intensity": 0.88,
+      "kind": "relational",
+      "entity_ref": "entity-symmetry-engine",
+      "labels": [
+        "symmetric",
+        "isomorph"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "The Isomorph (The Symmetric Match):\"Here is another system that succeeds the exact same way you want to succeed.\"",
+          "Symmetry is the ultimate indicator of a \"Structural Isomorph\""
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-antisymmetric-shadow",
+      "quality_type": "formal",
+      "intensity": 0.86,
+      "kind": "relational",
+      "entity_ref": "entity-symmetry-engine",
+      "labels": [
+        "antisymmetric",
+        "inversion"
+      ],
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "The Shadow (The Antisymmetric Match):\"Here is a system that fails by moving in the exact opposite direction.\"",
+          "finding the antisymmetric \"shadow\" of a concept is not just beneficial; it is often the most reliable way to \"harden\" an idea"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-via-negativa",
+      "quality_type": "meta_state",
+      "intensity": 0.85,
+      "kind": "emergent",
+      "entity_ref": "entity-hardened-idea",
+      "labels": [
+        "bounding_box",
+        "negative_inference"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "Negative Inference becomes the primary engine for true innovation",
+          "Via Negativa (the negative way)—understanding something by defining what it is not"
+        ]
+      }
+    }
+  ],
+  "quality_roles": [
+    {
+      "quality_ref": "quality-static-weights",
+      "entity_ref": "entity-latent-manifold",
+      "role": "defining",
+      "confidence": 0.92,
+      "evidence": {
+        "spans": [
+          "the latent space itself is static after training"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-basin-attraction",
+      "entity_ref": "entity-effective-topology",
+      "role": "attracting",
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "The point is \"captured\" by the gravity of the Roman/Biophilic basin"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-constructive-interference",
+      "entity_ref": "entity-effective-topology",
+      "role": "amplifying",
+      "confidence": 0.87,
+      "evidence": {
+        "spans": [
+          "the vectors reinforce each other. The \"signal\" for the specific niche becomes much stronger"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-destructive-interference",
+      "entity_ref": "entity-effective-topology",
+      "role": "contrasting",
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "The \"signal\" is cancelled out or blurred, leading to a \"path\" that lands in a bland, middle-ground area"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-orthogonal-fiber",
+      "entity_ref": "entity-dimensional-fiber",
+      "role": "mediating",
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "If the objects are parallel in \"Syntax\" but orthogonal in \"Vibe,\" the agent can actually maintain both"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-structural-stencil",
+      "entity_ref": "entity-structural-shape",
+      "role": "generating",
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "The Abstraction (Creating the \"Stencil\")"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-symmetric-match",
+      "entity_ref": "entity-symmetry-engine",
+      "role": "defining",
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "Symmetry is the ultimate indicator of a \"Structural Isomorph\""
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-antisymmetric-shadow",
+      "entity_ref": "entity-symmetry-engine",
+      "role": "contrasting",
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "The Shadow (The Antisymmetric Match)"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-via-negativa",
+      "entity_ref": "entity-hardened-idea",
+      "role": "resolving",
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "What is left standing in the center—the shape that survived the negative inference—is your solution"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-polluted",
+      "entity_ref": "entity-context-field",
+      "role": "destabilizing",
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "Context Pollution: Inheriting mistakes from previous turns"
+        ]
+      }
+    }
+  ],
+  "relations": [
+    {
+      "source_ref": "entity-agent-path",
+      "target_ref": "entity-latent-manifold",
+      "level": "entity_entity",
+      "relation_type": "traverses",
+      "primitive": "contains",
+      "domain_expression": "inference path moves through fixed latent manifold",
+      "weight": 0.9,
+      "confidence": 0.93,
+      "evidence": {
+        "spans": [
+          "Agents move through a pre-defined, high-dimensional manifold"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-effective-topology",
+      "level": "entity_entity",
+      "relation_type": "warps",
+      "primitive": "modulates",
+      "domain_expression": "context reshapes accessible landscape into basins and barriers",
+      "weight": 0.92,
+      "confidence": 0.94,
+      "evidence": {
+        "spans": [
+          "context does not change the fundamental geometry (the weights) of the model, but it radically alters the topological landscape",
+          "The Effective Topology: Context creates Conditional Manifolds"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-agent-path",
+      "level": "entity_entity",
+      "relation_type": "steers",
+      "primitive": "modulates",
+      "domain_expression": "KV cache and attention re-anchor starting coordinates",
+      "weight": 0.9,
+      "confidence": 0.92,
+      "evidence": {
+        "spans": [
+          "the new tokens immediately attend to these cached vectors, which pulls the current \"path\" toward the semantic neighborhood of the previous conversation",
+          "Attention Mechanism is the steering wheel"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-latent-manifold",
+      "level": "entity_entity",
+      "relation_type": "rotates",
+      "primitive": "modulates",
+      "domain_expression": "context rotates coordinate system to align orthogonal concepts",
+      "weight": 0.87,
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "context can rotate the coordinate system so that two concepts, which share nothing in common globally, suddenly become parallel"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-constructive-interference",
+      "target_ref": "entity-agent-path",
+      "level": "quality_entity",
+      "relation_type": "shortens",
+      "primitive": "intensifies",
+      "domain_expression": "aligned context shortens and clarifies inference path",
+      "weight": 0.86,
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "Constructive Path | Short. The agent is already \"standing\" near the answer",
+          "It takes a highly specialized route"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-destructive-interference",
+      "target_ref": "entity-agent-path",
+      "level": "quality_entity",
+      "relation_type": "distorts",
+      "primitive": "weakens",
+      "domain_expression": "orthogonal context creates torsion and high-entropy path",
+      "weight": 0.85,
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "This creates Torsion",
+          "Destructive Path | Long. The agent must \"travel\" across the manifold to bridge two points"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-dimensional-fiber",
+      "target_ref": "entity-effective-topology",
+      "level": "entity_entity",
+      "relation_type": "enables",
+      "primitive": "enables",
+      "domain_expression": "dimensional fibers enable path-splicing across orthogonal domains",
+      "weight": 0.84,
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "interference can happen on one \"channel\" while remaining clear on another",
+          "It \"splices\" the path through that specific subspace"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-thought-ocean",
+      "target_ref": "entity-structural-shape",
+      "level": "entity_entity",
+      "relation_type": "contains",
+      "primitive": "contains",
+      "domain_expression": "thought ocean stores abstracted structural shapes per note",
+      "weight": 0.91,
+      "confidence": 0.92,
+      "evidence": {
+        "spans": [
+          "the system must separate the Content from the Geometry",
+          "Layer 2: The Structural Skeleton (The Currents)"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-structural-shape",
+      "target_ref": "entity-entity-relationship-state",
+      "level": "entity_entity",
+      "relation_type": "materializes-as",
+      "primitive": "transforms-into",
+      "domain_expression": "structural shape decomposes into entities, relationships, evolving state",
+      "weight": 0.93,
+      "confidence": 0.94,
+      "evidence": {
+        "spans": [
+          "Entities (the variables) interact through Relationships (the functions) to change the State (the outcome) over time"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-synthetic-subconscious",
+      "target_ref": "entity-thought-ocean",
+      "level": "entity_entity",
+      "relation_type": "scans",
+      "primitive": "enables",
+      "domain_expression": "background agent performs spreading activation across library",
+      "weight": 0.89,
+      "confidence": 0.87,
+      "evidence": {
+        "spans": [
+          "It performs the \"Spreading Activation\" across your thousands of notes",
+          "The Cross-Pollination Agent that periodically \"samples\" your library"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-symmetry-engine",
+      "target_ref": "entity-structural-shape",
+      "level": "entity_entity",
+      "relation_type": "matches",
+      "primitive": "resembles",
+      "domain_expression": "symmetry engine finds isomorphic stencil twins",
+      "weight": 0.9,
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "the system matches Shapes (e.g., \"Saturation\" to \"Saturation\")",
+          "Isomorphic Matching is structural—it looks for things that work exactly like your problem"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-symmetry-engine",
+      "target_ref": "entity-structural-shape",
+      "level": "entity_entity",
+      "relation_type": "inverts",
+      "primitive": "contrasts",
+      "domain_expression": "symmetry engine searches antisymmetric shadows for guardrails",
+      "weight": 0.85,
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "If your seed is a vector v, the system searches for −v",
+          "The Antisymmetric Search: The system looks for a shape defined by the Rapid Depletion of Trust"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-synthetic-subconscious",
+      "target_ref": "entity-eureka-moment",
+      "level": "entity_entity",
+      "relation_type": "triggers",
+      "primitive": "enables",
+      "domain_expression": "background incubation enables sudden bridge reveal",
+      "weight": 0.84,
+      "confidence": 0.82,
+      "evidence": {
+        "spans": [
+          "Your implicit system finds a \"Parallel Fiber\" between your current problem and a distant, unrelated memory",
+          "The \"Aha!\" moment is a Topological Bridge suddenly snapping into place"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-eureka-moment",
+      "target_ref": "entity-hardened-idea",
+      "level": "entity_entity",
+      "relation_type": "enables",
+      "primitive": "transforms-into",
+      "domain_expression": "eureka bridge resolves into hardened concrete idea",
+      "weight": 0.88,
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "The AI provides the \"Hard\" math of how the Slime Mold optimizes, which you can now use to \"Harden\" your supply chain strategy",
+          "Hardening: Map the foreign logic to the current problem"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-symmetry-engine",
+      "target_ref": "entity-hardened-idea",
+      "level": "entity_entity",
+      "relation_type": "sculpts",
+      "primitive": "reveals",
+      "domain_expression": "negative inference sculpts solution when no isomorph exists",
+      "weight": 0.83,
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "when there is no direct isomorphic match, Negative Inference becomes the primary engine for true innovation",
+          "The AI uses the antisymmetric shadows as a chisel"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-kv-cache",
+      "target_ref": "entity-context-field",
+      "level": "entity_entity",
+      "relation_type": "implements",
+      "primitive": "is-part-of",
+      "domain_expression": "KV cache is short-term mechanism of context field",
+      "weight": 0.88,
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "context isn't just \"read\" again; it is preserved in the Key-Value (KV) Cache"
+        ]
+      }
+    }
+  ],
+  "candidate_shapes": [
+    {
+      "proposed_id": "cand-context-triangulation",
+      "possible_names": [
+        "context triangulation",
+        "museum-room navigation"
+      ],
+      "relational_configuration": "cold vs anchored vs polluted context steering same query",
+      "entity_refs": [
+        "entity-context-field",
+        "entity-agent-path",
+        "entity-effective-topology"
+      ],
+      "quality_refs": [
+        "quality-cold-start",
+        "quality-anchored",
+        "quality-polluted"
+      ],
+      "confidence": 0.91,
+      "evidence": {
+        "spans": [
+          "can you explain this how the same query would be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with unrelated prior context",
+          "imagine the latent space as a massive, multi-dimensional museum"
+        ]
+      }
+    },
+    {
+      "proposed_id": "cand-manifold-engineering",
+      "possible_names": [
+        "manifold engineering",
+        "collaborative temporary manifold"
+      ],
+      "relational_configuration": "user context curvature + static model depth → specialized basin",
+      "entity_refs": [
+        "entity-context-field",
+        "entity-effective-topology",
+        "entity-latent-manifold"
+      ],
+      "quality_refs": [
+        "quality-basin-attraction",
+        "quality-static-weights"
+      ],
+      "confidence": 0.89,
+      "evidence": {
+        "spans": [
+          "you and the agent are performing Manifold Engineering",
+          "collaboratively engineering a temporary manifold"
+        ]
+      }
+    },
+    {
+      "proposed_id": "cand-synthetic-subconscious-loop",
+      "possible_names": [
+        "synthetic subconscious loop",
+        "isomorphic hardening loop"
+      ],
+      "relational_configuration": "incubation → orthogonal match → eureka → hardening → library feedback",
+      "entity_refs": [
+        "entity-synthetic-subconscious",
+        "entity-thought-ocean",
+        "entity-eureka-moment",
+        "entity-hardened-idea",
+        "entity-symmetry-engine"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "Ingestion | Auto-vectorize and abstract",
+          "Illumination | Surface the \"isomorph\" via a brief",
+          "Hardening | Map the foreign logic to the current problem"
+        ]
+      }
+    },
+    {
+      "proposed_id": "cand-dual-lens-symmetry",
+      "possible_names": [
+        "dual-lens symmetry matcher",
+        "blueprint plus guardrails"
+      ],
+      "relational_configuration": "symmetric isomorph + antisymmetric shadow → complete topology illumination",
+      "entity_refs": [
+        "entity-symmetry-engine",
+        "entity-structural-shape",
+        "entity-hardened-idea"
+      ],
+      "quality_refs": [
+        "quality-symmetric-match",
+        "quality-antisymmetric-shadow",
+        "quality-via-negativa"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "The Isomorph (The Symmetric Match)",
+          "The Shadow (The Antisymmetric Match)",
+          "Negative Inference becomes the primary engine for true innovation"
+        ]
+      }
+    },
+    {
+      "proposed_id": "cand-stencil-twin-matching",
+      "possible_names": [
+        "stencil and twin",
+        "isomorphic shape handshake"
+      ],
+      "relational_configuration": "abstract seed to stencil → slide across ocean → re-project solutions",
+      "entity_refs": [
+        "entity-structural-shape",
+        "entity-thought-ocean",
+        "entity-hardened-idea"
+      ],
+      "quality_refs": [
+        "quality-structural-stencil"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "The Abstraction (Creating the \"Stencil\")",
+          "The Search (Finding the \"Twin Shape\")",
+          "The Re-Projection (The \"Aha!\" Moment)"
+        ]
+      }
+    }
+  ],
+  "stencil_drafts": [
+    {
+      "proposed_id": "draft-context-warps-topology",
+      "proposed_name": "context warps topology",
+      "role_entities": [
+        { "role_id": "r-field", "role_type": "field" },
+        { "role_id": "r-landscape", "role_type": "landscape" },
+        { "role_id": "r-probe", "role_type": "probe" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "r-field",
+          "target_role_ref": "r-landscape",
+          "primitive": "modulates",
+          "relation_type": "warps",
+          "weight": 0.92,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-field",
+          "target_role_ref": "r-probe",
+          "primitive": "modulates",
+          "relation_type": "steers",
+          "weight": 0.9,
+          "direction": "forward"
+        }
+      ],
+      "dynamics_class": "gradient",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": { "causal_geometry": true },
+      "facets_extracted_order": ["causal_geometry"],
+      "possible_names": [
+        "contextual warping",
+        "KV weather on the manifold",
+        "prior runs as gravitational field"
+      ],
+      "linked_entities": [
+        "entity-context-field",
+        "entity-effective-topology",
+        "entity-agent-path"
+      ],
+      "confidence": 0.94,
+      "evidence": {
+        "spans": [
+          "Context from previous runs acts as a coordinate shift",
+          "The Effective Topology: Context creates Conditional Manifolds"
+        ],
+        "source_refs": ["seed:stencil-context-warps-topology"]
+      }
+    },
+    {
+      "proposed_id": "draft-symmetric-blueprint",
+      "proposed_name": "symmetric blueprint",
+      "role_entities": [
+        { "role_id": "r-matcher", "role_type": "mediator" },
+        { "role_id": "r-seed", "role_type": "source" },
+        { "role_id": "r-template", "role_type": "template" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "r-matcher",
+          "target_role_ref": "r-seed",
+          "primitive": "resembles",
+          "relation_type": "matches",
+          "weight": 0.9,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-matcher",
+          "target_role_ref": "r-template",
+          "primitive": "instantiates",
+          "relation_type": "maps-to",
+          "weight": 0.88,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-seed",
+          "target_role_ref": "r-template",
+          "primitive": "translates-to",
+          "relation_type": "isomorph-of",
+          "weight": 0.86,
+          "direction": "bidirectional"
+        }
+      ],
+      "dynamics_class": "star_topology",
+      "symmetry_profile": "symmetric",
+      "facet_completeness": { "causal_geometry": true },
+      "facets_extracted_order": ["causal_geometry"],
+      "possible_names": [
+        "structural twin",
+        "symmetric blueprint",
+        "positive isomorph"
+      ],
+      "linked_entities": [
+        "entity-symmetry-engine",
+        "entity-structural-shape"
+      ],
+      "confidence": 0.9,
+      "evidence": {
+        "spans": [
+          "Symmetry is the ultimate indicator of a \"Structural Isomorph\"",
+          "The Isomorph (The Symmetric Match):\"Here is another system that succeeds the exact same way you want to succeed.\""
+        ],
+        "source_refs": ["seed:stencil-symmetric-blueprint"]
+      }
+    },
+    {
+      "proposed_id": "draft-antisymmetric-guardrail",
+      "proposed_name": "antisymmetric guardrail",
+      "role_entities": [
+        { "role_id": "r-matcher", "role_type": "mediator" },
+        { "role_id": "r-candidate", "role_type": "template" },
+        { "role_id": "r-shadow", "role_type": "shadow" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "r-matcher",
+          "target_role_ref": "r-candidate",
+          "primitive": "contrasts",
+          "relation_type": "inverts",
+          "weight": 0.85,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-shadow",
+          "target_role_ref": "r-candidate",
+          "primitive": "blocks",
+          "relation_type": "bounds",
+          "weight": 0.83,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-matcher",
+          "target_role_ref": "r-shadow",
+          "primitive": "reveals",
+          "relation_type": "negative-inference",
+          "weight": 0.82,
+          "direction": "forward"
+        }
+      ],
+      "dynamics_class": "tight_coupling",
+      "symmetry_profile": "antisymmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "constraint_landscape": true
+      },
+      "facets_extracted_order": ["causal_geometry", "constraint_landscape"],
+      "constraint_profile": {
+        "limiting_factors": ["failure_mode", "inversion", "bounding_box"],
+        "tradeoff_type": "orthogonal"
+      },
+      "possible_names": [
+        "via negativa",
+        "antisymmetric shadow",
+        "negative inference guardrail"
+      ],
+      "linked_entities": [
+        "entity-symmetry-engine",
+        "entity-hardened-idea"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "The Shadow (The Antisymmetric Match):\"Here is a system that fails by moving in the exact opposite direction.\"",
+          "Negative Inference becomes the primary engine for true innovation"
+        ],
+        "source_refs": ["seed:stencil-antisymmetric-guardrail"]
+      }
+    },
+    {
+      "proposed_id": "draft-phase-transition-bridge",
+      "proposed_name": "phase transition bridge",
+      "role_entities": [
+        { "role_id": "r-incubator", "role_type": "incubator" },
+        { "role_id": "r-bridge", "role_type": "bridge" },
+        { "role_id": "r-outcome", "role_type": "sink" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "r-incubator",
+          "target_role_ref": "r-bridge",
+          "primitive": "enables",
+          "relation_type": "triggers",
+          "weight": 0.84,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-bridge",
+          "target_role_ref": "r-outcome",
+          "primitive": "transforms-into",
+          "relation_type": "resolves",
+          "weight": 0.88,
+          "direction": "forward"
+        }
+      ],
+      "dynamics_class": "equilibrium",
+      "symmetry_profile": "broken_symmetry",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true
+      },
+      "facets_extracted_order": ["causal_geometry", "temporal_dynamics"],
+      "temporal_profile": {
+        "growth_class": "step",
+        "phase": "resolving"
+      },
+      "possible_names": [
+        "eureka bridge",
+        "latent connection snap",
+        "phase transition reveal"
+      ],
+      "linked_entities": [
+        "entity-synthetic-subconscious",
+        "entity-eureka-moment",
+        "entity-hardened-idea"
+      ],
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "The \"Aha!\" moment is a Topological Bridge suddenly snapping into place",
+          "this latent connections is then revealed to the human in a \"eureka\" moment"
+        ],
+        "source_refs": ["seed:stencil-phase-transition-bridge"]
+      }
+    },
+    {
+      "proposed_id": "draft-hardening-loop",
+      "proposed_name": "hardening loop",
+      "role_entities": [
+        { "role_id": "r-incubator", "role_type": "incubator" },
+        { "role_id": "r-library", "role_type": "reservoir" },
+        { "role_id": "r-seed", "role_type": "source" },
+        { "role_id": "r-outcome", "role_type": "sink" }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "r-incubator",
+          "target_role_ref": "r-library",
+          "primitive": "enables",
+          "relation_type": "scans",
+          "weight": 0.89,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-library",
+          "target_role_ref": "r-seed",
+          "primitive": "modulates",
+          "relation_type": "cross-pollinates",
+          "weight": 0.87,
+          "direction": "bidirectional"
+        },
+        {
+          "source_role_ref": "r-seed",
+          "target_role_ref": "r-outcome",
+          "primitive": "transforms-into",
+          "relation_type": "hardens",
+          "weight": 0.88,
+          "direction": "forward"
+        },
+        {
+          "source_role_ref": "r-outcome",
+          "target_role_ref": "r-library",
+          "primitive": "intensifies",
+          "relation_type": "feeds-back",
+          "weight": 0.75,
+          "direction": "feedback"
+        }
+      ],
+      "dynamics_class": "feedback_reinforcing",
+      "symmetry_profile": "mixed",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true,
+        "cybernetic_feedback": true
+      },
+      "facets_extracted_order": [
+        "causal_geometry",
+        "temporal_dynamics",
+        "cybernetic_feedback"
+      ],
+      "temporal_profile": {
+        "growth_class": "exponential",
+        "phase": "accelerating"
+      },
+      "possible_names": [
+        "symbiotic hardening loop",
+        "incubation to concrete",
+        "spreading activation hardening"
+      ],
+      "linked_entities": [
+        "entity-synthetic-subconscious",
+        "entity-thought-ocean",
+        "entity-hardened-idea"
+      ],
+      "confidence": 0.87,
+      "evidence": {
+        "spans": [
+          "Ingestion | Auto-vectorize and abstract. | Thought lands in its correct \"room.\"",
+          "Hardening | Map the foreign logic to the current problem. | The vague idea becomes a concrete strategy."
+        ],
+        "source_refs": ["seed:stencil-hardening-loop"]
+      }
+    }
+  ],
+  "activation_snapshot_hint": {
+    "formation_phase": "artifact_formation",
+    "meta_shape_id": "cand-dual-lens-symmetry",
+    "meta_move_id": "move-symbiotic-pivot",
+    "dominant_entity_refs": [
+      "entity-symmetry-engine",
+      "entity-thought-ocean",
+      "entity-synthetic-subconscious",
+      "entity-structural-shape"
+    ],
+    "active_quality_refs": [
+      "quality-symmetric-match",
+      "quality-antisymmetric-shadow",
+      "quality-structural-stencil",
+      "quality-via-negativa"
+    ]
+  },
+  "artifact_pathways": [
+    {
+      "medium": "spec",
+      "rationale": "Three-layer thought ocean storage architecture with background cross-pollination agent",
+      "confidence": 0.82
+    },
+    {
+      "medium": "spec",
+      "rationale": "Symmetry engine dual-lens matcher (isomorph + antisymmetric shadow)",
+      "confidence": 0.85
+    },
+    {
+      "medium": "schema",
+      "rationale": "Directed relational topology / stencil facet extraction for note abstraction",
+      "confidence": 0.8
+    }
+  ],
+  "uncertainties": [
+    "Conversation describes product architecture conceptually; no concrete storage stack, schema, or UI binding is chosen.",
+    "Default facet extraction depth (causal geometry vs temporal dynamics vs constraint landscape vs cybernetic feedback) is discussed but not specified as merge rules.",
+    "Whether AI-assigned structural matches carry felt importance for the user remains explicitly user-judged.",
+    "Latent-space metaphors are pedagogical analogies; effective topology is not literal weight change."
+  ],
+  "user_questions": [
+    "Should the system prioritize finding structural twins or high-temperature dreaming for unexpected synthesis?",
+    "When abstracting notes into stencils, which facet should be default: causal geometry, temporal dynamics, constraint landscape, or all four?",
+    "How should dual-lens symmetry output (blueprint + guardrails) be visualized in the product UI?"
+  ],
+  "confidence": 0.88,
+  "status": "proposed"
+}

@@ -18,6 +18,7 @@ PUBLIC_API = (
     "summarize_pipeline_session",
     "compare_extractions",
     "run_pipeline_replay",
+    "run_agent_skill_replay",
     "run_pilot_002_comparison",
     "write_comparison_markdown",
 )
@@ -262,6 +263,70 @@ def _gaps_closed(baseline: Dict[str, Any], pipeline: Dict[str, Any]) -> List[str
     return closed
 
 
+def default_agent_skill_draft_path(root: Path) -> Path:
+    return (
+        default_pilot_002_paths(root)["experiment_dir"] / "pilot-002-agent-skill-draft.json"
+    )
+
+
+def run_agent_skill_replay(
+    root: Path,
+    *,
+    session_id: str = "pilot-002-replay-llm-agent",
+    draft_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    from .mtsf_extraction import materialize_extraction_draft
+    from .mtsf_extraction_skill import build_skill_input_envelope, materialize_skill_input
+
+    paths = default_pilot_002_paths(root)
+    draft_file = draft_path or default_agent_skill_draft_path(root)
+    if not draft_file.exists():
+        raise FileNotFoundError(f"agent skill draft not found: {draft_file}")
+
+    draft = read_json(draft_file)
+    session_base = session_dir(root, session_id)
+    ensure_dir(session_base)
+    manifest_path = session_base / "manifest.json"
+    if not manifest_path.exists():
+        write_json(
+            manifest_path,
+            {
+                "session_id": session_id,
+                "title": "Pilot 002 agent skill replay",
+                "started_at": utc_now(),
+                "ended_at": utc_now(),
+                "participants": ["importer"],
+                "source_type": "imported_transcript",
+                "status": "closed",
+                "artifact_refs": {},
+                "domains": ["research", "topology"],
+            },
+        )
+
+    envelope = build_skill_input_envelope(
+        session_id=session_id,
+        events=[],
+        manifest=read_json(manifest_path),
+        raw_content="",
+        capture_mode="deep",
+    )
+    envelope["raw_content_ref"] = str(paths["source_path"])
+    skill_refs = materialize_skill_input(root, session_id, envelope)
+
+    result = materialize_extraction_draft(root, session_id, draft)
+    artifact_refs = dict(result.get("artifact_refs", {}))
+    artifact_refs.update(skill_refs)
+
+    return {
+        "session_id": session_id,
+        "mode": "agent_skill",
+        "llm_preference": "agent_skill_pass",
+        "import_result": {"mtsf_ingest": "completed", "artifact_refs": artifact_refs},
+        "summary": summarize_pipeline_session(root, session_id),
+        "draft_path": str(draft_file),
+    }
+
+
 def run_pipeline_replay(
     root: Path,
     *,
@@ -325,11 +390,20 @@ def write_comparison_markdown(comparison_payload: Dict[str, Any]) -> str:
     for mode, block in comparison_payload.get("pipeline_runs", {}).items():
         cmp = block["comparison"]
         counts = cmp["counts"]
+        display_mode = "agent_skill (LLM substitute)" if mode == "agent_skill" else mode
         lines.extend(
             [
-                f"## Pipeline replay — `{mode}`",
+                f"## Pipeline replay — `{display_mode}`",
                 "",
                 f"- Session: `{block['session_id']}`",
+            ]
+        )
+        if block.get("note"):
+            lines.append(f"- Note: {block['note']}")
+        if block.get("draft_path"):
+            lines.append(f"- Draft: `{block['draft_path']}`")
+        lines.extend(
+            [
                 f"- Extraction source: `{block['summary'].get('extraction_source', '')}`",
                 f"- Entities: {counts['pipeline_entities']} (baseline recall by id: {cmp['entities']['recall_by_id']})",
                 f"- Relations: {counts['pipeline_relations']} (baseline recall: {cmp['relations']['recall']})",
@@ -362,6 +436,7 @@ def run_pilot_002_comparison(
     modes: Optional[Sequence[Tuple[str, str]]] = None,
     llm_preference: str = "off",
     rerun: bool = True,
+    include_agent_skill: bool = True,
 ) -> Dict[str, Any]:
     paths = default_pilot_002_paths(root)
     experiment_dir = paths["experiment_dir"]
@@ -408,6 +483,36 @@ def run_pilot_002_comparison(
         write_json(replay_dir / "comparison.json", comparison)
         pipeline_runs[mode] = run_payload
 
+        session_base = session_dir(root, session_id) / "mtsf"
+        if session_base.exists():
+            for artifact in session_base.glob("*.json"):
+                shutil.copy2(artifact, replay_dir / artifact.name)
+
+    if include_agent_skill and default_agent_skill_draft_path(root).exists():
+        session_id = "pilot-002-replay-llm-agent"
+        replay_dir = experiment_dir / "replay-agent-skill"
+        ensure_dir(replay_dir)
+        if rerun or not (session_dir(root, session_id) / "mtsf" / "extraction_draft.json").exists():
+            replay = run_agent_skill_replay(root, session_id=session_id)
+        else:
+            replay = {
+                "session_id": session_id,
+                "mode": "agent_skill",
+                "summary": summarize_pipeline_session(root, session_id),
+            }
+        pipeline_summary = replay["summary"]
+        comparison = compare_extractions(baseline_summary, pipeline_summary)
+        run_payload = {
+            "session_id": session_id,
+            "mode": "agent_skill",
+            "summary": pipeline_summary,
+            "comparison": comparison,
+            "draft_path": str(default_agent_skill_draft_path(root)),
+            "note": "Agent skill pass: full transcript read by agent, draft validated and materialized by code (OpenClaw unavailable in cloud)",
+        }
+        write_json(replay_dir / "pipeline_summary.json", pipeline_summary)
+        write_json(replay_dir / "comparison.json", comparison)
+        pipeline_runs["agent_skill"] = run_payload
         session_base = session_dir(root, session_id) / "mtsf"
         if session_base.exists():
             for artifact in session_base.glob("*.json"):

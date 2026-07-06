@@ -1,0 +1,27 @@
+{
+  "input_id": "session:pilot-002-replay-llm-agent",
+  "input_type": "import",
+  "raw_content": "",
+  "capture_mode": "deep",
+  "session_id": "pilot-002-replay-llm-agent",
+  "subgraph_id": "research",
+  "context": {
+    "user_goal": "Pilot 002 agent skill replay",
+    "project": "Pilot 002 agent skill replay",
+    "domain": "research, topology",
+    "tags": [],
+    "source_type": "imported_transcript"
+  },
+  "skill_refs": {
+    "skill_path": "docs/frameworks/metaphysical-thought-space/skills/semantic-shape-extraction/SKILL.md",
+    "rubric_path": "docs/frameworks/metaphysical-thought-space/skills/semantic-shape-extraction/rubrics/stages.md",
+    "schema": "mtsf://schemas/extraction-draft"
+  },
+  "ontology_refs": {
+    "governing_roles": "mtsf://ontologies/governing-roles@1.0.0",
+    "relation_primitives": "mtsf://ontologies/relation-primitives@1.1.0",
+    "stencil_role_types": "mtsf://ontologies/stencil-role-types@1.0.0"
+  },
+  "prepared_at": "2026-07-06T14:34:25+00:00",
+  "raw_content_ref": "/home/ubuntu/.cursor/projects/workspace/uploads/2026-05-07_you-said_ca8c.md"
+}
