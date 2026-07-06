@@ -17,6 +17,7 @@ PUBLIC_API = (
     "ENTITY_HINTS",
     "should_run_mtsf_ingest",
     "build_fast_extraction_draft",
+    "build_deep_extraction_draft",
     "materialize_session_mtsf_ingest",
 )
 __all__ = list(PUBLIC_API)
@@ -414,10 +415,34 @@ def build_fast_extraction_draft(
     }
 
 
+def build_deep_extraction_draft(
+    root: Path,
+    *,
+    session_id: str,
+    events: Sequence[Dict[str, Any]],
+    manifest: Dict[str, Any],
+    raw_content: Optional[str] = None,
+    llm_preference: str = "auto",
+) -> Dict[str, Any]:
+    from .mtsf_extraction_skill import resolve_deep_extraction_draft
+
+    result = resolve_deep_extraction_draft(
+        root,
+        session_id=session_id,
+        events=events,
+        manifest=manifest,
+        raw_content=raw_content,
+        llm_preference=llm_preference,
+    )
+    return result
+
+
 def materialize_session_mtsf_ingest(
     root: Path,
     session_id: str,
     mode: str = "fast",
+    *,
+    llm_preference: str = "auto",
 ) -> Dict[str, Any]:
     events = read_jsonl(session_events_path(root, session_id))
     manifest = read_json(session_dir(root, session_id) / "manifest.json", default={})
@@ -429,16 +454,35 @@ def materialize_session_mtsf_ingest(
             "artifact_refs": {},
         }
 
-    draft = build_fast_extraction_draft(session_id=session_id, events=events, manifest=manifest)
+    if mode == "deep":
+        deep_result = build_deep_extraction_draft(
+            root,
+            session_id=session_id,
+            events=events,
+            manifest=manifest,
+            llm_preference=llm_preference,
+        )
+        draft = deep_result["draft"]
+        skill_refs = deep_result.get("artifact_refs", {})
+        extraction_source = deep_result.get("source", "deep")
+    else:
+        draft = build_fast_extraction_draft(session_id=session_id, events=events, manifest=manifest)
+        skill_refs = {}
+        extraction_source = "fast"
+
     result = materialize_extraction_draft(root, session_id, draft)
+    artifact_refs = dict(result.get("artifact_refs", {}))
+    artifact_refs.update(skill_refs)
     return {
         "session_id": session_id,
         "mtsf_ingest": "completed",
         "draft_id": draft["draft_id"],
         "capture_mode": draft["capture_mode"],
+        "extraction_source": extraction_source,
         "entity_count": len(draft.get("entities", [])),
+        "relation_count": len(draft.get("relations", [])),
         "stencil_draft_count": len(draft.get("stencil_drafts", [])),
-        "artifact_refs": result.get("artifact_refs", {}),
+        "artifact_refs": artifact_refs,
         "validation_ok": result.get("validation_ok"),
         "quarantine": result.get("quarantine"),
         "projection": result.get("projection"),

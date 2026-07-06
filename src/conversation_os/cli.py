@@ -343,7 +343,12 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
     if mtsf_framework_available(root):
         mtsf_refs = materialize_session_mtsf(root, args.session_id)
         mtsf_mode = getattr(args, "mtsf_mode", "fast")
-        mtsf_ingest = materialize_session_mtsf_ingest(root, args.session_id, mtsf_mode)
+        mtsf_ingest = materialize_session_mtsf_ingest(
+            root,
+            args.session_id,
+            mtsf_mode,
+            llm_preference=getattr(args, "mtsf_llm", "auto"),
+        )
     else:
         mtsf_refs = {}
         mtsf_ingest = {
@@ -453,6 +458,7 @@ def session_import(root: Path, args: argparse.Namespace) -> dict:
             request=args.request or args.title,
             task_type=args.task_type or "import_review",
             mtsf_mode=getattr(args, "mtsf_mode", "fast"),
+            mtsf_llm=getattr(args, "mtsf_llm", "auto"),
         ),
     )
 
@@ -582,7 +588,13 @@ def build_parser() -> argparse.ArgumentParser:
     close.add_argument("--task-id")
     close.add_argument("--request")
     close.add_argument("--task-type")
-    close.add_argument("--mtsf-mode", default="fast", choices=["fast", "off"])
+    close.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
+    close.add_argument(
+        "--mtsf-llm",
+        default="auto",
+        choices=["auto", "off", "force"],
+        help="LLM preference for deep extraction: auto tries OpenClaw then heuristic fallback",
+    )
 
     importer = session_sub.add_parser("import")
     importer.add_argument("--source-path", required=True)
@@ -595,7 +607,13 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--task-id")
     importer.add_argument("--request")
     importer.add_argument("--task-type")
-    importer.add_argument("--mtsf-mode", default="fast", choices=["fast", "off"])
+    importer.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
+    importer.add_argument(
+        "--mtsf-llm",
+        default="auto",
+        choices=["auto", "off", "force"],
+        help="LLM preference for deep extraction: auto tries OpenClaw then heuristic fallback",
+    )
 
     task_pack = sub.add_parser("task-pack")
     task_sub = task_pack.add_subparsers(dest="task_command", required=True)
@@ -735,6 +753,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mtsf_index_wormholes.add_argument("--stencil-id")
     mtsf_sub.add_parser("index-validate", help="Validate global shape index structure")
+    mtsf_extract_deep = mtsf_sub.add_parser(
+        "extract-deep",
+        help="Run deep semantic shape extraction for a session (skill pipeline)",
+    )
+    mtsf_extract_deep.add_argument("--session-id", required=True)
+    mtsf_extract_deep.add_argument(
+        "--llm",
+        default="auto",
+        choices=["auto", "off", "force"],
+        help="LLM preference: auto tries OpenClaw then heuristic fallback",
+    )
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1712,6 +1741,21 @@ def main(argv: list[str] | None = None) -> int:
                 "warnings": report.warnings,
                 "index_path": str(default_shape_index_path(root)),
             }
+        elif args.mtsf_command == "extract-deep":
+            result = materialize_session_mtsf_ingest(
+                root,
+                args.session_id,
+                "deep",
+                llm_preference=args.llm,
+            )
+            manifest_path = session_dir(root, args.session_id) / "manifest.json"
+            if manifest_path.exists() and result.get("artifact_refs"):
+                from .analysis import update_manifest
+                from .models import SessionManifest
+
+                manifest = SessionManifest(**read_json(manifest_path))
+                manifest.artifact_refs.update(result["artifact_refs"])
+                update_manifest(root, manifest)
         else:
             raise ValueError(args.mtsf_command)
     elif args.command == "openclaw":
