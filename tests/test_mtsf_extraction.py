@@ -11,10 +11,10 @@ from conversation_os.mtsf_extraction import (
     default_extraction_evals_dir,
     default_skill_path,
     materialize_extraction_draft,
-    normalize_stencil_draft,
     run_extraction_evals,
     validate_extraction_draft,
 )
+from conversation_os.mtsf_stencils import normalize_stencil_draft
 from conversation_os.storage import read_json
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

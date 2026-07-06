@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 from .mtsf_stencils import (
-    compute_structural_fingerprint,
-    load_seed_stencils,
     load_stencil_role_types,
+    match_stencil_drafts_to_seed,
+    normalize_stencil_draft,
     validate_stencil_record,
 )
 from .storage import ensure_dir, read_json, session_dir, write_json
@@ -121,11 +121,6 @@ def load_relation_primitives(root: Path) -> Set[str]:
     return {str(item) for item in payload.get("primitives", [])}
 
 
-def _slug(value: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return slug or "item"
-
-
 def _entity_refs(draft: Dict[str, Any]) -> Set[str]:
     refs: Set[str] = set()
     for key in ("entities", "sub_entities"):
@@ -144,34 +139,6 @@ def _required_stages(capture_mode: str) -> Set[str]:
     if capture_mode == "deep":
         return set(DEEP_STAGES)
     return set(DEEP_STAGES)
-
-
-def normalize_stencil_draft(draft: Dict[str, Any]) -> Dict[str, Any]:
-    normalized = json.loads(json.dumps(draft))
-    role_entities = normalized.get("role_entities", [])
-    type_counts: Dict[str, int] = {}
-    role_ref_to_id: Dict[str, str] = {}
-
-    for index, row in enumerate(role_entities):
-        role_type = str(row.get("role_type", ""))
-        role_id = str(row.get("role_id", "")).strip()
-        if not role_id:
-            count = type_counts.get(role_type, 0) + 1
-            type_counts[role_type] = count
-            role_id = f"r-{_slug(role_type)}-{count}"
-            row["role_id"] = role_id
-        role_ref_to_id[role_type] = role_id
-        role_ref_to_id[role_id] = role_id
-
-    for edge in normalized.get("relation_topology", []):
-        source_ref = str(edge.get("source_role_ref", edge.get("source_role_id", "")))
-        target_ref = str(edge.get("target_role_ref", edge.get("target_role_id", "")))
-        edge["source_role_id"] = role_ref_to_id.get(source_ref, source_ref)
-        edge["target_role_id"] = role_ref_to_id.get(target_ref, target_ref)
-
-    facet = normalized.setdefault("facet_completeness", {})
-    facet.setdefault("causal_geometry", True)
-    return normalized
 
 
 def _validate_stencil_draft_item(
@@ -319,54 +286,6 @@ def assess_quarantine(draft: Dict[str, Any], report: ValidationReport) -> Quaran
     )
 
 
-def match_stencil_drafts_to_seed(
-    root: Path,
-    stencil_drafts: Sequence[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
-    seed_rows = load_seed_stencils(root)
-    seed_by_id = {str(row["id"]): row for row in seed_rows}
-    seed_fingerprints = {
-        stencil_id: compute_structural_fingerprint(row) for stencil_id, row in seed_by_id.items()
-    }
-    matches: List[Dict[str, Any]] = []
-
-    for index, draft in enumerate(stencil_drafts):
-        normalized = normalize_stencil_draft(draft)
-        canonical = {
-            "id": str(draft.get("proposed_id", f"draft-{index}")),
-            "name": str(draft.get("proposed_name", "draft")),
-            "role_entities": normalized.get("role_entities", []),
-            "relation_topology": normalized.get("relation_topology", []),
-            "dynamics_class": draft.get("dynamics_class"),
-            "symmetry_profile": draft.get("symmetry_profile"),
-        }
-        fingerprint = compute_structural_fingerprint(canonical)
-        best_id: Optional[str] = None
-        best_score = 0.0
-        for seed_id, seed_fp in seed_fingerprints.items():
-            score = 1.0 if seed_fp == fingerprint else 0.0
-            if score > best_score:
-                best_score = score
-                best_id = seed_id
-
-        declared_refs = [
-            ref.replace("seed:", "")
-            for ref in draft.get("evidence", {}).get("source_refs", [])
-            if str(ref).startswith("seed:")
-        ]
-        matches.append(
-            {
-                "draft_index": index,
-                "proposed_name": draft.get("proposed_name"),
-                "fingerprint": fingerprint,
-                "best_seed_match_id": best_id,
-                "structural_score": best_score,
-                "declared_seed_refs": declared_refs,
-            }
-        )
-    return matches
-
-
 def materialize_extraction_draft(
     root: Path,
     session_id: str,
@@ -408,7 +327,7 @@ def materialize_extraction_draft(
         )
         refs["mtsf_quarantine"] = str(quarantine_path)
 
-    return {
+    result = {
         "session_id": session_id,
         "artifact_refs": refs,
         "validation_ok": report.ok,
@@ -416,6 +335,21 @@ def materialize_extraction_draft(
         "promotion_ready": quarantine.promotion_ready,
         "stencil_matches": report.stencil_matches,
     }
+    if report.ok:
+        from .mtsf_projector import materialize_stencil_projection
+
+        projection = materialize_stencil_projection(
+            root,
+            session_id,
+            payload,
+            update_global_index=quarantine.promotion_ready,
+        )
+        result["projection"] = projection
+        if projection.get("artifact_refs"):
+            refs.update(projection["artifact_refs"])
+            result["artifact_refs"] = refs
+
+    return result
 
 
 def _load_eval_fixture(path: Path) -> Dict[str, Any]:

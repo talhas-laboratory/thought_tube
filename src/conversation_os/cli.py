@@ -29,6 +29,12 @@ from .mtsf_extraction import (
     run_extraction_evals,
     validate_extraction_draft,
 )
+from .mtsf_projector import (
+    default_shape_index_path,
+    materialize_stencil_projection,
+    project_extraction_draft,
+    resolve_stencil_projections,
+)
 from .mtsf_kernel import run_replay_scenarios
 from .mtsf_session import materialize_session_mtsf
 from .mtsf_stencils import validate_seed_library
@@ -103,7 +109,6 @@ from .storage import (
     slugify,
     task_packs_dir,
     utc_now,
-    write_json,
     workspace_artifact_links_path as _workspace_artifact_links_path,
     workspace_context_dir as _workspace_context_dir,
     workspace_dir as _workspace_dir,
@@ -657,6 +662,17 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_materialize_extraction.add_argument("--session-id", required=True)
     mtsf_materialize_extraction.add_argument("--draft-path", required=True)
     mtsf_sub.add_parser("run-extraction-evals", help="Run semantic shape extraction eval suite")
+    mtsf_project_extraction = mtsf_sub.add_parser(
+        "project-extraction",
+        help="Project validated ExtractionDraft stencil drafts into session shape index",
+    )
+    mtsf_project_extraction.add_argument("--session-id", required=True)
+    mtsf_project_extraction.add_argument("--draft-path", required=True)
+    mtsf_project_extraction.add_argument(
+        "--update-global-index",
+        action="store_true",
+        help="Also merge into memory/mtsf/shape_index.json when promotion-ready",
+    )
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1587,6 +1603,22 @@ def main(argv: list[str] | None = None) -> int:
                 update_manifest(root, manifest)
         elif args.mtsf_command == "run-extraction-evals":
             result = run_extraction_evals(root)
+        elif args.mtsf_command == "project-extraction":
+            draft = read_json(Path(args.draft_path))
+            result = materialize_stencil_projection(
+                root,
+                args.session_id,
+                draft,
+                update_global_index=bool(args.update_global_index),
+            )
+            manifest_path = session_dir(root, args.session_id) / "manifest.json"
+            if manifest_path.exists() and result.get("artifact_refs"):
+                from .analysis import update_manifest
+                from .models import SessionManifest
+
+                manifest = SessionManifest(**read_json(manifest_path))
+                manifest.artifact_refs.update(result["artifact_refs"])
+                update_manifest(root, manifest)
         else:
             raise ValueError(args.mtsf_command)
     elif args.command == "openclaw":

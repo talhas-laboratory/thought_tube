@@ -158,6 +158,7 @@ After emitting JSON, invoke (or request orchestrator to run):
 ```bash
 python3 tools/conversation_os.py mtsf validate-extraction --draft-path path/to/draft.json
 python3 tools/conversation_os.py mtsf materialize-extraction --session-id SESSION --draft-path path/to/draft.json
+python3 tools/conversation_os.py mtsf project-extraction --session-id SESSION --draft-path path/to/draft.json
 ```
 
 Code will:
@@ -166,8 +167,9 @@ Code will:
 2. Score quarantine (low confidence, missing evidence, invalid enums)
 3. Match `stencil_drafts` fingerprints against seed library
 4. Write `memory/sessions/{id}/mtsf/extraction_draft.json`
-5. Write `quarantine.json` when promotion gates fail
-6. **Not** merge into stable entity graph automatically
+5. Project stencil drafts → `shape_index.json` + `stencil_projection.json`
+6. Write `quarantine.json` when promotion gates fail
+7. **Not** merge into stable entity graph automatically
 
 ## Eval suite
 
