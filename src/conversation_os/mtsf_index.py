@@ -384,6 +384,13 @@ def promote_session_to_global(
         validation_quarantine=validation_quarantine if mode == "auto" else False,
     )
     result["session_id"] = session_id
+    if result.get("promoted"):
+        from .mtsf_graph import promote_session_graph_to_global
+
+        graph_result = promote_session_graph_to_global(root, session_id, mode=mode)
+        result["graph_promotion"] = graph_result
+        if graph_result.get("artifact_refs"):
+            result.setdefault("artifact_refs", {}).update(graph_result["artifact_refs"])
     return result
 
 

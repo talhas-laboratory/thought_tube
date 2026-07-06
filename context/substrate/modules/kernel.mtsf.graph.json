@@ -11,7 +11,13 @@
     "project_content_graph",
     "materialize_session_graph",
     "follow_traversal",
-    "expand_node"
+    "expand_node",
+    "promote_session_graph_to_global",
+    "rebuild_global_content_graph",
+    "append_graph_event",
+    "read_graph_events",
+    "substrate_ref_fields",
+    "apply_substrate_refs_to_draft"
   ],
   "contains": [
     "substrate indexing",
@@ -24,10 +30,12 @@
   "depends_on": ["kernel.mtsf.extraction", "kernel.foundation.storage"],
   "feeds_into": ["kernel.mtsf.index"],
   "inputs": ["ExtractionDraft", "session events.jsonl", "shape instances"],
-  "outputs": ["assertion_store.json", "content_graph.json"],
+  "outputs": ["assertion_store.json", "content_graph.json", "global_content_graph.json", "graph_events.jsonl"],
   "state_owned": [
     "memory/sessions/*/mtsf/assertion_store.json",
-    "memory/sessions/*/mtsf/content_graph.json"
+    "memory/sessions/*/mtsf/content_graph.json",
+    "memory/mtsf/global_content_graph.json",
+    "memory/mtsf/graph_events.jsonl"
   ],
   "surfaces_using": ["cli.mtsf"],
   "substrate_algorithm_id": "structure.mtsf.graph",

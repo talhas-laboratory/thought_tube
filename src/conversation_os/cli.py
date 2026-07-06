@@ -779,6 +779,38 @@ def build_parser() -> argparse.ArgumentParser:
         default="identity,configuration,evidence",
         help="Comma-separated facets: identity, configuration, evidence, substrate, payload, all",
     )
+    mtsf_graph_promote = mtsf_sub.add_parser(
+        "graph-promote",
+        help="Promote session content graph into global content graph",
+    )
+    mtsf_graph_promote.add_argument("--session-id", required=True)
+    mtsf_graph_promote.add_argument(
+        "--mode",
+        default="auto",
+        choices=["auto", "force"],
+        help="auto respects validation gates; force promotes anyway",
+    )
+    mtsf_graph_rebuild = mtsf_sub.add_parser(
+        "graph-rebuild",
+        help="Rebuild global content graph from session content graphs",
+    )
+    mtsf_graph_rebuild.add_argument(
+        "--session-id",
+        action="append",
+        dest="session_ids",
+        help="Limit rebuild to specific session ids (repeatable)",
+    )
+    mtsf_graph_events = mtsf_sub.add_parser(
+        "graph-events",
+        help="List append-only graph promotion events",
+    )
+    mtsf_graph_events.add_argument("--limit", type=int, default=20)
+    mtsf_graph_events.add_argument(
+        "--kind",
+        action="append",
+        dest="kinds",
+        help="Filter by event kind (repeatable)",
+    )
     mtsf_extract_deep = mtsf_sub.add_parser(
         "extract-deep",
         help="Run deep semantic shape extraction for a session (skill pipeline)",
@@ -1818,6 +1850,22 @@ def main(argv: list[str] | None = None) -> int:
 
             facets = [item.strip() for item in str(args.facets).split(",") if item.strip()]
             result = expand_node(root, args.session_id, args.node_id, facets=facets)
+        elif args.mtsf_command == "graph-promote":
+            from .mtsf_graph import promote_session_graph_to_global
+
+            result = promote_session_graph_to_global(root, args.session_id, mode=args.mode)
+        elif args.mtsf_command == "graph-rebuild":
+            from .mtsf_graph import rebuild_global_content_graph
+
+            result = rebuild_global_content_graph(root, session_ids=args.session_ids)
+        elif args.mtsf_command == "graph-events":
+            from .mtsf_graph import read_graph_events
+
+            result = {
+                "events": read_graph_events(root, limit=args.limit, kinds=args.kinds),
+                "limit": args.limit,
+                "kinds": args.kinds or [],
+            }
         elif args.mtsf_command == "compare-pilot-002":
             result = run_pilot_002_comparison(
                 root,

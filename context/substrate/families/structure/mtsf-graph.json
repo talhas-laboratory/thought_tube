@@ -21,12 +21,25 @@
       "name": "content_graph",
       "path": "memory/sessions/{id}/mtsf/content_graph.json",
       "purpose": "T2 compressed nodes and semantic/provenance/structural adjacency"
+    },
+    {
+      "name": "global_content_graph",
+      "path": "memory/mtsf/global_content_graph.json",
+      "purpose": "Global merged content graph across promoted sessions"
+    },
+    {
+      "name": "graph_events",
+      "path": "memory/mtsf/graph_events.jsonl",
+      "purpose": "Append-only Layer 4 graph promotion and rebuild events"
     }
   ],
   "cli_commands": [
     "python tools/conversation_os.py mtsf graph-materialize --session-id ...",
     "python tools/conversation_os.py mtsf graph-follow --session-id ... --start entity-id --mode semantic --depth 1",
-    "python tools/conversation_os.py mtsf graph-expand --session-id ... --node-id entity-id --facets identity,evidence,substrate"
+    "python tools/conversation_os.py mtsf graph-expand --session-id ... --node-id entity-id --facets identity,evidence,substrate",
+    "python tools/conversation_os.py mtsf graph-promote --session-id ...",
+    "python tools/conversation_os.py mtsf graph-rebuild",
+    "python tools/conversation_os.py mtsf graph-events --limit 20"
   ],
   "when_to_use": ["After extraction materialize", "When auditing provenance or walking entity neighborhoods"],
   "do_not": ["Inline evidence spans in content_graph nodes", "Edit assertion_store by hand without re-ingest"]

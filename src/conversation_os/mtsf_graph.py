@@ -3,12 +3,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Sequence, Set, Tuple
 
-from .storage import ensure_dir, make_id, read_json, read_jsonl, session_dir, session_events_path, utc_now, write_json
+from pathlib import Path
+
+from .storage import (
+    append_jsonl,
+    ensure_dir,
+    make_id,
+    read_json,
+    read_jsonl,
+    session_dir,
+    session_events_path,
+    utc_now,
+    write_json,
+)
 
 MODULE_ID = "kernel.mtsf.graph"
 CONTRACT_VERSION = "1.0.0"
 STORE_VERSION = "1.0.0"
 GRAPH_VERSION = "1.0.0"
+GLOBAL_GRAPH_VERSION = "1.0.0"
+SUBSTRATE_PREVIEW_LIMIT = 500
 
 TraversalMode = Literal["semantic", "structural", "provenance", "temporal"]
 DetailFacet = Literal["identity", "configuration", "evidence", "substrate", "payload"]
@@ -19,16 +33,29 @@ PUBLIC_API = (
     "CONTRACT_VERSION",
     "STORE_VERSION",
     "GRAPH_VERSION",
+    "GLOBAL_GRAPH_VERSION",
+    "SUBSTRATE_PREVIEW_LIMIT",
     "SubstrateIndex",
     "assertion_store_path",
     "content_graph_path",
+    "default_graph_events_path",
+    "default_global_content_graph_path",
     "build_substrate_index",
+    "substrate_ref_fields",
+    "apply_substrate_refs_to_draft",
     "build_evidence_bundle",
     "build_assertion_store_from_draft",
     "project_content_graph",
     "materialize_session_graph",
     "load_assertion_store",
     "load_content_graph",
+    "load_global_content_graph",
+    "empty_global_content_graph",
+    "merge_session_graph_into_global",
+    "append_graph_event",
+    "read_graph_events",
+    "promote_session_graph_to_global",
+    "rebuild_global_content_graph",
     "follow_traversal",
     "expand_node",
 )
@@ -725,3 +752,311 @@ def expand_node(
         }
 
     return result
+
+
+def default_graph_events_path(root: Path) -> Path:
+    return root / "memory" / "mtsf" / "graph_events.jsonl"
+
+
+def default_global_content_graph_path(root: Path) -> Path:
+    return root / "memory" / "mtsf" / "global_content_graph.json"
+
+
+def substrate_ref_fields(
+    root: Path,
+    session_id: str,
+    events: Sequence[Dict[str, Any]],
+    *,
+    preview_limit: int = SUBSTRATE_PREVIEW_LIMIT,
+) -> Dict[str, Any]:
+    substrate = build_substrate_index(events)
+    return {
+        "raw_content_ref": str(session_events_path(root, session_id)),
+        "substrate_offsets": [
+            {"event_id": event_id, "char_start": char_start, "char_end": char_end}
+            for event_id, char_start, char_end in substrate.event_spans
+        ],
+        "raw_content_preview": substrate.text[:preview_limit],
+    }
+
+
+def apply_substrate_refs_to_draft(
+    root: Path,
+    session_id: str,
+    events: Sequence[Dict[str, Any]],
+    draft: Dict[str, Any],
+    *,
+    preview_limit: int = SUBSTRATE_PREVIEW_LIMIT,
+) -> Dict[str, Any]:
+    refs = substrate_ref_fields(root, session_id, events, preview_limit=preview_limit)
+    draft.update(refs)
+    if refs.get("raw_content_ref"):
+        preview = str(refs.get("raw_content_preview", ""))
+        if preview:
+            draft["raw_content"] = preview
+        elif draft.get("raw_content"):
+            draft["raw_content"] = str(draft["raw_content"])[:preview_limit]
+    return draft
+
+
+def empty_global_content_graph() -> Dict[str, Any]:
+    return {
+        "version": GLOBAL_GRAPH_VERSION,
+        "scope": "global",
+        "nodes": {},
+        "adjacency": {"semantic": {}, "provenance": {}, "structural": {}},
+        "assertion_refs": {},
+        "sessions_contributed": {},
+    }
+
+
+def load_global_content_graph(root: Path) -> Dict[str, Any]:
+    path = default_global_content_graph_path(root)
+    if not path.exists():
+        return empty_global_content_graph()
+    payload = read_json(path, default={})
+    if not payload:
+        return empty_global_content_graph()
+    payload.setdefault("version", GLOBAL_GRAPH_VERSION)
+    payload.setdefault("scope", "global")
+    payload.setdefault("nodes", {})
+    payload.setdefault("adjacency", {"semantic": {}, "provenance": {}, "structural": {}})
+    payload.setdefault("assertion_refs", {})
+    payload.setdefault("sessions_contributed", {})
+    return payload
+
+
+def append_graph_event(root: Path, event: Dict[str, Any]) -> Dict[str, Any]:
+    payload = dict(event)
+    payload.setdefault("event_id", make_id("mtsf-graph-ev"))
+    payload.setdefault("timestamp", utc_now())
+    events_path = default_graph_events_path(root)
+    ensure_dir(events_path.parent)
+    append_jsonl(events_path, payload)
+    return payload
+
+
+def read_graph_events(
+    root: Path,
+    *,
+    limit: int = 50,
+    kinds: Optional[Sequence[str]] = None,
+) -> List[Dict[str, Any]]:
+    events_path = default_graph_events_path(root)
+    if not events_path.exists():
+        return []
+    events = read_jsonl(events_path)
+    if kinds:
+        allowed = {str(kind) for kind in kinds}
+        events = [row for row in events if str(row.get("kind", "")) in allowed]
+    if limit <= 0:
+        return events
+    return events[-limit:]
+
+
+def _global_node_id(session_id: str, local_node_id: str) -> str:
+    return f"{session_id}::{local_node_id}"
+
+
+def merge_session_graph_into_global(
+    global_graph: Dict[str, Any],
+    session_graph: Dict[str, Any],
+    store: Dict[str, Any],
+    *,
+    session_id: str,
+    promotion_mode: str = "auto",
+) -> Dict[str, Any]:
+    merged = dict(global_graph)
+    merged.setdefault("nodes", {})
+    merged.setdefault("adjacency", {"semantic": {}, "provenance": {}, "structural": {}})
+    merged.setdefault("assertion_refs", {})
+    merged.setdefault("sessions_contributed", {})
+
+    id_map: Dict[str, str] = {}
+    local_nodes = session_graph.get("nodes", {})
+    for local_id, node in local_nodes.items():
+        global_id = _global_node_id(session_id, str(local_id))
+        id_map[str(local_id)] = global_id
+        promoted_node = dict(node)
+        promoted_node["id"] = global_id
+        promoted_node["source_session_id"] = session_id
+        promoted_node["local_id"] = str(local_id)
+        merged["nodes"][global_id] = promoted_node
+        merged["assertion_refs"][global_id] = {
+            "session_id": session_id,
+            "local_node_id": str(local_id),
+            "assertion_id": str(node.get("assertion_id", "")),
+            "subject_ref": str(local_id),
+            "evidence_bundle_id": str(node.get("evidence_bundle_id", "")),
+        }
+
+    for adjacency_kind in ("semantic", "provenance", "structural"):
+        session_adj = session_graph.get("adjacency", {}).get(adjacency_kind, {})
+        global_adj = merged["adjacency"].setdefault(adjacency_kind, {})
+        for local_id, neighbors in session_adj.items():
+            global_id = id_map.get(str(local_id), _global_node_id(session_id, str(local_id)))
+            remapped_neighbors = [
+                id_map.get(str(neighbor), _global_node_id(session_id, str(neighbor)))
+                for neighbor in neighbors
+            ]
+            existing = set(global_adj.get(global_id, []))
+            existing.update(remapped_neighbors)
+            global_adj[global_id] = sorted(existing)
+
+    subgraph_id = str(
+        session_graph.get("subgraph_id", store.get("subgraph_id", f"session-{session_id}"))
+    )
+    draft_id = str(session_graph.get("draft_id", store.get("draft_id", "")))
+    merged["sessions_contributed"][session_id] = {
+        "promoted_at": utc_now(),
+        "draft_id": draft_id,
+        "subgraph_id": subgraph_id,
+        "promotion_mode": promotion_mode,
+        "node_count": len(local_nodes),
+    }
+    merged["updated_at"] = utc_now()
+    merged["version"] = GLOBAL_GRAPH_VERSION
+    merged["scope"] = "global"
+    return merged
+
+
+def _session_graph_promotion_ready(root: Path, session_id: str) -> tuple[bool, str]:
+    from .mtsf_index import PROMOTION_CONFIDENCE_THRESHOLD
+
+    draft_path = session_dir(root, session_id) / "mtsf" / "extraction_draft.json"
+    if draft_path.exists():
+        draft = read_json(draft_path, default={})
+        quarantine = draft.get("quarantine", {})
+        if quarantine.get("quarantine"):
+            return False, "validation_quarantine"
+        if quarantine.get("promotion_ready"):
+            return True, "promotion_ready"
+        confidence = float(draft.get("confidence", 0.0))
+        if confidence >= PROMOTION_CONFIDENCE_THRESHOLD:
+            return True, "confidence_threshold"
+        return False, "confidence_below_threshold"
+
+    if content_graph_path(root, session_id).exists():
+        return True, "content_graph_present"
+    return False, "missing_content_graph"
+
+
+def promote_session_graph_to_global(
+    root: Path,
+    session_id: str,
+    *,
+    mode: str = "auto",
+) -> Dict[str, Any]:
+    graph_path = content_graph_path(root, session_id)
+    store_path = assertion_store_path(root, session_id)
+    if not graph_path.exists() or not store_path.exists():
+        return {
+            "session_id": session_id,
+            "promoted": False,
+            "reason": "missing_session_graph",
+            "artifact_refs": {},
+        }
+
+    if mode == "auto":
+        ready, reason = _session_graph_promotion_ready(root, session_id)
+        if not ready:
+            return {
+                "session_id": session_id,
+                "promoted": False,
+                "reason": reason,
+                "artifact_refs": {},
+            }
+
+    session_graph = read_json(graph_path, default={})
+    store = read_json(store_path, default={})
+    global_path = default_global_content_graph_path(root)
+    global_graph = load_global_content_graph(root)
+    promotion_mode = "explicit" if mode == "force" else mode
+    merged = merge_session_graph_into_global(
+        global_graph,
+        session_graph,
+        store,
+        session_id=session_id,
+        promotion_mode=promotion_mode,
+    )
+    ensure_dir(global_path.parent)
+    write_json(global_path, merged)
+
+    event = append_graph_event(
+        root,
+        {
+            "kind": "session_promoted",
+            "session_id": session_id,
+            "draft_id": session_graph.get("draft_id", ""),
+            "subgraph_id": session_graph.get("subgraph_id", ""),
+            "promotion_mode": promotion_mode,
+            "node_count": len(session_graph.get("nodes", {})),
+        },
+    )
+
+    return {
+        "session_id": session_id,
+        "promoted": True,
+        "promotion_mode": promotion_mode,
+        "node_count": len(session_graph.get("nodes", {})),
+        "artifact_refs": {"mtsf_global_content_graph": str(global_path)},
+        "event_id": event["event_id"],
+    }
+
+
+def rebuild_global_content_graph(
+    root: Path,
+    *,
+    session_ids: Optional[Sequence[str]] = None,
+) -> Dict[str, Any]:
+    global_graph = empty_global_content_graph()
+    sessions_dir = root / "memory" / "sessions"
+    if session_ids is not None:
+        candidates = [sessions_dir / session_id for session_id in session_ids]
+    else:
+        candidates = sorted(sessions_dir.glob("*/")) if sessions_dir.exists() else []
+
+    scanned: List[str] = []
+    merged_sessions = 0
+    for candidate in candidates:
+        session_id = candidate.name if candidate.is_dir() else str(candidate)
+        graph_path = content_graph_path(root, session_id)
+        store_path = assertion_store_path(root, session_id)
+        if not graph_path.exists() or not store_path.exists():
+            continue
+        session_graph = read_json(graph_path, default={})
+        if not session_graph.get("nodes"):
+            continue
+        store = read_json(store_path, default={})
+        global_graph = merge_session_graph_into_global(
+            global_graph,
+            session_graph,
+            store,
+            session_id=session_id,
+            promotion_mode="rebuild",
+        )
+        scanned.append(session_id)
+        merged_sessions += 1
+
+    global_path = default_global_content_graph_path(root)
+    ensure_dir(global_path.parent)
+    write_json(global_path, global_graph)
+
+    event = append_graph_event(
+        root,
+        {
+            "kind": "global_rebuilt",
+            "session_ids": scanned,
+            "merged_session_count": merged_sessions,
+            "node_count": len(global_graph.get("nodes", {})),
+        },
+    )
+
+    return {
+        "rebuilt": True,
+        "merged_session_count": merged_sessions,
+        "session_ids": scanned,
+        "node_count": len(global_graph.get("nodes", {})),
+        "artifact_refs": {"mtsf_global_content_graph": str(global_path)},
+        "event_id": event["event_id"],
+    }

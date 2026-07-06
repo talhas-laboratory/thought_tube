@@ -8,13 +8,23 @@ from pathlib import Path
 from conversation_os.cli import init_repo, session_append, session_close, session_start
 from conversation_os.mtsf_extraction import materialize_extraction_draft
 from conversation_os.mtsf_graph import (
+    append_graph_event,
+    apply_substrate_refs_to_draft,
     build_assertion_store_from_draft,
+    default_global_content_graph_path,
+    default_graph_events_path,
     expand_node,
     follow_traversal,
     load_assertion_store,
     load_content_graph,
+    load_global_content_graph,
     materialize_session_graph,
+    merge_session_graph_into_global,
     project_content_graph,
+    promote_session_graph_to_global,
+    read_graph_events,
+    rebuild_global_content_graph,
+    substrate_ref_fields,
 )
 from conversation_os.storage import append_jsonl, read_json, session_events_path
 
@@ -253,6 +263,57 @@ class MtsfGraphTestCase(unittest.TestCase):
         )
         graph_path = self.root / "memory" / "sessions" / session_id / "mtsf" / "content_graph.json"
         self.assertTrue(graph_path.exists())
+
+    def test_substrate_ref_fields_anchor_events(self) -> None:
+        refs = substrate_ref_fields(self.root, "graph-test", SAMPLE_EVENTS)
+        self.assertEqual(refs["raw_content_ref"], str(session_events_path(self.root, "graph-test")))
+        self.assertGreaterEqual(len(refs["substrate_offsets"]), 2)
+        self.assertIn("latent manifold", refs["raw_content_preview"])
+
+    def test_apply_substrate_refs_replaces_inline_raw_content(self) -> None:
+        draft = dict(SAMPLE_DRAFT)
+        apply_substrate_refs_to_draft(self.root, "graph-test", SAMPLE_EVENTS, draft)
+        self.assertEqual(draft["raw_content_ref"], str(session_events_path(self.root, "graph-test")))
+        self.assertLessEqual(len(draft["raw_content"]), 500)
+
+    def test_promote_session_graph_writes_global_graph_and_event(self) -> None:
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        result = promote_session_graph_to_global(self.root, "graph-test", mode="force")
+        self.assertTrue(result["promoted"])
+        global_path = default_global_content_graph_path(self.root)
+        self.assertTrue(global_path.exists())
+        global_graph = load_global_content_graph(self.root)
+        self.assertIn("graph-test::entity-latent-manifold", global_graph["nodes"])
+        events = read_graph_events(self.root, kinds=["session_promoted"])
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["session_id"], "graph-test")
+
+    def test_rebuild_global_content_graph_merges_sessions(self) -> None:
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        result = rebuild_global_content_graph(self.root, session_ids=["graph-test"])
+        self.assertTrue(result["rebuilt"])
+        self.assertEqual(result["merged_session_count"], 1)
+        global_graph = load_global_content_graph(self.root)
+        self.assertGreaterEqual(len(global_graph["nodes"]), 3)
+        events_path = default_graph_events_path(self.root)
+        self.assertTrue(events_path.exists())
+
+    def test_merge_session_graph_namespaces_node_ids(self) -> None:
+        store = build_assertion_store_from_draft(self.root, "graph-test", SAMPLE_DRAFT)
+        session_graph = project_content_graph(store)
+        merged = merge_session_graph_into_global(
+            load_global_content_graph(self.root),
+            session_graph,
+            store,
+            session_id="graph-test",
+            promotion_mode="test",
+        )
+        self.assertIn("graph-test::entity-context-field", merged["nodes"])
+        semantic = merged["adjacency"]["semantic"]
+        self.assertIn(
+            "graph-test::entity-latent-manifold",
+            semantic["graph-test::entity-context-field"],
+        )
 
 
 if __name__ == "__main__":
