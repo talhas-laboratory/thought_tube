@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,6 +12,14 @@ from .mtsf_stencils import (
     match_stencil_drafts_to_seed,
     normalize_stencil_draft,
 )
+from .mtsf_index import (
+    default_shape_index_path,
+    load_shape_index,
+    merge_shape_index,
+    promote_projection_to_global,
+    session_shape_index_path,
+)
+
 from .storage import ensure_dir, make_id, read_json, session_dir, utc_now, write_json
 
 MODULE_ID = "kernel.mtsf.projector"
@@ -25,12 +32,12 @@ PUBLIC_API = (
     "default_shape_index_path",
     "session_shape_index_path",
     "load_shape_index",
+    "merge_shape_index",
     "project_stencil_draft",
     "resolve_stencil_projections",
     "build_shape_instances",
     "project_extraction_draft",
     "materialize_stencil_projection",
-    "merge_shape_index",
 )
 __all__ = list(PUBLIC_API)
 
@@ -61,40 +68,9 @@ class ProjectionResult:
     quarantined_stencils: List[Dict[str, Any]] = field(default_factory=list)
 
 
-def default_shape_index_path(root: Path) -> Path:
-    return root / "memory" / "mtsf" / "shape_index.json"
-
-
-def session_shape_index_path(root: Path, session_id: str) -> Path:
-    return session_dir(root, session_id) / "mtsf" / "shape_index.json"
-
-
 def _slug(value: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return slug or "stencil"
-
-
-def _empty_shape_index() -> Dict[str, Any]:
-    return {
-        "version": "1.1.0",
-        "stencils": {},
-        "fingerprints": {},
-        "instances": [],
-        "provisional_stencils": [],
-    }
-
-
-def load_shape_index(path: Path) -> Dict[str, Any]:
-    if not path.exists():
-        return _empty_shape_index()
-    payload = read_json(path, default={})
-    if not payload:
-        return _empty_shape_index()
-    payload.setdefault("stencils", {})
-    payload.setdefault("fingerprints", {})
-    payload.setdefault("instances", [])
-    payload.setdefault("provisional_stencils", [])
-    return payload
 
 
 def _build_views(stencil: Dict[str, Any]) -> Dict[str, Any]:
@@ -318,41 +294,6 @@ def project_extraction_draft(root: Path, extraction_draft: Dict[str, Any]) -> Pr
     )
 
 
-def merge_shape_index(
-    index: Dict[str, Any],
-    projection: ProjectionResult,
-) -> Dict[str, Any]:
-    merged = json.loads(json.dumps(index))
-    stencils = merged.setdefault("stencils", {})
-    fingerprints = merged.setdefault("fingerprints", {})
-    instances = merged.setdefault("instances", [])
-    provisional = merged.setdefault("provisional_stencils", [])
-
-    existing_instance_ids = {str(row.get("id", "")) for row in instances}
-    for row in projection.shape_instances:
-        if row["id"] not in existing_instance_ids:
-            instances.append(row)
-
-    for stencil_projection in projection.stencil_projections:
-        canonical = stencil_projection.canonical_stencil
-        if not canonical:
-            continue
-        stencil_id = stencil_projection.stencil_id
-        fingerprints[stencil_projection.fingerprint] = stencil_id
-        if stencil_projection.quarantine:
-            provisional_ids = {str(row.get("id", "")) for row in provisional}
-            if stencil_id not in provisional_ids:
-                provisional.append(canonical)
-        summary = dict(canonical)
-        summary.pop("views", None)
-        stencils[stencil_id] = summary
-
-    merged["updated_at"] = utc_now()
-    merged["last_session_id"] = projection.session_id
-    merged["last_draft_id"] = projection.draft_id
-    return merged
-
-
 def materialize_stencil_projection(
     root: Path,
     session_id: str,
@@ -375,7 +316,12 @@ def materialize_stencil_projection(
     projection = project_extraction_draft(root, payload)
 
     session_index_path = session_shape_index_path(root, session_id)
-    session_index = merge_shape_index(load_shape_index(session_index_path), projection)
+    session_index = merge_shape_index(
+        load_shape_index(session_index_path, scope="session"),
+        projection,
+        session_id=session_id,
+    )
+    session_index["scope"] = "session"
     ensure_dir(session_index_path.parent)
     write_json(session_index_path, session_index)
 
@@ -409,13 +355,16 @@ def materialize_stencil_projection(
         "mtsf_stencil_projection": str(projection_path),
     }
 
-    global_index_path: Optional[Path] = None
-    if update_global_index and not quarantine.quarantine:
-        global_index_path = default_shape_index_path(root)
-        global_index = merge_shape_index(load_shape_index(global_index_path), projection)
-        ensure_dir(global_index_path.parent)
-        write_json(global_index_path, global_index)
-        refs["mtsf_global_shape_index"] = str(global_index_path)
+    global_promotion: Dict[str, Any] = {"promoted": False}
+    if update_global_index:
+        global_promotion = promote_projection_to_global(
+            root,
+            projection,
+            promotion_mode="auto",
+            validation_quarantine=quarantine.quarantine,
+        )
+        if global_promotion.get("artifact_refs"):
+            refs.update(global_promotion["artifact_refs"])
 
     return {
         "session_id": session_id,
@@ -426,4 +375,5 @@ def materialize_stencil_projection(
         "stencil_projections": projection_payload["stencil_projections"],
         "shape_instance_count": len(projection.shape_instances),
         "validation_quarantine": quarantine.quarantine,
+        "global_promotion": global_promotion,
     }

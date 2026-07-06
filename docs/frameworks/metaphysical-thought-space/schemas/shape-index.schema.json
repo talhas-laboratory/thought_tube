@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mtsf://schemas/shape-index",
+  "title": "ShapeIndex",
+  "description": "Layer 2 index: stencil registry, fingerprint wormhole map, and cross-subgraph shape instances. Session indexes are source-derived; global index is a materialized cross-session view.",
+  "type": "object",
+  "required": ["version", "scope", "stencils", "fingerprints", "instances"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Index contract version (currently 1.2.0)"
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["session", "global"],
+      "description": "Whether this index is session-local or repo-wide"
+    },
+    "stencils": {
+      "type": "object",
+      "description": "stencil_id -> canonical stencil summary (views omitted in storage)",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "fingerprints": {
+      "type": "object",
+      "description": "structural_fingerprint -> stencil_id wormhole lookup table",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "instances": {
+      "type": "array",
+      "description": "Entity ↔ stencil bindings in subgraphs",
+      "items": {
+        "$ref": "mtsf://schemas/shape-instance"
+      }
+    },
+    "provisional_stencils": {
+      "type": "array",
+      "description": "Novel stencils awaiting review or stabilization",
+      "items": {
+        "type": "object"
+      }
+    },
+    "stencil_stats": {
+      "type": "object",
+      "description": "stencil_id -> cross-session recurrence metadata (global index)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "recurrence_count": { "type": "integer", "minimum": 0 },
+          "session_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "subgraph_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "first_seen_at": { "type": "string", "format": "date-time" },
+          "last_seen_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "sessions_contributed": {
+      "type": "object",
+      "description": "session_id -> promotion provenance (global index)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "promoted_at": { "type": "string", "format": "date-time" },
+          "draft_id": { "type": "string" },
+          "promotion_mode": {
+            "type": "string",
+            "enum": ["auto", "explicit", "rebuild"]
+          },
+          "stencil_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "instance_count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "rebuilt_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When global index was last rebuilt from session indexes"
+    },
+    "last_session_id": { "type": "string" },
+    "last_draft_id": { "type": "string" }
+  }
+}

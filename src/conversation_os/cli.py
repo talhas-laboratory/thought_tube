@@ -30,12 +30,18 @@ from .mtsf_extraction import (
     validate_extraction_draft,
 )
 from .mtsf_ingest import materialize_session_mtsf_ingest
+from .mtsf_index import (
+    find_wormhole_links,
+    promote_session_to_global,
+    query_shape_index,
+    rebuild_global_index,
+    validate_shape_index,
+    load_shape_index,
+    default_shape_index_path,
+)
 from .mtsf_session import materialize_session_mtsf, mtsf_framework_available
 from .mtsf_projector import (
-    default_shape_index_path,
     materialize_stencil_projection,
-    project_extraction_draft,
-    resolve_stencil_projections,
 )
 from .mtsf_kernel import run_replay_scenarios
 from .mtsf_stencils import validate_seed_library
@@ -689,6 +695,46 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also merge into memory/mtsf/shape_index.json when promotion-ready",
     )
+    mtsf_index_rebuild = mtsf_sub.add_parser(
+        "index-rebuild",
+        help="Rebuild global shape index from session indexes and seed stencils",
+    )
+    mtsf_index_rebuild.add_argument(
+        "--session-id",
+        action="append",
+        dest="session_ids",
+        help="Limit rebuild to specific session ids (repeatable)",
+    )
+    mtsf_index_promote = mtsf_sub.add_parser(
+        "index-promote",
+        help="Promote a session shape index into the global shape index",
+    )
+    mtsf_index_promote.add_argument("--session-id", required=True)
+    mtsf_index_promote.add_argument(
+        "--mode",
+        default="auto",
+        choices=["auto", "force"],
+        help="auto respects validation gates; force promotes anyway",
+    )
+    mtsf_index_query = mtsf_sub.add_parser(
+        "index-query",
+        help="Query shape index instances and wormhole links",
+    )
+    mtsf_index_query.add_argument("--stencil-id")
+    mtsf_index_query.add_argument("--subgraph-id")
+    mtsf_index_query.add_argument("--session-id")
+    mtsf_index_query.add_argument(
+        "--scope",
+        default="global",
+        choices=["global", "session"],
+        help="Query global index or a single session index",
+    )
+    mtsf_index_wormholes = mtsf_sub.add_parser(
+        "index-wormholes",
+        help="List cross-subgraph wormhole links from the global shape index",
+    )
+    mtsf_index_wormholes.add_argument("--stencil-id")
+    mtsf_sub.add_parser("index-validate", help="Validate global shape index structure")
 
     openclaw = sub.add_parser("openclaw")
     openclaw_sub = openclaw.add_subparsers(dest="openclaw_command", required=True)
@@ -1635,6 +1681,37 @@ def main(argv: list[str] | None = None) -> int:
                 manifest = SessionManifest(**read_json(manifest_path))
                 manifest.artifact_refs.update(result["artifact_refs"])
                 update_manifest(root, manifest)
+        elif args.mtsf_command == "index-rebuild":
+            result = rebuild_global_index(
+                root,
+                session_ids=args.session_ids or None,
+            )
+        elif args.mtsf_command == "index-promote":
+            result = promote_session_to_global(root, args.session_id, mode=args.mode)
+        elif args.mtsf_command == "index-query":
+            result = query_shape_index(
+                root,
+                stencil_id=args.stencil_id,
+                subgraph_id=args.subgraph_id,
+                session_id=args.session_id,
+                scope=args.scope,
+            )
+        elif args.mtsf_command == "index-wormholes":
+            index = load_shape_index(default_shape_index_path(root), scope="global")
+            result = {
+                "wormhole_links": find_wormhole_links(index, stencil_id=args.stencil_id),
+                "stencil_count": len(index.get("stencils", {})),
+                "instance_count": len(index.get("instances", [])),
+            }
+        elif args.mtsf_command == "index-validate":
+            index = load_shape_index(default_shape_index_path(root), scope="global")
+            report = validate_shape_index(index)
+            result = {
+                "ok": report.ok,
+                "errors": report.errors,
+                "warnings": report.warnings,
+                "index_path": str(default_shape_index_path(root)),
+            }
         else:
             raise ValueError(args.mtsf_command)
     elif args.command == "openclaw":
