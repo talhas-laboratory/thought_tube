@@ -1,0 +1,43 @@
+{
+  "version": "1.1.0",
+  "status": "provisional",
+  "source": "pilot-002-latent-topology-cognitive-system/third-space.json",
+  "entities": [
+    {
+      "id": "entity-context-field",
+      "name": "context field",
+      "shape_state_ids": [
+        "shape-cold-start",
+        "shape-anchored-start",
+        "shape-polluted-start"
+      ],
+      "default_shape_id": "shape-cold-start"
+    },
+    {
+      "id": "entity-thought-ocean",
+      "name": "thought ocean",
+      "shape_state_ids": [
+        "shape-raw-manifold",
+        "shape-structural-skeleton",
+        "shape-knowledge-reef"
+      ],
+      "default_shape_id": "shape-raw-manifold"
+    },
+    {
+      "id": "entity-symmetry-engine",
+      "name": "symmetry engine",
+      "shape_state_ids": [
+        "shape-positive-isomorph",
+        "shape-negative-shadow"
+      ]
+    },
+    {
+      "id": "entity-hardened-idea",
+      "name": "hardened idea",
+      "shape_state_ids": [
+        "shape-negative-inference-mode"
+      ],
+      "default_shape_id": "shape-negative-inference-mode"
+    }
+  ]
+}

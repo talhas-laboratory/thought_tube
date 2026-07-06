@@ -24,6 +24,7 @@ from .development_intake import (
 from .development_router import route_development_idea
 from .engineering_guard import assess_change_request
 from .mtsf_kernel import run_replay_scenarios
+from .mtsf_session import materialize_session_mtsf
 from .library_tracker import (
     apply_pond_router_preset as apply_pond_router_preset_admin,
     apply_prune_candidates,
@@ -319,6 +320,7 @@ def session_checkpoint(root: Path, args: argparse.Namespace) -> dict:
 def session_close(root: Path, args: argparse.Namespace) -> dict:
     checkpoint = materialize_transcript(root, args.session_id)
     analysis_refs = analyze_session(root, args.session_id)
+    mtsf_refs = materialize_session_mtsf(root, args.session_id)
     cards = materialize_cards(root, args.session_id)
     refresh_indexes(root)
     manifest_payload = session_dir(root, args.session_id) / "manifest.json"
@@ -327,6 +329,7 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
     manifest.status = "closed"
     manifest.artifact_refs.update(checkpoint)
     manifest.artifact_refs.update(analysis_refs)
+    manifest.artifact_refs.update(mtsf_refs)
     update_manifest(root, manifest)
     concept_refs = rebuild_conversation_concepts(root)
     session_concept_ref = concept_refs.get("session_refs", {}).get(args.session_id)
