@@ -1,0 +1,690 @@
+{
+  "experiment_id": "pilot-003-meta-reasoning-pass",
+  "mode": "meta",
+  "content_experiment_ref": "pilot-002-latent-topology-cognitive-system",
+  "source": {
+    "title": "You said — Latent Space Topology and Cognitive System",
+    "import_session_id": "import-69ea1f64f744",
+    "actor": "user",
+    "turns_analyzed": 28,
+    "formation_phase": "reasoning_signature_extraction"
+  },
+  "intake_assessment": {
+    "confidence": 0.86,
+    "dominant_tension": "mechanism_first vs system_design",
+    "recommended_action": "attach_provisional",
+    "reasoning_style_summary": "Starts from operational mechanism, stress-tests via triangulation and concretion demands, escalates to topological abstraction, bridges early to product vision, then formalizes structure and pursues symmetry/inversion before anchoring to canon.",
+    "missing_for_binding": [
+      {
+        "gap": "cross_session_signature",
+        "note": "Single conversation only — signature stability unverified across other threads"
+      },
+      {
+        "gap": "domain_transfer",
+        "note": "Reasoning moves observed in technical-product exploration; unknown if same arc holds for personal/narrative topics"
+      }
+    ]
+  },
+  "candidate_pattern": {
+    "id": "cand-mechanism-to-canon-arc",
+    "confidence": "high",
+    "confidence_score": 0.86,
+    "stability": "emerging",
+    "possible_names": [
+      "mechanism-triangulate-abstract-formalize-invert",
+      "stress-tested systems builder arc",
+      "topological product crystallization loop"
+    ],
+    "relational_configuration": "ground_mechanism → triangulate → demand_concretion → escalate_abstraction → bridge_product → formalize_shape → symmetry_then_inversion → seek_canon",
+    "recurring_tensions": [
+      "mechanism vs metaphor",
+      "ambiguity vs precision",
+      "symmetric_match vs antisymmetric_guard",
+      "AI_capability vs human_judgment"
+    ]
+  },
+  "reasoning_signature": {
+    "id": "signature-user-pilot-002",
+    "name": "stress-tested systems builder",
+    "status": "provisional",
+    "stable_identity": [
+      "grounds in mechanism before accepting metaphor",
+      "stress-tests via contrast cases before generalizing",
+      "bridges to product/system design before formal schema lock-in",
+      "pursues inversion after symmetry",
+      "validates human cognitive models against AI analogues"
+    ],
+    "dominant_moves": [
+      "move-operational-grounding",
+      "move-triangulation",
+      "move-demand-concretion",
+      "move-escalate-abstraction",
+      "move-epistemic-challenge",
+      "move-product-bridge",
+      "move-formalization-demand",
+      "move-inversion",
+      "move-canon-seeking"
+    ],
+    "epistemic_stance": "stance-human-judges-ai-proposes",
+    "preferred_abstraction_register": ["topological", "structural", "systems"],
+    "state": {
+      "formation_state": "forming",
+      "clarity": 0.84,
+      "unresolvedness": 0.3,
+      "generative_potential": "high"
+    }
+  },
+  "meta_shapes": [
+    {
+      "id": "meta-shape-exploratory",
+      "name": "exploratory",
+      "kind": "live",
+      "turn_range": [1, 4],
+      "shape_forming_qualities": ["wide_inquiry", "mechanism_seeking", "sequential_deepening"]
+    },
+    {
+      "id": "meta-shape-adversarial",
+      "name": "adversarial",
+      "kind": "live",
+      "turn_range": [5, 9],
+      "shape_forming_qualities": ["stress_testing", "ambiguity_rejection", "epistemic_probe"]
+    },
+    {
+      "id": "meta-shape-synthesizing",
+      "name": "synthesizing",
+      "kind": "live",
+      "turn_range": [10, 19],
+      "shape_forming_qualities": ["dimensional_expansion", "human_AI_parallel", "product_bridging"]
+    },
+    {
+      "id": "meta-shape-formalizing",
+      "name": "formalizing",
+      "kind": "live",
+      "turn_range": [20, 27],
+      "shape_forming_qualities": ["definition_demand", "decomposition", "symmetry_formalization"]
+    },
+    {
+      "id": "meta-shape-canon-seeking",
+      "name": "canon-seeking",
+      "kind": "live",
+      "turn_range": [28, 28],
+      "shape_forming_qualities": ["landmark_mapping", "intellectual_anchoring"]
+    }
+  ],
+  "reasoning_moves": [
+    {
+      "id": "move-operational-grounding",
+      "name": "operational grounding",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [1, 2, 3],
+      "evidence_quotes": [
+        "do agents move in a set latent space? if so how is that space defined?",
+        "what determines which \"path\" the agent takes?",
+        "which role does context gathered in previous runs have on this \"path\""
+      ],
+      "move_qualities": ["mechanism_first", "causal", "sequential"],
+      "state": { "formation_state": "stable", "clarity": 0.93 }
+    },
+    {
+      "id": "move-triangulation",
+      "name": "triangulation via contrast cases",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [4],
+      "evidence_quotes": [
+        "explain this how the same query would be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with unrelated prior context"
+      ],
+      "move_qualities": ["contrast", "three_case", "stress_test"],
+      "state": { "formation_state": "stable", "clarity": 0.94 }
+    },
+    {
+      "id": "move-modality-shift",
+      "name": "modality shift",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [5],
+      "evidence_quotes": ["take a less technical more creative query"],
+      "move_qualities": ["register_change", "tests_generality"],
+      "state": { "formation_state": "stable", "clarity": 0.9 }
+    },
+    {
+      "id": "move-demand-concretion",
+      "name": "demand concretion",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [6],
+      "evidence_quotes": ["take a less ambigious example, in which the words do not have double meanings"],
+      "move_qualities": ["precision", "anti_ambiguity", "reject_wordplay"],
+      "state": { "formation_state": "stable", "clarity": 0.95 }
+    },
+    {
+      "id": "move-symbiotic-pivot",
+      "name": "symbiotic use-case pivot",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [7],
+      "evidence_quotes": [
+        "pick aan example a user would use AI symbiotically. like hardening or expanding an idea they have. so a longer query"
+      ],
+      "move_qualities": ["use_case", "long_form", "hardening_oriented"],
+      "state": { "formation_state": "stable", "clarity": 0.91 }
+    },
+    {
+      "id": "move-escalate-abstraction",
+      "name": "escalate abstraction",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [8],
+      "evidence_quotes": ["from a topological view, please explain the differences"],
+      "move_qualities": ["reframe_upward", "topological", "unifies_prior_examples"],
+      "state": { "formation_state": "stable", "clarity": 0.92 }
+    },
+    {
+      "id": "move-epistemic-challenge",
+      "name": "epistemic challenge",
+      "type": "composite",
+      "status": "provisional",
+      "turns": [9],
+      "evidence_quotes": [
+        "does the system know to judge the interferences? does the \"path finding\" process for both differ? or is up to the user to judge?"
+      ],
+      "move_qualities": ["multi_part", "agency_probe", "who_judges"],
+      "state": { "formation_state": "stable", "clarity": 0.93 }
+    },
+    {
+      "id": "move-dimensional-expansion",
+      "name": "dimensional expansion",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [10],
+      "evidence_quotes": [
+        "objects carry multidimensional meaning, thus object may be orthogonal in one dimension while being perfectly parallel in others?"
+      ],
+      "move_qualities": ["adds_degree_of_freedom", "challenges_simplifying_assumption"],
+      "state": { "formation_state": "stable", "clarity": 0.9 }
+    },
+    {
+      "id": "move-mechanism-clarification",
+      "name": "mechanism clarification",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [11, 12, 16, 18],
+      "evidence_quotes": [
+        "so context changes the geometry and topology of the model?",
+        "so context can put two vectors that would be orthogonal... in alignment?",
+        "is that correct?",
+        "you just tell it through which lens to look from and it auto adjusts the topology?"
+      ],
+      "move_qualities": ["confirm_or_refute", "mechanism_not_metaphor", "binary_validation"],
+      "state": { "formation_state": "stable", "clarity": 0.88 }
+    },
+    {
+      "id": "move-product-bridge",
+      "name": "product bridge",
+      "type": "composite",
+      "status": "provisional",
+      "turns": [13, 14, 20],
+      "evidence_quotes": [
+        "in a personalized cognitive system designed to help the user \"think\"",
+        "imagine you have a user library of thousands of notes",
+        "so how should a system that stores all the users thoughts and ideas in one well organized ocean work?"
+      ],
+      "move_qualities": ["theory_to_system", "personal_scope", "architecture_seeking"],
+      "state": { "formation_state": "stable", "clarity": 0.9 }
+    },
+    {
+      "id": "move-hypothesis-offer",
+      "name": "hypothesis offer",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [14],
+      "evidence_quotes": [
+        "i am thinking about meta data layers that described these \"objects\" / \"contents\" and look for similarity there? is this the right approach"
+      ],
+      "move_qualities": ["proposes_own_model", "seeks_validation", "not_passive"],
+      "state": { "formation_state": "stable", "clarity": 0.87 }
+    },
+    {
+      "id": "move-human-model-validation",
+      "name": "human cognitive model validation",
+      "type": "composite",
+      "status": "provisional",
+      "turns": [16, 17],
+      "evidence_quotes": [
+        "within most human discoveries the aha moment happens... is that correct?",
+        "how could one target such a synthesis with AI?"
+      ],
+      "move_qualities": ["biology_parallel", "eureka_focused", "AI_as_subconscious_analogue"],
+      "state": { "formation_state": "stable", "clarity": 0.89 }
+    },
+    {
+      "id": "move-capability-probe",
+      "name": "capability probe",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [19],
+      "evidence_quotes": [
+        "I can just prompt the model to look for structural isomorphs and it would find parrallels between concepts that the subconscious mind would also find?"
+      ],
+      "move_qualities": ["feasibility_check", "prompt_as_interface"],
+      "state": { "formation_state": "stable", "clarity": 0.86 }
+    },
+    {
+      "id": "move-process-confirmation",
+      "name": "process confirmation",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [21],
+      "evidence_quotes": [
+        "does the system abstract the problem into its shape, then tries to match that \"shape\" with other concepts?"
+      ],
+      "move_qualities": ["pipeline_check", "sequential_logic", "yes_no_frame"],
+      "state": { "formation_state": "stable", "clarity": 0.91 }
+    },
+    {
+      "id": "move-formalization-demand",
+      "name": "formalization demand",
+      "type": "composite",
+      "status": "provisional",
+      "turns": [22, 23, 24],
+      "evidence_quotes": [
+        "what exactly is that shape abstractly speaking? how is that shape defined?",
+        "so it abstracts into states or entities and relationships affecting / evolving that state?",
+        "these shapes within them possess geometry/symmetry/antisymmetry?"
+      ],
+      "move_qualities": ["definition_chain", "decomposition", "mathematical_extension"],
+      "state": { "formation_state": "stable", "clarity": 0.94 }
+    },
+    {
+      "id": "move-symmetry-extension",
+      "name": "symmetry extension",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [25],
+      "evidence_quotes": [
+        "would our system try to find systems or \"concepts\" that share symmetry with our seed?"
+      ],
+      "move_qualities": ["positive_match", "invariance_seeking"],
+      "state": { "formation_state": "stable", "clarity": 0.9 }
+    },
+    {
+      "id": "move-inversion",
+      "name": "inversion move",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [26],
+      "evidence_quotes": [
+        "would it benefit the system as well to find antisymmetric concepts to the seed. since it moves oppositely... consequences could map to the seed invertibly?"
+      ],
+      "move_qualities": ["antisymmetric", "guardrail_seeking", "invert_always_invert"],
+      "state": { "formation_state": "stable", "clarity": 0.92 }
+    },
+    {
+      "id": "move-negative-inference",
+      "name": "negative inference push",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [27],
+      "evidence_quotes": [
+        "could this be used to come to solutions if there is no isomorphic match? inferring patterns through \"negative\" inference"
+      ],
+      "move_qualities": ["via_negativa", "novelty_case", "hole_in_manifold"],
+      "state": { "formation_state": "stable", "clarity": 0.93 }
+    },
+    {
+      "id": "move-canon-seeking",
+      "name": "canon seeking",
+      "type": "atomic",
+      "status": "provisional",
+      "turns": [28],
+      "evidence_quotes": [
+        "which people could be benificial to study, to deepen my understanding on this system as we have discussed"
+      ],
+      "move_qualities": ["landmark_mapping", "intellectual_anchoring", "closure"],
+      "state": { "formation_state": "stable", "clarity": 0.9 }
+    }
+  ],
+  "epistemic_stances": [
+    {
+      "id": "stance-human-judges-ai-proposes",
+      "name": "human judges, AI proposes",
+      "status": "provisional",
+      "evidence_turns": [9, 16],
+      "stable_identity": ["user owns interference judgment", "AI finds alignment user assigns importance"],
+      "confidence": 0.91
+    },
+    {
+      "id": "stance-mechanism-over-metaphor",
+      "name": "mechanism over metaphor",
+      "status": "provisional",
+      "evidence_turns": [6, 11, 18],
+      "stable_identity": ["reject ambiguity before accepting poetic explanation"],
+      "confidence": 0.89
+    },
+    {
+      "id": "stance-confirm-then-extend",
+      "name": "confirm then extend",
+      "status": "provisional",
+      "evidence_turns": [12, 16, 21, 23],
+      "stable_identity": ["binary validation before adding complexity"],
+      "confidence": 0.87
+    }
+  ],
+  "move_relations": [
+    {
+      "id": "rel-ground-to-triangulate",
+      "source": "move-operational-grounding",
+      "target": "move-triangulation",
+      "relation_type": "escalates-to",
+      "primitive": "enables",
+      "weight": 0.9,
+      "evidence": "sequential deepening turns 1-4"
+    },
+    {
+      "id": "rel-triangulate-to-concretion",
+      "source": "move-triangulation",
+      "target": "move-demand-concretion",
+      "relation_type": "stress-tests-via",
+      "primitive": "modulates",
+      "weight": 0.88,
+      "evidence": "after 3-case model, user rejects ambiguous examples"
+    },
+    {
+      "id": "rel-concretion-to-symbiotic",
+      "source": "move-demand-concretion",
+      "target": "move-symbiotic-pivot",
+      "relation_type": "enables",
+      "primitive": "enables",
+      "weight": 0.85
+    },
+    {
+      "id": "rel-symbiotic-to-abstract",
+      "source": "move-symbiotic-pivot",
+      "target": "move-escalate-abstraction",
+      "relation_type": "escalates-to",
+      "primitive": "transforms-into",
+      "weight": 0.92,
+      "evidence": "library example then topological unification"
+    },
+    {
+      "id": "rel-abstract-to-epistemic",
+      "source": "move-escalate-abstraction",
+      "target": "move-epistemic-challenge",
+      "relation_type": "triggers",
+      "primitive": "modulates",
+      "weight": 0.87
+    },
+    {
+      "id": "rel-epistemic-to-dimensional",
+      "source": "move-epistemic-challenge",
+      "target": "move-dimensional-expansion",
+      "relation_type": "enables",
+      "primitive": "enables",
+      "weight": 0.84
+    },
+    {
+      "id": "rel-dimensional-to-product",
+      "source": "move-dimensional-expansion",
+      "target": "move-product-bridge",
+      "relation_type": "bridges-to",
+      "primitive": "transforms-into",
+      "weight": 0.9,
+      "evidence": "multidimensional fibers immediately precede personalized cognitive system question"
+    },
+    {
+      "id": "rel-product-to-human-model",
+      "source": "move-product-bridge",
+      "target": "move-human-model-validation",
+      "relation_type": "recurs",
+      "primitive": "resembles",
+      "weight": 0.86
+    },
+    {
+      "id": "rel-human-to-formalize",
+      "source": "move-human-model-validation",
+      "target": "move-formalization-demand",
+      "relation_type": "escalates-to",
+      "primitive": "transforms-into",
+      "weight": 0.91,
+      "evidence": "eureka/subconscious arc precedes shape definition chain"
+    },
+    {
+      "id": "rel-formalize-to-symmetry",
+      "source": "move-formalization-demand",
+      "target": "move-symmetry-extension",
+      "relation_type": "enables",
+      "primitive": "defines",
+      "weight": 0.93
+    },
+    {
+      "id": "rel-symmetry-to-inversion",
+      "source": "move-symmetry-extension",
+      "target": "move-inversion",
+      "relation_type": "sequenced-before",
+      "primitive": "contrasts-with",
+      "weight": 0.94,
+      "evidence": "user always asks symmetric match before antisymmetric — consistent Munger-style inversion"
+    },
+    {
+      "id": "rel-inversion-to-negative",
+      "source": "move-inversion",
+      "target": "move-negative-inference",
+      "relation_type": "escalates-to",
+      "primitive": "enables",
+      "weight": 0.92
+    },
+    {
+      "id": "rel-negative-to-canon",
+      "source": "move-negative-inference",
+      "target": "move-canon-seeking",
+      "relation_type": "closes-with",
+      "primitive": "materializes-as",
+      "weight": 0.85
+    }
+  ],
+  "reasoning_activation_snapshots": [
+    {
+      "id": "meta-snap-01-exploratory",
+      "timestamp_order": 1,
+      "turn_range": [1, 4],
+      "meta_shape": "meta-shape-exploratory",
+      "dominant_moves": ["move-operational-grounding", "move-triangulation"],
+      "candidate_arc": "mechanism then contrast cases"
+    },
+    {
+      "id": "meta-snap-02-adversarial",
+      "timestamp_order": 2,
+      "turn_range": [5, 9],
+      "meta_shape": "meta-shape-adversarial",
+      "dominant_moves": ["move-modality-shift", "move-demand-concretion", "move-epistemic-challenge"],
+      "dominant_tension": "generality vs precision"
+    },
+    {
+      "id": "meta-snap-03-synthesizing",
+      "timestamp_order": 3,
+      "turn_range": [10, 19],
+      "meta_shape": "meta-shape-synthesizing",
+      "dominant_moves": ["move-dimensional-expansion", "move-product-bridge", "move-human-model-validation"],
+      "candidate_arc": "expand dimensions then build product parallel to human cognition"
+    },
+    {
+      "id": "meta-snap-04-formalizing",
+      "timestamp_order": 4,
+      "turn_range": [20, 27],
+      "meta_shape": "meta-shape-formalizing",
+      "dominant_moves": ["move-formalization-demand", "move-symmetry-extension", "move-inversion", "move-negative-inference"],
+      "candidate_arc": "define shape then complete symmetry/inversion ladder"
+    },
+    {
+      "id": "meta-snap-05-canon",
+      "timestamp_order": 5,
+      "turn_range": [28, 28],
+      "meta_shape": "meta-shape-canon-seeking",
+      "dominant_moves": ["move-canon-seeking"],
+      "candidate_arc": "intellectual landmark closure"
+    }
+  ],
+  "cross_links_to_content": [
+    {
+      "id": "xlink-01",
+      "move_id": "move-triangulation",
+      "content_entity_id": "entity-context-field",
+      "relation_type": "produced",
+      "turn": 4,
+      "note": "Three-case framing crystallized cold/anchored/polluted shape states"
+    },
+    {
+      "id": "xlink-02",
+      "move_id": "move-symbiotic-pivot",
+      "content_entity_id": "entity-hardened-idea",
+      "relation_type": "produced",
+      "turn": 7,
+      "note": "Flooding library example introduced hardening as core output entity"
+    },
+    {
+      "id": "xlink-03",
+      "move_id": "move-escalate-abstraction",
+      "content_entity_id": "entity-effective-topology",
+      "relation_type": "produced",
+      "turn": 8,
+      "note": "Topological view unified prior examples into basin/geodesic framing"
+    },
+    {
+      "id": "xlink-04",
+      "move_id": "move-epistemic-challenge",
+      "content_entity_id": "entity-context-field",
+      "relation_type": "modulated",
+      "turn": 9,
+      "note": "Established user-as-navigator — interference judgment not model-owned"
+    },
+    {
+      "id": "xlink-05",
+      "move_id": "move-dimensional-expansion",
+      "content_entity_id": "entity-dimensional-fiber",
+      "relation_type": "produced",
+      "turn": 10
+    },
+    {
+      "id": "xlink-06",
+      "move_id": "move-product-bridge",
+      "content_entity_id": "entity-thought-ocean",
+      "relation_type": "produced",
+      "turn": 13,
+      "note": "First explicit product vision — bridge-building between unrelated concepts"
+    },
+    {
+      "id": "xlink-07",
+      "move_id": "move-product-bridge",
+      "content_entity_id": "entity-thought-ocean",
+      "relation_type": "intensified",
+      "turn": 20,
+      "note": "Ocean architecture question — three-layer storage fully specified"
+    },
+    {
+      "id": "xlink-08",
+      "move_id": "move-human-model-validation",
+      "content_entity_id": "entity-synthetic-subconscious",
+      "relation_type": "produced",
+      "turn": 16,
+      "note": "Eureka/incubation validation produced synthetic subconscious entity"
+    },
+    {
+      "id": "xlink-09",
+      "move_id": "move-human-model-validation",
+      "content_entity_id": "entity-eureka-moment",
+      "relation_type": "produced",
+      "turn": 16
+    },
+    {
+      "id": "xlink-10",
+      "move_id": "move-formalization-demand",
+      "content_entity_id": "entity-structural-shape",
+      "relation_type": "produced",
+      "turn": 22,
+      "note": "Shape definition chain — gap in content graph appeared at same turn cluster"
+    },
+    {
+      "id": "xlink-11",
+      "move_id": "move-formalization-demand",
+      "content_entity_id": "entity-entity-relationship-state",
+      "relation_type": "produced",
+      "turn": 23
+    },
+    {
+      "id": "xlink-12",
+      "move_id": "move-symmetry-extension",
+      "content_entity_id": "entity-symmetry-engine",
+      "relation_type": "produced",
+      "turn": 25
+    },
+    {
+      "id": "xlink-13",
+      "move_id": "move-inversion",
+      "content_entity_id": "entity-symmetry-engine",
+      "relation_type": "modulated",
+      "turn": 26,
+      "note": "Added antisymmetric-guardrail shape state to symmetry engine"
+    },
+    {
+      "id": "xlink-14",
+      "move_id": "move-negative-inference",
+      "content_entity_id": "entity-hardened-idea",
+      "relation_type": "modulated",
+      "turn": 27,
+      "note": "Via negativa as sculpting path when no isomorph exists"
+    },
+    {
+      "id": "xlink-15",
+      "move_id": "move-canon-seeking",
+      "content_entity_id": "entity-thought-ocean",
+      "relation_type": "anchored",
+      "turn": 28,
+      "note": "Landmarks surfaced as intellectual_landmarks_surfaced in content graph"
+    }
+  ],
+  "gap_predictions": [
+    {
+      "content_gap": "shape_formalization",
+      "predicted_by_meta": true,
+      "reasoning_evidence": "move-formalization-demand cluster (turns 22-24) precedes gap — user asks for definition before accepting schema",
+      "recommended_formation_response": "Offer progressive stencil facets (causal → temporal → constraint → cybernetic) rather than asking user to pick one upfront"
+    },
+    {
+      "content_gap": "negative_inference_pipeline",
+      "predicted_by_meta": true,
+      "reasoning_evidence": "move-negative-inference (turn 27) is terminal formalizing move — user completes symmetry ladder before accepting pipeline can be unspecified",
+      "recommended_formation_response": "Spec antisymmetric search as symmetry engine's second pass, not separate subsystem"
+    },
+    {
+      "content_gap": "implementation_stack",
+      "predicted_by_meta": false,
+      "reasoning_evidence": "User did not ask for storage/UI stack — product bridge focused on architecture logic not tooling",
+      "recommended_formation_response": "Defer implementation questions until user performs move-hypothesis-offer on stack"
+    }
+  ],
+  "formation_answer_from_meta": {
+    "question_ref": "pilot-002 formation_question (shape_formalization)",
+    "answer": "progressive_all_four",
+    "confidence": 0.82,
+    "reasoning": "Formalization move chain (turns 22-24) escalates causal geometry → E-R-S decomposition → symmetry properties. User does not pick one facet — they walk the ladder. Default should be generate all four facets progressively, promoting each as user reasoning enters formalizing meta-shape.",
+    "recommended_default": {
+      "order": ["causal_geometry", "temporal_dynamics", "constraint_landscape", "cybernetic_feedback"],
+      "merge_rule": "facets accumulate; conflicts surfaced not auto-resolved",
+      "promotion_trigger": "user performs move-process-confirmation on facet"
+    }
+  },
+  "epistemic_guards": [
+    "reasoning_pattern_describes_not_prescribes",
+    "meta_signature_single_session_not_stable",
+    "move_labels_proposed_by_model_committed_by_code",
+    "content_graph_and_reasoning_graph_cross_linked_not_merged"
+  ],
+  "comparison_to_content_pass": {
+    "content_entities": 12,
+    "reasoning_moves": 19,
+    "meta_shapes": 5,
+    "cross_links": 15,
+    "key_insight": "Content gaps correlate with reasoning move clusters — formalization gap appears exactly when user enters formalizing meta-shape, not randomly"
+  }
+}

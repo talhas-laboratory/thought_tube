@@ -32,6 +32,27 @@
       "description": "Hybrid neuro-symbolic architecture: when to use models vs code, Thought Graph IR, validation sandwich, rollout phases"
     },
     {
+      "id": "pilot-001-third-space",
+      "kind": "experiment",
+      "status": "provisional",
+      "path": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-001-latent-space-conversation/",
+      "description": "Meta conversation → third-space transform (MTSF emergence)"
+    },
+    {
+      "id": "pilot-002-third-space",
+      "kind": "experiment",
+      "status": "provisional",
+      "path": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-002-latent-topology-cognitive-system/",
+      "description": "Latent topology conversation → third-space transform (cognitive system product vision)"
+    },
+    {
+      "id": "pilot-003-meta-reasoning",
+      "kind": "experiment",
+      "status": "provisional",
+      "path": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-003-meta-reasoning-pass/",
+      "description": "Meta pass on Pilot 002 source — user reasoning signature, moves, cross-links to content graph"
+    },
+    {
       "id": "sandbox-manifest",
       "kind": "sandbox",
       "status": "active",

@@ -2,6 +2,13 @@
 
 ## 2026-07-06
 
+### Pilot 003 — Meta reasoning pass
+
+- Same source as Pilot 002, second pass modeling user reasoning structure
+- Output: `experiments/pilot-003-meta-reasoning-pass/reasoning-space.json`
+- 19 reasoning moves, 5 meta-shapes, 15 cross-links to content graph
+- Formation question answered from meta: progressive stencil facets, not pick-one
+
 ### Pilot 002 — Latent topology conversation
 
 - Imported `You said` Gemini conversation as `import-69ea1f64f744`

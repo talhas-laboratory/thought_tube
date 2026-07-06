@@ -27,7 +27,8 @@
         "assistant": 27
       },
       "experiment_ref": "experiments/pilot-002-latent-topology-cognitive-system/",
-      "notes": "Pilot 002 third-space transform. Explores latent topology → personalized cognitive system vision."
+      "meta_experiment_ref": "experiments/pilot-003-meta-reasoning-pass/",
+      "notes": "Pilot 002 content pass + Pilot 003 meta reasoning pass. Explores latent topology → cognitive system vision and user reasoning signature."
     }
   ]
 }
