@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-06
+
+### Pilot 002 — Latent topology conversation
+
+- Imported `You said` Gemini conversation as `import-69ea1f64f744`
+- Ran conversation → third-space transform on 28-user-turn exploration
+- Output: `experiments/pilot-002-latent-topology-cognitive-system/third-space.json`
+- Surfaced implicit product entities: thought ocean, symmetry engine, synthetic subconscious
+
 ## 2026-07-05
 
 ### Created sandbox

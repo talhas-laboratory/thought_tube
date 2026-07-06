@@ -13,6 +13,21 @@
         "assistant": 17
       },
       "notes": "Primary source for MTSF extraction. Import produces derived analysis under memory/sessions/import-60295cf68ac1/ (gitignored)."
+    },
+    {
+      "id": "source-gemini-2026-05-07",
+      "type": "imported_conversation",
+      "title": "You said — Latent Space Topology and Cognitive System",
+      "date": "2026-05-07",
+      "original_upload": "/home/ubuntu/.cursor/projects/workspace/uploads/2026-05-07_you-said_ca8c.md",
+      "import_session_id": "import-69ea1f64f744",
+      "share_url": "https://gemini.google.com/share/88b7ff37e5b7",
+      "turns": {
+        "user": 28,
+        "assistant": 27
+      },
+      "experiment_ref": "experiments/pilot-002-latent-topology-cognitive-system/",
+      "notes": "Pilot 002 third-space transform. Explores latent topology → personalized cognitive system vision."
     }
   ]
 }
