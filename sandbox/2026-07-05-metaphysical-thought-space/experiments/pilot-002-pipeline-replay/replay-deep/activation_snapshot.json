@@ -1,5 +1,5 @@
 {
-  "id": "mtsf-snap-296f558667d2",
+  "id": "mtsf-snap-21a398ab80a6",
   "session_id": "pilot-002-replay-deep",
   "subgraph_id": "session-pilot-002-replay-deep",
   "formation_phase": "partial_population",
@@ -80,7 +80,7 @@
     "context_domain_orthogonal": 1.0,
     "meta_move_id": "move-symmetry-extension",
     "explicit_lens": "structural_isomorph",
-    "problem_signal": false,
-    "user_turn_count": 29
+    "problem_signal": true,
+    "user_turn_count": 31
   }
 }

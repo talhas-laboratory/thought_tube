@@ -89,12 +89,27 @@
         "projection:merge_declared_seed"
       ],
       "instantiated_at": "2026-07-06T14:16:57+00:00"
+    },
+    {
+      "id": "shape-inst-7b85a15c031f",
+      "entity_id": "entity-context-field",
+      "stencil_id": "stencil-context-warps-topology",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-b4488ab90b68",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:22+00:00"
     }
   ],
   "provisional_stencils": [],
   "stencil_stats": {},
   "sessions_contributed": {},
-  "updated_at": "2026-07-06T14:16:57+00:00",
+  "updated_at": "2026-07-06T14:49:22+00:00",
   "last_session_id": "pilot-002-replay-fast",
-  "last_draft_id": "mtsf-draft-005277020857"
+  "last_draft_id": "mtsf-draft-b4488ab90b68"
 }

@@ -83,7 +83,7 @@
     "stencil-symmetric-blueprint"
   ],
   "stencil_count": 5,
-  "shape_instance_count": 5,
+  "shape_instance_count": 10,
   "activation_entity_count": 0,
   "confidence": 0.88,
   "promotion_ready": true,

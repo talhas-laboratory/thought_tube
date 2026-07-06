@@ -2,73 +2,83 @@
   "baseline_artifact": "third_space",
   "pipeline_artifact": "mtsf_pipeline",
   "pipeline_mode": "deep",
-  "pipeline_source": "mtsf_ingest.deep_heuristic",
+  "pipeline_source": "mtsf_ingest.agent_skill",
   "counts": {
     "baseline_entities": 12,
-    "pipeline_entities": 6,
+    "pipeline_entities": 12,
     "baseline_relations": 14,
-    "pipeline_relations": 2,
-    "pipeline_qualities": 1,
-    "pipeline_quality_roles": 1,
-    "pipeline_stencil_drafts": 1,
-    "pipeline_active_stencils": 1,
+    "pipeline_relations": 18,
+    "pipeline_qualities": 6,
+    "pipeline_quality_roles": 6,
+    "pipeline_stencil_drafts": 5,
+    "pipeline_active_stencils": 5,
     "baseline_activation_snapshots": 10,
-    "pipeline_shape_instances": 1
+    "pipeline_shape_instances": 6
   },
   "entities": {
     "id_overlap": [
+      "entity-agent-path",
       "entity-context-field",
+      "entity-dimensional-fiber",
       "entity-effective-topology",
+      "entity-entity-relationship-state",
+      "entity-eureka-moment",
+      "entity-hardened-idea",
       "entity-latent-manifold",
+      "entity-structural-shape",
       "entity-symmetry-engine",
       "entity-synthetic-subconscious",
       "entity-thought-ocean"
     ],
-    "id_overlap_count": 6,
-    "id_missing_from_pipeline": [
-      "entity-agent-path",
-      "entity-dimensional-fiber",
-      "entity-entity-relationship-state",
-      "entity-eureka-moment",
-      "entity-hardened-idea",
-      "entity-structural-shape"
-    ],
+    "id_overlap_count": 12,
+    "id_missing_from_pipeline": [],
     "id_novel_in_pipeline": [],
     "name_overlap": [
       "context-field",
+      "dimensional-fiber",
       "effective-topology",
+      "entity-relationship-state-model",
+      "eureka-moment",
+      "hardened-idea",
+      "inference-path",
       "latent-manifold",
+      "structural-shape",
       "symmetry-engine",
       "synthetic-subconscious",
       "thought-ocean"
     ],
-    "name_overlap_count": 6,
-    "recall_by_id": 0.5,
+    "name_overlap_count": 12,
+    "recall_by_id": 1.0,
     "precision_by_id": 1.0
   },
   "relations": {
     "overlap": [
-      "entity-context-field|modulates|entity-latent-manifold"
-    ],
-    "overlap_count": 1,
-    "missing_from_pipeline": [
       "entity-agent-path|contains|entity-latent-manifold",
       "entity-context-field|modulates|entity-agent-path",
       "entity-context-field|modulates|entity-effective-topology",
+      "entity-context-field|modulates|entity-latent-manifold",
       "entity-dimensional-fiber|combines-with|entity-effective-topology",
       "entity-eureka-moment|transforms-into|entity-hardened-idea",
       "entity-structural-shape|defines|entity-entity-relationship-state",
-      "entity-symmetry-engine|contrasts|entity-structural-shape",
       "entity-symmetry-engine|defines|entity-hardened-idea",
       "entity-symmetry-engine|resembles|entity-structural-shape",
       "entity-synthetic-subconscious|enables|entity-eureka-moment",
       "entity-synthetic-subconscious|enables|entity-thought-ocean",
       "entity-thought-ocean|contains|entity-structural-shape"
     ],
-    "novel_in_pipeline": [
-      "quality-domain-orthogonal|modulates|entity-context-field"
+    "overlap_count": 12,
+    "missing_from_pipeline": [
+      "entity-symmetry-engine|contrasts|entity-structural-shape"
     ],
-    "recall": 0.0769
+    "novel_in_pipeline": [
+      "quality-antisymmetric-shadow|modulates|entity-symmetry-engine",
+      "quality-cold-start|modulates|entity-context-field",
+      "quality-domain-orthogonal|modulates|entity-latent-manifold",
+      "quality-static-weights|modulates|entity-latent-manifold",
+      "quality-symmetric-match|modulates|entity-symmetry-engine",
+      "quality-via-negativa|modulates|entity-hardened-idea"
+    ],
+    "recall": 0.9231
   },
   "patterns": {
     "baseline_candidate_pattern_id": "cand-synthetic-subconscious",
@@ -80,14 +90,20 @@
     ],
     "pipeline_candidate_shape_ids": [
       "cand-context-triangulation",
-      "cand-symmetry-match"
+      "cand-symmetry-match",
+      "cand-synthetic-subconscious"
     ],
     "pipeline_candidate_shape_names": [
       "context triangulation",
-      "symmetric blueprint"
+      "symmetric blueprint",
+      "synthetic subconscious hardening loop"
     ],
     "pipeline_active_stencil_ids": [
-      "stencil-context-warps-topology"
+      "stencil-antisymmetric-guardrail",
+      "stencil-context-warps-topology",
+      "stencil-hardening-loop",
+      "stencil-phase-transition-bridge",
+      "stencil-symmetric-blueprint"
     ],
     "baseline_had_stencils": false,
     "pipeline_has_stencils": true

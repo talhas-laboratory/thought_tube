@@ -69,10 +69,343 @@
         "entity-agent-path"
       ],
       "structural_fingerprint": "12101af5b55a8e28"
+    },
+    "stencil-symmetric-blueprint": {
+      "id": "stencil-symmetric-blueprint",
+      "name": "symmetric blueprint",
+      "status": "provisional",
+      "dynamics_class": "star_topology",
+      "symmetry_profile": "symmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": false,
+        "constraint_landscape": false,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": [
+        "causal_geometry"
+      ],
+      "role_entities": [
+        {
+          "role_id": "r-matcher",
+          "role_type": "mediator"
+        },
+        {
+          "role_id": "r-seed",
+          "role_type": "source"
+        },
+        {
+          "role_id": "r-template",
+          "role_type": "template"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-seed",
+          "primitive": "resembles",
+          "relation_type": "matches",
+          "weight": 0.9,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-template",
+          "primitive": "instantiates",
+          "relation_type": "maps-to",
+          "weight": 0.88,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-seed",
+          "target_role_id": "r-template",
+          "primitive": "translates-to",
+          "relation_type": "isomorph-of",
+          "weight": 0.86,
+          "direction": "bidirectional"
+        }
+      ],
+      "confidence": 0.9,
+      "possible_names": [
+        "structural twin",
+        "symmetric blueprint",
+        "positive isomorph"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-symmetry-matches-shapes",
+          "move-symmetry-extension"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": [
+        "entity-symmetry-engine",
+        "entity-structural-shape"
+      ],
+      "structural_fingerprint": "0f55fa45b23d7251"
+    },
+    "stencil-antisymmetric-guardrail": {
+      "id": "stencil-antisymmetric-guardrail",
+      "name": "antisymmetric guardrail",
+      "status": "provisional",
+      "dynamics_class": "tight_coupling",
+      "symmetry_profile": "antisymmetric",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": false,
+        "constraint_landscape": true,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": [
+        "causal_geometry",
+        "constraint_landscape"
+      ],
+      "constraint_profile": {
+        "limiting_factors": [
+          "failure_mode",
+          "inversion",
+          "bounding_box"
+        ],
+        "tradeoff_type": "orthogonal"
+      },
+      "role_entities": [
+        {
+          "role_id": "r-matcher",
+          "role_type": "mediator"
+        },
+        {
+          "role_id": "r-candidate",
+          "role_type": "template"
+        },
+        {
+          "role_id": "r-shadow",
+          "role_type": "shadow"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-candidate",
+          "primitive": "contrasts",
+          "relation_type": "inverts",
+          "weight": 0.85,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-shadow",
+          "target_role_id": "r-candidate",
+          "primitive": "defines",
+          "relation_type": "bounds",
+          "weight": 0.83,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-matcher",
+          "target_role_id": "r-shadow",
+          "primitive": "reveals",
+          "relation_type": "negative-inference",
+          "weight": 0.82,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.88,
+      "possible_names": [
+        "via negativa",
+        "antisymmetric shadow",
+        "negative inference guardrail"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-symmetry-inverts-seed",
+          "rel-negative-inference-sculpts",
+          "move-inversion"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": [
+        "entity-symmetry-engine",
+        "entity-hardened-idea"
+      ],
+      "structural_fingerprint": "f0c0efe29ec07a8c"
+    },
+    "stencil-phase-transition-bridge": {
+      "id": "stencil-phase-transition-bridge",
+      "name": "phase transition bridge",
+      "status": "provisional",
+      "dynamics_class": "equilibrium",
+      "symmetry_profile": "broken_symmetry",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true,
+        "constraint_landscape": false,
+        "cybernetic_feedback": false
+      },
+      "facets_extracted_order": [
+        "causal_geometry",
+        "temporal_dynamics"
+      ],
+      "temporal_profile": {
+        "growth_class": "step",
+        "phase": "resolving"
+      },
+      "role_entities": [
+        {
+          "role_id": "r-incubator",
+          "role_type": "incubator"
+        },
+        {
+          "role_id": "r-bridge",
+          "role_type": "bridge"
+        },
+        {
+          "role_id": "r-outcome",
+          "role_type": "sink"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-incubator",
+          "target_role_id": "r-bridge",
+          "primitive": "enables",
+          "relation_type": "triggers",
+          "weight": 0.84,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-bridge",
+          "target_role_id": "r-outcome",
+          "primitive": "transforms-into",
+          "relation_type": "resolves",
+          "weight": 0.88,
+          "direction": "forward"
+        }
+      ],
+      "confidence": 0.86,
+      "possible_names": [
+        "eureka bridge",
+        "latent connection snap",
+        "phase transition reveal"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-subconscious-triggers-eureka",
+          "rel-eureka-hardens-idea",
+          "entity-eureka-moment"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": [
+        "entity-synthetic-subconscious",
+        "entity-eureka-moment",
+        "entity-hardened-idea"
+      ],
+      "structural_fingerprint": "9b8c9498e06c3eaa"
+    },
+    "stencil-hardening-loop": {
+      "id": "stencil-hardening-loop",
+      "name": "hardening loop",
+      "status": "provisional",
+      "dynamics_class": "feedback_reinforcing",
+      "symmetry_profile": "mixed",
+      "facet_completeness": {
+        "causal_geometry": true,
+        "temporal_dynamics": true,
+        "constraint_landscape": false,
+        "cybernetic_feedback": true
+      },
+      "facets_extracted_order": [
+        "causal_geometry",
+        "temporal_dynamics",
+        "cybernetic_feedback"
+      ],
+      "temporal_profile": {
+        "growth_class": "exponential",
+        "phase": "accelerating"
+      },
+      "role_entities": [
+        {
+          "role_id": "r-incubator",
+          "role_type": "incubator"
+        },
+        {
+          "role_id": "r-library",
+          "role_type": "reservoir"
+        },
+        {
+          "role_id": "r-seed",
+          "role_type": "source"
+        },
+        {
+          "role_id": "r-outcome",
+          "role_type": "sink"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_id": "r-incubator",
+          "target_role_id": "r-library",
+          "primitive": "enables",
+          "relation_type": "scans",
+          "weight": 0.89,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-library",
+          "target_role_id": "r-seed",
+          "primitive": "modulates",
+          "relation_type": "cross-pollinates",
+          "weight": 0.87,
+          "direction": "bidirectional"
+        },
+        {
+          "source_role_id": "r-seed",
+          "target_role_id": "r-outcome",
+          "primitive": "transforms-into",
+          "relation_type": "hardens",
+          "weight": 0.88,
+          "direction": "forward"
+        },
+        {
+          "source_role_id": "r-outcome",
+          "target_role_id": "r-library",
+          "primitive": "intensifies",
+          "relation_type": "feeds-back",
+          "weight": 0.75,
+          "direction": "feedback"
+        }
+      ],
+      "confidence": 0.87,
+      "possible_names": [
+        "symbiotic hardening loop",
+        "incubation to concrete",
+        "spreading activation hardening"
+      ],
+      "evidence": {
+        "source_refs": [
+          "pilot-002-latent-topology-cognitive-system",
+          "rel-subconscious-scans-ocean",
+          "rel-eureka-hardens-idea",
+          "move-symbiotic-pivot"
+        ],
+        "recurrence_count": 2
+      },
+      "linked_entities": [
+        "entity-synthetic-subconscious",
+        "entity-thought-ocean",
+        "entity-hardened-idea"
+      ],
+      "structural_fingerprint": "8cd916e5dd9de528"
     }
   },
   "fingerprints": {
-    "12101af5b55a8e28": "stencil-context-warps-topology"
+    "12101af5b55a8e28": "stencil-context-warps-topology",
+    "0e12c8442efd6834": "stencil-symmetric-blueprint",
+    "392e5ab17e10a50c": "stencil-antisymmetric-guardrail",
+    "3e54b5e715c1e534": "stencil-phase-transition-bridge",
+    "8ed4d79f7ef1108b": "stencil-hardening-loop"
   },
   "instances": [
     {
@@ -89,12 +422,87 @@
         "projection:merge_declared_seed"
       ],
       "instantiated_at": "2026-07-06T14:17:17+00:00"
+    },
+    {
+      "id": "shape-inst-a04ada581b37",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-context-warps-topology",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-44722d09cb63",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-symmetric-blueprint",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-ef323df23eda",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-antisymmetric-guardrail",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-d1cc3d148480",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-phase-transition-bridge",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-b9845311cfa5",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-hardening-loop",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
     }
   ],
   "provisional_stencils": [],
   "stencil_stats": {},
   "sessions_contributed": {},
-  "updated_at": "2026-07-06T14:17:17+00:00",
+  "updated_at": "2026-07-06T14:49:48+00:00",
   "last_session_id": "pilot-002-replay-deep",
-  "last_draft_id": "mtsf-draft-bd9a98c244da"
+  "last_draft_id": "mtsf-draft-6e53343bd465"
 }

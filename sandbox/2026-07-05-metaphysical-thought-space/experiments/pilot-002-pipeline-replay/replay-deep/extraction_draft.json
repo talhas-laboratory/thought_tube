@@ -1,5 +1,5 @@
 {
-  "draft_id": "mtsf-draft-bd9a98c244da",
+  "draft_id": "mtsf-draft-6e53343bd465",
   "input_id": "session:pilot-002-replay-deep",
   "input_type": "import",
   "capture_mode": "deep",
@@ -124,6 +124,10 @@
       "pilot-002",
       "pipeline-replay",
       "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
       "pipeline-replay"
     ]
   },
@@ -135,8 +139,8 @@
   "provenance": {
     "skill_id": "semantic-shape-extraction",
     "skill_version": "1.0.0",
-    "model_id": "mtsf_ingest.deep_heuristic",
-    "extracted_at": "2026-07-06T14:17:17+00:00",
+    "model_id": "mtsf_ingest.agent_skill",
+    "extracted_at": "2026-07-06T14:49:48+00:00",
     "stages_completed": [
       "activation_hint",
       "candidate_shapes",
@@ -152,30 +156,44 @@
   },
   "entities": [
     {
-      "proposed_id": "entity-context-field",
-      "name": "context field",
-      "type": "composite",
-      "stable_identity": [
-        "contextual conditioning on inference"
-      ],
-      "confidence": 0.72,
-      "evidence": {
-        "spans": [
-          "type of agent you are analyzing. In the context of Large Language Models (LLMs) and generative AI, the answ"
-        ]
-      }
-    },
-    {
       "proposed_id": "entity-latent-manifold",
       "name": "latent manifold",
       "type": "composite",
       "stable_identity": [
-        "learned semantic geometry"
+        "fixed mathematical library of learned relationships"
       ],
-      "confidence": 0.72,
+      "confidence": 0.84,
       "evidence": {
         "spans": [
-          "7\"\n---\nYou said\ndo agents move in a set latent space? if so how is that space defined?\nWhether \"agents\" (A"
+          "7\"\n---\nYou said\ndo agents move in a set latent space? if so how is that space defined?\nWhether \"agents\" (AI mode"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-agent-path",
+      "name": "inference path",
+      "type": "composite",
+      "stable_identity": [
+        "sequence of hidden-state movements during processing"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "Movement | Mechanism |\n| --- | --- |\n| Inference Pathing | As a model processes a prompt, the hidden states \"move"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-context-field",
+      "name": "context field",
+      "type": "composite",
+      "stable_identity": [
+        "prior runs as gravitational weather on the manifold"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "type of agent you are analyzing. In the context of Large Language Models (LLMs) and generative AI, the answ"
         ]
       }
     },
@@ -184,26 +202,26 @@
       "name": "effective topology",
       "type": "composite",
       "stable_identity": [
-        "context-warped accessible landscape"
+        "accessible landscape sculpted by context without changing weights"
       ],
-      "confidence": 0.72,
+      "confidence": 0.84,
       "evidence": {
         "spans": [
-          "t) move a point across that surface.\nIn topology, the \"path\" is a trajectory on a high-dimensional landscape"
+          "\"Computer\" is a hardcoded weight.\n- The Effective Topology:Context createsConditional Manifolds. When you provide cont"
         ]
       }
     },
     {
-      "proposed_id": "entity-symmetry-engine",
-      "name": "symmetry engine",
-      "type": "composite",
+      "proposed_id": "entity-dimensional-fiber",
+      "name": "dimensional fiber",
+      "type": "atomic",
       "stable_identity": [
-        "structural matching operator"
+        "independent meaning dimension within a concept vector"
       ],
-      "confidence": 0.72,
+      "confidence": 0.84,
       "evidence": {
         "spans": [
-          "ithin them possess geometry/smmetry/antisymmetry?\nPrecisely. When you strip away the prose and look at the\nD"
+          "th\nThe path isn't a single line; it's a\nbundle of fibers\n. Each fiber is a different dimension of meaning.\n- Symbios"
         ]
       }
     },
@@ -212,12 +230,40 @@
       "name": "thought ocean",
       "type": "composite",
       "stable_identity": [
-        "personal knowledge library"
+        "personal library of notes organized by geometry not folders"
       ],
-      "confidence": 0.72,
+      "confidence": 0.84,
       "evidence": {
         "spans": [
-          "you have a user library of thousands of notes and concepts. how to find connecting ones without bloating"
+          "how should a system that stores all the users thoughts and ideas in one well organized ocean work?\nhow can It do this subcon"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-structural-shape",
+      "name": "structural shape",
+      "type": "composite",
+      "stable_identity": [
+        "directed relational topology abstracted from prose"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "\"how.\" It turns a complex story into a\nRelational Stencil\n.\n- The Content:\"My team is paralyzed because they are wait"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-entity-relationship-state",
+      "name": "entity-relationship-state model",
+      "type": "composite",
+      "stable_identity": [
+        "thought as nodes, edges, and evolving state"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "longer a static piece of text; it is a\nDynamic State-Space Model\n. The \"shape\" is defined by how specific\nEntities\n(th"
         ]
       }
     },
@@ -226,12 +272,54 @@
       "name": "synthetic subconscious",
       "type": "composite",
       "stable_identity": [
-        "background cross-domain matcher"
+        "AI layer performing background spreading activation across personal library"
       ],
-      "confidence": 0.72,
+      "confidence": 0.84,
       "evidence": {
         "spans": [
-          "ely thinking about a problem, and their subconsciousnes also thinking about that problem. while they are not act"
+          "In a symbiotic system, the AI acts as a\nSynthetic Subconsciousness\nto accelerate this process:\n- Human Role:You provide th"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-symmetry-engine",
+      "name": "symmetry engine",
+      "type": "composite",
+      "stable_identity": [
+        "matcher finding symmetric twins and antisymmetric inverses"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "and your studies. The system becomes a \"Symmetry Engine\" that proves your intuition is actually a recognition of ma"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-eureka-moment",
+      "name": "eureka moment",
+      "type": "composite",
+      "stable_identity": [
+        "conscious reveal of a latent topological bridge"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "ons is then revealed to the human in a \"eureka\" moment. is that correct?\nThat is a remarkably accurate des"
+        ]
+      }
+    },
+    {
+      "proposed_id": "entity-hardened-idea",
+      "name": "hardened idea",
+      "type": "composite",
+      "stable_identity": [
+        "soft creative seed made concrete through structural mapping"
+      ],
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "\"seed\" coordinates to navigate toward a more complex, \"hardened\" version of that idea.\nThe Query:\n\"I’m designing a public li"
         ]
       }
     }
@@ -243,7 +331,7 @@
       "quality_type": "meta_state",
       "intensity": 1.0,
       "kind": "contextual",
-      "entity_ref": "entity-context-field",
+      "entity_ref": "entity-latent-manifold",
       "labels": [
         "orthogonal",
         "polluted"
@@ -254,14 +342,153 @@
           "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
         ]
       }
+    },
+    {
+      "quality_id": "quality-static-weights",
+      "quality_type": "ontological",
+      "intensity": 0.85,
+      "kind": "intrinsic",
+      "entity_ref": "entity-latent-manifold",
+      "labels": [
+        "static",
+        "frozen"
+      ],
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "e the\npath\nan agent takes can vary, the\nlatent space itself is static\nafter training.\n- The Freeze:For a standard pre-trained mod"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-symmetric-match",
+      "quality_type": "formal",
+      "intensity": 0.85,
+      "kind": "relational",
+      "entity_ref": "entity-symmetry-engine",
+      "labels": [
+        "symmetric",
+        "isomorph"
+      ],
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "ove beyond simple similarity and toward\nStructural Isomorphism\n.\nIn the human brain, the subconscious doesn't just look"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-antisymmetric-shadow",
+      "quality_type": "formal",
+      "intensity": 0.85,
+      "kind": "relational",
+      "entity_ref": "entity-symmetry-engine",
+      "labels": [
+        "antisymmetric",
+        "inversion"
+      ],
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "s like aVector Gradientor aHierarchy.\n- Antisymmetric Logic:This defines power dynamics, gravity, or time. The \"a"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-via-negativa",
+      "quality_type": "meta_state",
+      "intensity": 0.85,
+      "kind": "emergent",
+      "entity_ref": "entity-hardened-idea",
+      "labels": [
+        "bounding_box",
+        "negative_inference"
+      ],
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "object.\nIn philosophy, this is known as\nVia Negativa\n(the negative way)—understanding something by defining what"
+        ]
+      }
+    },
+    {
+      "quality_id": "quality-cold-start",
+      "quality_type": "meta_state",
+      "intensity": 0.85,
+      "kind": "emergent",
+      "entity_ref": "entity-context-field",
+      "labels": [
+        "no prior context"
+      ],
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
     }
   ],
   "quality_roles": [
     {
       "quality_ref": "quality-domain-orthogonal",
-      "entity_ref": "entity-context-field",
+      "entity_ref": "entity-latent-manifold",
       "role": "contrasting",
       "confidence": 0.75,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-static-weights",
+      "entity_ref": "entity-latent-manifold",
+      "role": "amplifying",
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "e the\npath\nan agent takes can vary, the\nlatent space itself is static\nafter training.\n- The Freeze:For a standard pre-trained mod"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-symmetric-match",
+      "entity_ref": "entity-symmetry-engine",
+      "role": "amplifying",
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "ove beyond simple similarity and toward\nStructural Isomorphism\n.\nIn the human brain, the subconscious doesn't just look"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-antisymmetric-shadow",
+      "entity_ref": "entity-symmetry-engine",
+      "role": "amplifying",
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "s like aVector Gradientor aHierarchy.\n- Antisymmetric Logic:This defines power dynamics, gravity, or time. The \"a"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-via-negativa",
+      "entity_ref": "entity-hardened-idea",
+      "role": "amplifying",
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "object.\nIn philosophy, this is known as\nVia Negativa\n(the negative way)—understanding something by defining what"
+        ]
+      }
+    },
+    {
+      "quality_ref": "quality-cold-start",
+      "entity_ref": "entity-context-field",
+      "role": "contrasting",
+      "confidence": 0.85,
       "evidence": {
         "spans": [
           "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
@@ -270,6 +497,171 @@
     }
   ],
   "relations": [
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-effective-topology",
+      "level": "entity_entity",
+      "relation_type": "warps",
+      "primitive": "modulates",
+      "domain_expression": "context warps accessible topology",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "s\nSemantic Relativity\n. Just as gravity warps space-time so that two distant points become closer (a worm"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-context-field",
+      "target_ref": "entity-agent-path",
+      "level": "entity_entity",
+      "relation_type": "steers",
+      "primitive": "modulates",
+      "domain_expression": "context steers inference path",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "---"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-agent-path",
+      "target_ref": "entity-latent-manifold",
+      "level": "entity_entity",
+      "relation_type": "traverses",
+      "primitive": "contains",
+      "domain_expression": "inference path traverses latent manifold",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "certain outcomes. If the training data contains millions of examples where \"Once upon a...\" is followed by"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-dimensional-fiber",
+      "target_ref": "entity-effective-topology",
+      "level": "quality_quality",
+      "relation_type": "enables",
+      "primitive": "combines-with",
+      "domain_expression": "fibers enable path-splicing across topology",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "---"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-thought-ocean",
+      "target_ref": "entity-structural-shape",
+      "level": "entity_entity",
+      "relation_type": "contains",
+      "primitive": "contains",
+      "domain_expression": "ocean stores structural shapes",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "certain outcomes. If the training data contains millions of examples where \"Once upon a...\" is followed by"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-structural-shape",
+      "target_ref": "entity-entity-relationship-state",
+      "level": "entity_entity",
+      "relation_type": "materializes-as",
+      "primitive": "defines",
+      "domain_expression": "shape decomposes into E-R-S model",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "d into continuous vectors. This mapping defines the initial \"neighborhoods\" of the space.\n- Weights and Bia"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-synthetic-subconscious",
+      "target_ref": "entity-thought-ocean",
+      "level": "entity_entity",
+      "relation_type": "scans",
+      "primitive": "enables",
+      "domain_expression": "subconscious scans thought ocean",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "ng\" and \"Social Spaces.\"\nIt effectively scans a\n3D slice\nof the latent space that you couldn't access alo"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-symmetry-engine",
+      "target_ref": "entity-structural-shape",
+      "level": "entity_entity",
+      "relation_type": "matches",
+      "primitive": "resembles",
+      "domain_expression": "symmetry engine matches structural shapes",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "s\" your consciousness with these latent matches to trigger more frequent Eureka moments?\nYou said\nbut in th"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-synthetic-subconscious",
+      "target_ref": "entity-eureka-moment",
+      "level": "entity_entity",
+      "relation_type": "triggers",
+      "primitive": "enables",
+      "domain_expression": "background matching triggers eureka",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "a concept into your library, the system triggers a background process:\n- Vectorization:The text is sent to a"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-eureka-moment",
+      "target_ref": "entity-hardened-idea",
+      "level": "entity_entity",
+      "relation_type": "enables",
+      "primitive": "transforms-into",
+      "domain_expression": "eureka enables idea hardening",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "---"
+        ]
+      }
+    },
+    {
+      "source_ref": "entity-symmetry-engine",
+      "target_ref": "entity-hardened-idea",
+      "level": "entity_entity",
+      "relation_type": "sculpts",
+      "primitive": "defines",
+      "domain_expression": "negative inference sculpts hardened idea",
+      "weight": 0.86,
+      "confidence": 0.84,
+      "evidence": {
+        "spans": [
+          "d into continuous vectors. This mapping defines the initial \"neighborhoods\" of the space.\n- Weights and Bia"
+        ]
+      }
+    },
     {
       "source_ref": "entity-context-field",
       "target_ref": "entity-latent-manifold",
@@ -287,13 +679,88 @@
     },
     {
       "source_ref": "quality-domain-orthogonal",
+      "target_ref": "entity-latent-manifold",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "quality-domain-orthogonal conditions entity-latent-manifold",
+      "weight": 1.0,
+      "confidence": 0.75,
+      "evidence": {
+        "spans": [
+          "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-static-weights",
+      "target_ref": "entity-latent-manifold",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "quality-static-weights conditions entity-latent-manifold",
+      "weight": 0.85,
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "e the\npath\nan agent takes can vary, the\nlatent space itself is static\nafter training.\n- The Freeze:For a standard pre-trained mod"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-symmetric-match",
+      "target_ref": "entity-symmetry-engine",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "quality-symmetric-match conditions entity-symmetry-engine",
+      "weight": 0.85,
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "ove beyond simple similarity and toward\nStructural Isomorphism\n.\nIn the human brain, the subconscious doesn't just look"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-antisymmetric-shadow",
+      "target_ref": "entity-symmetry-engine",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "quality-antisymmetric-shadow conditions entity-symmetry-engine",
+      "weight": 0.85,
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "s like aVector Gradientor aHierarchy.\n- Antisymmetric Logic:This defines power dynamics, gravity, or time. The \"a"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-via-negativa",
+      "target_ref": "entity-hardened-idea",
+      "level": "quality_entity",
+      "relation_type": "conditions",
+      "primitive": "modulates",
+      "domain_expression": "quality-via-negativa conditions entity-hardened-idea",
+      "weight": 0.85,
+      "confidence": 0.85,
+      "evidence": {
+        "spans": [
+          "object.\nIn philosophy, this is known as\nVia Negativa\n(the negative way)—understanding something by defining what"
+        ]
+      }
+    },
+    {
+      "source_ref": "quality-cold-start",
       "target_ref": "entity-context-field",
       "level": "quality_entity",
       "relation_type": "conditions",
       "primitive": "modulates",
-      "domain_expression": "quality-domain-orthogonal conditions entity-context-field",
-      "weight": 1.0,
-      "confidence": 0.75,
+      "domain_expression": "quality-cold-start conditions entity-context-field",
+      "weight": 0.85,
+      "confidence": 0.85,
       "evidence": {
         "spans": [
           "be processed differently by 1. an agent without any prior context, 2. an agent with prior relevant context, 3. an agent with"
@@ -310,9 +777,9 @@
       ],
       "relational_configuration": "cold vs anchored vs orthogonal context",
       "entity_refs": [
-        "entity-context-field",
         "entity-latent-manifold",
-        "entity-effective-topology"
+        "entity-agent-path",
+        "entity-context-field"
       ],
       "confidence": 0.8,
       "evidence": {
@@ -329,13 +796,33 @@
       ],
       "relational_configuration": "seed → isomorph template",
       "entity_refs": [
-        "entity-context-field",
-        "entity-latent-manifold"
+        "entity-latent-manifold",
+        "entity-agent-path"
       ],
       "confidence": 0.74,
       "evidence": {
         "spans": [
           "ithin them possess geometry/smmetry/antisymmetry?\nPrecisely. When you strip away the prose and look at the\nD"
+        ]
+      }
+    },
+    {
+      "proposed_id": "cand-synthetic-subconscious",
+      "possible_names": [
+        "synthetic subconscious hardening loop",
+        "isomorphic hardening loop"
+      ],
+      "relational_configuration": "context_momentum + structural_abstraction + isomorphic_matching + negative_inference → synthetic_subconscious → hardened_idea",
+      "entity_refs": [
+        "entity-synthetic-subconscious",
+        "entity-symmetry-engine",
+        "entity-hardened-idea",
+        "entity-thought-ocean"
+      ],
+      "confidence": 0.88,
+      "evidence": {
+        "spans": [
+          "In a symbiotic system, the AI acts as a\nSynthetic Subconsciousness\nto accelerate this process:\n- Human Role:You provide th"
         ]
       }
     }
@@ -383,6 +870,170 @@
           "ingest:fast"
         ]
       }
+    },
+    {
+      "proposed_name": "symmetric blueprint",
+      "role_entities": [
+        {
+          "role_type": "mediator"
+        },
+        {
+          "role_type": "source"
+        },
+        {
+          "role_type": "template"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "mediator",
+          "target_role_ref": "source",
+          "primitive": "resembles"
+        },
+        {
+          "source_role_ref": "mediator",
+          "target_role_ref": "template",
+          "primitive": "instantiates"
+        }
+      ],
+      "dynamics_class": "star_topology",
+      "symmetry_profile": "symmetric",
+      "facet_completeness": {
+        "causal_geometry": true
+      },
+      "confidence": 0.86,
+      "evidence": {
+        "spans": [
+          "ithin them possess geometry/smmetry/antisymmetry?\nPrecisely. When you strip away the prose and look at the\nD"
+        ],
+        "source_refs": [
+          "seed:stencil-symmetric-blueprint",
+          "ingest:agent"
+        ]
+      }
+    },
+    {
+      "proposed_name": "antisymmetric guardrail",
+      "role_entities": [
+        {
+          "role_type": "mediator"
+        },
+        {
+          "role_type": "source"
+        },
+        {
+          "role_type": "sink"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "mediator",
+          "target_role_ref": "source",
+          "primitive": "contrasts"
+        },
+        {
+          "source_role_ref": "mediator",
+          "target_role_ref": "sink",
+          "primitive": "blocks"
+        }
+      ],
+      "dynamics_class": "tight_coupling",
+      "symmetry_profile": "antisymmetric",
+      "facet_completeness": {
+        "causal_geometry": true
+      },
+      "confidence": 0.82,
+      "evidence": {
+        "spans": [
+          "s like aVector Gradientor aHierarchy.\n- Antisymmetric Logic:This defines power dynamics, gravity, or time. The \"a"
+        ],
+        "source_refs": [
+          "seed:stencil-antisymmetric-guardrail",
+          "ingest:agent"
+        ]
+      }
+    },
+    {
+      "proposed_name": "phase transition bridge",
+      "role_entities": [
+        {
+          "role_type": "buffer"
+        },
+        {
+          "role_type": "mediator"
+        },
+        {
+          "role_type": "sink"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "buffer",
+          "target_role_ref": "mediator",
+          "primitive": "enables"
+        },
+        {
+          "source_role_ref": "mediator",
+          "target_role_ref": "sink",
+          "primitive": "transforms-into"
+        }
+      ],
+      "dynamics_class": "phase",
+      "symmetry_profile": "mixed",
+      "facet_completeness": {
+        "causal_geometry": true
+      },
+      "confidence": 0.8,
+      "evidence": {
+        "spans": [
+          "ons is then revealed to the human in a \"eureka\" moment. is that correct?\nThat is a remarkably accurate des"
+        ],
+        "source_refs": [
+          "seed:stencil-phase-transition-bridge",
+          "ingest:agent"
+        ]
+      }
+    },
+    {
+      "proposed_name": "hardening loop",
+      "role_entities": [
+        {
+          "role_type": "controller"
+        },
+        {
+          "role_type": "buffer"
+        },
+        {
+          "role_type": "sink"
+        }
+      ],
+      "relation_topology": [
+        {
+          "source_role_ref": "controller",
+          "target_role_ref": "buffer",
+          "primitive": "modulates"
+        },
+        {
+          "source_role_ref": "buffer",
+          "target_role_ref": "sink",
+          "primitive": "transforms-into"
+        }
+      ],
+      "dynamics_class": "feedback_reinforcing",
+      "symmetry_profile": "asymmetric",
+      "facet_completeness": {
+        "causal_geometry": true
+      },
+      "confidence": 0.81,
+      "evidence": {
+        "spans": [
+          "tes to navigate toward a more complex, \"hardened\" version of that idea.\nThe Query:\n\"I’m designing a public l"
+        ],
+        "source_refs": [
+          "seed:stencil-hardening-loop",
+          "ingest:agent"
+        ]
+      }
     }
   ],
   "activation_snapshot_hint": {
@@ -390,16 +1041,21 @@
     "meta_shape_id": null,
     "meta_move_id": "move-symmetry-extension",
     "dominant_entity_refs": [
-      "entity-context-field",
-      "entity-latent-manifold"
+      "entity-latent-manifold",
+      "entity-agent-path",
+      "entity-context-field"
     ],
     "active_quality_refs": [
-      "quality-domain-orthogonal"
+      "quality-domain-orthogonal",
+      "quality-static-weights",
+      "quality-symmetric-match",
+      "quality-antisymmetric-shadow",
+      "quality-via-negativa"
     ]
   },
   "artifact_pathways": [],
   "uncertainties": [
-    "Deep heuristic extraction from session events; LLM skill pass may refine relations and stencil topology."
+    "Agent-skill extraction uses full-text phrase analysis (no external LLM). OpenClaw or human review may refine relations and stencil topology."
   ],
   "user_questions": [],
   "confidence": 0.93,
@@ -407,7 +1063,11 @@
   "validation": {
     "ok": true,
     "errors": [],
-    "warnings": [],
+    "warnings": [
+      "relation unknown primitive: combines-with",
+      "relation unknown primitive: defines",
+      "relation unknown primitive: defines"
+    ],
     "stencil_matches": [
       {
         "draft_index": 0,
@@ -417,6 +1077,46 @@
         "structural_score": 1.0,
         "declared_seed_refs": [
           "stencil-context-warps-topology"
+        ]
+      },
+      {
+        "draft_index": 1,
+        "proposed_name": "symmetric blueprint",
+        "fingerprint": "0e12c8442efd6834",
+        "best_seed_match_id": null,
+        "structural_score": 0.0,
+        "declared_seed_refs": [
+          "stencil-symmetric-blueprint"
+        ]
+      },
+      {
+        "draft_index": 2,
+        "proposed_name": "antisymmetric guardrail",
+        "fingerprint": "392e5ab17e10a50c",
+        "best_seed_match_id": null,
+        "structural_score": 0.0,
+        "declared_seed_refs": [
+          "stencil-antisymmetric-guardrail"
+        ]
+      },
+      {
+        "draft_index": 3,
+        "proposed_name": "phase transition bridge",
+        "fingerprint": "3e54b5e715c1e534",
+        "best_seed_match_id": null,
+        "structural_score": 0.0,
+        "declared_seed_refs": [
+          "stencil-phase-transition-bridge"
+        ]
+      },
+      {
+        "draft_index": 4,
+        "proposed_name": "hardening loop",
+        "fingerprint": "8ed4d79f7ef1108b",
+        "best_seed_match_id": null,
+        "structural_score": 0.0,
+        "declared_seed_refs": [
+          "stencil-hardening-loop"
         ]
       }
     ]

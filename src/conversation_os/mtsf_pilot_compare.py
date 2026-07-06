@@ -445,7 +445,7 @@ def run_pilot_002_comparison(
     snapshot = snapshot_baseline(root, experiment_dir=experiment_dir)
     baseline_summary = snapshot["summary"]
 
-    selected_modes = list(modes or (("fast", "off"), ("deep", "off")))
+    selected_modes = list(modes or (("fast", "off"), ("deep", "agent")))
     pipeline_runs: Dict[str, Any] = {}
 
     for mode, mode_llm in selected_modes:
@@ -508,7 +508,7 @@ def run_pilot_002_comparison(
             "summary": pipeline_summary,
             "comparison": comparison,
             "draft_path": str(default_agent_skill_draft_path(root)),
-            "note": "Agent skill pass: full transcript read by agent, draft validated and materialized by code (OpenClaw unavailable in cloud)",
+            "note": "Reference agent-skill draft from interactive pass; deep replay now uses built-in agent extractor by default",
         }
         write_json(replay_dir / "pipeline_summary.json", pipeline_summary)
         write_json(replay_dir / "comparison.json", comparison)

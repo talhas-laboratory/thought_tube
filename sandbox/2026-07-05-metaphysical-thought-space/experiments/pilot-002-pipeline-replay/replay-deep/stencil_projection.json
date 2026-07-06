@@ -1,10 +1,14 @@
 {
   "session_id": "pilot-002-replay-deep",
-  "draft_id": "mtsf-draft-bd9a98c244da",
+  "draft_id": "mtsf-draft-6e53343bd465",
   "subgraph_id": "research",
   "validation_quarantine": false,
   "active_stencil_ids": [
-    "stencil-context-warps-topology"
+    "stencil-antisymmetric-guardrail",
+    "stencil-context-warps-topology",
+    "stencil-hardening-loop",
+    "stencil-phase-transition-bridge",
+    "stencil-symmetric-blueprint"
   ],
   "stencil_projections": [
     {
@@ -16,12 +20,52 @@
       "structural_match_score": 1.0,
       "matched_seed_id": "stencil-context-warps-topology",
       "quarantine": false
+    },
+    {
+      "draft_index": 1,
+      "proposed_name": "symmetric blueprint",
+      "fingerprint": "0e12c8442efd6834",
+      "action": "merge_declared_seed",
+      "stencil_id": "stencil-symmetric-blueprint",
+      "structural_match_score": 1.0,
+      "matched_seed_id": null,
+      "quarantine": false
+    },
+    {
+      "draft_index": 2,
+      "proposed_name": "antisymmetric guardrail",
+      "fingerprint": "392e5ab17e10a50c",
+      "action": "merge_declared_seed",
+      "stencil_id": "stencil-antisymmetric-guardrail",
+      "structural_match_score": 1.0,
+      "matched_seed_id": null,
+      "quarantine": false
+    },
+    {
+      "draft_index": 3,
+      "proposed_name": "phase transition bridge",
+      "fingerprint": "3e54b5e715c1e534",
+      "action": "merge_declared_seed",
+      "stencil_id": "stencil-phase-transition-bridge",
+      "structural_match_score": 1.0,
+      "matched_seed_id": null,
+      "quarantine": false
+    },
+    {
+      "draft_index": 4,
+      "proposed_name": "hardening loop",
+      "fingerprint": "8ed4d79f7ef1108b",
+      "action": "merge_declared_seed",
+      "stencil_id": "stencil-hardening-loop",
+      "structural_match_score": 1.0,
+      "matched_seed_id": null,
+      "quarantine": false
     }
   ],
   "shape_instances": [
     {
-      "id": "shape-inst-471bbba3aed2",
-      "entity_id": "entity-context-field",
+      "id": "shape-inst-a04ada581b37",
+      "entity_id": "entity-latent-manifold",
       "stencil_id": "stencil-context-warps-topology",
       "subgraph_id": "research",
       "status": "provisional",
@@ -29,10 +73,70 @@
       "domain_skin_summary": "context triangulation",
       "outcome_class": "unknown",
       "evidence_refs": [
-        "draft:mtsf-draft-bd9a98c244da",
+        "draft:mtsf-draft-6e53343bd465",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:17:17+00:00"
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-44722d09cb63",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-symmetric-blueprint",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-ef323df23eda",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-antisymmetric-guardrail",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-d1cc3d148480",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-phase-transition-bridge",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
+    },
+    {
+      "id": "shape-inst-b9845311cfa5",
+      "entity_id": "entity-latent-manifold",
+      "stencil_id": "stencil-hardening-loop",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-6e53343bd465",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:49:48+00:00"
     }
   ],
   "quarantined_stencil_count": 0

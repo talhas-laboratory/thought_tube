@@ -482,12 +482,87 @@
         "projection:merge_declared_seed"
       ],
       "instantiated_at": "2026-07-06T14:34:25+00:00"
+    },
+    {
+      "id": "shape-inst-89f715d84185",
+      "entity_id": "entity-symmetry-engine",
+      "stencil_id": "stencil-context-warps-topology",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-pilot-002-agent-skill",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
+    },
+    {
+      "id": "shape-inst-7a871011e688",
+      "entity_id": "entity-symmetry-engine",
+      "stencil_id": "stencil-symmetric-blueprint",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-pilot-002-agent-skill",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
+    },
+    {
+      "id": "shape-inst-077af6286807",
+      "entity_id": "entity-symmetry-engine",
+      "stencil_id": "stencil-antisymmetric-guardrail",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-pilot-002-agent-skill",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
+    },
+    {
+      "id": "shape-inst-4003a40a6b9f",
+      "entity_id": "entity-symmetry-engine",
+      "stencil_id": "stencil-phase-transition-bridge",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-pilot-002-agent-skill",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
+    },
+    {
+      "id": "shape-inst-3acb13006ab8",
+      "entity_id": "entity-symmetry-engine",
+      "stencil_id": "stencil-hardening-loop",
+      "subgraph_id": "research",
+      "status": "provisional",
+      "structural_match_score": 1.0,
+      "domain_skin_summary": "context triangulation",
+      "outcome_class": "unknown",
+      "evidence_refs": [
+        "draft:mtsf-draft-pilot-002-agent-skill",
+        "projection:merge_declared_seed"
+      ],
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
     }
   ],
   "provisional_stencils": [],
   "stencil_stats": {},
   "sessions_contributed": {},
-  "updated_at": "2026-07-06T14:34:25+00:00",
+  "updated_at": "2026-07-06T14:50:14+00:00",
   "last_session_id": "pilot-002-replay-llm-agent",
   "last_draft_id": "mtsf-draft-pilot-002-agent-skill"
 }

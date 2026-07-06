@@ -345,7 +345,7 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
             root,
             args.session_id,
             mtsf_mode,
-            llm_preference=getattr(args, "mtsf_llm", "auto"),
+            llm_preference=getattr(args, "mtsf_llm", "agent"),
         )
     else:
         mtsf_refs = {}
@@ -456,7 +456,7 @@ def session_import(root: Path, args: argparse.Namespace) -> dict:
             request=args.request or args.title,
             task_type=args.task_type or "import_review",
             mtsf_mode=getattr(args, "mtsf_mode", "fast"),
-            mtsf_llm=getattr(args, "mtsf_llm", "auto"),
+            mtsf_llm=getattr(args, "mtsf_llm", "agent"),
         ),
     )
 
@@ -589,9 +589,9 @@ def build_parser() -> argparse.ArgumentParser:
     close.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
     close.add_argument(
         "--mtsf-llm",
-        default="auto",
-        choices=["auto", "off", "force"],
-        help="LLM preference for deep extraction: auto tries OpenClaw then heuristic fallback",
+        default="agent",
+        choices=["auto", "agent", "off", "force"],
+        help="Deep extraction backend: agent (default), auto (OpenClaw then agent), off (heuristic), force (OpenClaw only)",
     )
 
     importer = session_sub.add_parser("import")
@@ -608,9 +608,9 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
     importer.add_argument(
         "--mtsf-llm",
-        default="auto",
-        choices=["auto", "off", "force"],
-        help="LLM preference for deep extraction: auto tries OpenClaw then heuristic fallback",
+        default="agent",
+        choices=["auto", "agent", "off", "force"],
+        help="Deep extraction backend: agent (default), auto (OpenClaw then agent), off (heuristic), force (OpenClaw only)",
     )
 
     task_pack = sub.add_parser("task-pack")
@@ -758,9 +758,9 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_extract_deep.add_argument("--session-id", required=True)
     mtsf_extract_deep.add_argument(
         "--llm",
-        default="auto",
-        choices=["auto", "off", "force"],
-        help="LLM preference: auto tries OpenClaw then heuristic fallback",
+        default="agent",
+        choices=["auto", "agent", "off", "force"],
+        help="Deep extraction backend: agent (default), auto, off, force",
     )
     mtsf_pilot_compare = mtsf_sub.add_parser(
         "compare-pilot-002",
@@ -774,8 +774,8 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_pilot_compare.add_argument(
         "--llm",
         default="off",
-        choices=["auto", "off", "force"],
-        help="LLM preference for deep replay (default off for reproducible compare)",
+        choices=["auto", "agent", "off", "force"],
+        help="LLM preference override for deep replay (default off; deep replay uses agent via selected_modes)",
     )
     mtsf_pilot_compare.add_argument(
         "--no-agent-skill",

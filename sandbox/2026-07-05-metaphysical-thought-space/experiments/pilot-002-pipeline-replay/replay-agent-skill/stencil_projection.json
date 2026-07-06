@@ -64,7 +64,7 @@
   ],
   "shape_instances": [
     {
-      "id": "shape-inst-ac64aa15d242",
+      "id": "shape-inst-89f715d84185",
       "entity_id": "entity-symmetry-engine",
       "stencil_id": "stencil-context-warps-topology",
       "subgraph_id": "research",
@@ -76,10 +76,10 @@
         "draft:mtsf-draft-pilot-002-agent-skill",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:34:25+00:00"
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
     },
     {
-      "id": "shape-inst-fdaf26a17fe5",
+      "id": "shape-inst-7a871011e688",
       "entity_id": "entity-symmetry-engine",
       "stencil_id": "stencil-symmetric-blueprint",
       "subgraph_id": "research",
@@ -91,10 +91,10 @@
         "draft:mtsf-draft-pilot-002-agent-skill",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:34:25+00:00"
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
     },
     {
-      "id": "shape-inst-73011bd55a5c",
+      "id": "shape-inst-077af6286807",
       "entity_id": "entity-symmetry-engine",
       "stencil_id": "stencil-antisymmetric-guardrail",
       "subgraph_id": "research",
@@ -106,10 +106,10 @@
         "draft:mtsf-draft-pilot-002-agent-skill",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:34:25+00:00"
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
     },
     {
-      "id": "shape-inst-ae287134c2cb",
+      "id": "shape-inst-4003a40a6b9f",
       "entity_id": "entity-symmetry-engine",
       "stencil_id": "stencil-phase-transition-bridge",
       "subgraph_id": "research",
@@ -121,10 +121,10 @@
         "draft:mtsf-draft-pilot-002-agent-skill",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:34:25+00:00"
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
     },
     {
-      "id": "shape-inst-e11b1bdd05c8",
+      "id": "shape-inst-3acb13006ab8",
       "entity_id": "entity-symmetry-engine",
       "stencil_id": "stencil-hardening-loop",
       "subgraph_id": "research",
@@ -136,7 +136,7 @@
         "draft:mtsf-draft-pilot-002-agent-skill",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:34:25+00:00"
+      "instantiated_at": "2026-07-06T14:50:14+00:00"
     }
   ],
   "quarantined_stencil_count": 0

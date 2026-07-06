@@ -1,5 +1,5 @@
 {
-  "draft_id": "mtsf-draft-005277020857",
+  "draft_id": "mtsf-draft-b4488ab90b68",
   "input_id": "session:pilot-002-replay-fast",
   "input_type": "import",
   "capture_mode": "fast",
@@ -11,6 +11,10 @@
     "project": "Pilot 002 replay (fast)",
     "domain": "research, topology",
     "tags": [
+      "pilot-002",
+      "pipeline-replay",
+      "pilot-002",
+      "pipeline-replay",
       "pilot-002",
       "pipeline-replay",
       "pilot-002",
@@ -136,7 +140,7 @@
     "skill_id": "semantic-shape-extraction",
     "skill_version": "1.0.0",
     "model_id": "mtsf_ingest.fast",
-    "extracted_at": "2026-07-06T14:16:57+00:00",
+    "extracted_at": "2026-07-06T14:49:22+00:00",
     "stages_completed": [
       "capture",
       "surface",

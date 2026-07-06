@@ -40,7 +40,7 @@
     "stencil-context-warps-topology"
   ],
   "stencil_count": 1,
-  "shape_instance_count": 1,
+  "shape_instance_count": 2,
   "activation_entity_count": 0,
   "confidence": 0.8799999999999999,
   "promotion_ready": true,

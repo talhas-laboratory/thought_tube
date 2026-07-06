@@ -1,6 +1,6 @@
 {
   "session_id": "pilot-002-replay-fast",
-  "draft_id": "mtsf-draft-005277020857",
+  "draft_id": "mtsf-draft-b4488ab90b68",
   "subgraph_id": "research",
   "validation_quarantine": false,
   "active_stencil_ids": [
@@ -20,7 +20,7 @@
   ],
   "shape_instances": [
     {
-      "id": "shape-inst-981afd5d1a44",
+      "id": "shape-inst-7b85a15c031f",
       "entity_id": "entity-context-field",
       "stencil_id": "stencil-context-warps-topology",
       "subgraph_id": "research",
@@ -29,10 +29,10 @@
       "domain_skin_summary": "context triangulation",
       "outcome_class": "unknown",
       "evidence_refs": [
-        "draft:mtsf-draft-005277020857",
+        "draft:mtsf-draft-b4488ab90b68",
         "projection:merge_declared_seed"
       ],
-      "instantiated_at": "2026-07-06T14:16:57+00:00"
+      "instantiated_at": "2026-07-06T14:49:22+00:00"
     }
   ],
   "quarantined_stencil_count": 0

@@ -13,7 +13,7 @@
     "pipeline_stencil_drafts": 1,
     "pipeline_active_stencils": 1,
     "baseline_activation_snapshots": 10,
-    "pipeline_shape_instances": 1
+    "pipeline_shape_instances": 2
   },
   "entities": {
     "id_overlap": [

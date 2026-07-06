@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from conversation_os.cli import init_repo, session_close, session_start
+from conversation_os.mtsf_agent_extractor import build_agent_skill_extraction_draft
 from conversation_os.mtsf_extraction_skill import (
     build_deep_extraction_draft_heuristic,
     build_skill_input_envelope,
@@ -31,6 +32,21 @@ MANIFEST = {
     "source_type": "imported_transcript",
     "domains": ["research"],
 }
+
+PILOT_LIKE_TEXT = """
+Agents move through a pre-defined, high-dimensional latent manifold. The latent space itself is static
+after training. The path is a trajectory on a high-dimensional landscape as hidden states move through
+successive layers. Context from previous runs acts as a coordinate shift — a contextual start with KV cache
+versus a cold start without prior context. Context warps the effective topology and steers the inference path.
+Explain how the same query would be processed without any prior context, with relevant prior context, and
+with unrelated prior context. Each concept is a bundle of fibers — independent meaning dimensions.
+The thought ocean is a well organized ocean of users thoughts and ideas. Relational stencils capture
+directed relational topology — the verbs of force. Entities interact through relationships in a
+dynamic state-space entity-relationship-state model. The synthetic subconscious performs spreading
+activation and background cross-pollination across the library. The symmetry engine finds structural
+isomorphs via symmetric match and antisymmetric shadow via opposite direction and via negativa.
+An aha moment is a topological bridge. The system hardens the idea through negative inference.
+"""
 
 
 class MtsfExtractionSkillTestCase(unittest.TestCase):
@@ -83,6 +99,36 @@ class MtsfExtractionSkillTestCase(unittest.TestCase):
         self.assertEqual(result["source"], "deep_heuristic")
         self.assertIn("mtsf_skill_input", result["artifact_refs"])
         self.assertGreaterEqual(len(result["draft"]["relations"]), 1)
+
+    def test_resolve_deep_extraction_uses_agent_skill_by_default(self) -> None:
+        events = [{"actor": "user", "content": PILOT_LIKE_TEXT}]
+        result = resolve_deep_extraction_draft(
+            self.root,
+            session_id="sess-agent",
+            events=events,
+            manifest=MANIFEST,
+        )
+        self.assertEqual(result["source"], "agent_skill")
+        self.assertEqual(result["draft"]["provenance"]["model_id"], "mtsf_ingest.agent_skill")
+        self.assertGreaterEqual(len(result["draft"]["entities"]), 8)
+        self.assertGreaterEqual(len(result["draft"]["relations"]), 5)
+        self.assertGreaterEqual(len(result["draft"]["stencil_drafts"]), 3)
+
+    def test_agent_skill_extractor_detects_pilot_entities(self) -> None:
+        draft = build_agent_skill_extraction_draft(
+            session_id="pilot-agent-test",
+            events=[{"actor": "user", "content": PILOT_LIKE_TEXT}],
+            manifest=MANIFEST,
+            raw_content=PILOT_LIKE_TEXT,
+        )
+        entity_ids = {row["proposed_id"] for row in draft["entities"]}
+        self.assertIn("entity-latent-manifold", entity_ids)
+        self.assertIn("entity-thought-ocean", entity_ids)
+        self.assertIn("entity-symmetry-engine", entity_ids)
+        self.assertIn("entity-synthetic-subconscious", entity_ids)
+        self.assertIn("entity-hardened-idea", entity_ids)
+        self.assertEqual(draft["capture_mode"], "deep")
+        self.assertGreaterEqual(len(draft["stencil_drafts"]), 3)
 
     def test_parse_extraction_draft_from_reference_fixture(self) -> None:
         draft_path = (
