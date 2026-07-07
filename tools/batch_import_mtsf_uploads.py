@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +17,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from conversation_os.cli import session_import  # noqa: E402
+from conversation_os.mtsf_ingest import materialize_session_mtsf_ingest  # noqa: E402
 from conversation_os.mtsf_graph import (  # noqa: E402
     load_global_content_graph,
     rebuild_global_content_graph,
@@ -58,7 +60,16 @@ def main() -> int:
     parser.add_argument("--tags", default="brainwalk,import-batch")
     parser.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
     parser.add_argument("--mtsf-llm", default="off", choices=["auto", "agent", "off", "force"])
-    parser.add_argument("--skip-existing", action="store_true", default=True)
+    parser.add_argument(
+        "--reextract",
+        action="store_true",
+        help="Re-run MTSF ingest on existing sessions (no transcript re-import)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Delete existing session artifacts before import/re-extract",
+    )
     parser.add_argument("--no-rebuild-global", action="store_true")
     parser.add_argument(
         "--manifest-path",
@@ -88,8 +99,63 @@ def main() -> int:
 
     for path in candidates:
         session_id = _slug_session_id(path)
-        manifest_session = ROOT / "memory" / "sessions" / session_id / "manifest.json"
-        if args.skip_existing and manifest_session.exists():
+        session_base = ROOT / "memory" / "sessions" / session_id
+        events_path = ROOT / "memory" / "events" / f"{session_id}.jsonl"
+        manifest_session = session_base / "manifest.json"
+
+        if args.force and session_base.exists():
+            shutil.rmtree(session_base)
+        if args.force and events_path.exists():
+            events_path.unlink()
+
+        if args.reextract:
+            if not manifest_session.exists():
+                runs.append(
+                    {
+                        "source_path": str(path),
+                        "session_id": session_id,
+                        "status": "failed",
+                        "error": "session_not_found_for_reextract",
+                    }
+                )
+                continue
+            title = _title_from_path(path)
+            try:
+                ingest = materialize_session_mtsf_ingest(
+                    ROOT,
+                    session_id,
+                    args.mtsf_mode if args.mtsf_mode != "off" else "deep",
+                    llm_preference=args.mtsf_llm,
+                )
+                graph = ingest.get("graph", {}) if isinstance(ingest, dict) else {}
+                runs.append(
+                    {
+                        "source_path": str(path),
+                        "session_id": session_id,
+                        "title": title,
+                        "status": "reextracted",
+                        "entity_count": ingest.get("entity_count"),
+                        "relation_count": ingest.get("relation_count"),
+                        "stencil_draft_count": ingest.get("stencil_draft_count"),
+                        "extraction_source": ingest.get("extraction_source"),
+                        "node_count": graph.get("node_count") if graph else None,
+                        "validation_ok": ingest.get("validation_ok"),
+                    }
+                )
+                session_ids.append(session_id)
+            except Exception as exc:  # noqa: BLE001
+                runs.append(
+                    {
+                        "source_path": str(path),
+                        "session_id": session_id,
+                        "title": title,
+                        "status": "failed",
+                        "error": str(exc),
+                    }
+                )
+            continue
+
+        if manifest_session.exists() and not args.force:
             runs.append(
                 {
                     "source_path": str(path),
@@ -129,7 +195,9 @@ def main() -> int:
                     "status": "imported",
                     "entity_count": ingest.get("entity_count"),
                     "relation_count": ingest.get("relation_count"),
-                    "node_count": graph.get("node_count"),
+                    "stencil_draft_count": ingest.get("stencil_draft_count"),
+                    "extraction_source": ingest.get("extraction_source"),
+                    "node_count": graph.get("node_count") if graph else None,
                     "validation_ok": ingest.get("validation_ok"),
                 }
             )
@@ -147,7 +215,11 @@ def main() -> int:
 
     rebuild_result: dict = {}
     if not args.no_rebuild_global:
-        imported_ids = [row["session_id"] for row in runs if row["status"] in {"imported", "skipped_existing"}]
+        imported_ids = [
+            row["session_id"]
+            for row in runs
+            if row["status"] in {"imported", "skipped_existing", "reextracted"}
+        ]
         rebuild_result = rebuild_global_content_graph(ROOT, session_ids=imported_ids or None)
 
     global_graph = load_global_content_graph(ROOT)
@@ -157,6 +229,8 @@ def main() -> int:
         "batch_id": f"batch-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
         "imported_at": datetime.now(timezone.utc).isoformat(),
         "mtsf_mode": args.mtsf_mode,
+        "mtsf_llm": args.mtsf_llm,
+        "reextract": args.reextract,
         "runs": runs,
         "session_ids": sorted(set(session_ids)),
         "rebuild": rebuild_result,
