@@ -17,7 +17,10 @@
     "append_graph_event",
     "read_graph_events",
     "substrate_ref_fields",
-    "apply_substrate_refs_to_draft"
+    "apply_substrate_refs_to_draft",
+    "resolve_activation_bindings",
+    "sync_activation_to_content_graph",
+    "get_active_content_nodes"
   ],
   "contains": [
     "substrate indexing",

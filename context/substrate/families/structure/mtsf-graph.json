@@ -37,6 +37,7 @@
     "python tools/conversation_os.py mtsf graph-materialize --session-id ...",
     "python tools/conversation_os.py mtsf graph-follow --session-id ... --start entity-id --mode semantic --depth 1",
     "python tools/conversation_os.py mtsf graph-expand --session-id ... --node-id entity-id --facets identity,evidence,substrate",
+    "python tools/conversation_os.py mtsf graph-sync-activation --session-id ...",
     "python tools/conversation_os.py mtsf graph-promote --session-id ...",
     "python tools/conversation_os.py mtsf graph-rebuild",
     "python tools/conversation_os.py mtsf graph-events --limit 20"

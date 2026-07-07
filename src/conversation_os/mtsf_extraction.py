@@ -349,7 +349,11 @@ def materialize_extraction_draft(
             refs.update(projection["artifact_refs"])
             result["artifact_refs"] = refs
 
-    from .mtsf_graph import materialize_session_graph
+    from .mtsf_graph import (
+        activation_snapshot_path,
+        materialize_session_graph,
+        sync_activation_to_content_graph,
+    )
 
     shape_instances = []
     projection_payload = result.get("projection") or {}
@@ -364,6 +368,9 @@ def materialize_extraction_draft(
     refs.update(graph_result.get("artifact_refs", {}))
     result["artifact_refs"] = refs
     result["graph"] = graph_result
+
+    if activation_snapshot_path(root, session_id).exists():
+        result["activation_sync"] = sync_activation_to_content_graph(root, session_id)
 
     return result
 

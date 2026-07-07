@@ -765,9 +765,14 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_graph_follow.add_argument(
         "--mode",
         default="semantic",
-        choices=["semantic", "structural", "provenance", "temporal"],
+        choices=["semantic", "structural", "provenance", "temporal", "activation"],
     )
     mtsf_graph_follow.add_argument("--depth", type=int, default=1)
+    mtsf_graph_sync_activation = mtsf_sub.add_parser(
+        "graph-sync-activation",
+        help="Bind activation snapshot to session content graph",
+    )
+    mtsf_graph_sync_activation.add_argument("--session-id", required=True)
     mtsf_graph_expand = mtsf_sub.add_parser(
         "graph-expand",
         help="Progressively hydrate a graph node (identity, configuration, evidence, substrate)",
@@ -1850,6 +1855,10 @@ def main(argv: list[str] | None = None) -> int:
 
             facets = [item.strip() for item in str(args.facets).split(",") if item.strip()]
             result = expand_node(root, args.session_id, args.node_id, facets=facets)
+        elif args.mtsf_command == "graph-sync-activation":
+            from .mtsf_graph import sync_activation_to_content_graph
+
+            result = sync_activation_to_content_graph(root, args.session_id)
         elif args.mtsf_command == "graph-promote":
             from .mtsf_graph import promote_session_graph_to_global
 

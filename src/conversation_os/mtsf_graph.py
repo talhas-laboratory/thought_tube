@@ -24,7 +24,8 @@ GRAPH_VERSION = "1.0.0"
 GLOBAL_GRAPH_VERSION = "1.0.0"
 SUBSTRATE_PREVIEW_LIMIT = 500
 
-TraversalMode = Literal["semantic", "structural", "provenance", "temporal"]
+TraversalMode = Literal["semantic", "structural", "provenance", "temporal", "activation"]
+ACTIVATION_CONFIDENCE_THRESHOLD = 0.35
 DetailFacet = Literal["identity", "configuration", "evidence", "substrate", "payload"]
 ExpandFacet = Literal["identity", "configuration", "evidence", "substrate", "payload", "all"]
 
@@ -56,6 +57,12 @@ PUBLIC_API = (
     "read_graph_events",
     "promote_session_graph_to_global",
     "rebuild_global_content_graph",
+    "ACTIVATION_CONFIDENCE_THRESHOLD",
+    "activation_snapshot_path",
+    "derive_activation_summary",
+    "resolve_activation_bindings",
+    "sync_activation_to_content_graph",
+    "get_active_content_nodes",
     "follow_traversal",
     "expand_node",
 )
@@ -601,6 +608,256 @@ def _assertion_by_id(store: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     return {str(row["id"]): row for row in store.get("assertions", [])}
 
 
+def activation_snapshot_path(root: Path, session_id: str) -> Path:
+    return session_dir(root, session_id) / "mtsf" / "activation_snapshot.json"
+
+
+def _normalize_entity_name(value: str) -> str:
+    return " ".join(str(value).lower().split())
+
+
+def _catalog_entities_by_id(root: Path) -> Dict[str, Dict[str, Any]]:
+    from .mtsf_session import default_entity_catalog_path
+
+    payload = read_json(default_entity_catalog_path(root), default={})
+    return {str(row["id"]): row for row in payload.get("entities", [])}
+
+
+def derive_activation_summary(snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    dominant_catalog_entities: List[str] = []
+    entity_shapes: Dict[str, str] = {}
+    for row in snapshot.get("shape_activation_results", []):
+        entity_id = str(row.get("entity_id", ""))
+        if not entity_id:
+            continue
+        confidence = float(row.get("confidence", 0.0))
+        if confidence < ACTIVATION_CONFIDENCE_THRESHOLD:
+            continue
+        dominant_catalog_entities.append(entity_id)
+        dominant_shape = row.get("dominant_shape_id")
+        if dominant_shape:
+            entity_shapes[entity_id] = str(dominant_shape)
+
+    return {
+        "dominant_catalog_entities": sorted(set(dominant_catalog_entities)),
+        "entity_shapes": entity_shapes,
+        "active_stencil_ids": list(snapshot.get("active_stencil_ids", [])),
+    }
+
+
+def resolve_activation_bindings(root: Path, session_id: str) -> Dict[str, Any]:
+    snapshot_path = activation_snapshot_path(root, session_id)
+    graph = load_content_graph(root, session_id)
+    if not snapshot_path.exists():
+        return {
+            "session_id": session_id,
+            "bindings": {},
+            "unbound_catalog_entities": [],
+            "ambiguous": [],
+            "reason": "missing_activation_snapshot",
+        }
+    if not graph:
+        return {
+            "session_id": session_id,
+            "bindings": {},
+            "unbound_catalog_entities": [],
+            "ambiguous": [],
+            "reason": "missing_content_graph",
+        }
+
+    snapshot = read_json(snapshot_path, default={})
+    catalog = _catalog_entities_by_id(root)
+    summary = derive_activation_summary(snapshot)
+    fired_catalog_ids = summary["dominant_catalog_entities"]
+
+    entity_nodes: Dict[str, Dict[str, Any]] = {}
+    name_to_nodes: Dict[str, List[str]] = {}
+    for node_id, node in graph.get("nodes", {}).items():
+        if str(node.get("kind", "")) != "entity":
+            continue
+        entity_nodes[str(node_id)] = node
+        normalized_name = _normalize_entity_name(str(node.get("name", "")))
+        if normalized_name:
+            name_to_nodes.setdefault(normalized_name, []).append(str(node_id))
+
+    draft_path = session_dir(root, session_id) / "mtsf" / "extraction_draft.json"
+    hint_refs: Set[str] = set()
+    if draft_path.exists():
+        draft = read_json(draft_path, default={})
+        hint_refs = {
+            str(ref)
+            for ref in draft.get("activation_snapshot_hint", {}).get("dominant_entity_refs", [])
+            if ref
+        }
+
+    results_by_entity = {
+        str(row.get("entity_id", "")): row for row in snapshot.get("shape_activation_results", [])
+    }
+    bindings: Dict[str, Dict[str, Any]] = {}
+    unbound_catalog_entities: List[str] = []
+    ambiguous: List[Dict[str, Any]] = []
+
+    for catalog_id in fired_catalog_ids:
+        result = results_by_entity.get(catalog_id, {})
+        catalog_row = catalog.get(catalog_id, {})
+        content_node_id: Optional[str] = None
+        match_method: Optional[str] = None
+
+        if catalog_id in entity_nodes:
+            content_node_id = catalog_id
+            match_method = "exact_id"
+        else:
+            catalog_name = _normalize_entity_name(str(catalog_row.get("name", "")))
+            for hint_ref in hint_refs:
+                if hint_ref not in entity_nodes:
+                    continue
+                hint_name = _normalize_entity_name(str(entity_nodes[hint_ref].get("name", "")))
+                if hint_ref == catalog_id or (catalog_name and hint_name == catalog_name):
+                    content_node_id = hint_ref
+                    match_method = "extraction_hint"
+                    break
+            if not content_node_id:
+                candidates = name_to_nodes.get(catalog_name, [])
+                if len(candidates) == 1:
+                    content_node_id = candidates[0]
+                    match_method = "name_match"
+                elif len(candidates) > 1:
+                    ambiguous.append(
+                        {
+                            "catalog_entity_id": catalog_id,
+                            "normalized_name": catalog_name,
+                            "candidate_content_node_ids": candidates,
+                        }
+                    )
+
+        if content_node_id:
+            bindings[catalog_id] = {
+                "catalog_entity_id": catalog_id,
+                "content_node_id": content_node_id,
+                "match_method": match_method,
+                "confidence": float(result.get("confidence", 0.0)),
+                "dominant_shape_id": result.get("dominant_shape_id"),
+                "secondary_shape_ids": list(result.get("secondary_shape_ids", [])),
+            }
+        else:
+            unbound_catalog_entities.append(catalog_id)
+
+    return {
+        "session_id": session_id,
+        "bindings": bindings,
+        "unbound_catalog_entities": unbound_catalog_entities,
+        "ambiguous": ambiguous,
+        "dominant_catalog_entities": fired_catalog_ids,
+        "active_stencil_ids": summary["active_stencil_ids"],
+    }
+
+
+def _build_activation_adjacency(
+    bindings: Dict[str, Dict[str, Any]],
+    graph: Dict[str, Any],
+) -> Dict[str, List[str]]:
+    active_content_nodes = sorted(
+        {str(binding["content_node_id"]) for binding in bindings.values() if binding.get("content_node_id")}
+    )
+    structural = graph.get("adjacency", {}).get("structural", {})
+    activation_adj: Dict[str, Set[str]] = {}
+
+    for binding in bindings.values():
+        node_id = str(binding.get("content_node_id", ""))
+        if not node_id:
+            continue
+        neighbors: Set[str] = set()
+        for other_id in active_content_nodes:
+            if other_id != node_id:
+                neighbors.add(other_id)
+        for shape_ref in structural.get(node_id, []):
+            neighbors.add(str(shape_ref))
+        activation_adj[node_id] = neighbors
+
+    return {node_id: sorted(neighbors) for node_id, neighbors in sorted(activation_adj.items())}
+
+
+def sync_activation_to_content_graph(root: Path, session_id: str) -> Dict[str, Any]:
+    resolution = resolve_activation_bindings(root, session_id)
+    if resolution.get("reason"):
+        return {
+            "session_id": session_id,
+            "synced": False,
+            "reason": resolution["reason"],
+            "artifact_refs": {},
+        }
+
+    graph_path = content_graph_path(root, session_id)
+    graph = read_json(graph_path, default={})
+    snapshot_path = activation_snapshot_path(root, session_id)
+    snapshot = read_json(snapshot_path, default={})
+    bindings = resolution["bindings"]
+
+    activation_adj = _build_activation_adjacency(bindings, graph)
+    graph.setdefault("adjacency", {})["activation"] = activation_adj
+    dominant_content_nodes = sorted(
+        {str(binding["content_node_id"]) for binding in bindings.values() if binding.get("content_node_id")}
+    )
+    graph["overlays"] = {
+        **dict(graph.get("overlays", {})),
+        "activation": {
+            "snapshot_ref": "activation_snapshot.json",
+            "synced_at": utc_now(),
+            "bindings": bindings,
+            "dominant_catalog_entities": resolution["dominant_catalog_entities"],
+            "dominant_content_nodes": dominant_content_nodes,
+            "active_stencil_ids": resolution.get("active_stencil_ids", []),
+            "unbound_catalog_entities": resolution.get("unbound_catalog_entities", []),
+            "ambiguous": resolution.get("ambiguous", []),
+        },
+    }
+    write_json(graph_path, graph)
+
+    snapshot["dominant_entities"] = resolution["dominant_catalog_entities"]
+    snapshot["dominant_content_nodes"] = dominant_content_nodes
+    snapshot["content_graph_bindings"] = {
+        catalog_id: binding["content_node_id"] for catalog_id, binding in bindings.items()
+    }
+    snapshot["activation_synced_at"] = utc_now()
+    write_json(snapshot_path, snapshot)
+
+    event = append_graph_event(
+        root,
+        {
+            "kind": "activation_synced",
+            "session_id": session_id,
+            "bound_count": len(bindings),
+            "unbound_count": len(resolution.get("unbound_catalog_entities", [])),
+            "dominant_content_nodes": dominant_content_nodes,
+        },
+    )
+
+    return {
+        "session_id": session_id,
+        "synced": True,
+        "bound_count": len(bindings),
+        "unbound_catalog_entities": resolution.get("unbound_catalog_entities", []),
+        "ambiguous": resolution.get("ambiguous", []),
+        "dominant_content_nodes": dominant_content_nodes,
+        "artifact_refs": {
+            "mtsf_content_graph": str(graph_path),
+            "mtsf_activation_snapshot": str(snapshot_path),
+        },
+        "event_id": event["event_id"],
+    }
+
+
+def get_active_content_nodes(root: Path, session_id: str) -> List[str]:
+    graph = load_content_graph(root, session_id)
+    overlay = graph.get("overlays", {}).get("activation", {})
+    if overlay.get("dominant_content_nodes"):
+        return list(overlay["dominant_content_nodes"])
+    snapshot = read_json(activation_snapshot_path(root, session_id), default={})
+    if snapshot.get("dominant_content_nodes"):
+        return list(snapshot["dominant_content_nodes"])
+    return []
+
+
 def follow_traversal(
     root,
     session_id: str,
@@ -672,13 +929,15 @@ def _neighbors_for_mode(
         return expanded
     if mode == "structural":
         return list(adjacency.get("structural", {}).get(node_id, []))
+    if mode == "activation":
+        return list(adjacency.get("activation", {}).get(node_id, []))
     if mode == "temporal":
-        snapshot_path = session_dir(root, session_id) / "mtsf" / "activation_snapshot.json"
-        if not snapshot_path.exists():
-            return []
-        snapshot = read_json(snapshot_path, default={})
+        active_nodes = get_active_content_nodes(root, session_id)
+        if active_nodes:
+            return [item for item in active_nodes if item != node_id]
+        snapshot = read_json(activation_snapshot_path(root, session_id), default={})
         refs: List[str] = []
-        for entity_id in snapshot.get("dominant_entities", []):
+        for entity_id in snapshot.get("dominant_content_nodes", []) or snapshot.get("dominant_entities", []):
             refs.append(str(entity_id))
         for shape_id in snapshot.get("active_stencil_ids", []):
             refs.append(str(shape_id))

@@ -24,9 +24,11 @@ from conversation_os.mtsf_graph import (
     promote_session_graph_to_global,
     read_graph_events,
     rebuild_global_content_graph,
+    resolve_activation_bindings,
     substrate_ref_fields,
+    sync_activation_to_content_graph,
 )
-from conversation_os.storage import append_jsonl, read_json, session_events_path
+from conversation_os.storage import append_jsonl, read_json, session_events_path, write_json
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -314,6 +316,77 @@ class MtsfGraphTestCase(unittest.TestCase):
             "graph-test::entity-latent-manifold",
             semantic["graph-test::entity-context-field"],
         )
+
+    def _write_activation_snapshot(self) -> None:
+        snapshot_path = self.root / "memory" / "sessions" / "graph-test" / "mtsf" / "activation_snapshot.json"
+        write_json(
+            snapshot_path,
+            {
+                "id": "mtsf-snap-test",
+                "session_id": "graph-test",
+                "subgraph_id": "research",
+                "active_stencil_ids": ["stencil-latent-triangulation"],
+                "shape_activation_results": [
+                    {
+                        "entity_id": "entity-context-field",
+                        "dominant_shape_id": "shape-anchored-start",
+                        "secondary_shape_ids": [],
+                        "confidence": 0.72,
+                        "matched_conditions": ["cond-anchored-start"],
+                    },
+                    {
+                        "entity_id": "entity-thought-ocean",
+                        "dominant_shape_id": "shape-raw-manifold",
+                        "secondary_shape_ids": [],
+                        "confidence": 0.68,
+                        "matched_conditions": [],
+                    },
+                ],
+            },
+        )
+
+    def test_resolve_activation_bindings_matches_catalog_to_content_nodes(self) -> None:
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        self._write_activation_snapshot()
+        resolution = resolve_activation_bindings(self.root, "graph-test")
+        bindings = resolution["bindings"]
+        self.assertEqual(bindings["entity-context-field"]["content_node_id"], "entity-context-field")
+        self.assertEqual(bindings["entity-context-field"]["match_method"], "exact_id")
+        self.assertEqual(bindings["entity-thought-ocean"]["content_node_id"], "entity-thought-ocean")
+        self.assertEqual(bindings["entity-thought-ocean"]["match_method"], "exact_id")
+
+    def test_sync_activation_writes_overlay_and_activation_adjacency(self) -> None:
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        self._write_activation_snapshot()
+        result = sync_activation_to_content_graph(self.root, "graph-test")
+        self.assertTrue(result["synced"])
+        graph = load_content_graph(self.root, "graph-test")
+        overlay = graph["overlays"]["activation"]
+        self.assertIn("entity-context-field", overlay["bindings"])
+        self.assertIn("entity-context-field", overlay["dominant_content_nodes"])
+        self.assertIn("entity-thought-ocean", graph["adjacency"]["activation"])
+        self.assertIn("entity-thought-ocean", graph["adjacency"]["activation"]["entity-context-field"])
+
+        snapshot = read_json(self.root / "memory" / "sessions" / "graph-test" / "mtsf" / "activation_snapshot.json")
+        self.assertEqual(snapshot["content_graph_bindings"]["entity-context-field"], "entity-context-field")
+
+        events = read_graph_events(self.root, kinds=["activation_synced"])
+        self.assertEqual(len(events), 1)
+
+    def test_follow_activation_traversal_uses_synced_adjacency(self) -> None:
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        self._write_activation_snapshot()
+        sync_activation_to_content_graph(self.root, "graph-test")
+        walk = follow_traversal(
+            self.root,
+            "graph-test",
+            start="entity-context-field",
+            mode="activation",
+            depth=1,
+        )
+        visited = set(walk["visited"])
+        self.assertIn("entity-context-field", visited)
+        self.assertIn("entity-thought-ocean", visited)
 
 
 if __name__ == "__main__":

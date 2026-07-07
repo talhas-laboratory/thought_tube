@@ -465,9 +465,6 @@ def materialize_session_mtsf_ingest(
         draft = deep_result["draft"]
         skill_refs = deep_result.get("artifact_refs", {})
         extraction_source = deep_result.get("source", "deep")
-        from .mtsf_graph import apply_substrate_refs_to_draft
-
-        apply_substrate_refs_to_draft(root, session_id, events, draft)
     else:
         draft = build_fast_extraction_draft(session_id=session_id, events=events, manifest=manifest)
         skill_refs = {}
@@ -476,7 +473,6 @@ def materialize_session_mtsf_ingest(
     from .mtsf_graph import apply_substrate_refs_to_draft
 
     apply_substrate_refs_to_draft(root, session_id, events, draft)
-
     result = materialize_extraction_draft(root, session_id, draft)
     artifact_refs = dict(result.get("artifact_refs", {}))
     artifact_refs.update(skill_refs)
@@ -493,4 +489,5 @@ def materialize_session_mtsf_ingest(
         "validation_ok": result.get("validation_ok"),
         "quarantine": result.get("quarantine"),
         "projection": result.get("projection"),
+        "activation_sync": result.get("activation_sync"),
     }
