@@ -758,14 +758,20 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_graph_materialize.add_argument("--session-id", required=True)
     mtsf_graph_follow = mtsf_sub.add_parser(
         "graph-follow",
-        help="Traverse session content graph (semantic, structural, provenance, temporal)",
+        help="Traverse session or global content graph",
     )
-    mtsf_graph_follow.add_argument("--session-id", required=True)
-    mtsf_graph_follow.add_argument("--start", required=True, help="Node id to start from")
+    mtsf_graph_follow.add_argument("--session-id", help="Session id (required for scope=session)")
+    mtsf_graph_follow.add_argument("--start", required=True, help="Node id or global id (session::node)")
+    mtsf_graph_follow.add_argument(
+        "--scope",
+        default="session",
+        choices=["session", "global"],
+        help="Traverse a single session graph or the merged global graph",
+    )
     mtsf_graph_follow.add_argument(
         "--mode",
         default="semantic",
-        choices=["semantic", "structural", "provenance", "temporal", "activation"],
+        choices=["semantic", "structural", "provenance", "temporal", "activation", "alias"],
     )
     mtsf_graph_follow.add_argument("--depth", type=int, default=1)
     mtsf_graph_sync_activation = mtsf_sub.add_parser(
@@ -775,10 +781,16 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_graph_sync_activation.add_argument("--session-id", required=True)
     mtsf_graph_expand = mtsf_sub.add_parser(
         "graph-expand",
-        help="Progressively hydrate a graph node (identity, configuration, evidence, substrate)",
+        help="Progressively hydrate a session or global graph node",
     )
-    mtsf_graph_expand.add_argument("--session-id", required=True)
-    mtsf_graph_expand.add_argument("--node-id", required=True)
+    mtsf_graph_expand.add_argument("--session-id", help="Session id (required for scope=session)")
+    mtsf_graph_expand.add_argument("--node-id", required=True, help="Node id or global id (session::node)")
+    mtsf_graph_expand.add_argument(
+        "--scope",
+        default="session",
+        choices=["session", "global"],
+        help="Expand from a session graph node or a global namespaced node",
+    )
     mtsf_graph_expand.add_argument(
         "--facets",
         default="identity,configuration,evidence",
@@ -1843,18 +1855,29 @@ def main(argv: list[str] | None = None) -> int:
         elif args.mtsf_command == "graph-follow":
             from .mtsf_graph import follow_traversal
 
+            if args.scope == "session" and not args.session_id:
+                raise ValueError("--session-id is required when --scope=session")
             result = follow_traversal(
                 root,
                 args.session_id,
                 start=args.start,
                 mode=args.mode,
                 depth=args.depth,
+                scope=args.scope,
             )
         elif args.mtsf_command == "graph-expand":
             from .mtsf_graph import expand_node
 
+            if args.scope == "session" and not args.session_id:
+                raise ValueError("--session-id is required when --scope=session")
             facets = [item.strip() for item in str(args.facets).split(",") if item.strip()]
-            result = expand_node(root, args.session_id, args.node_id, facets=facets)
+            result = expand_node(
+                root,
+                args.session_id,
+                args.node_id,
+                facets=facets,
+                scope=args.scope,
+            )
         elif args.mtsf_command == "graph-sync-activation":
             from .mtsf_graph import sync_activation_to_content_graph
 

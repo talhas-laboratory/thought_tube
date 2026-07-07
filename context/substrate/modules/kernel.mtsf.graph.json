@@ -20,7 +20,9 @@
     "apply_substrate_refs_to_draft",
     "resolve_activation_bindings",
     "sync_activation_to_content_graph",
-    "get_active_content_nodes"
+    "get_active_content_nodes",
+    "resolve_global_node_id",
+    "refresh_global_alias_adjacency"
   ],
   "contains": [
     "substrate indexing",

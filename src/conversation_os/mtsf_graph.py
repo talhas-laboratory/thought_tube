@@ -24,7 +24,8 @@ GRAPH_VERSION = "1.0.0"
 GLOBAL_GRAPH_VERSION = "1.0.0"
 SUBSTRATE_PREVIEW_LIMIT = 500
 
-TraversalMode = Literal["semantic", "structural", "provenance", "temporal", "activation"]
+TraversalMode = Literal["semantic", "structural", "provenance", "temporal", "activation", "alias"]
+GraphScope = Literal["session", "global"]
 ACTIVATION_CONFIDENCE_THRESHOLD = 0.35
 DetailFacet = Literal["identity", "configuration", "evidence", "substrate", "payload"]
 ExpandFacet = Literal["identity", "configuration", "evidence", "substrate", "payload", "all"]
@@ -63,6 +64,9 @@ PUBLIC_API = (
     "resolve_activation_bindings",
     "sync_activation_to_content_graph",
     "get_active_content_nodes",
+    "GraphScope",
+    "resolve_global_node_id",
+    "refresh_global_alias_adjacency",
     "follow_traversal",
     "expand_node",
 )
@@ -858,24 +862,85 @@ def get_active_content_nodes(root: Path, session_id: str) -> List[str]:
     return []
 
 
+def resolve_global_node_id(session_id: Optional[str], node_id: str) -> str:
+    if "::" in node_id:
+        return node_id
+    if not session_id:
+        raise ValueError("session_id is required when node_id is not a global id (session::node)")
+    return _global_node_id(session_id, node_id)
+
+
+def _parse_global_node_id(global_node_id: str) -> Tuple[str, str]:
+    if "::" not in global_node_id:
+        raise ValueError(f"not a global node id: {global_node_id}")
+    session_id, local_node_id = global_node_id.split("::", 1)
+    if not session_id or not local_node_id:
+        raise ValueError(f"not a global node id: {global_node_id}")
+    return session_id, local_node_id
+
+
+def refresh_global_alias_adjacency(graph: Dict[str, Any]) -> Dict[str, Any]:
+    nodes = graph.get("nodes", {})
+    by_name: Dict[str, List[str]] = {}
+    for node_id, node in nodes.items():
+        if str(node.get("kind", "")) != "entity":
+            continue
+        name = _normalize_entity_name(str(node.get("name", "")))
+        if not name:
+            continue
+        by_name.setdefault(name, []).append(str(node_id))
+
+    alias_adj: Dict[str, Set[str]] = {}
+    for node_ids in by_name.values():
+        if len(node_ids) < 2:
+            continue
+        sessions = {str(nodes[nid].get("source_session_id", "")) for nid in node_ids}
+        if len(sessions) < 2:
+            continue
+        for node_id in node_ids:
+            alias_adj.setdefault(node_id, set()).update(
+                other for other in node_ids if other != node_id
+            )
+
+    graph.setdefault("adjacency", {})["alias"] = {
+        node_id: sorted(neighbors) for node_id, neighbors in sorted(alias_adj.items())
+    }
+    return graph
+
+
+def _graph_nodes_only(graph: Dict[str, Any], neighbor_ids: Sequence[str]) -> List[str]:
+    nodes = graph.get("nodes", {})
+    return [str(neighbor) for neighbor in neighbor_ids if str(neighbor) in nodes]
+
+
 def follow_traversal(
     root,
-    session_id: str,
+    session_id: Optional[str] = None,
     *,
     start: str,
     mode: TraversalMode = "semantic",
     depth: int = 1,
+    scope: GraphScope = "session",
 ) -> Dict[str, Any]:
-    graph = load_content_graph(root, session_id)
-    if not graph:
-        raise FileNotFoundError(f"content graph not found for session {session_id}")
+    if scope == "global":
+        graph = load_global_content_graph(root)
+        if not graph.get("nodes"):
+            raise FileNotFoundError("global content graph not found or empty")
+        start_id = resolve_global_node_id(session_id, start)
+    else:
+        if not session_id:
+            raise ValueError("session_id is required when scope=session")
+        graph = load_content_graph(root, session_id)
+        if not graph:
+            raise FileNotFoundError(f"content graph not found for session {session_id}")
+        start_id = start
 
     nodes = graph.get("nodes", {})
-    if start not in nodes:
-        raise KeyError(f"unknown node: {start}")
+    if start_id not in nodes:
+        raise KeyError(f"unknown node: {start_id}")
 
     visited: Set[str] = set()
-    frontier: Set[str] = {start}
+    frontier: Set[str] = {start_id}
     edges: List[Dict[str, Any]] = []
     path_nodes: Dict[str, Dict[str, Any]] = {}
 
@@ -887,7 +952,14 @@ def follow_traversal(
                 continue
             visited.add(node_id)
             path_nodes[node_id] = nodes[node_id]
-            neighbors = _neighbors_for_mode(root, session_id, graph, node_id, mode)
+            neighbors = _neighbors_for_mode(
+                root,
+                session_id,
+                graph,
+                node_id,
+                mode,
+                scope=scope,
+            )
             for neighbor in neighbors:
                 edges.append({"from": node_id, "to": neighbor, "mode": mode})
                 if neighbor not in visited:
@@ -895,9 +967,10 @@ def follow_traversal(
         frontier = next_frontier
 
     return {
+        "scope": scope,
         "session_id": session_id,
         "mode": mode,
-        "start": start,
+        "start": start_id,
         "depth": depth,
         "nodes": path_nodes,
         "edges": edges,
@@ -907,17 +980,36 @@ def follow_traversal(
 
 def _neighbors_for_mode(
     root,
-    session_id: str,
+    session_id: Optional[str],
     graph: Dict[str, Any],
     node_id: str,
     mode: TraversalMode,
+    *,
+    scope: GraphScope = "session",
 ) -> List[str]:
     adjacency = graph.get("adjacency", {})
+    if scope == "global":
+        if mode == "alias":
+            return _graph_nodes_only(graph, adjacency.get("alias", {}).get(node_id, []))
+        if mode == "semantic":
+            return _graph_nodes_only(graph, adjacency.get("semantic", {}).get(node_id, []))
+        if mode == "structural":
+            return _graph_nodes_only(graph, adjacency.get("structural", {}).get(node_id, []))
+        if mode == "activation":
+            return _graph_nodes_only(graph, adjacency.get("activation", {}).get(node_id, []))
+        if mode == "provenance":
+            return _graph_nodes_only(graph, adjacency.get("provenance", {}).get(node_id, []))
+        if mode == "temporal":
+            return []
+
     if mode == "semantic":
         return list(adjacency.get("semantic", {}).get(node_id, []))
     if mode == "provenance":
+        if not session_id:
+            ref = graph.get("assertion_refs", {}).get(node_id, {})
+            session_id = str(ref.get("session_id", ""))
         refs = adjacency.get("provenance", {}).get(node_id, [])
-        store = load_assertion_store(root, session_id)
+        store = load_assertion_store(root, session_id) if session_id else {}
         expanded: List[str] = []
         bundles = store.get("evidence_bundles", {})
         assertions = _assertion_by_id(store)
@@ -931,7 +1023,11 @@ def _neighbors_for_mode(
         return list(adjacency.get("structural", {}).get(node_id, []))
     if mode == "activation":
         return list(adjacency.get("activation", {}).get(node_id, []))
+    if mode == "alias":
+        return list(adjacency.get("alias", {}).get(node_id, []))
     if mode == "temporal":
+        if not session_id:
+            return []
         active_nodes = get_active_content_nodes(root, session_id)
         if active_nodes:
             return [item for item in active_nodes if item != node_id]
@@ -945,40 +1041,43 @@ def _neighbors_for_mode(
     return []
 
 
-def expand_node(
-    root,
+def _expand_node_from_store(
+    root: Path,
     session_id: str,
-    node_id: str,
+    local_node_id: str,
+    node: Dict[str, Any],
     *,
     facets: Optional[Sequence[ExpandFacet]] = None,
+    scope: GraphScope = "session",
+    global_node_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     store = load_assertion_store(root, session_id)
-    graph = load_content_graph(root, session_id)
-    if not store or not graph:
-        raise FileNotFoundError(f"graph artifacts not found for session {session_id}")
-
-    node = graph.get("nodes", {}).get(node_id)
-    if not node:
-        raise KeyError(f"unknown node: {node_id}")
+    if not store:
+        raise FileNotFoundError(f"assertion store not found for session {session_id}")
 
     selected = set(facets or ["identity"])
     if "all" in selected:
         selected = {"identity", "configuration", "evidence", "substrate", "payload"}
 
-    assertion = _assertion_by_subject(store).get(node_id) or _assertion_by_id(store).get(
+    assertion = _assertion_by_subject(store).get(local_node_id) or _assertion_by_id(store).get(
         str(node.get("assertion_id", ""))
     )
     if not assertion:
-        raise KeyError(f"assertion not found for node: {node_id}")
+        raise KeyError(f"assertion not found for node: {local_node_id}")
 
     bundle = store.get("evidence_bundles", {}).get(str(assertion["evidence_bundle_id"]), {})
     result: Dict[str, Any] = {
+        "scope": scope,
         "session_id": session_id,
-        "node_id": node_id,
+        "node_id": global_node_id or local_node_id,
+        "local_node_id": local_node_id,
         "kind": node.get("kind"),
         "detail_level": node.get("detail_level"),
         "facet_completeness": node.get("facet_completeness", {}),
     }
+    if global_node_id:
+        result["global_node_id"] = global_node_id
+        result["source_session_id"] = session_id
 
     if "identity" in selected:
         result["identity"] = _node_summary(assertion)
@@ -1011,6 +1110,55 @@ def expand_node(
         }
 
     return result
+
+
+def expand_node(
+    root,
+    session_id: Optional[str] = None,
+    node_id: str = "",
+    *,
+    facets: Optional[Sequence[ExpandFacet]] = None,
+    scope: GraphScope = "session",
+) -> Dict[str, Any]:
+    if scope == "global":
+        graph = load_global_content_graph(root)
+        if not graph.get("nodes"):
+            raise FileNotFoundError("global content graph not found or empty")
+        global_id = resolve_global_node_id(session_id, node_id)
+        node = graph.get("nodes", {}).get(global_id)
+        if not node:
+            raise KeyError(f"unknown global node: {global_id}")
+        ref = graph.get("assertion_refs", {}).get(global_id, {})
+        local_session = str(ref.get("session_id", node.get("source_session_id", "")))
+        local_node = str(ref.get("local_node_id", node.get("local_id", "")))
+        if not local_session or not local_node:
+            raise KeyError(f"assertion ref not found for global node: {global_id}")
+        return _expand_node_from_store(
+            root,
+            local_session,
+            local_node,
+            node,
+            facets=facets,
+            scope="global",
+            global_node_id=global_id,
+        )
+
+    if not session_id:
+        raise ValueError("session_id is required when scope=session")
+    graph = load_content_graph(root, session_id)
+    if not graph:
+        raise FileNotFoundError(f"graph artifacts not found for session {session_id}")
+    node = graph.get("nodes", {}).get(node_id)
+    if not node:
+        raise KeyError(f"unknown node: {node_id}")
+    return _expand_node_from_store(
+        root,
+        session_id,
+        node_id,
+        node,
+        facets=facets,
+        scope="session",
+    )
 
 
 def default_graph_events_path(root: Path) -> Path:
@@ -1063,7 +1211,7 @@ def empty_global_content_graph() -> Dict[str, Any]:
         "version": GLOBAL_GRAPH_VERSION,
         "scope": "global",
         "nodes": {},
-        "adjacency": {"semantic": {}, "provenance": {}, "structural": {}},
+        "adjacency": {"semantic": {}, "provenance": {}, "structural": {}, "activation": {}, "alias": {}},
         "assertion_refs": {},
         "sessions_contributed": {},
     }
@@ -1079,7 +1227,7 @@ def load_global_content_graph(root: Path) -> Dict[str, Any]:
     payload.setdefault("version", GLOBAL_GRAPH_VERSION)
     payload.setdefault("scope", "global")
     payload.setdefault("nodes", {})
-    payload.setdefault("adjacency", {"semantic": {}, "provenance": {}, "structural": {}})
+    payload.setdefault("adjacency", {"semantic": {}, "provenance": {}, "structural": {}, "activation": {}, "alias": {}})
     payload.setdefault("assertion_refs", {})
     payload.setdefault("sessions_contributed", {})
     return payload
@@ -1127,7 +1275,7 @@ def merge_session_graph_into_global(
 ) -> Dict[str, Any]:
     merged = dict(global_graph)
     merged.setdefault("nodes", {})
-    merged.setdefault("adjacency", {"semantic": {}, "provenance": {}, "structural": {}})
+    merged.setdefault("adjacency", {"semantic": {}, "provenance": {}, "structural": {}, "activation": {}, "alias": {}})
     merged.setdefault("assertion_refs", {})
     merged.setdefault("sessions_contributed", {})
 
@@ -1149,7 +1297,7 @@ def merge_session_graph_into_global(
             "evidence_bundle_id": str(node.get("evidence_bundle_id", "")),
         }
 
-    for adjacency_kind in ("semantic", "provenance", "structural"):
+    for adjacency_kind in ("semantic", "provenance", "structural", "activation"):
         session_adj = session_graph.get("adjacency", {}).get(adjacency_kind, {})
         global_adj = merged["adjacency"].setdefault(adjacency_kind, {})
         for local_id, neighbors in session_adj.items():
@@ -1176,7 +1324,7 @@ def merge_session_graph_into_global(
     merged["updated_at"] = utc_now()
     merged["version"] = GLOBAL_GRAPH_VERSION
     merged["scope"] = "global"
-    return merged
+    return refresh_global_alias_adjacency(merged)
 
 
 def _session_graph_promotion_ready(root: Path, session_id: str) -> tuple[bool, str]:

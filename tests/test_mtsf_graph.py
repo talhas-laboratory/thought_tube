@@ -24,7 +24,9 @@ from conversation_os.mtsf_graph import (
     promote_session_graph_to_global,
     read_graph_events,
     rebuild_global_content_graph,
+    refresh_global_alias_adjacency,
     resolve_activation_bindings,
+    resolve_global_node_id,
     substrate_ref_fields,
     sync_activation_to_content_graph,
 )
@@ -387,6 +389,85 @@ class MtsfGraphTestCase(unittest.TestCase):
         visited = set(walk["visited"])
         self.assertIn("entity-context-field", visited)
         self.assertIn("entity-thought-ocean", visited)
+
+    def _ensure_session_events(self, session_id: str) -> None:
+        session_path = self.root / "memory" / "sessions" / session_id
+        session_path.mkdir(parents=True, exist_ok=True)
+        if not (session_path / "manifest.json").exists():
+            (session_path / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "session_id": session_id,
+                        "title": f"Graph test {session_id}",
+                        "started_at": "2026-07-06T15:00:00+00:00",
+                        "ended_at": None,
+                        "participants": ["user", "assistant"],
+                        "source_type": "imported_transcript",
+                        "status": "open",
+                        "artifact_refs": {},
+                        "domains": ["research"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+        events_path = session_events_path(self.root, session_id)
+        if not events_path.exists():
+            for event in SAMPLE_EVENTS:
+                append_jsonl(
+                    events_path,
+                    {**event, "session_id": session_id, "timestamp": "2026-07-06T15:00:00+00:00"},
+                )
+
+    def test_global_alias_links_same_entity_across_sessions(self) -> None:
+        draft_b = dict(SAMPLE_DRAFT)
+        draft_b["session_id"] = "graph-test-b"
+        draft_b["draft_id"] = "mtsf-draft-graph-test-b"
+        self._ensure_session_events("graph-test-b")
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        materialize_session_graph(self.root, "graph-test-b", draft_b)
+        rebuild_global_content_graph(self.root, session_ids=["graph-test", "graph-test-b"])
+
+        node_a = resolve_global_node_id("graph-test", "entity-context-field")
+        node_b = resolve_global_node_id("graph-test-b", "entity-context-field")
+        global_graph = load_global_content_graph(self.root)
+        self.assertIn(node_b, global_graph["adjacency"]["alias"][node_a])
+
+    def test_global_follow_alias_crosses_sessions(self) -> None:
+        draft_b = dict(SAMPLE_DRAFT)
+        draft_b["session_id"] = "graph-test-b"
+        draft_b["draft_id"] = "mtsf-draft-graph-test-b"
+        self._ensure_session_events("graph-test-b")
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        materialize_session_graph(self.root, "graph-test-b", draft_b)
+        rebuild_global_content_graph(self.root, session_ids=["graph-test", "graph-test-b"])
+
+        node_a = resolve_global_node_id("graph-test", "entity-context-field")
+        walk = follow_traversal(
+            self.root,
+            start=node_a,
+            mode="alias",
+            depth=1,
+            scope="global",
+        )
+        node_b = resolve_global_node_id("graph-test-b", "entity-context-field")
+        self.assertEqual(walk["scope"], "global")
+        self.assertIn(node_b, walk["visited"])
+
+    def test_global_expand_hydrates_from_source_session(self) -> None:
+        materialize_session_graph(self.root, "graph-test", SAMPLE_DRAFT)
+        rebuild_global_content_graph(self.root, session_ids=["graph-test"])
+        global_id = resolve_global_node_id("graph-test", "entity-latent-manifold")
+        expanded = expand_node(
+            self.root,
+            node_id=global_id,
+            facets=["identity", "evidence"],
+            scope="global",
+        )
+        self.assertEqual(expanded["scope"], "global")
+        self.assertEqual(expanded["global_node_id"], global_id)
+        self.assertEqual(expanded["source_session_id"], "graph-test")
+        self.assertEqual(expanded["identity"]["name"], "latent manifold")
+        self.assertIn("Agents move through a latent manifold", expanded["evidence"]["spans"][0])
 
 
 if __name__ == "__main__":
