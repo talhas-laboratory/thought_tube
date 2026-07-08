@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 from .mtsf_agent_extractor import AGENT_ENTITY_HINTS, AGENT_RELATION_TEMPLATES
@@ -201,6 +202,20 @@ OPEN_ENTITY_HINTS: Tuple[Dict[str, Any], ...] = (
         "name": "memory materialization",
         "type": "composite",
         "stable_identity": ["inner memory becoming physically present in space"],
+    },
+    {
+        "keywords": ("empty hallway", "hallway", "endless hallway", "corridor"),
+        "proposed_id": "entity-hallway",
+        "name": "hallway",
+        "type": "composite",
+        "stable_identity": ["liminal corridor with institutional stillness"],
+    },
+    {
+        "keywords": ("fluorescent light", "cold fluorescent", "fluorescent", "harsh light"),
+        "proposed_id": "entity-fluorescent-light",
+        "name": "fluorescent light",
+        "type": "composite",
+        "stable_identity": ["cold overhead illumination that flattens space"],
     },
 )
 
@@ -512,6 +527,18 @@ def _detect_open_candidate_shapes(
                 "evidence": {"spans": [_evidence_span(text, ("subconscious", "architecture", "maze"))]},
             }
         )
+    if "hallway" in lowered or "fluorescent" in lowered:
+        shapes.append(
+            {
+                "proposed_id": "cand-hallway-uncanny",
+                "possible_names": ["hallway uncanny", "peaceful surveillance corridor"],
+                "relational_configuration": "institutional calm + ambient light + watched stillness",
+                "entity_refs": entity_refs,
+                "quality_refs": quality_refs,
+                "confidence": 0.73,
+                "evidence": {"spans": [_evidence_span(text, ("hallway", "fluorescent", "watched", "peaceful"))]},
+            }
+        )
     return shapes
 
 
@@ -533,7 +560,17 @@ def build_open_deep_extraction_draft(
     entities = _merge_entities(seed_entities, phrase_entities, metaphor_entities)
     qualities = _detect_open_qualities(text, entities, signals)
     relations = _detect_open_relations(text, entities, qualities)
-    candidate_shapes = _detect_open_candidate_shapes(text, entities, qualities)
+    keyword_shapes = _detect_open_candidate_shapes(text, entities, qualities)
+    from .mtsf_embeddings import build_semantic_cluster_candidate_shapes
+
+    candidate_shapes = build_semantic_cluster_candidate_shapes(
+        root=Path("."),
+        text=text,
+        entities=entities,
+        relations=relations,
+        qualities=qualities,
+        existing_shapes=keyword_shapes,
+    )
 
     from .mtsf_extraction_skill import _build_quality_roles
 

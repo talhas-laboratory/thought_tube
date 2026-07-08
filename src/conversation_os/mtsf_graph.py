@@ -67,6 +67,7 @@ PUBLIC_API = (
     "GraphScope",
     "resolve_global_node_id",
     "refresh_global_alias_adjacency",
+    "refresh_semantic_adjacency",
     "follow_traversal",
     "expand_node",
 )
@@ -1294,6 +1295,7 @@ def merge_session_graph_into_global(
     session_graph: Dict[str, Any],
     store: Dict[str, Any],
     *,
+    root: Path,
     session_id: str,
     promotion_mode: str = "auto",
 ) -> Dict[str, Any]:
@@ -1348,7 +1350,16 @@ def merge_session_graph_into_global(
     merged["updated_at"] = utc_now()
     merged["version"] = GLOBAL_GRAPH_VERSION
     merged["scope"] = "global"
-    return refresh_global_alias_adjacency(merged)
+    merged = refresh_global_alias_adjacency(merged)
+    from .mtsf_embeddings import refresh_semantic_adjacency as _refresh_semantic_adjacency
+
+    return _refresh_semantic_adjacency(merged, root)
+
+
+def refresh_semantic_adjacency(graph: Dict[str, Any], root: Path) -> Dict[str, Any]:
+    from .mtsf_embeddings import refresh_semantic_adjacency as _refresh_semantic_adjacency
+
+    return _refresh_semantic_adjacency(graph, root)
 
 
 def _session_graph_promotion_ready(root: Path, session_id: str) -> tuple[bool, str]:
@@ -1407,6 +1418,7 @@ def promote_session_graph_to_global(
         global_graph,
         session_graph,
         store,
+        root=root,
         session_id=session_id,
         promotion_mode=promotion_mode,
     )
@@ -1463,6 +1475,7 @@ def rebuild_global_content_graph(
             global_graph,
             session_graph,
             store,
+            root=root,
             session_id=session_id,
             promotion_mode="rebuild",
         )

@@ -110,6 +110,20 @@ def _check_artifact_field(root: Path, check: Dict[str, Any]) -> List[str]:
 
 def _check_graph_adjacency(root: Path, check: Dict[str, Any]) -> List[str]:
     failures: List[str] = []
+    session_ids: List[str] = []
+    for item in check.get("sessions", []):
+        session_id = str(item["session_id"])
+        session_ids.append(session_id)
+        _ingest_session(
+            root,
+            session_id=session_id,
+            events=item.get("events", []),
+            mtsf_mode=str(check.get("mtsf_mode", "deep")),
+            llm_preference=str(check.get("llm_preference", "auto")),
+        )
+    if check.get("rebuild_global"):
+        rebuild_global_content_graph(root, session_ids=session_ids or None)
+
     graph = load_global_content_graph(root)
     kind = str(check.get("adjacency_kind", "semantic"))
     adjacency = graph.get("adjacency", {}).get(kind, {})

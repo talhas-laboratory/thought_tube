@@ -7,6 +7,20 @@
     "type": "graph_adjacency",
     "adjacency_kind": "semantic",
     "min_edges": 1,
-    "require_edge_metadata": ["cosine", "source"]
+    "require_edge_metadata": ["cosine", "source"],
+    "sessions": [
+      {
+        "session_id": "gap-g02-semantic-session",
+        "events": [
+          {
+            "actor": "user",
+            "content": "Architecture behaves like a subconscious maze in a liminal corridor with effective topology."
+          }
+        ]
+      }
+    ],
+    "mtsf_mode": "deep",
+    "llm_preference": "auto",
+    "rebuild_global": true
   }
 }

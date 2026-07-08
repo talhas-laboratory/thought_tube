@@ -474,8 +474,12 @@ def materialize_session_mtsf_ingest(
 
     apply_substrate_refs_to_draft(root, session_id, events, draft)
     result = materialize_extraction_draft(root, session_id, draft)
+    from .mtsf_embeddings import materialize_entity_embeddings
+
+    embedding_result = materialize_entity_embeddings(root, session_id, draft)
     artifact_refs = dict(result.get("artifact_refs", {}))
     artifact_refs.update(skill_refs)
+    artifact_refs.update(embedding_result.get("artifact_refs", {}))
     return {
         "session_id": session_id,
         "mtsf_ingest": "completed",

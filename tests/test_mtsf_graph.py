@@ -309,6 +309,7 @@ class MtsfGraphTestCase(unittest.TestCase):
             load_global_content_graph(self.root),
             session_graph,
             store,
+            root=self.root,
             session_id="graph-test",
             promotion_mode="test",
         )
