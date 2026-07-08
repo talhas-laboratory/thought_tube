@@ -59,7 +59,12 @@ def main() -> int:
     parser.add_argument("--domains", default="research,cognition,brainwalk")
     parser.add_argument("--tags", default="brainwalk,import-batch")
     parser.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
-    parser.add_argument("--mtsf-llm", default="off", choices=["auto", "agent", "off", "force"])
+    parser.add_argument(
+        "--mtsf-llm",
+        default=None,
+        choices=["auto", "agent", "off", "force"],
+        help="Deep extraction backend (default: auto when --mtsf-mode deep, else off)",
+    )
     parser.add_argument(
         "--reextract",
         action="store_true",
@@ -76,6 +81,8 @@ def main() -> int:
         default=str(ROOT / "memory" / "mtsf" / "batch_import_manifest.json"),
     )
     args = parser.parse_args()
+    if args.mtsf_llm is None:
+        args.mtsf_llm = "auto" if args.mtsf_mode == "deep" else "off"
 
     candidates: list[Path] = []
     if args.paths:

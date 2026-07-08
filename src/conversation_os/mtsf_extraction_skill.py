@@ -400,7 +400,7 @@ def resolve_deep_extraction_draft(
     events: Sequence[Dict[str, Any]],
     manifest: Dict[str, Any],
     raw_content: Optional[str] = None,
-    llm_preference: str = "agent",
+    llm_preference: str = "auto",
 ) -> Dict[str, Any]:
     from .mtsf_ingest import _conversation_text
 
@@ -429,7 +429,7 @@ def resolve_deep_extraction_draft(
                 raise
             fallback_reason = str(exc)
 
-    if llm_preference in {"auto", "agent"}:
+    if llm_preference == "agent":
         from .mtsf_agent_extractor import build_agent_skill_extraction_draft
 
         draft = build_agent_skill_extraction_draft(
@@ -441,6 +441,22 @@ def resolve_deep_extraction_draft(
         return {
             "draft": draft,
             "source": "agent_skill",
+            "fallback_reason": fallback_reason,
+            "artifact_refs": skill_refs,
+        }
+
+    if llm_preference == "auto":
+        from .mtsf_open_extractor import build_open_deep_extraction_draft
+
+        draft = build_open_deep_extraction_draft(
+            session_id=session_id,
+            events=events,
+            manifest=manifest,
+            raw_content=text,
+        )
+        return {
+            "draft": draft,
+            "source": "open_evidence",
             "fallback_reason": fallback_reason,
             "artifact_refs": skill_refs,
         }

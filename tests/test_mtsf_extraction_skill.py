@@ -7,6 +7,7 @@ from pathlib import Path
 
 from conversation_os.cli import init_repo, session_close, session_start
 from conversation_os.mtsf_agent_extractor import build_agent_skill_extraction_draft
+from conversation_os.mtsf_open_extractor import build_open_deep_extraction_draft
 from conversation_os.mtsf_extraction_skill import (
     build_deep_extraction_draft_heuristic,
     build_skill_input_envelope,
@@ -46,6 +47,13 @@ dynamic state-space entity-relationship-state model. The synthetic subconscious 
 activation and background cross-pollination across the library. The symmetry engine finds structural
 isomorphs via symmetric match and antisymmetric shadow via opposite direction and via negativa.
 An aha moment is a topological bridge. The system hardens the idea through negative inference.
+"""
+
+BACKROOMS_LIKE_TEXT = """
+I'll treat that sort as liminal spatial psychological horror where architecture behaves like a subconscious maze.
+Closest to Backrooms / liminal-space horror. Vivarium has a wrong familiar no-exit architecture feeling.
+Stalker leads men into the Zone, a metaphysical space that tests inner desire. Solaris makes memory materialize.
+This stack is for Thought Tube.
 """
 
 
@@ -100,19 +108,48 @@ class MtsfExtractionSkillTestCase(unittest.TestCase):
         self.assertIn("mtsf_skill_input", result["artifact_refs"])
         self.assertGreaterEqual(len(result["draft"]["relations"]), 1)
 
-    def test_resolve_deep_extraction_uses_agent_skill_by_default(self) -> None:
+    def test_resolve_deep_extraction_defaults_to_open_evidence_without_llm(self) -> None:
+        events = [{"actor": "assistant", "content": BACKROOMS_LIKE_TEXT}]
+        result = resolve_deep_extraction_draft(
+            self.root,
+            session_id="sess-open-default",
+            events=events,
+            manifest=MANIFEST,
+        )
+        self.assertEqual(result["source"], "open_evidence")
+        self.assertEqual(result["draft"]["provenance"]["model_id"], "mtsf_ingest.open_evidence")
+        entity_ids = {row["proposed_id"] for row in result["draft"]["entities"]}
+        self.assertIn("entity-liminal-space", entity_ids)
+        self.assertIn("entity-thought-tube", entity_ids)
+
+    def test_resolve_deep_extraction_agent_still_uses_pilot_replay(self) -> None:
         events = [{"actor": "user", "content": PILOT_LIKE_TEXT}]
         result = resolve_deep_extraction_draft(
             self.root,
             session_id="sess-agent",
             events=events,
             manifest=MANIFEST,
+            llm_preference="agent",
         )
         self.assertEqual(result["source"], "agent_skill")
         self.assertEqual(result["draft"]["provenance"]["model_id"], "mtsf_ingest.agent_skill")
         self.assertGreaterEqual(len(result["draft"]["entities"]), 8)
         self.assertGreaterEqual(len(result["draft"]["relations"]), 5)
         self.assertGreaterEqual(len(result["draft"]["stencil_drafts"]), 3)
+
+    def test_open_extractor_detects_backrooms_register(self) -> None:
+        draft = build_open_deep_extraction_draft(
+            session_id="backrooms-open",
+            events=[{"actor": "assistant", "content": BACKROOMS_LIKE_TEXT}],
+            manifest=MANIFEST,
+            raw_content=BACKROOMS_LIKE_TEXT,
+        )
+        entity_ids = {row["proposed_id"] for row in draft["entities"]}
+        self.assertIn("entity-liminal-space", entity_ids)
+        self.assertIn("entity-subconscious-architecture", entity_ids)
+        self.assertIn("entity-metaphysical-zone", entity_ids)
+        self.assertIn("entity-thought-tube", entity_ids)
+        self.assertGreaterEqual(len(draft["candidate_shapes"]), 1)
 
     def test_agent_skill_extractor_detects_pilot_entities(self) -> None:
         draft = build_agent_skill_extraction_draft(

@@ -2,7 +2,7 @@
 
 `llm_preference` resolution order:
 
-- `agent` — built-in agent extractor (default)
-- `auto` — OpenClaw then agent fallback
+- `auto` — OpenClaw semantic extraction, then open evidence extractor (default)
+- `agent` — Pilot 002 phrase-library replay for CI (`mtsf_ingest.agent_skill`)
 - `off` — thin heuristic only
 - `force` — OpenClaw only

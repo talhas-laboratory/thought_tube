@@ -345,7 +345,7 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
             root,
             args.session_id,
             mtsf_mode,
-            llm_preference=getattr(args, "mtsf_llm", "agent"),
+            llm_preference=getattr(args, "mtsf_llm", "auto"),
         )
     else:
         mtsf_refs = {}
@@ -456,7 +456,7 @@ def session_import(root: Path, args: argparse.Namespace) -> dict:
             request=args.request or args.title,
             task_type=args.task_type or "import_review",
             mtsf_mode=getattr(args, "mtsf_mode", "fast"),
-            mtsf_llm=getattr(args, "mtsf_llm", "agent"),
+            mtsf_llm=getattr(args, "mtsf_llm", "auto"),
         ),
     )
 
@@ -589,9 +589,9 @@ def build_parser() -> argparse.ArgumentParser:
     close.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
     close.add_argument(
         "--mtsf-llm",
-        default="agent",
+        default="auto",
         choices=["auto", "agent", "off", "force"],
-        help="Deep extraction backend: agent (default), auto (OpenClaw then agent), off (heuristic), force (OpenClaw only)",
+        help="Deep extraction backend: auto (default, OpenClaw then open evidence), agent (Pilot 002 phrase replay), off (thin heuristic), force (OpenClaw only)",
     )
 
     importer = session_sub.add_parser("import")
@@ -608,9 +608,9 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
     importer.add_argument(
         "--mtsf-llm",
-        default="agent",
+        default="auto",
         choices=["auto", "agent", "off", "force"],
-        help="Deep extraction backend: agent (default), auto (OpenClaw then agent), off (heuristic), force (OpenClaw only)",
+        help="Deep extraction backend: auto (default, OpenClaw then open evidence), agent (Pilot 002 phrase replay), off (thin heuristic), force (OpenClaw only)",
     )
 
     task_pack = sub.add_parser("task-pack")

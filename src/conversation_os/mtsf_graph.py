@@ -890,10 +890,34 @@ def refresh_global_alias_adjacency(graph: Dict[str, Any]) -> Dict[str, Any]:
             continue
         by_name.setdefault(name, []).append(str(node_id))
 
+    concept_bridges = (
+        ("context field", "subconscious architecture"),
+        ("latent manifold", "metaphysical zone"),
+        ("effective topology", "liminal space"),
+        ("synthetic subconscious", "subconscious architecture"),
+        ("thought ocean", "thought tube"),
+    )
+    bridge_groups: List[Set[str]] = []
+    for left, right in concept_bridges:
+        left_name = _normalize_entity_name(left)
+        right_name = _normalize_entity_name(right)
+        node_ids = list(by_name.get(left_name, [])) + list(by_name.get(right_name, []))
+        if len(node_ids) >= 2:
+            bridge_groups.append(set(node_ids))
+
     alias_adj: Dict[str, Set[str]] = {}
     for node_ids in by_name.values():
         if len(node_ids) < 2:
             continue
+        sessions = {str(nodes[nid].get("source_session_id", "")) for nid in node_ids}
+        if len(sessions) < 2:
+            continue
+        for node_id in node_ids:
+            alias_adj.setdefault(node_id, set()).update(
+                other for other in node_ids if other != node_id
+            )
+
+    for node_ids in bridge_groups:
         sessions = {str(nodes[nid].get("source_session_id", "")) for nid in node_ids}
         if len(sessions) < 2:
             continue
