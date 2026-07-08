@@ -1,0 +1,23 @@
+{
+  "gap_id": "G05",
+  "title": "Short sensory input produces grounded entities",
+  "phase": "P0",
+  "required": true,
+  "check": {
+    "type": "pipeline",
+    "session_id": "gap-g05-hallway",
+    "llm_preference": "auto",
+    "events": [
+      {
+        "actor": "user",
+        "content": "An empty hallway with cold fluorescent light feels peaceful but also watched."
+      }
+    ],
+    "expectations": {
+      "validation_must_pass": true,
+      "min_entities": 2,
+      "required_entity_name_fragments": ["hallway"],
+      "min_relations": 1
+    }
+  }
+}

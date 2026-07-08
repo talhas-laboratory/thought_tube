@@ -1,0 +1,11 @@
+{
+  "gap_id": "G10",
+  "title": "Live extraction eval in suite",
+  "phase": "P2",
+  "required": true,
+  "check": {
+    "type": "suite_live_replay",
+    "suite": "semantic-shape-extraction",
+    "min_live_fixtures": 1
+  }
+}

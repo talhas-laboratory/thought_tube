@@ -1,0 +1,36 @@
+{
+  "gap_id": "G06",
+  "title": "Hallway vs grocery discrimination",
+  "phase": "P1",
+  "required": true,
+  "check": {
+    "type": "pair_discrimination",
+    "llm_preference": "auto",
+    "pair": [
+      {
+        "label": "hallway",
+        "session_id": "gap-g06-hallway",
+        "events": [
+          {
+            "actor": "user",
+            "content": "An empty hallway with cold fluorescent light feels peaceful but also watched."
+          }
+        ]
+      },
+      {
+        "label": "grocery",
+        "session_id": "gap-g06-grocery",
+        "events": [
+          {
+            "actor": "user",
+            "content": "Buy milk, eggs, bread, and coffee. Pick up dry cleaning at 5pm."
+          }
+        ]
+      }
+    ],
+    "expectations": {
+      "max_entity_overlap_ratio": 0.5,
+      "min_entities_on_at_least_one_side": 2
+    }
+  }
+}

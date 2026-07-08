@@ -1,0 +1,14 @@
+{
+  "gap_id": "G13",
+  "title": "Shape downstream consumer",
+  "phase": "P2",
+  "required": true,
+  "check": {
+    "type": "downstream_hook",
+    "hooks": [
+      "graph_follow_intent",
+      "task_pack_shape_hint"
+    ],
+    "min_hooks_implemented": 1
+  }
+}

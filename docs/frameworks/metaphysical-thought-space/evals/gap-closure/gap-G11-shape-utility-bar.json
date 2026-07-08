@@ -1,0 +1,13 @@
+{
+  "gap_id": "G11",
+  "title": "Shape utility pass rate bar",
+  "phase": "P2",
+  "required": true,
+  "check": {
+    "type": "suite_pass_rate",
+    "suite": "shape-utility",
+    "llm_preference": "auto",
+    "min_passed": 5,
+    "min_pass_rate": 0.83
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "gap_id": "G08",
+  "title": "Fuzzy stencil merge",
+  "phase": "P1",
+  "required": true,
+  "check": {
+    "type": "stencil_merge",
+    "draft_path": "docs/frameworks/metaphysical-thought-space/evals/semantic-shape-extraction/drafts/hallway-uncanny.reference.json",
+    "min_structural_score": 0.8,
+    "require_matched_seed_id": true
+  }
+}

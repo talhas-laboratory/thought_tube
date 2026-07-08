@@ -30,6 +30,7 @@ from .mtsf_extraction import (
     validate_extraction_draft,
 )
 from .mtsf_shape_eval import run_shape_utility_evals
+from .mtsf_gap_eval import run_gap_closure_evals
 from .mtsf_ingest import materialize_session_mtsf_ingest
 from .mtsf_index import (
     find_wormhole_links,
@@ -710,6 +711,21 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         choices=["auto", "agent", "off", "force"],
         help="Deep extraction backend for utility evals (default auto)",
+    )
+    mtsf_gap_closure = mtsf_sub.add_parser(
+        "run-gap-closure-evals",
+        help="Run MTSF gap-closure acceptance evals (see GAP_PLAN.md)",
+    )
+    mtsf_gap_closure.add_argument(
+        "--gap",
+        default="",
+        help="Comma-separated gap IDs to run (default: all)",
+    )
+    mtsf_gap_closure.add_argument(
+        "--llm",
+        default="auto",
+        choices=["auto", "agent", "off", "force"],
+        help="Deep extraction backend for gap evals (default auto)",
     )
     mtsf_project_extraction = mtsf_sub.add_parser(
         "project-extraction",
@@ -1802,6 +1818,13 @@ def main(argv: list[str] | None = None) -> int:
             result = run_extraction_evals(root)
         elif args.mtsf_command == "run-shape-utility-evals":
             result = run_shape_utility_evals(root, llm_preference=args.llm)
+        elif args.mtsf_command == "run-gap-closure-evals":
+            gap_ids = [part.strip() for part in str(args.gap).split(",") if part.strip()]
+            result = run_gap_closure_evals(
+                root,
+                gap_ids=gap_ids or None,
+                llm_preference=args.llm,
+            )
         elif args.mtsf_command == "project-extraction":
             draft = read_json(Path(args.draft_path))
             result = materialize_stencil_projection(

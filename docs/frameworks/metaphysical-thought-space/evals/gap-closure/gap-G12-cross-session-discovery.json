@@ -1,0 +1,35 @@
+{
+  "gap_id": "G12",
+  "title": "Cross-session shape discovery",
+  "phase": "P2",
+  "required": true,
+  "check": {
+    "type": "cross_session",
+    "sessions": [
+      {
+        "session_id": "gap-g12-liminal-a",
+        "events": [
+          {
+            "actor": "user",
+            "content": "Wrong-familiar corridor with fluorescent hum and no exit."
+          }
+        ]
+      },
+      {
+        "session_id": "gap-g12-liminal-b",
+        "events": [
+          {
+            "actor": "user",
+            "content": "Synthetic suburb loops forever; the architecture feels liminal and trapped."
+          }
+        ]
+      }
+    ],
+    "mtsf_mode": "deep",
+    "llm_preference": "auto",
+    "expectations": {
+      "shared_candidate_shape_fragment": "liminal",
+      "min_cross_session_shape_refs": 1
+    }
+  }
+}

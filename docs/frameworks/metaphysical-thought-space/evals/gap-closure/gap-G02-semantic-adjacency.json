@@ -1,0 +1,12 @@
+{
+  "gap_id": "G02",
+  "title": "Semantic adjacency on global graph",
+  "phase": "P0",
+  "required": true,
+  "check": {
+    "type": "graph_adjacency",
+    "adjacency_kind": "semantic",
+    "min_edges": 1,
+    "require_edge_metadata": ["cosine", "source"]
+  }
+}

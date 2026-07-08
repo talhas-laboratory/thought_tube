@@ -1,0 +1,21 @@
+{
+  "gap_id": "G09",
+  "title": "Inferred shape for discovered entities",
+  "phase": "P1",
+  "required": true,
+  "check": {
+    "type": "activation_shape",
+    "session_id": "gap-g09-discovered-shape",
+    "mtsf_mode": "deep",
+    "llm_preference": "auto",
+    "events": [
+      {
+        "actor": "assistant",
+        "content": "Closest to Backrooms liminal-space horror. Architecture behaves like a subconscious maze for Thought Tube."
+      }
+    ],
+    "discovered_entity_fragment": "liminal",
+    "forbidden_dominant_shapes": ["shape-observed"],
+    "min_cluster_cohesion": 0.7
+  }
+}

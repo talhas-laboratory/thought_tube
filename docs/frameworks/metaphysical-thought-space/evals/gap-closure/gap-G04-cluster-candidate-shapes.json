@@ -1,0 +1,22 @@
+{
+  "gap_id": "G04",
+  "title": "Candidate shapes from semantic clusters",
+  "phase": "P0",
+  "required": true,
+  "check": {
+    "type": "pipeline",
+    "session_id": "gap-g04-cluster-shape",
+    "llm_preference": "auto",
+    "events": [
+      {
+        "actor": "user",
+        "content": "An empty hallway with cold fluorescent light feels peaceful but also watched."
+      }
+    ],
+    "expectations": {
+      "min_candidate_shapes": 1,
+      "required_shape_provenance_sources": ["semantic_cluster"],
+      "require_relational_configuration": true
+    }
+  }
+}

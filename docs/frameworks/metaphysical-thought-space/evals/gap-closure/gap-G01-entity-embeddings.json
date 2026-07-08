@@ -1,0 +1,21 @@
+{
+  "gap_id": "G01",
+  "title": "Entity embeddings persisted at ingest",
+  "phase": "P0",
+  "required": true,
+  "check": {
+    "type": "artifact_field",
+    "session_id": "gap-g01-embed-session",
+    "mtsf_mode": "deep",
+    "llm_preference": "auto",
+    "events": [
+      {
+        "actor": "user",
+        "content": "Architecture behaves like a subconscious maze in a liminal corridor."
+      }
+    ],
+    "artifact_relpath": "mtsf/entity_embeddings.json",
+    "min_vectors": 1,
+    "required_fields": ["entity_id", "vector", "source_text"]
+  }
+}

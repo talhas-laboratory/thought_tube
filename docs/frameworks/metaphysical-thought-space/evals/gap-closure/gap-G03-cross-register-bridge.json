@@ -1,0 +1,35 @@
+{
+  "gap_id": "G03",
+  "title": "Cross-register semantic bridge without shared keywords",
+  "phase": "P0",
+  "required": true,
+  "check": {
+    "type": "semantic_bridge",
+    "sessions": [
+      {
+        "session_id": "gap-g03-session-a",
+        "events": [
+          {
+            "actor": "assistant",
+            "content": "Architecture behaves like a subconscious maze. Wrong-familiar corridors with no exit."
+          }
+        ],
+        "forbidden_keywords": ["context field", "latent manifold", "kv cache"]
+      },
+      {
+        "session_id": "gap-g03-session-b",
+        "events": [
+          {
+            "actor": "user",
+            "content": "Prior context warps the effective topology and steers inference across the context field."
+          }
+        ],
+        "forbidden_keywords": ["backrooms", "liminal", "subconscious maze"]
+      }
+    ],
+    "mtsf_mode": "deep",
+    "llm_preference": "auto",
+    "min_bridge_cosine": 0.72,
+    "rebuild_global": true
+  }
+}
