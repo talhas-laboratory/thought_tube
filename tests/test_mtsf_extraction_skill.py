@@ -121,6 +121,43 @@ class MtsfExtractionSkillTestCase(unittest.TestCase):
         entity_ids = {row["proposed_id"] for row in result["draft"]["entities"]}
         self.assertIn("entity-liminal-space", entity_ids)
         self.assertIn("entity-thought-tube", entity_ids)
+        trace_path = (
+            self.root / "memory" / "sessions" / "sess-open-default" / "mtsf" / "llm_extraction_trace.json"
+        )
+        self.assertTrue(trace_path.exists())
+
+    def test_resolve_api_mode_uses_openrouter_when_configured(self) -> None:
+        from unittest import mock
+
+        from conversation_os.storage import write_json
+
+        runtime_path = self.root / "product" / "inner_world_v1" / "config" / "runtime.json"
+        runtime_path.parent.mkdir(parents=True, exist_ok=True)
+        write_json(runtime_path, {"chat_backend": "heuristic", "mtsf_llm": {"api_key": "test-key"}})
+        draft_path = (
+            REPO_ROOT
+            / "docs/frameworks/metaphysical-thought-space/evals/semantic-shape-extraction/drafts/latent-triangulation.reference.json"
+        )
+        reference = json.loads(draft_path.read_text(encoding="utf-8"))
+        body = {
+            "choices": [{"message": {"content": json.dumps(reference)}}],
+            "model": "openai/gpt-4o-mini",
+            "usage": {"total_tokens": 10},
+        }
+        response = mock.Mock()
+        response.read.return_value = json.dumps(body).encode("utf-8")
+        response.__enter__ = mock.Mock(return_value=response)
+        response.__exit__ = mock.Mock(return_value=False)
+        with mock.patch("conversation_os.mtsf_llm_backend.urlopen", return_value=response):
+            result = resolve_deep_extraction_draft(
+                self.root,
+                session_id="sess-api",
+                events=TRIANGULATION_EVENTS,
+                manifest=MANIFEST,
+                llm_preference="api",
+            )
+        self.assertEqual(result["source"], "llm")
+        self.assertEqual(result["backend_id"], "openrouter")
 
     def test_resolve_deep_extraction_agent_still_uses_pilot_replay(self) -> None:
         events = [{"actor": "user", "content": PILOT_LIKE_TEXT}]

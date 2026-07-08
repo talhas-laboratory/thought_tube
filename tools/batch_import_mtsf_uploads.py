@@ -62,7 +62,7 @@ def main() -> int:
     parser.add_argument(
         "--mtsf-llm",
         default=None,
-        choices=["auto", "agent", "off", "force"],
+        choices=["auto", "api", "agent", "off", "force"],
         help="Deep extraction backend (default: auto when --mtsf-mode deep, else off)",
     )
     parser.add_argument(

@@ -592,8 +592,12 @@ def build_parser() -> argparse.ArgumentParser:
     close.add_argument(
         "--mtsf-llm",
         default="auto",
-        choices=["auto", "agent", "off", "force"],
-        help="Deep extraction backend: auto (default, OpenClaw then open evidence), agent (Pilot 002 phrase replay), off (thin heuristic), force (OpenClaw only)",
+        choices=["auto", "api", "agent", "off", "force"],
+        help=(
+            "Deep extraction backend: auto (OpenClaw → OpenRouter → open evidence), "
+            "api (OpenRouter only → open evidence), agent (Pilot 002 phrase replay), "
+            "off (thin heuristic), force (LLM backends only, no fallback)"
+        ),
     )
 
     importer = session_sub.add_parser("import")
@@ -611,8 +615,12 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument(
         "--mtsf-llm",
         default="auto",
-        choices=["auto", "agent", "off", "force"],
-        help="Deep extraction backend: auto (default, OpenClaw then open evidence), agent (Pilot 002 phrase replay), off (thin heuristic), force (OpenClaw only)",
+        choices=["auto", "api", "agent", "off", "force"],
+        help=(
+            "Deep extraction backend: auto (OpenClaw → OpenRouter → open evidence), "
+            "api (OpenRouter only → open evidence), agent (Pilot 002 phrase replay), "
+            "off (thin heuristic), force (LLM backends only, no fallback)"
+        ),
     )
 
     task_pack = sub.add_parser("task-pack")

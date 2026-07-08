@@ -12,7 +12,7 @@ from .mtsf_extraction import (
     default_skill_path,
     validate_extraction_draft,
 )
-from .storage import ensure_dir, make_id, utc_now, write_json
+from .storage import ensure_dir, make_id, session_dir, utc_now, write_json
 
 MODULE_ID = "kernel.mtsf.extraction_skill"
 CONTRACT_VERSION = "1.0.0"
@@ -161,58 +161,32 @@ def request_llm_deep_extraction(
     *,
     session_id: str,
     envelope: Dict[str, Any],
+    llm_preference: str = "auto",
 ) -> Dict[str, Any]:
-    from .chat_backends import request_openclaw_reply, resolve_chat_backend
-
-    backend = resolve_chat_backend(root)
-    if backend["id"] not in {"openclaw_local", "openclaw_gateway"}:
-        raise RuntimeError("llm_backend_unavailable")
+    from .mtsf_llm_backend import run_llm_extraction_chain
 
     skill_excerpt = ""
     skill_path = default_skill_path(root)
     if skill_path.exists():
         skill_excerpt = skill_path.read_text(encoding="utf-8")[:4000]
 
-    context = {
-        "character": "MTSF Semantic Shape Extractor",
-        "system_prompt": "\n".join(
-            [
-                SKILL_SYSTEM_PROMPT,
-                "",
-                "Skill reference excerpt:",
-                skill_excerpt,
-            ]
-        ),
-        "source_snippets": [
-            {
-                "title": envelope.get("context", {}).get("project") or f"session:{session_id}",
-                "source_ref": envelope.get("input_id", f"session:{session_id}"),
-                "excerpt": str(envelope.get("raw_content", ""))[:2000],
-            }
-        ],
-    }
-    thread = {
-        "thread_id": f"mtsf-deep-{session_id}",
-        "title": "MTSF deep extraction",
-        "messages": [],
-    }
-    user_message = (
-        "Emit an ExtractionDraft JSON object for this skill input envelope:\n"
-        f"{json.dumps(envelope, indent=2, ensure_ascii=False)}"
-    )
-    reply = request_openclaw_reply(root, context, user_message, thread, backend)
-    draft = parse_extraction_draft_from_text(
+    def _parse(reply_text: str) -> Dict[str, Any]:
+        return parse_extraction_draft_from_text(
+            root,
+            reply_text,
+            session_id=session_id,
+            envelope=envelope,
+        )
+
+    return run_llm_extraction_chain(
         root,
-        reply.get("content", ""),
         session_id=session_id,
         envelope=envelope,
+        system_prompt=SKILL_SYSTEM_PROMPT,
+        skill_excerpt=skill_excerpt,
+        parse_draft=_parse,
+        llm_preference=llm_preference,
     )
-    draft["provenance"]["model_id"] = f"openclaw:{backend['id']}"
-    return {
-        "draft": draft,
-        "source": "llm",
-        "backend_id": backend["id"],
-    }
 
 
 def _build_quality_roles(
@@ -414,20 +388,48 @@ def resolve_deep_extraction_draft(
     )
     skill_refs = materialize_skill_input(root, session_id, envelope)
     fallback_reason: Optional[str] = None
+    backend_attempts: List[Dict[str, str]] = []
 
-    if llm_preference in {"auto", "force"}:
+    if llm_preference in {"auto", "force", "api"}:
         try:
-            llm_result = request_llm_deep_extraction(root, session_id=session_id, envelope=envelope)
+            llm_result = request_llm_deep_extraction(
+                root,
+                session_id=session_id,
+                envelope=envelope,
+                llm_preference=llm_preference,
+            )
             return {
                 "draft": llm_result["draft"],
                 "source": llm_result["source"],
-                "backend_id": llm_result.get("backend_id"),
+                "backend_id": llm_result.get("backend_id") or llm_result.get("selected_backend"),
+                "backend_attempts": llm_result.get("backend_attempts", []),
                 "artifact_refs": skill_refs,
             }
         except Exception as exc:
             if llm_preference == "force":
                 raise
             fallback_reason = str(exc)
+            attempts = getattr(exc, "attempts", None)
+            if isinstance(attempts, list):
+                backend_attempts = [dict(row) for row in attempts if isinstance(row, dict)]
+
+    def _write_fallback_trace(selected_source: str, draft: Dict[str, Any]) -> None:
+        if not fallback_reason and not backend_attempts:
+            return
+        trace_path = session_dir(root, session_id) / "mtsf" / "llm_extraction_trace.json"
+        ensure_dir(trace_path.parent)
+        write_json(
+            trace_path,
+            {
+                "session_id": session_id,
+                "llm_preference": llm_preference,
+                "fallback_reason": fallback_reason,
+                "backend_attempts": backend_attempts,
+                "selected_source": selected_source,
+                "draft_id": draft.get("draft_id"),
+            },
+        )
+        skill_refs["mtsf_llm_extraction_trace"] = str(trace_path)
 
     if llm_preference == "agent":
         from .mtsf_agent_extractor import build_agent_skill_extraction_draft
@@ -442,10 +444,11 @@ def resolve_deep_extraction_draft(
             "draft": draft,
             "source": "agent_skill",
             "fallback_reason": fallback_reason,
+            "backend_attempts": backend_attempts,
             "artifact_refs": skill_refs,
         }
 
-    if llm_preference == "auto":
+    if llm_preference in {"auto", "api"}:
         from .mtsf_open_extractor import build_open_deep_extraction_draft
 
         draft = build_open_deep_extraction_draft(
@@ -454,10 +457,12 @@ def resolve_deep_extraction_draft(
             manifest=manifest,
             raw_content=text,
         )
+        _write_fallback_trace("open_evidence", draft)
         return {
             "draft": draft,
             "source": "open_evidence",
             "fallback_reason": fallback_reason,
+            "backend_attempts": backend_attempts,
             "artifact_refs": skill_refs,
         }
 
