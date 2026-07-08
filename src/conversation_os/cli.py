@@ -339,7 +339,6 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
     checkpoint = materialize_transcript(root, args.session_id)
     analysis_refs = analyze_session(root, args.session_id)
     if mtsf_framework_available(root):
-        mtsf_refs = materialize_session_mtsf(root, args.session_id)
         mtsf_mode = getattr(args, "mtsf_mode", "fast")
         mtsf_ingest = materialize_session_mtsf_ingest(
             root,
@@ -347,6 +346,7 @@ def session_close(root: Path, args: argparse.Namespace) -> dict:
             mtsf_mode,
             llm_preference=getattr(args, "mtsf_llm", "auto"),
         )
+        mtsf_refs = materialize_session_mtsf(root, args.session_id)
     else:
         mtsf_refs = {}
         mtsf_ingest = {
@@ -605,7 +605,7 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--task-id")
     importer.add_argument("--request")
     importer.add_argument("--task-type")
-    importer.add_argument("--mtsf-mode", default="fast", choices=["fast", "deep", "off"])
+    importer.add_argument("--mtsf-mode", default="deep", choices=["fast", "deep", "off"])
     importer.add_argument(
         "--mtsf-llm",
         default="auto",
@@ -835,9 +835,9 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_extract_deep.add_argument("--session-id", required=True)
     mtsf_extract_deep.add_argument(
         "--llm",
-        default="agent",
+        default="auto",
         choices=["auto", "agent", "off", "force"],
-        help="Deep extraction backend: agent (default), auto, off, force",
+        help="Deep extraction backend: auto (default), agent (Pilot 002 replay), off, force",
     )
     mtsf_pilot_compare = mtsf_sub.add_parser(
         "compare-pilot-002",

@@ -144,8 +144,10 @@ class MtsfSessionTestCase(unittest.TestCase):
         graph = read_json(graph_path)
         self.assertEqual(snapshot["session_id"], "mtsf-session-test")
         self.assertEqual(graph["session_id"], "mtsf-session-test")
-        self.assertEqual(len(snapshot["shape_activation_results"]), 4)
-        self.assertEqual(len(graph["entities"]), 4)
+        self.assertGreaterEqual(len(snapshot["shape_activation_results"]), 4)
+        self.assertGreaterEqual(len(graph["entities"]), 4)
+        seed_ids = {"entity-context-field", "entity-thought-ocean", "entity-symmetry-engine", "entity-hardened-idea"}
+        self.assertTrue(seed_ids.issubset({row["entity_id"] for row in snapshot["shape_activation_results"]}))
 
         context_result = next(
             row for row in snapshot["shape_activation_results"] if row["entity_id"] == "entity-context-field"
@@ -202,6 +204,54 @@ class MtsfSessionTestCase(unittest.TestCase):
             first_snapshot["shape_activation_results"],
             second_snapshot["shape_activation_results"],
         )
+
+    def test_materialize_session_mtsf_includes_discovered_entities_from_draft(self) -> None:
+        session_id = "mtsf-discovered-entity-test"
+        session_start(
+            self.root,
+            type(
+                "Args",
+                (),
+                {
+                    "session_id": session_id,
+                    "title": "Discovered entity test",
+                    "participants": "user",
+                    "source_type": "imported_transcript",
+                    "domains": "research,brainwalk",
+                },
+            )(),
+        )
+        from conversation_os.cli import session_append
+        from conversation_os.mtsf_ingest import materialize_session_mtsf_ingest
+
+        session_append(
+            self.root,
+            type(
+                "Args",
+                (),
+                {
+                    "session_id": session_id,
+                    "actor": "assistant",
+                    "kind": "response",
+                    "content": (
+                        "Closest to Backrooms / liminal-space horror. Architecture behaves like a subconscious maze. "
+                        "This stack is for Thought Tube."
+                    ),
+                    "attachments": "",
+                    "tags": "brainwalk",
+                    "source_ref": None,
+                },
+            )(),
+        )
+        materialize_session_mtsf_ingest(self.root, session_id, "deep", llm_preference="auto")
+        refs = materialize_session_mtsf(self.root, session_id)
+        snapshot = read_json(Path(refs["mtsf_activation_snapshot"]))
+        entity_ids = {row["entity_id"] for row in snapshot["shape_activation_results"]}
+        self.assertIn("entity-liminal-space", entity_ids)
+        self.assertIn("entity-thought-tube", entity_ids)
+        liminal = next(row for row in snapshot["shape_activation_results"] if row["entity_id"] == "entity-liminal-space")
+        self.assertEqual(liminal["dominant_shape_id"], "shape-observed")
+        self.assertGreaterEqual(liminal["confidence"], 0.4)
 
 
 if __name__ == "__main__":

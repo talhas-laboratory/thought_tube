@@ -118,9 +118,9 @@ def should_run_mtsf_ingest(
 ) -> bool:
     if mode == "off":
         return False
+    if source_type == "imported_transcript":
+        return bool(_conversation_text(events).strip())
     user_text = _user_text(events)
-    if source_type == "imported_transcript" and user_text.strip():
-        return True
     return len(user_text.strip()) >= MIN_USER_TEXT_CHARS
 
 

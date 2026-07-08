@@ -4,11 +4,12 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Set
 
 from .mtsf_kernel import (
     ActivationContext,
     EntityActivationRecord,
+    ShapeActivationResult,
     activate,
     build_activation_snapshot,
     load_seed_conditions,
@@ -21,14 +22,19 @@ PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "SessionActivationSignals",
+    "DISCOVERED_SHAPE_ID",
     "default_entity_catalog_path",
     "load_entity_catalog",
+    "load_session_activation_entities",
     "infer_session_signals",
     "build_entity_context",
     "materialize_session_mtsf",
     "mtsf_framework_available",
 )
 __all__ = list(PUBLIC_API)
+
+DISCOVERED_SHAPE_ID = "shape-observed"
+DISCOVERED_SHAPE_STATE_IDS = ("shape-observed", "shape-candidate")
 
 ANCHOR_TERMS = (
     "topology",
@@ -137,6 +143,57 @@ def load_entity_catalog(root: Path) -> List[EntityActivationRecord]:
             )
         )
     return records
+
+
+def load_session_activation_entities(root: Path, session_id: str) -> List[EntityActivationRecord]:
+    """Merge seed catalog entities with entities discovered in the session extraction draft."""
+    by_id: Dict[str, EntityActivationRecord] = {entity.id: entity for entity in load_entity_catalog(root)}
+    draft_path = session_dir(root, session_id) / "mtsf" / "extraction_draft.json"
+    if not draft_path.exists():
+        return list(by_id.values())
+
+    draft = read_json(draft_path, default={})
+    for row in draft.get("entities", []):
+        proposed_id = str(row.get("proposed_id", "")).strip()
+        if not proposed_id or proposed_id in by_id:
+            continue
+        by_id[proposed_id] = EntityActivationRecord(
+            id=proposed_id,
+            shape_state_ids=list(DISCOVERED_SHAPE_STATE_IDS),
+            default_shape_id=DISCOVERED_SHAPE_ID,
+        )
+    return list(by_id.values())
+
+
+def _draft_entity_rows(root: Path, session_id: str) -> Dict[str, Dict[str, Any]]:
+    draft_path = session_dir(root, session_id) / "mtsf" / "extraction_draft.json"
+    if not draft_path.exists():
+        return {}
+    draft = read_json(draft_path, default={})
+    return {
+        str(row.get("proposed_id", "")): row
+        for row in draft.get("entities", [])
+        if row.get("proposed_id")
+    }
+
+
+def _activation_result_from_draft_entity(row: Dict[str, Any]) -> ShapeActivationResult:
+    entity_id = str(row.get("proposed_id", ""))
+    confidence = max(float(row.get("confidence", 0.5)), 0.4)
+    evidence_spans = row.get("evidence", {}).get("spans", [])
+    return ShapeActivationResult(
+        entity_id=entity_id,
+        dominant_shape_id=DISCOVERED_SHAPE_ID,
+        secondary_shape_ids=[],
+        shape_weights={DISCOVERED_SHAPE_ID: confidence},
+        matched_conditions=[],
+        confidence=confidence,
+        evidence=[f"discovered_entity:{span}" for span in evidence_spans[:3]] or [f"discovered_entity:{row.get('name', entity_id)}"],
+    )
+
+
+def _seed_catalog_ids(root: Path) -> Set[str]:
+    return {entity.id for entity in load_entity_catalog(root)}
 
 
 def _user_text(events: Sequence[Dict[str, Any]]) -> str:
@@ -315,7 +372,9 @@ def materialize_session_mtsf(root: Path, session_id: str) -> Dict[str, str]:
     tags = _collect_tags(events)
 
     signals = infer_session_signals(events, domains=domains, tags=tags)
-    entities = load_entity_catalog(root)
+    entities = load_session_activation_entities(root, session_id)
+    seed_ids = _seed_catalog_ids(root)
+    draft_rows = _draft_entity_rows(root, session_id)
     conditions = load_seed_conditions(root)
     subgraph_id = f"session-{session_id}"
 
@@ -323,7 +382,14 @@ def materialize_session_mtsf(root: Path, session_id: str) -> Dict[str, str]:
         build_entity_context(entity, signals, session_id=session_id, subgraph_id=subgraph_id)
         for entity in entities
     ]
-    results = [activate(entity, ctx, conditions) for entity, ctx in zip(entities, contexts)]
+    results: List[ShapeActivationResult] = []
+    for entity, ctx in zip(entities, contexts):
+        if entity.id in seed_ids:
+            results.append(activate(entity, ctx, conditions))
+            continue
+        draft_row = draft_rows.get(entity.id)
+        if draft_row:
+            results.append(_activation_result_from_draft_entity(draft_row))
 
     snapshot_id = make_id("mtsf-snap")
     snapshot = build_activation_snapshot(
@@ -362,7 +428,15 @@ def materialize_session_mtsf(root: Path, session_id: str) -> Dict[str, str]:
             snapshot_path=snapshot_path,
         ),
     )
-    return {
+    artifact_refs = {
         "mtsf_activation_snapshot": str(snapshot_path),
         "mtsf_graph": str(graph_path),
     }
+    content_graph_path = artifact_dir / "content_graph.json"
+    if content_graph_path.exists():
+        from .mtsf_graph import sync_activation_to_content_graph
+
+        sync_result = sync_activation_to_content_graph(root, session_id)
+        artifact_refs["mtsf_activation_sync"] = str(artifact_dir / "activation_sync.json")
+        artifact_refs["mtsf_activation_sync_event"] = sync_result.get("event_id", "")
+    return artifact_refs
