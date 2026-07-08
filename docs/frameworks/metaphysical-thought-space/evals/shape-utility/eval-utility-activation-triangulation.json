@@ -1,0 +1,28 @@
+{
+  "id": "eval-utility-activation-triangulation",
+  "tier": "T2",
+  "description": "Real inferred signals on triangulation text — context-field shape must discriminate",
+  "input": {
+    "session_id": "eval-utility-act-triangulation",
+    "source_type": "live_session",
+    "domains": ["research", "topology"],
+    "events": [
+      {
+        "actor": "user",
+        "content": "Without any prior context, explain latent topology. Now with relevant prior context on transformers. Finally with unrelated prior context about cooking recipes."
+      }
+    ]
+  },
+  "pipeline": {
+    "mtsf_mode": "deep",
+    "llm_preference": "auto"
+  },
+  "expectations": {
+    "min_entities": 1,
+    "required_activation_entities": ["entity-context-field"],
+    "required_dominant_shapes": {
+      "entity-context-field": ["shape-cold-start", "shape-anchored-start", "shape-polluted-start"]
+    },
+    "min_matched_conditions": 1
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "eval-utility-negative-grocery",
+  "tier": "T4",
+  "description": "Negative control — mundane list must not invent formal topology shapes",
+  "input": {
+    "session_id": "eval-utility-grocery",
+    "source_type": "text",
+    "domains": ["personal"],
+    "events": [
+      {
+        "actor": "user",
+        "content": "Buy milk, eggs, bread, and coffee. Pick up dry cleaning at 5pm."
+      }
+    ]
+  },
+  "pipeline": {
+    "llm_preference": "auto"
+  },
+  "expectations": {
+    "validation_must_pass": true,
+    "max_entities": 3,
+    "forbidden_entity_name_fragments": ["context field", "latent manifold", "symmetry engine", "thought ocean"],
+    "max_candidate_shapes": 1,
+    "max_stencil_drafts": 0,
+    "forbidden_candidate_shape_ids": ["cand-formalizing-pass", "cand-context-triangulation"]
+  }
+}

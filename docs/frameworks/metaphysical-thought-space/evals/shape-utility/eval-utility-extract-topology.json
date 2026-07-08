@@ -1,0 +1,26 @@
+{
+  "id": "eval-utility-extract-topology",
+  "tier": "T1",
+  "description": "Pilot-domain latent topology text — should surface context/manifold vocabulary",
+  "input": {
+    "session_id": "eval-utility-topology",
+    "source_type": "imported_transcript",
+    "domains": ["research", "topology"],
+    "events": [
+      {
+        "actor": "user",
+        "content": "Explain how the same query would be processed without any prior context, with relevant prior context on latent topology, and with unrelated prior context. Context warps the effective topology and steers the inference path across the latent manifold."
+      }
+    ]
+  },
+  "pipeline": {
+    "llm_preference": "auto"
+  },
+  "expectations": {
+    "validation_must_pass": true,
+    "min_entities": 2,
+    "required_entity_name_fragments": ["context", "manifold"],
+    "min_relations": 1,
+    "min_candidate_shapes": 1
+  }
+}

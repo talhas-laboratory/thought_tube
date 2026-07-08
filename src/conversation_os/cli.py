@@ -29,6 +29,7 @@ from .mtsf_extraction import (
     run_extraction_evals,
     validate_extraction_draft,
 )
+from .mtsf_shape_eval import run_shape_utility_evals
 from .mtsf_ingest import materialize_session_mtsf_ingest
 from .mtsf_index import (
     find_wormhole_links,
@@ -700,6 +701,16 @@ def build_parser() -> argparse.ArgumentParser:
     mtsf_materialize_extraction.add_argument("--session-id", required=True)
     mtsf_materialize_extraction.add_argument("--draft-path", required=True)
     mtsf_sub.add_parser("run-extraction-evals", help="Run semantic shape extraction eval suite")
+    mtsf_shape_utility_evals = mtsf_sub.add_parser(
+        "run-shape-utility-evals",
+        help="Run end-to-end shape utility evals on live pipeline inputs",
+    )
+    mtsf_shape_utility_evals.add_argument(
+        "--llm",
+        default="auto",
+        choices=["auto", "agent", "off", "force"],
+        help="Deep extraction backend for utility evals (default auto)",
+    )
     mtsf_project_extraction = mtsf_sub.add_parser(
         "project-extraction",
         help="Project validated ExtractionDraft stencil drafts into session shape index",
@@ -1789,6 +1800,8 @@ def main(argv: list[str] | None = None) -> int:
                 update_manifest(root, manifest)
         elif args.mtsf_command == "run-extraction-evals":
             result = run_extraction_evals(root)
+        elif args.mtsf_command == "run-shape-utility-evals":
+            result = run_shape_utility_evals(root, llm_preference=args.llm)
         elif args.mtsf_command == "project-extraction":
             draft = read_json(Path(args.draft_path))
             result = materialize_stencil_projection(

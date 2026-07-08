@@ -1,0 +1,27 @@
+{
+  "id": "eval-utility-extract-backrooms",
+  "tier": "T1",
+  "description": "Film curation for Thought Tube — spatial/subconscious register without ML pilot terms",
+  "input": {
+    "session_id": "eval-utility-backrooms",
+    "source_type": "imported_transcript",
+    "domains": ["research", "brainwalk"],
+    "events": [
+      {
+        "actor": "assistant",
+        "content": "I'll treat that sort as liminal spatial psychological horror where architecture behaves like a subconscious maze. Stalker leads into the Zone, a metaphysical space that tests inner desire. This stack is for Thought Tube."
+      }
+    ]
+  },
+  "pipeline": {
+    "llm_preference": "auto"
+  },
+  "expectations": {
+    "validation_must_pass": true,
+    "min_entities": 3,
+    "required_entity_name_fragments": ["liminal", "thought tube"],
+    "forbidden_entity_name_fragments": ["kv cache", "inference path"],
+    "min_candidate_shapes": 1,
+    "require_relational_configuration": true
+  }
+}

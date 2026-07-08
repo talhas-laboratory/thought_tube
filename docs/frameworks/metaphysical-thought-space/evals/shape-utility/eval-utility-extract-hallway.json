@@ -1,0 +1,29 @@
+{
+  "id": "eval-utility-extract-hallway",
+  "tier": "T1",
+  "description": "Sensory scene — relational uncanny calm, no pilot topology vocabulary",
+  "input": {
+    "session_id": "eval-utility-hallway",
+    "source_type": "text",
+    "domains": ["personal"],
+    "events": [
+      {
+        "actor": "user",
+        "content": "An empty hallway with cold fluorescent light feels peaceful but also watched."
+      }
+    ]
+  },
+  "pipeline": {
+    "llm_preference": "auto"
+  },
+  "expectations": {
+    "validation_must_pass": true,
+    "min_entities": 2,
+    "required_entity_name_fragments": ["hallway"],
+    "forbidden_entity_name_fragments": ["context field", "latent manifold", "symmetry engine"],
+    "min_candidate_shapes": 1,
+    "min_relations": 1,
+    "require_relational_configuration": true,
+    "max_stencil_seed_matches": 0
+  }
+}
