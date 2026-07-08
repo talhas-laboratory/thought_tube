@@ -81,12 +81,21 @@ class MtsfGapClosureTestCase(unittest.TestCase):
         )
 
     def test_open_gaps_report_failures(self) -> None:
+        closed_payload = json.loads(CLOSED_GAPS_PATH.read_text(encoding="utf-8"))
+        closed_ids = {str(gap_id).upper() for gap_id in closed_payload.get("closed", [])}
         result = run_gap_closure_evals(self.root, llm_preference="auto")
-        open_failures = [row for row in result["runs"] if not row["ok"]]
+        all_gap_ids = {str(row["gap_id"]).upper() for row in result["runs"]}
+        if closed_ids >= all_gap_ids:
+            self.skipTest("All gaps closed — no unresolved failures expected")
+        open_failures = [
+            row
+            for row in result["runs"]
+            if not row["ok"] and str(row.get("gap_id", "")).upper() not in closed_ids
+        ]
         self.assertGreater(
             len(open_failures),
             0,
-            "Expected open gaps to fail until embedding/semantic layers ship",
+            "Expected unresolved gaps to fail until the full gap plan ships",
         )
 
 

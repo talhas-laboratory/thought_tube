@@ -67,6 +67,8 @@ class MtsfExtractionTestCase(unittest.TestCase):
         report = run_extraction_evals(REPO_ROOT)
         self.assertEqual(report["failed"], 0, json.dumps(report["runs"], indent=2))
         self.assertEqual(report["passed"], 3)
+        live_runs = [row for row in report["runs"] if row.get("replay_mode") == "live_pipeline"]
+        self.assertGreaterEqual(len(live_runs), 1)
 
     def test_materialize_extraction_writes_session_artifacts(self) -> None:
         tempdir = tempfile.TemporaryDirectory()

@@ -436,7 +436,7 @@ def _check_expectations(
     return failures
 
 
-def run_extraction_evals(root: Path) -> Dict[str, Any]:
+def run_extraction_evals(root: Path, *, llm_preference: str = "auto") -> Dict[str, Any]:
     evals_dir = default_extraction_evals_dir(root)
     fixtures = sorted(evals_dir.glob("eval-*.json"))
     runs: List[Dict[str, Any]] = []
@@ -444,8 +444,35 @@ def run_extraction_evals(root: Path) -> Dict[str, Any]:
 
     for fixture_path in fixtures:
         fixture = _load_eval_fixture(fixture_path)
-        draft_path = evals_dir / str(fixture["reference_draft_path"])
-        draft = json.loads(draft_path.read_text(encoding="utf-8"))
+        live_pipeline = bool(fixture.get("live_pipeline")) or (
+            bool(fixture.get("input", {}).get("raw_content")) and fixture.get("reference_only") is False
+        )
+        if live_pipeline:
+            from .mtsf_extraction_skill import resolve_deep_extraction_draft
+
+            input_payload = fixture.get("input", {})
+            session_id = str(input_payload.get("session_id", fixture.get("id", fixture_path.stem)))
+            raw_content = str(input_payload.get("raw_content", ""))
+            events = [{"actor": "user", "content": raw_content}]
+            manifest = {
+                "title": fixture.get("id", session_id),
+                "source_type": input_payload.get("input_type", "text"),
+                "domains": input_payload.get("domains", []),
+            }
+            extraction = resolve_deep_extraction_draft(
+                root,
+                session_id=session_id,
+                events=events,
+                manifest=manifest,
+                raw_content=raw_content,
+                llm_preference=llm_preference,
+            )
+            draft = extraction["draft"]
+            replay_mode = "live_pipeline"
+        else:
+            draft_path = evals_dir / str(fixture["reference_draft_path"])
+            draft = json.loads(draft_path.read_text(encoding="utf-8"))
+            replay_mode = "reference"
         report = validate_extraction_draft(root, draft)
         quarantine = assess_quarantine(draft, report)
         failures = _check_expectations(draft, report, quarantine, fixture.get("expectations", {}))
@@ -456,6 +483,7 @@ def run_extraction_evals(root: Path) -> Dict[str, Any]:
             {
                 "id": fixture.get("id", fixture_path.stem),
                 "ok": ok,
+                "replay_mode": replay_mode,
                 "validation_ok": report.ok,
                 "quarantine": quarantine.quarantine,
                 "failures": failures,
@@ -466,6 +494,7 @@ def run_extraction_evals(root: Path) -> Dict[str, Any]:
 
     return {
         "suite": "semantic-shape-extraction",
+        "llm_preference": llm_preference,
         "total": len(fixtures),
         "passed": passed,
         "failed": len(fixtures) - passed,

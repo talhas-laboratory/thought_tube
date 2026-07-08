@@ -801,6 +801,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["semantic", "structural", "provenance", "temporal", "activation", "alias"],
     )
     mtsf_graph_follow.add_argument("--depth", type=int, default=1)
+    mtsf_graph_follow.add_argument(
+        "--intent",
+        default="",
+        help="Traversal intent (e.g. liminal, shape:topology, follow:alias) to bias mode and neighbor filtering",
+    )
     mtsf_graph_sync_activation = mtsf_sub.add_parser(
         "graph-sync-activation",
         help="Bind activation snapshot to session content graph",
@@ -1900,6 +1905,7 @@ def main(argv: list[str] | None = None) -> int:
                 mode=args.mode,
                 depth=args.depth,
                 scope=args.scope,
+                intent=args.intent or None,
             )
         elif args.mtsf_command == "graph-expand":
             from .mtsf_graph import expand_node

@@ -68,6 +68,7 @@ PUBLIC_API = (
     "resolve_global_node_id",
     "refresh_global_alias_adjacency",
     "refresh_semantic_adjacency",
+    "resolve_traversal_intent",
     "follow_traversal",
     "expand_node",
 )
@@ -946,6 +947,7 @@ def follow_traversal(
     mode: TraversalMode = "semantic",
     depth: int = 1,
     scope: GraphScope = "session",
+    intent: Optional[str] = None,
 ) -> Dict[str, Any]:
     if scope == "global":
         graph = load_global_content_graph(root)
@@ -963,6 +965,10 @@ def follow_traversal(
     nodes = graph.get("nodes", {})
     if start_id not in nodes:
         raise KeyError(f"unknown node: {start_id}")
+
+    intent_plan = resolve_traversal_intent(intent, graph=graph, start_id=start_id) if intent else None
+    effective_mode = str(intent_plan.get("mode", mode)) if intent_plan else mode
+    neighbor_filter = str(intent_plan.get("neighbor_filter", "")) if intent_plan else ""
 
     visited: Set[str] = set()
     frontier: Set[str] = {start_id}
@@ -982,11 +988,25 @@ def follow_traversal(
                 session_id,
                 graph,
                 node_id,
-                mode,
+                effective_mode,
                 scope=scope,
             )
+            if neighbor_filter:
+                filtered = []
+                for neighbor in neighbors:
+                    node = nodes.get(neighbor, {})
+                    haystack = " ".join(
+                        [
+                            str(neighbor),
+                            str(node.get("name", "")),
+                            str(node.get("kind", "")),
+                        ]
+                    ).lower()
+                    if neighbor_filter in haystack:
+                        filtered.append(neighbor)
+                neighbors = filtered or neighbors
             for neighbor in neighbors:
-                edges.append({"from": node_id, "to": neighbor, "mode": mode})
+                edges.append({"from": node_id, "to": neighbor, "mode": effective_mode})
                 if neighbor not in visited:
                     next_frontier.add(neighbor)
         frontier = next_frontier
@@ -994,12 +1014,52 @@ def follow_traversal(
     return {
         "scope": scope,
         "session_id": session_id,
-        "mode": mode,
+        "mode": effective_mode,
+        "intent": intent,
+        "intent_plan": intent_plan,
         "start": start_id,
         "depth": depth,
         "nodes": path_nodes,
         "edges": edges,
         "visited": sorted(visited),
+    }
+
+
+def resolve_traversal_intent(
+    intent: str,
+    *,
+    graph: Dict[str, Any],
+    start_id: str,
+) -> Dict[str, Any]:
+    lowered = str(intent).strip().lower()
+    mode: TraversalMode = "semantic"
+    if any(token in lowered for token in ("alias", "cross-session", "cross session")):
+        mode = "alias"
+    elif "activation" in lowered:
+        mode = "activation"
+    elif any(token in lowered for token in ("structure", "relation", "topology")):
+        mode = "structural"
+    elif "provenance" in lowered:
+        mode = "provenance"
+
+    start_node = graph.get("nodes", {}).get(start_id, {})
+    dominant_shape = ""
+    activation = start_node.get("activation", {}) if isinstance(start_node.get("activation"), dict) else {}
+    if activation:
+        dominant_shape = str(activation.get("dominant_shape_id", ""))
+
+    neighbor_filter = lowered
+    for prefix in ("follow:", "shape:", "intent:"):
+        if lowered.startswith(prefix):
+            neighbor_filter = lowered[len(prefix) :]
+            break
+
+    return {
+        "intent": intent,
+        "mode": mode,
+        "neighbor_filter": neighbor_filter,
+        "dominant_shape_id": dominant_shape or None,
+        "start_id": start_id,
     }
 
 
@@ -1486,6 +1546,10 @@ def rebuild_global_content_graph(
     ensure_dir(global_path.parent)
     write_json(global_path, global_graph)
 
+    from .mtsf_discovery import materialize_cross_session_shapes
+
+    discovery = materialize_cross_session_shapes(root, session_ids=scanned)
+
     event = append_graph_event(
         root,
         {
@@ -1501,6 +1565,9 @@ def rebuild_global_content_graph(
         "merged_session_count": merged_sessions,
         "session_ids": scanned,
         "node_count": len(global_graph.get("nodes", {})),
-        "artifact_refs": {"mtsf_global_content_graph": str(global_path)},
+        "artifact_refs": {
+            "mtsf_global_content_graph": str(global_path),
+            **discovery.get("artifact_refs", {}),
+        },
         "event_id": event["event_id"],
     }

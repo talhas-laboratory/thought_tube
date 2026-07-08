@@ -423,6 +423,7 @@ def _detect_open_qualities(
     add_quality("quality-liminal", ["liminal", "uncanny"], keywords=("liminal", "uncanny", "wrong familiar"))
     add_quality("quality-no-exit", ["trapped", "no_exit"], keywords=("no-exit", "no exit", "trapped", "endless"))
     add_quality("quality-watched", ["watched"], keywords=("watched", "surveillance"))
+    add_quality("quality-empty", ["empty"], keywords=("empty",))
     add_quality("quality-dreamlike", ["dreamlike"], keywords=("dream logic", "dream-logic", "dreamlike"))
     if any(phrase in lowered for phrase in TRIANGULATION_PHRASES):
         add_quality("quality-cold-start", ["no prior context"], keywords=TRIANGULATION_PHRASES[:2])
@@ -503,7 +504,7 @@ def _detect_open_candidate_shapes(
     shapes: List[Dict[str, Any]] = []
     entity_refs = [row["proposed_id"] for row in entities[:4]]
     quality_refs = [row["quality_id"] for row in qualities[:4]]
-    if "liminal" in lowered or "backrooms" in lowered:
+    if "liminal" in lowered or "backrooms" in lowered or "wrong-familiar" in lowered or "wrong familiar" in lowered:
         shapes.append(
             {
                 "proposed_id": "cand-liminal-trap",
