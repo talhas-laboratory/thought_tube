@@ -41,7 +41,7 @@ PUBLIC_API = (
 )
 __all__ = list(PUBLIC_API)
 
-MERGE_SCORE_THRESHOLD = 1.0
+MERGE_SCORE_THRESHOLD = 0.8
 
 
 @dataclass

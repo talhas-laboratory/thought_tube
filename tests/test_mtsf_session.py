@@ -250,8 +250,12 @@ class MtsfSessionTestCase(unittest.TestCase):
         self.assertIn("entity-liminal-space", entity_ids)
         self.assertIn("entity-thought-tube", entity_ids)
         liminal = next(row for row in snapshot["shape_activation_results"] if row["entity_id"] == "entity-liminal-space")
-        self.assertEqual(liminal["dominant_shape_id"], "shape-observed")
+        self.assertEqual(liminal["dominant_shape_id"], "shape-liminal-trap")
         self.assertGreaterEqual(liminal["confidence"], 0.4)
+        cohesion_path = session_dir(self.root, session_id) / "mtsf" / "shape_cluster_cohesion.json"
+        self.assertTrue(cohesion_path.exists())
+        cohesion = read_json(cohesion_path, default={})
+        self.assertGreaterEqual(float(cohesion.get("score", 0.0)), 0.7)
 
 
 if __name__ == "__main__":

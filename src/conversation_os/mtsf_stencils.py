@@ -18,6 +18,7 @@ PUBLIC_API = (
     "normalize_stencil_draft",
     "match_stencil_drafts_to_seed",
     "compute_structural_fingerprint",
+    "compute_structural_similarity",
     "validate_stencil_record",
     "validate_seed_library",
 )
@@ -85,60 +86,6 @@ def normalize_stencil_draft(draft: Dict[str, Any]) -> Dict[str, Any]:
     return normalized
 
 
-def match_stencil_drafts_to_seed(
-    root: Path,
-    stencil_drafts: Sequence[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
-    seed_rows = load_seed_stencils(root)
-    seed_by_id = {str(row["id"]): row for row in seed_rows}
-    seed_fingerprints = {
-        stencil_id: compute_structural_fingerprint(row) for stencil_id, row in seed_by_id.items()
-    }
-    matches: List[Dict[str, Any]] = []
-
-    for index, draft in enumerate(stencil_drafts):
-        normalized = normalize_stencil_draft(draft)
-        canonical = {
-            "id": str(draft.get("proposed_id", f"draft-{index}")),
-            "name": str(draft.get("proposed_name", "draft")),
-            "role_entities": normalized.get("role_entities", []),
-            "relation_topology": normalized.get("relation_topology", []),
-            "dynamics_class": draft.get("dynamics_class"),
-            "symmetry_profile": draft.get("symmetry_profile"),
-        }
-        fingerprint = compute_structural_fingerprint(canonical)
-        best_id: Optional[str] = None
-        best_score = 0.0
-        for seed_id, seed_fp in seed_fingerprints.items():
-            score = 1.0 if seed_fp == fingerprint else 0.0
-            if score > best_score:
-                best_score = score
-                best_id = seed_id
-
-        declared_refs = [
-            ref.replace("seed:", "")
-            for ref in draft.get("evidence", {}).get("source_refs", [])
-            if str(ref).startswith("seed:")
-        ]
-        matches.append(
-            {
-                "draft_index": index,
-                "proposed_name": draft.get("proposed_name"),
-                "fingerprint": fingerprint,
-                "best_seed_match_id": best_id,
-                "structural_score": best_score,
-                "declared_seed_refs": declared_refs,
-            }
-        )
-    return matches
-
-
-def load_seed_stencils(root: Path) -> List[Dict[str, Any]]:
-    path = default_seed_stencils_path(root)
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    return list(payload.get("stencils", []))
-
-
 def _role_type_by_id(stencil: Dict[str, Any]) -> Dict[str, str]:
     mapping: Dict[str, str] = {}
     for row in stencil.get("role_entities", []):
@@ -165,6 +112,125 @@ def compute_structural_fingerprint(stencil: Dict[str, Any]) -> str:
     edge_signature = ",".join(sorted(edge_tokens))
     raw = f"roles:{role_signature}::edges:{edge_signature}::dyn:{dynamics}::sym:{symmetry}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _structural_edge_signatures(stencil: Dict[str, Any]) -> Set[Tuple[str, str, str]]:
+    role_types = _role_type_by_id(stencil)
+    signatures: Set[Tuple[str, str, str]] = set()
+    for edge in stencil.get("relation_topology", []):
+        source_id = str(edge.get("source_role_id", ""))
+        target_id = str(edge.get("target_role_id", ""))
+        primitive = str(edge.get("primitive", ""))
+        source_type = role_types.get(source_id, source_id)
+        target_type = role_types.get(target_id, target_id)
+        if source_type and target_type and primitive:
+            signatures.add((source_type, primitive, target_type))
+    return signatures
+
+
+def _structural_role_types(stencil: Dict[str, Any]) -> Set[str]:
+    return {
+        str(row.get("role_type", ""))
+        for row in stencil.get("role_entities", [])
+        if row.get("role_type")
+    }
+
+
+def compute_structural_similarity(
+    draft: Dict[str, Any],
+    seed: Dict[str, Any],
+    *,
+    declared_seed_refs: Optional[Sequence[str]] = None,
+) -> float:
+    draft_normalized = normalize_stencil_draft(draft)
+    seed_normalized = normalize_stencil_draft(seed)
+    draft_canonical = {
+        "role_entities": draft_normalized.get("role_entities", []),
+        "relation_topology": draft_normalized.get("relation_topology", []),
+        "dynamics_class": draft.get("dynamics_class"),
+        "symmetry_profile": draft.get("symmetry_profile"),
+    }
+    seed_canonical = {
+        "role_entities": seed_normalized.get("role_entities", []),
+        "relation_topology": seed_normalized.get("relation_topology", []),
+        "dynamics_class": seed.get("dynamics_class"),
+        "symmetry_profile": seed.get("symmetry_profile"),
+    }
+    if compute_structural_fingerprint(draft_canonical) == compute_structural_fingerprint(seed_canonical):
+        return 1.0
+
+    draft_roles = _structural_role_types(draft_canonical)
+    seed_roles = _structural_role_types(seed_canonical)
+    draft_edges = _structural_edge_signatures(draft_canonical)
+    seed_edges = _structural_edge_signatures(seed_canonical)
+
+    role_subset = len(draft_roles & seed_roles) / len(draft_roles) if draft_roles else 0.0
+    edge_subset = len(draft_edges & seed_edges) / len(draft_edges) if draft_edges else 0.0
+    dynamics_bonus = 0.1 if str(draft.get("dynamics_class", "")) == str(seed.get("dynamics_class", "")) else 0.0
+    symmetry_bonus = 0.1 if str(draft.get("symmetry_profile", "")) == str(seed.get("symmetry_profile", "")) else 0.0
+    score = min(1.0, 0.4 * edge_subset + 0.35 * role_subset + dynamics_bonus + symmetry_bonus)
+
+    seed_id = str(seed.get("id", ""))
+    if declared_seed_refs and seed_id in declared_seed_refs and role_subset >= 0.5:
+        score = max(score, 0.85)
+    if draft_roles and draft_roles <= seed_roles and draft_edges and draft_edges <= seed_edges:
+        score = max(score, 0.82)
+    return round(score, 4)
+
+
+def match_stencil_drafts_to_seed(
+    root: Path,
+    stencil_drafts: Sequence[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    seed_rows = load_seed_stencils(root)
+    seed_by_id = {str(row["id"]): row for row in seed_rows}
+    matches: List[Dict[str, Any]] = []
+
+    for index, draft in enumerate(stencil_drafts):
+        normalized = normalize_stencil_draft(draft)
+        canonical = {
+            "id": str(draft.get("proposed_id", f"draft-{index}")),
+            "name": str(draft.get("proposed_name", "draft")),
+            "role_entities": normalized.get("role_entities", []),
+            "relation_topology": normalized.get("relation_topology", []),
+            "dynamics_class": draft.get("dynamics_class"),
+            "symmetry_profile": draft.get("symmetry_profile"),
+        }
+        fingerprint = compute_structural_fingerprint(canonical)
+        declared_refs = [
+            ref.replace("seed:", "")
+            for ref in draft.get("evidence", {}).get("source_refs", [])
+            if str(ref).startswith("seed:")
+        ]
+        best_id: Optional[str] = None
+        best_score = 0.0
+        for seed_id, seed_row in seed_by_id.items():
+            score = compute_structural_similarity(
+                draft,
+                seed_row,
+                declared_seed_refs=declared_refs,
+            )
+            if score > best_score:
+                best_score = score
+                best_id = seed_id
+
+        matches.append(
+            {
+                "draft_index": index,
+                "proposed_name": draft.get("proposed_name"),
+                "fingerprint": fingerprint,
+                "best_seed_match_id": best_id,
+                "structural_score": best_score,
+                "declared_seed_refs": declared_refs,
+            }
+        )
+    return matches
+
+
+def load_seed_stencils(root: Path) -> List[Dict[str, Any]]:
+    path = default_seed_stencils_path(root)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return list(payload.get("stencils", []))
 
 
 def validate_stencil_record(

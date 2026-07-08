@@ -30,6 +30,9 @@ PUBLIC_API = (
     "load_session_entity_embeddings",
     "refresh_semantic_adjacency",
     "build_semantic_cluster_candidate_shapes",
+    "infer_cluster_cohesion_score",
+    "materialize_shape_cluster_cohesion",
+    "infer_discovered_entity_shape_id",
 )
 __all__ = list(PUBLIC_API)
 
@@ -457,3 +460,81 @@ def build_semantic_cluster_candidate_shapes(
                     }
                 )
     return shapes
+
+
+def infer_cluster_cohesion_score(draft: Dict[str, Any]) -> float:
+    scores: List[float] = []
+    for shape in draft.get("candidate_shapes", []):
+        provenance = shape.get("provenance", {})
+        if str(provenance.get("source", "")) != "semantic_cluster":
+            continue
+        scores.append(float(provenance.get("cluster_cohesion", 0.0)))
+    if scores:
+        return max(scores)
+    entities = list(draft.get("entities", []))
+    if len(entities) < 2:
+        return 0.0
+    carriers = [build_entity_carrier_text(entity) for entity in entities]
+    vectors, _model = embed_texts(Path("."), carriers)
+    return _cluster_cohesion(vectors)
+
+
+def materialize_shape_cluster_cohesion(
+    root: Path,
+    session_id: str,
+    draft: Dict[str, Any],
+) -> Dict[str, Any]:
+    score = infer_cluster_cohesion_score(draft)
+    cluster_count = sum(
+        1
+        for shape in draft.get("candidate_shapes", [])
+        if str(shape.get("provenance", {}).get("source", "")) == "semantic_cluster"
+    )
+    payload = {
+        "session_id": session_id,
+        "draft_id": draft.get("draft_id"),
+        "score": round(score, 4),
+        "cluster_count": cluster_count,
+        "generated_at": utc_now(),
+    }
+    artifact_dir = session_dir(root, session_id) / "mtsf"
+    ensure_dir(artifact_dir)
+    artifact_path = artifact_dir / "shape_cluster_cohesion.json"
+    write_json(artifact_path, payload)
+    return {
+        "session_id": session_id,
+        "score": payload["score"],
+        "artifact_refs": {"mtsf_shape_cluster_cohesion": str(artifact_path)},
+    }
+
+
+def infer_discovered_entity_shape_id(
+    entity_row: Dict[str, Any],
+    draft: Dict[str, Any],
+    *,
+    min_cluster_cohesion: float = 0.7,
+) -> str:
+    entity_id = str(entity_row.get("proposed_id", ""))
+    entity_name = str(entity_row.get("name", "")).lower()
+    cohesion = infer_cluster_cohesion_score(draft)
+    if cohesion < min_cluster_cohesion:
+        return "shape-observed"
+
+    best_shape_id = ""
+    best_score = -1.0
+    for shape in draft.get("candidate_shapes", []):
+        entity_refs = {str(ref) for ref in shape.get("entity_refs", [])}
+        if entity_id not in entity_refs:
+            continue
+        proposed_id = str(shape.get("proposed_id", ""))
+        shape_id = proposed_id.replace("cand-", "shape-", 1) if proposed_id.startswith("cand-") else proposed_id
+        score = float(shape.get("confidence", 0.0))
+        fragment = proposed_id.replace("cand-", "").replace("_", "-")
+        if entity_name and any(token in fragment for token in entity_name.split()):
+            score += 0.2
+        if str(shape.get("provenance", {}).get("source", "")) == "semantic_cluster":
+            score += 0.15
+        if score > best_score:
+            best_score = score
+            best_shape_id = shape_id
+    return best_shape_id or "shape-observed"

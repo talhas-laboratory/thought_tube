@@ -1,5 +1,5 @@
 {
   "version": "1.0.0",
   "description": "Gap IDs that must pass gap-closure evals. Add an ID here only when the gap is actually fixed.",
-  "closed": ["G01", "G02", "G03", "G04", "G05"]
+  "closed": ["G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09"]
 }

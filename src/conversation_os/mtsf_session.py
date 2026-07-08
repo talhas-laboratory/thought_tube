@@ -177,15 +177,26 @@ def _draft_entity_rows(root: Path, session_id: str) -> Dict[str, Dict[str, Any]]
     }
 
 
-def _activation_result_from_draft_entity(row: Dict[str, Any]) -> ShapeActivationResult:
+def _activation_result_from_draft_entity(
+    row: Dict[str, Any],
+    *,
+    draft: Optional[Dict[str, Any]] = None,
+) -> ShapeActivationResult:
+    from .mtsf_embeddings import infer_discovered_entity_shape_id
+
     entity_id = str(row.get("proposed_id", ""))
     confidence = max(float(row.get("confidence", 0.5)), 0.4)
     evidence_spans = row.get("evidence", {}).get("spans", [])
+    dominant_shape_id = (
+        infer_discovered_entity_shape_id(row, draft)
+        if draft is not None
+        else DISCOVERED_SHAPE_ID
+    )
     return ShapeActivationResult(
         entity_id=entity_id,
-        dominant_shape_id=DISCOVERED_SHAPE_ID,
+        dominant_shape_id=dominant_shape_id,
         secondary_shape_ids=[],
-        shape_weights={DISCOVERED_SHAPE_ID: confidence},
+        shape_weights={dominant_shape_id: confidence},
         matched_conditions=[],
         confidence=confidence,
         evidence=[f"discovered_entity:{span}" for span in evidence_spans[:3]] or [f"discovered_entity:{row.get('name', entity_id)}"],
@@ -375,6 +386,11 @@ def materialize_session_mtsf(root: Path, session_id: str) -> Dict[str, str]:
     entities = load_session_activation_entities(root, session_id)
     seed_ids = _seed_catalog_ids(root)
     draft_rows = _draft_entity_rows(root, session_id)
+    draft = read_json(session_dir(root, session_id) / "mtsf" / "extraction_draft.json", default={})
+    from .mtsf_embeddings import materialize_shape_cluster_cohesion
+
+    if draft:
+        materialize_shape_cluster_cohesion(root, session_id, draft)
     conditions = load_seed_conditions(root)
     subgraph_id = f"session-{session_id}"
 
@@ -389,7 +405,7 @@ def materialize_session_mtsf(root: Path, session_id: str) -> Dict[str, str]:
             continue
         draft_row = draft_rows.get(entity.id)
         if draft_row:
-            results.append(_activation_result_from_draft_entity(draft_row))
+            results.append(_activation_result_from_draft_entity(draft_row, draft=draft))
 
     snapshot_id = make_id("mtsf-snap")
     snapshot = build_activation_snapshot(

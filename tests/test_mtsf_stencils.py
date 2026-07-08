@@ -4,10 +4,12 @@ from pathlib import Path
 
 from conversation_os.mtsf_stencils import (
     compute_structural_fingerprint,
+    compute_structural_similarity,
     default_seed_stencils_path,
     default_stencil_role_types_path,
     load_seed_stencils,
     load_stencil_role_types,
+    match_stencil_drafts_to_seed,
     validate_seed_library,
     validate_stencil_record,
 )
@@ -88,6 +90,24 @@ class MtsfStencilsTestCase(unittest.TestCase):
         )
         self.assertTrue(any("at least 2 roles" in err for err in errors))
         self.assertTrue(any("at least 1 edge" in err for err in errors))
+
+    def test_hallway_uncanny_fuzzy_merges_context_warps_seed(self) -> None:
+        draft_path = (
+            REPO_ROOT
+            / "docs"
+            / "frameworks"
+            / "metaphysical-thought-space"
+            / "evals"
+            / "semantic-shape-extraction"
+            / "drafts"
+            / "hallway-uncanny.reference.json"
+        )
+        draft = json.loads(draft_path.read_text(encoding="utf-8"))
+        matches = match_stencil_drafts_to_seed(REPO_ROOT, draft.get("stencil_drafts", []))
+        self.assertEqual(len(matches), 1)
+        match = matches[0]
+        self.assertEqual(match["best_seed_match_id"], "stencil-context-warps-topology")
+        self.assertGreaterEqual(float(match["structural_score"]), 0.8)
 
 
 if __name__ == "__main__":
