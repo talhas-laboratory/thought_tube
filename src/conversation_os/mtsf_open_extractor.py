@@ -268,7 +268,18 @@ def _tokenize_phrase(phrase: str) -> List[str]:
     return [token for token in re.findall(r"[a-z0-9']+", phrase.lower()) if token and token not in _STOPWORDS]
 
 
-def _detect_recurring_phrase_entities(text: str, *, max_entities: int = 6) -> List[Dict[str, Any]]:
+def _is_noisy_phrase(name: str) -> bool:
+    tokens = name.split()
+    if len(tokens) < 2:
+        return True
+    if any(token in {"if", "want", "good", "useful", "lists", "portal", "dark", "strange", "test"} for token in tokens):
+        return True
+    if name.startswith("and ") or name.endswith(" behaves"):
+        return True
+    return False
+
+
+def _detect_recurring_phrase_entities(text: str, *, max_entities: int = 4) -> List[Dict[str, Any]]:
     lowered = text.lower()
     counts: Dict[str, int] = {}
     for match in re.finditer(r"[a-z][a-z0-9'/-]{1,}(?:\s+[a-z][a-z0-9'/-]{1,}){0,3}", lowered):
@@ -286,7 +297,7 @@ def _detect_recurring_phrase_entities(text: str, *, max_entities: int = 6) -> Li
         if count < 2:
             continue
         name = " ".join(_tokenize_phrase(phrase))
-        if not name or name in seen_names:
+        if not name or name in seen_names or _is_noisy_phrase(name):
             continue
         seen_names.add(name)
         span = _evidence_span(text, (phrase,))
@@ -305,7 +316,7 @@ def _detect_recurring_phrase_entities(text: str, *, max_entities: int = 6) -> Li
     return entities
 
 
-def _detect_metaphor_anchor_entities(text: str) -> List[Dict[str, Any]]:
+def _detect_metaphor_anchor_entities(text: str, *, max_entities: int = 2) -> List[Dict[str, Any]]:
     patterns = (
         r"(?P<anchor>[A-Za-z][A-Za-z0-9' /-]{2,40}?)\s+(?:as|like)\s+(?P<target>[A-Za-z][A-Za-z0-9' /-]{2,40})",
         r"(?:behaves like|becomes|acts as)\s+(?:a\s+)?(?P<target>[A-Za-z][A-Za-z0-9' /-]{2,40})",
@@ -335,10 +346,12 @@ def _detect_metaphor_anchor_entities(text: str) -> List[Dict[str, Any]]:
                         "evidence": {"spans": [span]},
                     }
                 )
+                if len(entities) >= max_entities:
+                    return entities
     return entities
 
 
-def _merge_entities(*groups: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _merge_entities(*groups: Sequence[Dict[str, Any]], max_entities: int = 12) -> List[Dict[str, Any]]:
     merged: List[Dict[str, Any]] = []
     seen_ids: Set[str] = set()
     seen_names: Set[str] = set()
@@ -351,6 +364,8 @@ def _merge_entities(*groups: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
             seen_ids.add(proposed_id)
             seen_names.add(name)
             merged.append(row)
+            if len(merged) >= max_entities:
+                return merged
     return merged
 
 
