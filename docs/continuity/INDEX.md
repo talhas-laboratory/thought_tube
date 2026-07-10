@@ -36,7 +36,7 @@ python3 tools/conversation_os.py session import \
 
 ## Current state (2026-07-10)
 
-- **Agent workspace:** `docs/workspaces/unified-framework-synthesis/` (sources, 7 analyses, continuity, manifest)
+- **Agent workspace:** `docs/workspaces/unified-framework-synthesis/` (sources, 8 analyses, continuity, manifest)
 - Source docs in repo: SDS, ThoughtShape, MTSF tree
 - Holodeck workspace: `unified-framework-synthesis-4f48` (local machine)
 - Cross-agent boot: `docs/cross-agent/README.md`

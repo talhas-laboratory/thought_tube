@@ -203,7 +203,7 @@ Yes — create cross-agent README, continuity transcript, and task pack.
 | D3 | Synthesize framework before building surfaces | locked |
 | D4 | Two capture surfaces on one kernel: Thought Trace + Inner Space Curator | locked |
 | D5 | Community pipeline: mimic → signature → cluster → product lane | locked |
-| D6 | Cross-agent continuity via `docs/continuity/` + `docs/task_packs/` + `docs/cross-agent/` | locked |
+| D6 | Cross-agent continuity via `docs/workspaces/` + `docs/continuity/` + `docs/task_packs/` + `docs/cross-agent/` | locked |
 | D7 | Next build step: lock ThoughtObject, ReasoningStep, ReasoningSignature schemas | open |
 | D8 | Full framework rearrangement/synthesis from decomposed primitives | open (next) |
 
@@ -211,23 +211,31 @@ Yes — create cross-agent README, continuity transcript, and task pack.
 
 | Artifact | Path |
 |----------|------|
+| **Full agent workspace** | `docs/workspaces/unified-framework-synthesis/` |
+| Workspace manifest | `docs/workspaces/unified-framework-synthesis/manifest.json` |
+| Primitive decomposition (A–K) | `docs/workspaces/unified-framework-synthesis/analyses/framework-primitive-decomposition.md` |
+| Deep analyses (8 files) | `docs/workspaces/unified-framework-synthesis/analyses/` |
+| Source doc copies | `docs/workspaces/unified-framework-synthesis/sources/` |
 | Three-framework comparison | `docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md` |
 | Unified synthesis | `docs/plans/2026-07-10-unified-framework-synthesis.md` |
 | Product thesis index | `docs/product-thesis/07-unified-framework-synthesis.md` |
-| Cross-agent workspace | `docs/cross-agent/README.md` |
-| This transcript | `docs/continuity/cursor-unified-framework-synthesis-2026-07-10.md` |
+| Cross-agent boot | `docs/cross-agent/README.md` |
+| Workspaces index | `docs/workspaces/INDEX.md` |
+| This transcript | `docs/workspaces/unified-framework-synthesis/continuity/thread-transcript.md` |
 | Task pack | `docs/task_packs/unified-framework-continuity-4f48.{md,json}` |
 
 ## Key paths
 
 ```
-docs/cross-agent/README.md              # foreign agent entry point
-docs/continuity/INDEX.md                  # thread registry
+docs/cross-agent/README.md                    # foreign agent entry point
+docs/workspaces/INDEX.md                        # all agent workspaces
+docs/workspaces/unified-framework-synthesis/    # FULL workspace (start here)
+docs/continuity/INDEX.md                        # thread registry
 docs/plans/2026-07-10-unified-framework-synthesis.md
 docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md
-sandbox/.../pilot-003-meta-reasoning-pass/   # reasoning signature prototype
-src/conversation_os/routing.py          # task pack builder
-src/conversation_os/personal_interface.py    # calibration (extend to reasoning moves)
+sandbox/.../pilot-003-meta-reasoning-pass/     # reasoning signature prototype
+src/conversation_os/routing.py                  # task pack builder
+src/conversation_os/personal_interface.py       # calibration (extend to reasoning moves)
 ```
 
 ## Open next steps

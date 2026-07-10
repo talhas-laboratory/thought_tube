@@ -23,7 +23,7 @@
     "Synthesize and lock schemas before surfaces",
     "Run engineering guard before substantial code changes",
     "Extend MTSF assertion store; do not replace with new substrate",
-    "Read full transcript in docs/continuity for complete thread arc"
+    "Read full workspace analyses in docs/workspaces/unified-framework-synthesis/ for complete thread depth"
   ],
   "open_questions": [
     "Unified framework rearrangement: which name wins per shared primitive?",
@@ -33,15 +33,20 @@
   ],
   "next_actions": [
     "Read docs/cross-agent/README.md for foreign agent boot sequence",
-    "Read docs/continuity/cursor-unified-framework-synthesis-2026-07-10.md for full arc",
+    "Read docs/workspaces/unified-framework-synthesis/README.md for full workspace (sources + 8 analyses)",
+    "Read analyses/framework-primitive-decomposition.md before rearrangement",
     "Rearrange decomposed primitives into single unified framework document",
     "Draft ThoughtObject, ReasoningStep, ReasoningSignature schemas",
     "Update docs/product-thesis/02-glossary.md after schema lock"
   ],
   "reference_docs": {
     "cross_agent_readme": "docs/cross-agent/README.md",
+    "agent_workspaces_index": "docs/workspaces/INDEX.md",
+    "full_workspace": "docs/workspaces/unified-framework-synthesis/README.md",
+    "workspace_manifest": "docs/workspaces/unified-framework-synthesis/manifest.json",
+    "primitive_decomposition": "docs/workspaces/unified-framework-synthesis/analyses/framework-primitive-decomposition.md",
     "continuity_index": "docs/continuity/INDEX.md",
-    "continuity_transcript": "docs/continuity/cursor-unified-framework-synthesis-2026-07-10.md",
+    "continuity_transcript": "docs/workspaces/unified-framework-synthesis/continuity/thread-transcript.md",
     "unified_synthesis": "docs/plans/2026-07-10-unified-framework-synthesis.md",
     "three_framework_comparison": "docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md",
     "pilot_003_reasoning": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-003-meta-reasoning-pass/README.md",
@@ -56,5 +61,5 @@
     "Inner Space Curator",
     "Thought Trace"
   ],
-  "continuity_note": "Canonical transcript in docs/continuity (git). Foreign agents start at docs/cross-agent/README.md. Session replay in memory/ (local, gitignored)."
+  "continuity_note": "Full agent workspace at docs/workspaces/unified-framework-synthesis/ (sources, 8 analyses, continuity, manifest). Foreign agents start at docs/cross-agent/README.md. Session replay in memory/ (local, gitignored)."
 }

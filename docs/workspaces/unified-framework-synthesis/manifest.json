@@ -71,6 +71,7 @@
       {"id": "decomposition", "path": "analyses/framework-primitive-decomposition.md", "title": "Primitive decomposition (~120-140 pieces)"},
       {"id": "epistemology", "path": "analyses/epistemology-and-overlap.md", "title": "Epistemology and ontology overlap"},
       {"id": "fresh-compare", "path": "analyses/fresh-comparison-jul-10.md", "title": "Fresh comparison Jul 10"},
+      {"id": "sds-non-movement", "path": "analyses/sds-non-movement-problem.md", "title": "SDS non-movement problem"},
       {"id": "reasoning-capture", "path": "analyses/reasoning-step-capture.md", "title": "Thought Trace / ReasoningStep"},
       {"id": "curator", "path": "analyses/inner-space-curator.md", "title": "Inner Space Curator"},
       {"id": "community", "path": "analyses/community-pipeline.md", "title": "Community pipeline and clustering"},

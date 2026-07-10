@@ -100,6 +100,9 @@ AGENT_SURFACE_LINKS = [
     ("Codebase Atlas", "./CODEBASE_ATLAS.md"),
     ("Substrate Agent Index", "./AGENT_INDEX.md"),
     ("MTSF System Map", "./generated/purpose/structure.mtsf.system-map.md"),
+    ("Cross-Agent Boot", "../../docs/cross-agent/README.md"),
+    ("Agent Workspaces Index", "../../docs/workspaces/INDEX.md"),
+    ("Unified Framework Workspace", "../../docs/workspaces/unified-framework-synthesis/README.md"),
 ]
 ARCHITECTURE_LINKS = [
     ("Conversation OS Foundation Design", "../../docs/plans/2026-04-13-conversation-os-foundation-design.md"),

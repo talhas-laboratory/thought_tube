@@ -12,7 +12,7 @@ Jul 2026 Cursor design thread comparing MTSF, SDS, and ThoughtShape; extended wi
 | Need | Read |
 |------|------|
 | Full thread arc | `continuity/thread-transcript.md` |
-| All analyses | `analyses/` (7 files) |
+| All analyses | `analyses/` (8 files) |
 | Source frameworks | `sources/` + `docs/frameworks/` |
 | Canonical synthesis | `sources/unified-framework-synthesis.md` |
 | Machine catalog | `manifest.json` |

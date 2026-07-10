@@ -40,7 +40,7 @@ Optional local machine replay (gitignored):
 
 | Thread | Workspace | Task pack | Transcript |
 |--------|-----------|-----------|------------|
-| **Unified framework synthesis** | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + 7 analyses](../workspaces/unified-framework-synthesis/) |
+| **Unified framework synthesis** | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + 8 analyses](../workspaces/unified-framework-synthesis/) |
 | MTSF activation | — | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](../continuity/cursor-mtsf-activation-thread-2026-07-07.md) |
 
 ## Capture a new Cursor thread

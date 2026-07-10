@@ -8,7 +8,10 @@ branches:
 prs:
   - https://github.com/talhas-laboratory/thought_tube/pull/7
 captured_at: 2026-07-10
+workspace: docs/workspaces/unified-framework-synthesis/README.md
 ---
+
+> **Canonical workspace:** For sources, full analyses (8 files), and manifest, use [`docs/workspaces/unified-framework-synthesis/`](../workspaces/unified-framework-synthesis/README.md). This file is the continuity mirror; the workspace copy is at [`continuity/thread-transcript.md`](../workspaces/unified-framework-synthesis/continuity/thread-transcript.md).
 
 # User
 

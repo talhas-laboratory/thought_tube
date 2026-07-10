@@ -56,6 +56,7 @@ Machine-readable catalog: [`manifest.json`](./manifest.json)
 | **Primitive decomposition** (~120–140 pieces, pre-rearrange) | [`analyses/framework-primitive-decomposition.md`](./analyses/framework-primitive-decomposition.md) |
 | **Epistemology & overlap** | [`analyses/epistemology-and-overlap.md`](./analyses/epistemology-and-overlap.md) |
 | **Fresh comparison** (Jul 10, epistemology + chat layers) | [`analyses/fresh-comparison-jul-10.md`](./analyses/fresh-comparison-jul-10.md) |
+| **SDS non-movement problem** | [`analyses/sds-non-movement-problem.md`](./analyses/sds-non-movement-problem.md) |
 | **Reasoning-step capture** (Thought Trace) | [`analyses/reasoning-step-capture.md`](./analyses/reasoning-step-capture.md) |
 | **Inner Space Curator** | [`analyses/inner-space-curator.md`](./analyses/inner-space-curator.md) |
 | **Community pipeline** | [`analyses/community-pipeline.md`](./analyses/community-pipeline.md) |

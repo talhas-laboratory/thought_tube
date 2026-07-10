@@ -60,3 +60,5 @@ SUBSTRATE   — MTSF
 - Inner Space Curator curation verbs
 
 These are **new product layers** on top of the three frameworks.
+
+See [sds-non-movement-problem.md](./sds-non-movement-problem.md) for SDS's unique contribution on constraints and absences.

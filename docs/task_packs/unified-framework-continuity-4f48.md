@@ -9,7 +9,9 @@
 | Artifact | Path |
 |----------|------|
 | Foreign agent entry | `docs/cross-agent/README.md` |
-| Full thread transcript | `docs/continuity/cursor-unified-framework-synthesis-2026-07-10.md` |
+| **Full agent workspace** | `docs/workspaces/unified-framework-synthesis/README.md` |
+| All deep analyses (8) | `docs/workspaces/unified-framework-synthesis/analyses/` |
+| Full thread transcript | `docs/workspaces/unified-framework-synthesis/continuity/thread-transcript.md` |
 | Index / resume commands | `docs/continuity/INDEX.md` |
 | Unified synthesis | `docs/plans/2026-07-10-unified-framework-synthesis.md` |
 | Three-framework comparison | `docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md` |
@@ -24,7 +26,7 @@
 4. Designed community pipeline (mimic → signature → cluster → connect)
 5. Created unified pre-build synthesis doc
 6. Re-compared frameworks; full primitive decomposition (~120–140 pieces)
-7. Established cross-agent workspace (`docs/cross-agent/`)
+7. Established cross-agent workspace (`docs/cross-agent/` + `docs/workspaces/unified-framework-synthesis/`)
 
 ## Locked decisions
 
