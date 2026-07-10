@@ -1,0 +1,442 @@
+{
+  "research_date": "2026-04-17",
+  "question": "Which ideas from the supplied conversation corpus should be reused as input for the semantic organization / context-bubble direction in this repo, and how should they be organized for integration?",
+  "corpus_summary": {
+    "total_sources_reviewed": 9,
+    "canonical_duplicates": [
+      {
+        "canonical_source": "2026-04-11_chatgpt---thought-tube-summary.md",
+        "duplicate_source": "2026-04-11_chatgpt---brainwalk_1104-1800.md",
+        "reason": "Body content is functionally identical; frontmatter differs."
+      }
+    ]
+  },
+  "source_inventory": [
+    {
+      "source_key": "brainwalk_1004",
+      "file_name": "2026-04-10_chatgpt---brainwalk_1004-0039.md",
+      "classification": "tier_a",
+      "relevance": "high",
+      "best_use": [
+        "fragment-first ontology",
+        "puzzle/context-bubble concept",
+        "semantic anchors",
+        "multi-domain routing"
+      ],
+      "notes": "Strongest raw ideation file for product shape and semantic organization."
+    },
+    {
+      "source_key": "adaptive_layer",
+      "file_name": "2026-04-11_adaptive-ai-personalization-vs-agi.md",
+      "classification": "tier_b",
+      "relevance": "medium",
+      "best_use": [
+        "hierarchical memory echoes",
+        "global-local alignment",
+        "retrieval pressure for compressed context"
+      ],
+      "notes": "Useful for retrieval and personalization architecture, not for immediate ontology."
+    },
+    {
+      "source_key": "decider",
+      "file_name": "2026-04-11_allahs-names-the-decider.md",
+      "classification": "tier_c",
+      "relevance": "low_to_medium",
+      "best_use": [
+        "decision-point metaphor",
+        "event-triggered activation framing"
+      ],
+      "notes": "Keep out of core schema; use only as metaphor or naming inspiration."
+    },
+    {
+      "source_key": "brainwalk_1104",
+      "file_name": "2026-04-11_chatgpt---brainwalk_1104-1800.md",
+      "classification": "duplicate",
+      "relevance": "medium",
+      "best_use": [
+        "duplicate support"
+      ],
+      "notes": "Use canonical summary variant instead."
+    },
+    {
+      "source_key": "thought_tube_summary",
+      "file_name": "2026-04-11_chatgpt---thought-tube-summary.md",
+      "classification": "tier_a",
+      "relevance": "high",
+      "best_use": [
+        "canonical architecture language",
+        "puzzle layer",
+        "multi-dimensional relations",
+        "user-model separation",
+        "domain pipelines"
+      ],
+      "notes": "Best compressed overview of the Thought Tube direction."
+    },
+    {
+      "source_key": "cryptographic_router",
+      "file_name": "2026-04-12_cryptographic-neural-routing-keys.md",
+      "classification": "tier_b",
+      "relevance": "medium",
+      "best_use": [
+        "pointer-style retrieval",
+        "epistemic router",
+        "ambient vs specific context access"
+      ],
+      "notes": "Keep as forward-looking retrieval design pressure, not immediate implementation plan."
+    },
+    {
+      "source_key": "workflow_bottlenecks",
+      "file_name": "2026-04-16_agentic-workflow-strengths-and-bottlenecks.md",
+      "classification": "tier_a",
+      "relevance": "high",
+      "best_use": [
+        "explicit routing",
+        "threshold-gated activation",
+        "structured module outputs",
+        "parallel worker execution"
+      ],
+      "notes": "Most directly useful for execution architecture around bubbles."
+    },
+    {
+      "source_key": "bees",
+      "file_name": "2026-04-16_how-bees-know-what-to-do_1.md",
+      "classification": "tier_a",
+      "relevance": "high",
+      "best_use": [
+        "swarm supervision",
+        "micro-agent specialization",
+        "shared state objects",
+        "dynamic routing triggers"
+      ],
+      "notes": "Useful when translated into concrete worker roles and supervisor logic."
+    },
+    {
+      "source_key": "dynamic_reasoning",
+      "file_name": "2026-04-16_chatgpt---dynamic-reasoning-model.md",
+      "classification": "tier_a",
+      "relevance": "high",
+      "best_use": [
+        "weighted reasoning",
+        "reasoning graphs",
+        "branch selection",
+        "constrained synthesis"
+      ],
+      "notes": "Best source for enforced reasoning-path design."
+    }
+  ],
+  "integration_surfaces": [
+    {
+      "surface_id": "fragment_capture",
+      "label": "Fragment-First Capture",
+      "priority": "high",
+      "description": "Keep fragments as canonical intake objects with semantic anchors and generate depth later.",
+      "current_repo_targets": [
+        "src/conversation_os/vault_ingest.py",
+        "src/conversation_os/analysis_units.py",
+        "src/conversation_os/meta_layer.py"
+      ],
+      "best_sources": [
+        "brainwalk_1004",
+        "thought_tube_summary"
+      ]
+    },
+    {
+      "surface_id": "context_bubble_layer",
+      "label": "Context Bubble Layer",
+      "priority": "high",
+      "description": "Introduce an intermediate semantic organization layer that groups fragments and meta records into evolving wholes around a pressure point.",
+      "current_repo_targets": [
+        "src/conversation_os/meta_layer.py",
+        "src/conversation_os/knowledge_layer.py",
+        "src/conversation_os/product_inner_world.py"
+      ],
+      "best_sources": [
+        "brainwalk_1004",
+        "thought_tube_summary"
+      ]
+    },
+    {
+      "surface_id": "domain_routing",
+      "label": "Multi-Domain Routing",
+      "priority": "high",
+      "description": "Allow one fragment or bubble to route into multiple reasoning lenses instead of forcing a single interpretation.",
+      "current_repo_targets": [
+        "src/conversation_os/operators.py",
+        "src/conversation_os/product_inner_world.py"
+      ],
+      "best_sources": [
+        "brainwalk_1004",
+        "thought_tube_summary",
+        "dynamic_reasoning",
+        "workflow_bottlenecks"
+      ]
+    },
+    {
+      "surface_id": "reasoning_profile",
+      "label": "Reasoning Profile Layer",
+      "priority": "medium",
+      "description": "Track stable patterns in how the user reasons without collapsing them into source truth.",
+      "current_repo_targets": [
+        "src/conversation_os/product_inner_world.py",
+        "memory/cards",
+        "memory/indexes"
+      ],
+      "best_sources": [
+        "thought_tube_summary",
+        "workflow_bottlenecks"
+      ]
+    },
+    {
+      "surface_id": "retrieval_router",
+      "label": "Pointer-Style Retrieval",
+      "priority": "medium",
+      "description": "Use compressed, relevance-weighted retrieval behavior as a design direction for later retrieval and context-pack building.",
+      "current_repo_targets": [
+        "src/conversation_os/knowledge_layer.py",
+        "src/conversation_os/product_inner_world.py"
+      ],
+      "best_sources": [
+        "adaptive_layer",
+        "cryptographic_router"
+      ]
+    },
+    {
+      "surface_id": "agentic_execution",
+      "label": "Swarm-Supervised Execution",
+      "priority": "medium",
+      "description": "Use specialized workers, shared state, supervisors, and guards when operating on bubbles or producing outputs from them.",
+      "current_repo_targets": [
+        "tools/conversation_os.py",
+        "context/task_packs",
+        "src/conversation_os/product_inner_world.py"
+      ],
+      "best_sources": [
+        "bees",
+        "workflow_bottlenecks",
+        "dynamic_reasoning"
+      ]
+    }
+  ],
+  "context_bubbles": [
+    {
+      "bubble_id": "fragment_first_substrate",
+      "label": "Fragment-First Substrate",
+      "status": "recommended_seed",
+      "thesis": "The smallest durable unit should be a fragment with semantic anchors; deeper forms should be generated or assembled on demand.",
+      "source_keys": [
+        "brainwalk_1004",
+        "thought_tube_summary"
+      ],
+      "repo_fit": [
+        "vault_ingest",
+        "analysis_units",
+        "meta_layer"
+      ],
+      "usable_now": [
+        "manual seeding",
+        "anchor extraction",
+        "fragment role labeling"
+      ],
+      "gaps": [
+        "current chunks are still mostly textual slices",
+        "semantic anchors are not explicit first-class fields"
+      ]
+    },
+    {
+      "bubble_id": "context_bubble_layer",
+      "label": "Context Bubble Layer",
+      "status": "recommended_seed",
+      "thesis": "Fragments and meta records should be grouped into provisional coherence fields that hold a larger unresolved whole.",
+      "source_keys": [
+        "brainwalk_1004",
+        "thought_tube_summary"
+      ],
+      "repo_fit": [
+        "meta_layer",
+        "knowledge_layer",
+        "product_inner_world"
+      ],
+      "usable_now": [
+        "bubble data model",
+        "bubble membership logic",
+        "bubble transitions"
+      ],
+      "gaps": [
+        "themes exist but evolving wholes do not",
+        "there is no bubble-aware surfacing stage"
+      ]
+    },
+    {
+      "bubble_id": "multi_domain_routing",
+      "label": "Multi-Domain Routing",
+      "status": "recommended_seed",
+      "thesis": "A single fragment or bubble can legitimately belong to several lenses at once, and those lenses should be allowed to react to one another.",
+      "source_keys": [
+        "brainwalk_1004",
+        "thought_tube_summary",
+        "dynamic_reasoning",
+        "workflow_bottlenecks"
+      ],
+      "repo_fit": [
+        "operators",
+        "product_inner_world"
+      ],
+      "usable_now": [
+        "domain overlays",
+        "routing primitives",
+        "cross-lens tension exposure"
+      ],
+      "gaps": [
+        "current system has primitives but not explicit lens competition",
+        "domain reactions are not surfaced"
+      ]
+    },
+    {
+      "bubble_id": "reasoning_profile_layer",
+      "label": "Reasoning Profile Layer",
+      "status": "recommended_seed",
+      "thesis": "The system should store abstractions about how the user reasons without confusing them with raw source material.",
+      "source_keys": [
+        "thought_tube_summary",
+        "workflow_bottlenecks"
+      ],
+      "repo_fit": [
+        "product_inner_world",
+        "memory/cards",
+        "memory/indexes"
+      ],
+      "usable_now": [
+        "recurring tension capture",
+        "style/taste signals",
+        "confidence-weighted reasoning traits"
+      ],
+      "gaps": [
+        "no isolated user-model layer",
+        "feedback is not yet shaping stable cognitive abstractions"
+      ]
+    },
+    {
+      "bubble_id": "weighted_reasoning_routing",
+      "label": "Weighted Reasoning Routing",
+      "status": "recommended_seed",
+      "thesis": "Reasoning quality depends on selecting and constraining the computational path, not only on the base model.",
+      "source_keys": [
+        "dynamic_reasoning",
+        "workflow_bottlenecks"
+      ],
+      "repo_fit": [
+        "operators",
+        "product_inner_world"
+      ],
+      "usable_now": [
+        "branch selection",
+        "threshold-gated pipeline activation",
+        "structured outputs",
+        "review gates"
+      ],
+      "gaps": [
+        "no routing weights on current primitives",
+        "candidate evaluation is not yet path-aware"
+      ]
+    },
+    {
+      "bubble_id": "pointer_memory_router",
+      "label": "Pointer Memory Router",
+      "status": "later_stage_design_input",
+      "thesis": "Retrieval should increasingly resolve pointers into compressed context rather than replaying large raw windows.",
+      "source_keys": [
+        "adaptive_layer",
+        "cryptographic_router"
+      ],
+      "repo_fit": [
+        "knowledge_layer",
+        "product_inner_world"
+      ],
+      "usable_now": [
+        "retrieval policy notes",
+        "context-pack design pressure"
+      ],
+      "gaps": [
+        "current edges are overlap-heavy",
+        "no explicit pointer cache or relevance-weighted echo behavior"
+      ]
+    },
+    {
+      "bubble_id": "swarm_supervision",
+      "label": "Swarm Supervision",
+      "status": "recommended_seed",
+      "thesis": "Specialized workers with shared state and supervisor logic can raise reliability when operating on bubbles or producing derived outputs.",
+      "source_keys": [
+        "bees",
+        "workflow_bottlenecks",
+        "dynamic_reasoning"
+      ],
+      "repo_fit": [
+        "task_packs",
+        "product_inner_world"
+      ],
+      "usable_now": [
+        "worker roles",
+        "guard/review roles",
+        "shared state objects",
+        "supervisor rerouting"
+      ],
+      "gaps": [
+        "pipelines exist but agent roles are implicit",
+        "quality control is not modeled as specialized workers"
+      ]
+    },
+    {
+      "bubble_id": "decision_point_metaphor",
+      "label": "Decision Point Metaphor",
+      "status": "metaphor_only",
+      "thesis": "Triggered activation and decisive state change are useful patterns, but the religious framing should remain outside core system ontology.",
+      "source_keys": [
+        "decider",
+        "cryptographic_router"
+      ],
+      "repo_fit": [],
+      "usable_now": [
+        "naming inspiration",
+        "decision boundary framing"
+      ],
+      "gaps": [
+        "high risk of mixing metaphor with implementation truth"
+      ]
+    }
+  ],
+  "suggested_bubble_schema": {
+    "required_fields": [
+      "bubble_id",
+      "label",
+      "status",
+      "thesis",
+      "source_refs",
+      "chunk_ids",
+      "meta_ids",
+      "dominant_primitives",
+      "active_tensions",
+      "open_questions",
+      "domain_lenses",
+      "confidence",
+      "last_reinforced_at"
+    ],
+    "allowed_transitions": [
+      "attach",
+      "reinforce",
+      "split",
+      "merge",
+      "bridge",
+      "contradict",
+      "decay"
+    ]
+  },
+  "recommended_next_steps": [
+    "Create a first-class context bubble layer between meta extraction and thought surfacing.",
+    "Seed the first bubble set manually from tier_a sources instead of relying on unsupervised clustering.",
+    "Extend relation records so they carry typed roles, evidence strength, and bubble membership.",
+    "Keep source substrate, semantic objects, and reasoning profile as separate memory surfaces.",
+    "Translate swarm and weighted-reasoning concepts into execution workflows rather than core ontology.",
+    "Use adaptive-layer and cryptographic-router material only as later retrieval design pressure."
+  ]
+}
