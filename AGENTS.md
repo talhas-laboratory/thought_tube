@@ -142,6 +142,8 @@ Use that guide for the full OpenClaw, backend, UI sync, portable pack, Personal 
 - Refresh or watch the generated browse indexes:
   - `python tools/substrate_index.py refresh`
   - `python tools/substrate_index.py watch`
+- MTSF runtime system map (structure family): `context/substrate/generated/purpose/structure.mtsf.system-map.md`
+- Per-module purpose artifacts: `context/substrate/generated/purpose/` and `context/substrate/generated/purpose-modules/`
 
 ## Handoff rule
 
@@ -150,5 +152,7 @@ If another agent should continue the work, build a task pack first and hand them
 - the task pack JSON
 - the task pack markdown
 - any directly relevant raw session refs
+
+**Foreign agents (Codex, etc.):** start at `docs/cross-agent/README.md`, then read the full workspace at `docs/workspaces/unified-framework-synthesis/` (sources, analyses, continuity). See `docs/workspaces/INDEX.md` for all agent workspaces.
 
 That handoff is the canonical continuity surface for this repo.
