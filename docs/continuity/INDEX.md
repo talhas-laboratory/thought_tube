@@ -4,10 +4,10 @@ Agent-facing continuity artifacts for long Cursor threads that may be context-co
 
 **Foreign agents:** start at [`docs/cross-agent/README.md`](../cross-agent/README.md).
 
-| Session ID | Task pack ID | Transcript | Branch / PR |
-|------------|--------------|------------|-------------|
-| `cursor-mtsf-activation-thread-4f48` | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](./cursor-mtsf-activation-thread-2026-07-07.md) | `cursor/mtsf-v1.1-amendment-4f48` PR [#3](https://github.com/talhas-laboratory/thought_tube/pull/3), `cursor/activation-graph-binding-4f48` PR [#4](https://github.com/talhas-laboratory/thought_tube/pull/4) |
-| `cursor-unified-framework-synthesis-4f48` | `unified-framework-continuity-4f48` | [cursor-unified-framework-synthesis-2026-07-10.md](./cursor-unified-framework-synthesis-2026-07-10.md) | `cursor/mtsf-semantic-substrate-g01-g05-4f48` PR [#7](https://github.com/talhas-laboratory/thought_tube/pull/7) |
+| Session ID | Workspace | Task pack ID | Transcript | Branch / PR |
+|------------|-----------|--------------|------------|-------------|
+| `cursor-unified-framework-synthesis-4f48` | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + analyses](../workspaces/unified-framework-synthesis/continuity/thread-transcript.md) | PR [#7](https://github.com/talhas-laboratory/thought_tube/pull/7) |
+| `cursor-mtsf-activation-thread-4f48` | — | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](./cursor-mtsf-activation-thread-2026-07-07.md) | PR [#3](https://github.com/talhas-laboratory/thought_tube/pull/3), [#4](https://github.com/talhas-laboratory/thought_tube/pull/4) |
 
 ## Resume commands
 
@@ -15,10 +15,10 @@ Agent-facing continuity artifacts for long Cursor threads that may be context-co
 # Foreign agent boot
 cat docs/cross-agent/README.md
 
-# Unified framework thread (this conversation)
-cat docs/continuity/cursor-unified-framework-synthesis-2026-07-10.md
-cat docs/task_packs/unified-framework-continuity-4f48.md
-cat docs/plans/2026-07-10-unified-framework-synthesis.md
+# Unified framework thread — FULL workspace (sources + analyses)
+cat docs/workspaces/unified-framework-synthesis/README.md
+cat docs/workspaces/unified-framework-synthesis/derived/handoff.md
+cat docs/workspaces/unified-framework-synthesis/analyses/framework-primitive-decomposition.md
 
 # MTSF activation thread (earlier)
 cat docs/continuity/cursor-mtsf-activation-thread-2026-07-07.md
@@ -36,9 +36,10 @@ python3 tools/conversation_os.py session import \
 
 ## Current state (2026-07-10)
 
-- Cross-agent workspace established: `docs/cross-agent/README.md`
-- Full transcript captured for unified framework synthesis thread
-- Task pack: `unified-framework-continuity-4f48`
+- **Agent workspace:** `docs/workspaces/unified-framework-synthesis/` (sources, 7 analyses, continuity, manifest)
+- Source docs in repo: SDS, ThoughtShape, MTSF tree
+- Holodeck workspace: `unified-framework-synthesis-4f48` (local machine)
+- Cross-agent boot: `docs/cross-agent/README.md`
 - **Next:** rearrange decomposed primitives → lock schemas → capture kernel
 
 ## Current state (2026-07-07)

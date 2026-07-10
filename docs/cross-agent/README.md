@@ -8,9 +8,9 @@ Read in this order:
 
 1. [`AGENTS.md`](../../AGENTS.md) — required discipline and core commands
 2. [`context/substrate/AGENT_OPERATING_BRIEF.md`](../../context/substrate/AGENT_OPERATING_BRIEF.md) — repo orientation
-3. [`docs/continuity/INDEX.md`](../continuity/INDEX.md) — registry of captured Cursor threads
-4. **Your thread's task pack** — `docs/task_packs/{task-id}.md`
-5. **Your thread's full transcript** — `docs/continuity/{thread}.md`
+3. **[`docs/workspaces/unified-framework-synthesis/README.md`](../workspaces/unified-framework-synthesis/README.md)** — **full framework workspace** (sources, analyses, continuity)
+4. [`docs/continuity/INDEX.md`](../continuity/INDEX.md) — registry of captured Cursor threads
+5. **Your thread's task pack** — `docs/task_packs/{task-id}.md`
 
 Then orient on code:
 
@@ -38,10 +38,10 @@ Optional local machine replay (gitignored):
 
 ## Active threads
 
-| Thread | Task pack | Transcript | Branch / PR |
-|--------|-----------|------------|-------------|
-| MTSF activation | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](../continuity/cursor-mtsf-activation-thread-2026-07-07.md) | PR [#3](https://github.com/talhas-laboratory/thought_tube/pull/3), [#4](https://github.com/talhas-laboratory/thought_tube/pull/4) |
-| Unified framework synthesis | `unified-framework-continuity-4f48` | [cursor-unified-framework-synthesis-2026-07-10.md](../continuity/cursor-unified-framework-synthesis-2026-07-10.md) | PR [#7](https://github.com/talhas-laboratory/thought_tube/pull/7) |
+| Thread | Workspace | Task pack | Transcript |
+|--------|-----------|-----------|------------|
+| **Unified framework synthesis** | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + 7 analyses](../workspaces/unified-framework-synthesis/) |
+| MTSF activation | — | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](../continuity/cursor-mtsf-activation-thread-2026-07-07.md) |
 
 ## Capture a new Cursor thread
 
