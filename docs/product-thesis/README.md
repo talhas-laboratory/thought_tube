@@ -22,6 +22,7 @@ Sections:
 - [04 OpenClaw Conversation Synthesis](04-openclaw-conversation-synthesis.md)
 - [05 Formation Surface Decision Sheet](05-formation-surface-decision-sheet.md)
 - [06 Formation Interpolation Research](06-formation-interpolation-research.md)
+- [07 Unified Framework Synthesis](07-unified-framework-synthesis.md)
 
 Maintenance rules:
 
