@@ -153,4 +153,6 @@ If another agent should continue the work, build a task pack first and hand them
 - the task pack markdown
 - any directly relevant raw session refs
 
+**Foreign agents (Codex, etc.):** start at `docs/cross-agent/README.md`, then read `docs/continuity/INDEX.md` and the thread transcript in `docs/continuity/`.
+
 That handoff is the canonical continuity surface for this repo.
