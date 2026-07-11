@@ -53,6 +53,7 @@ Machine-readable catalog: [`manifest.json`](./manifest.json)
 
 | Analysis | Path |
 |----------|------|
+| **Primitives, frameworks & unified vision** (readable guide) | [`analyses/primitives-frameworks-and-unified-vision.md`](./analyses/primitives-frameworks-and-unified-vision.md) |
 | **Primitive catalogue & framework reference** (full deep doc) | [`analyses/primitive-catalogue-and-framework-reference.md`](./analyses/primitive-catalogue-and-framework-reference.md) |
 | **Primitive decomposition** (~120–140 pieces, pre-rearrange) | [`analyses/framework-primitive-decomposition.md`](./analyses/framework-primitive-decomposition.md) |
 | **Epistemology & overlap** | [`analyses/epistemology-and-overlap.md`](./analyses/epistemology-and-overlap.md) |
