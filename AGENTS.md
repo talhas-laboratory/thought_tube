@@ -156,3 +156,12 @@ If another agent should continue the work, build a task pack first and hand them
 **Foreign agents (Codex, etc.):** start at `docs/cross-agent/README.md`, then read the full workspace at `docs/workspaces/unified-framework-synthesis/` (sources, analyses, continuity). See `docs/workspaces/INDEX.md` for all agent workspaces.
 
 That handoff is the canonical continuity surface for this repo.
+
+## Cursor Cloud specific instructions
+
+Pure-Python project (`requires-python >=3.11`, single runtime dependency `mcp`). There is no lint tooling configured and no JS/build step. The startup update script provisions a `.venv` with `mcp` and `pytest`; activate it before doing anything: `. .venv/bin/activate`.
+
+- Do NOT `pip install -e .` (or otherwise put `src/` on `sys.path`). The CLI entrypoint `tools/conversation_os.py` shares the name of the `conversation_os` package, so having `src/` on the path makes the script shadow the package and fail with `'conversation_os' is not a package`. The scripts and `tests/conftest.py` already self-inject `src/` on the path, so only the dependencies need installing.
+- `context/` substrate is git-ignored and NOT shipped; regenerate it before running tests or the app: `python3 tools/conversation_os.py init` (or `repo-overview refresh`). Without it, tests error out copying `context/substrate`.
+- Tests: run `pytest` from the repo root. In this stripped-down public release ~302 tests pass; ~36 fail by design because they depend on hand-authored module manifests (`context/substrate/modules/*.json`) that are part of the excluded private substrate. Those failures are expected here, not an environment problem. Anything that builds a task pack is likewise blocked (`task_pack_index_not_ready`) because the codebase atlas has manifest warnings — e.g. `session close` only triggers a task pack when `--task-id` is passed, so omit it for a clean full session lifecycle.
+- Run the app (Inner World miniapp backend): `python3 tools/run_inner_world_backend.py --host 127.0.0.1 --port 8421`. It serves both the static feed UI (`/`) and the API (`/api/*`, `/apps/api/inner-world/*`). On start it runs a pipeline refresh (can take ~15s); pass `--skip-refresh-on-start` to skip. With no ingested source corpus the feed returns `runtime_not_ready` and the UI shows zeroed counters — that is the empty-state, not a failure.
