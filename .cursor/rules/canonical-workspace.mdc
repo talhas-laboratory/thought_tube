@@ -1,0 +1,25 @@
+---
+description: Canonical workspace protocol for cloud and local Cursor agents
+alwaysApply: true
+---
+
+# Canonical workspace protocol
+
+Live workspace state is authoritative only through `INNER_WORLD_WORKSPACE_API_BASE`.
+Never create or mutate `memory/workspaces/*` as live coordination state.
+
+Resolve the API base in this order:
+
+1. `INNER_WORLD_WORKSPACE_API_BASE` environment variable
+2. `~/.config/inner-space-workspace.env`
+3. For Cursor Cloud agents without either, run `tools/setup_cursor_tailnet.sh` after `TAILSCALE_AUTHKEY` is configured
+
+At the start of task-bound work:
+
+1. Fetch the current Git branch and read the relevant continuity export.
+2. Query `GET /health`, `GET /api/workspaces`, then `GET /api/workspaces/<workspace_id>/context`.
+3. Begin a canonical run before claiming or editing scoped paths.
+4. Heartbeat while work remains active; record concise reasoning and verification.
+5. End with a canonical handoff or completion. Do not silently leave claims active.
+
+If the API is unavailable, stop before workspace mutations and report the outage. Git history and generated continuity exports are projections, not substitutes for the canonical service.
