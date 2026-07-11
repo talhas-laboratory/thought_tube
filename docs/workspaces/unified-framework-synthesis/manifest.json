@@ -68,6 +68,7 @@
       }
     ],
     "analyses": [
+      {"id": "catalogue", "path": "analyses/primitive-catalogue-and-framework-reference.md", "title": "Primitive catalogue and framework reference (deep)"},
       {"id": "decomposition", "path": "analyses/framework-primitive-decomposition.md", "title": "Primitive decomposition (~120-140 pieces)"},
       {"id": "epistemology", "path": "analyses/epistemology-and-overlap.md", "title": "Epistemology and ontology overlap"},
       {"id": "fresh-compare", "path": "analyses/fresh-comparison-jul-10.md", "title": "Fresh comparison Jul 10"},

@@ -14,6 +14,7 @@ Git-tracked working spaces for long design threads. Each workspace bundles **sou
 cat docs/cross-agent/README.md
 cat docs/workspaces/unified-framework-synthesis/README.md
 cat docs/workspaces/unified-framework-synthesis/derived/handoff.md
+cat docs/workspaces/unified-framework-synthesis/analyses/primitive-catalogue-and-framework-reference.md
 ```
 
 ## Related surfaces

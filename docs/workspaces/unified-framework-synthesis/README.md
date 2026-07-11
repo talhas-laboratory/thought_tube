@@ -53,6 +53,7 @@ Machine-readable catalog: [`manifest.json`](./manifest.json)
 
 | Analysis | Path |
 |----------|------|
+| **Primitive catalogue & framework reference** (full deep doc) | [`analyses/primitive-catalogue-and-framework-reference.md`](./analyses/primitive-catalogue-and-framework-reference.md) |
 | **Primitive decomposition** (~120–140 pieces, pre-rearrange) | [`analyses/framework-primitive-decomposition.md`](./analyses/framework-primitive-decomposition.md) |
 | **Epistemology & overlap** | [`analyses/epistemology-and-overlap.md`](./analyses/epistemology-and-overlap.md) |
 | **Fresh comparison** (Jul 10, epistemology + chat layers) | [`analyses/fresh-comparison-jul-10.md`](./analyses/fresh-comparison-jul-10.md) |
