@@ -1,9 +1,9 @@
-const CACHE_NAME = "inner-world-mobile-v1";
+const CACHE_NAME = "inner-world-mobile-v2";
 const CORE_ASSETS = [
-  "/mobile/",
-  "/mobile/app.js",
-  "/mobile/styles.css",
-  "/mobile/runtime-config.js",
+  "/",
+  "/app.js",
+  "/styles.css",
+  "/runtime-config.js",
   "/manifest.webmanifest",
 ];
 
@@ -24,7 +24,7 @@ self.addEventListener("activate", (event) => {
           return undefined;
         })
       )
-    )
+    ).then(() => self.clients.claim())
   );
 });
 
@@ -40,6 +40,9 @@ self.addEventListener("fetch", (event) => {
       }
       return fetch(event.request)
         .then((response) => {
+          if (!response.ok) {
+            return response;
+          }
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => undefined);
           return response;

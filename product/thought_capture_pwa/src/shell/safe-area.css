@@ -1,0 +1,107 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  background: var(--surface-field);
+  color: var(--text-primary);
+  overscroll-behavior: none;
+}
+
+.app-shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-shell__surface-switch {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem 0.55rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-field) 92%, transparent), color-mix(in srgb, var(--surface-field) 72%, transparent));
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--line-faint);
+}
+
+.app-shell__surface-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target-min);
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-receded) 16%, transparent);
+  background: color-mix(in srgb, var(--surface-field-elevated) 72%, transparent);
+  color: var(--text-receded);
+  text-decoration: none;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+
+.app-shell__surface-chip--active {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-locus) 34%, transparent);
+  background: color-mix(in srgb, var(--accent-locus) 14%, var(--surface-field-elevated));
+}
+
+.app-shell__banner,
+.app-shell__coach {
+  position: relative;
+  z-index: 10;
+  margin: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--surface-field-elevated);
+  border: 1px solid color-mix(in srgb, var(--accent-locus) 24%, transparent);
+  font-size: 0.875rem;
+}
+
+.app-shell__banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-shell__banner-action,
+.app-shell__coach-install,
+.app-shell__coach-dismiss,
+.app-shell__banner-dismiss {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: 0 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-locus) 18%, transparent);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.app-shell__banner-dismiss {
+  margin-left: auto;
+  padding: 0;
+  width: var(--touch-target-min);
+}
+
+.app-shell__coach-title {
+  margin: 0 0 0.5rem;
+  font-weight: 500;
+}
+
+.app-shell__coach-copy {
+  margin: 0 0 0.75rem;
+  color: var(--text-receded);
+}
+
+.app-shell__coach-install {
+  margin-right: 0.5rem;
+}

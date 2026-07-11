@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "thought-tube-bridge": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "tools/run_bridge_mcp.py"
+      ],
+      "cwd": "{{REPO_ROOT}}"
+    }
+  }
+}

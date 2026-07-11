@@ -33,6 +33,13 @@ PUBLIC_API = (
     "confidence_calibration",
     "relevance_check",
     "review_gate",
+    "classify_fragment_role",
+    "identify_parent_ideas",
+    "activate_dimensions",
+    "generate_candidate_transformations",
+    "score_candidate_transformations",
+    "choose_probe_or_integration",
+    "build_user_response",
     "choose_structural_operator_override",
     "OPERATOR_REGISTRY",
 )
@@ -779,6 +786,244 @@ def review_gate(packet: Dict, _: Dict) -> Dict:
     }
 
 
+def _bridge_behaviors(packet: Dict) -> List[Dict]:
+    return list(packet.get("active_field", {}).get("bridge_behaviors", []) or [])
+
+
+def _has_bridge_behavior(packet: Dict, behavior_id: str) -> bool:
+    return any(str(behavior.get("behavior_id", "")).strip() == behavior_id for behavior in _bridge_behaviors(packet))
+
+
+def _creative_expansion_paths(packet: Dict) -> List[str]:
+    active_field = packet.get("active_field", {})
+    parent_ideas = packet.get("reasoning", {}).get("candidate_parent_ideas", []) or []
+    dimensions = packet.get("reasoning", {}).get("active_dimensions", []) or active_field.get("active_dimensions", []) or []
+    paths: List[str] = []
+    for parent in parent_ideas[:3]:
+        label = _clean_phrase(str(parent.get("label") or parent.get("object_id") or ""), 60)
+        if label and label not in paths:
+            paths.append(label)
+    for dimension in dimensions[:4]:
+        label = _clean_phrase(str(dimension), 40)
+        if label and label not in paths:
+            paths.append(label)
+    return paths[:4]
+
+
+def classify_fragment_role(packet: Dict, _: Dict) -> Dict:
+    active_field = packet.get("active_field", {})
+    return {
+        "reasoning": {
+            "fragment_role": active_field.get("fragment_role", "request"),
+        }
+    }
+
+
+def identify_parent_ideas(packet: Dict, _: Dict) -> Dict:
+    active_field = packet.get("active_field", {})
+    parent_ideas = list(active_field.get("candidate_parent_ideas", []) or [])[:4]
+    return {
+        "reasoning": {
+            "candidate_parent_ideas": parent_ideas,
+        }
+    }
+
+
+def activate_dimensions(packet: Dict, _: Dict) -> Dict:
+    active_field = packet.get("active_field", {})
+    return {
+        "reasoning": {
+            "active_dimensions": list(active_field.get("active_dimensions", []) or []),
+            "active_tensions": list(active_field.get("active_tensions", []) or []),
+        }
+    }
+
+
+def generate_candidate_transformations(packet: Dict, _: Dict) -> Dict:
+    request = packet.get("reasoning_request", {})
+    active_field = packet.get("active_field", {})
+    parent_ideas = packet.get("reasoning", {}).get("candidate_parent_ideas", []) or []
+    topic = active_field.get("active_topic") or packet.get("context_state", {}).get("active_topic", "")
+    candidates: List[Dict] = []
+    if _has_bridge_behavior(packet, "creative_expansion"):
+        expansion_paths = _creative_expansion_paths(packet)
+        tension = (packet.get("reasoning", {}).get("active_tensions", []) or active_field.get("active_tensions", []) or [""])[0]
+        candidates.append(
+            {
+                "kind": "expansion",
+                "label": topic or "intuition",
+                "fit_score": round(min(0.92, 0.54 + len(expansion_paths) * 0.07), 2),
+                "integrate": False,
+                "probe": "",
+                "response_seed": "The intuition already has a real shape.",
+                "expansion_paths": expansion_paths,
+                "tension": tension,
+            }
+        )
+    if _has_bridge_behavior(packet, "symbolic_interpretation"):
+        symbolic_paths = _creative_expansion_paths(packet)
+        candidates.append(
+            {
+                "kind": "symbolic_interpretation",
+                "label": topic or "symbolic field",
+                "fit_score": round(min(0.9, 0.52 + len(symbolic_paths) * 0.08), 2),
+                "integrate": False,
+                "probe": "",
+                "response_seed": "This can be read symbolically rather than literally.",
+                "symbolic_paths": symbolic_paths,
+            }
+        )
+    if parent_ideas:
+        for parent in parent_ideas[:3]:
+            label = parent.get("label") or parent.get("object_id") or topic or "current idea"
+            fit_score = round(min(0.95, 0.42 + float(parent.get("score", 0.0)) * 0.5), 2)
+            candidates.append(
+                {
+                    "kind": "integration",
+                    "label": str(label),
+                    "fit_score": fit_score,
+                    "integrate": fit_score >= 0.62,
+                    "probe": f"Treat this as part of {str(label).lower()} and test the fit.",
+                    "response_seed": f"This looks like it belongs under {label}.",
+                }
+            )
+    else:
+        candidates.append(
+            {
+                "kind": "probe",
+                "label": topic or "current fragment",
+                "fit_score": 0.28,
+                "integrate": False,
+                "probe": "The fragment is still too ambiguous to place confidently.",
+                "response_seed": "The fragment does not attach cleanly yet.",
+            }
+        )
+
+    if active_field.get("ambiguity_level", 0.0) >= 0.65:
+        candidates.append(
+            {
+                "kind": "probe",
+                "label": topic or "current fragment",
+                "fit_score": 0.4,
+                "integrate": False,
+                "probe": "Keep the tension visible and ask one framing question before integrating.",
+                "response_seed": "This still wants one clearer framing pass before integration.",
+            }
+        )
+
+    if request.get("raw_text"):
+        candidates = candidates[:4]
+    return {"reasoning": {"candidate_transformations": candidates}}
+
+
+def score_candidate_transformations(packet: Dict, _: Dict) -> Dict:
+    active_field = packet.get("active_field", {})
+    ambiguity = float(active_field.get("ambiguity_level", 0.0) or 0.0)
+    expansive_mode = _has_bridge_behavior(packet, "creative_expansion")
+    symbolic_mode = _has_bridge_behavior(packet, "symbolic_interpretation")
+    evaluation_mode = _has_bridge_behavior(packet, "objective_evaluation")
+    scored: List[Dict] = []
+    for candidate in packet.get("reasoning", {}).get("candidate_transformations", []) or []:
+        candidate = dict(candidate)
+        score = float(candidate.get("fit_score", 0.0))
+        if candidate.get("kind") == "expansion" and expansive_mode:
+            score += 0.18
+        elif candidate.get("kind") == "symbolic_interpretation" and symbolic_mode:
+            score += 0.16
+        elif candidate.get("kind") == "probe":
+            score += min(0.2, ambiguity * 0.25)
+            if expansive_mode:
+                score -= 0.08
+        elif candidate.get("kind") == "integration" and evaluation_mode:
+            score += 0.08
+        elif ambiguity >= 0.7:
+            score -= 0.12
+        candidate["score"] = round(max(0.0, min(0.99, score)), 2)
+        scored.append(candidate)
+    scored.sort(key=lambda item: (-float(item.get("score", 0.0)), item.get("kind", "")))
+    return {"reasoning": {"scored_transformations": scored}}
+
+
+def choose_probe_or_integration(packet: Dict, _: Dict) -> Dict:
+    scored = packet.get("reasoning", {}).get("scored_transformations", []) or []
+    if _has_bridge_behavior(packet, "creative_expansion"):
+        for candidate in scored:
+            if candidate.get("kind") == "expansion":
+                return {"reasoning": {"selected_transformation": dict(candidate)}}
+    if _has_bridge_behavior(packet, "symbolic_interpretation"):
+        for candidate in scored:
+            if candidate.get("kind") == "symbolic_interpretation":
+                return {"reasoning": {"selected_transformation": dict(candidate)}}
+    chosen = dict(scored[0]) if scored else {
+        "kind": "probe",
+        "label": "fragment",
+        "fit_score": 0.0,
+        "score": 0.0,
+        "integrate": False,
+        "probe": "No stable direction was available.",
+        "response_seed": "The fragment needs more clarification.",
+    }
+    return {"reasoning": {"selected_transformation": chosen}}
+
+
+def build_user_response(packet: Dict, _: Dict) -> Dict:
+    chosen = packet.get("reasoning", {}).get("selected_transformation", {}) or {}
+    active_field = packet.get("active_field", {})
+    topic = packet.get("context_state", {}).get("active_topic", "this topic")
+    if chosen.get("kind") == "expansion" or _has_bridge_behavior(packet, "creative_expansion"):
+        paths = [str(path).strip() for path in chosen.get("expansion_paths", []) or [] if str(path).strip()]
+        path_text = ""
+        if len(paths) >= 3:
+            path_text = f"It seems to be opening through {paths[0]}, {paths[1]}, and {paths[2]}."
+        elif len(paths) == 2:
+            path_text = f"It seems to be opening through {paths[0]} and {paths[1]}."
+        elif len(paths) == 1:
+            path_text = f"It seems to be opening through {paths[0]}."
+        tension = str(chosen.get("tension") or "").strip()
+        tension_text = f" The tension here is {tension}, and that is part of the signal." if tension else ""
+        if not path_text:
+            path_text = f"One way to read it is as a live structure around {topic}."
+        text = f"{chosen.get('response_seed', 'The intuition already has a shape.')} {path_text}{tension_text} Instead of narrowing it yet, treat those paths as the structure the thought is already sketching.".strip()
+    elif chosen.get("kind") == "symbolic_interpretation" or _has_bridge_behavior(packet, "symbolic_interpretation"):
+        paths = [str(path).strip() for path in chosen.get("symbolic_paths", []) or [] if str(path).strip()]
+        if len(paths) >= 3:
+            path_text = f"It seems to point toward {paths[0]}, {paths[1]}, and {paths[2]} at once."
+        elif len(paths) == 2:
+            path_text = f"It seems to point toward both {paths[0]} and {paths[1]}."
+        elif len(paths) == 1:
+            path_text = f"It seems to point toward {paths[0]}."
+        else:
+            path_text = f"It seems to point toward a deeper structure around {topic}."
+        text = f"{chosen.get('response_seed', 'This can be read symbolically rather than literally.')} {path_text} The useful move is not to prove one fixed meaning but to name the cluster of meanings the image is pulling toward.".strip()
+    elif _has_bridge_behavior(packet, "objective_evaluation"):
+        score = float(chosen.get("fit_score", 0.0))
+        verdict = "strong" if score >= 0.72 else "mixed" if score >= 0.5 else "weak"
+        text = (
+            f"Objective assessment: the current direction looks {verdict}. "
+            f"Fit is {score:.2f}. "
+            f"{chosen.get('probe', chosen.get('response_seed', 'The next step is to test the weakest assumption directly.'))}"
+        ).strip()
+    elif _has_bridge_behavior(packet, "implementation_scaffold") and chosen.get("integrate"):
+        text = (
+            f"{chosen.get('response_seed', 'This belongs together.')} "
+            f"The practical move is to treat {topic} as the main line, keep the active constraints visible, and turn this into the next implementation slice."
+        )
+    elif chosen.get("integrate"):
+        text = (
+            f"{chosen.get('response_seed', 'This belongs together.')} "
+            f"The current fragment fits the main line around {topic} with a score of {float(chosen.get('fit_score', 0.0)):.2f}."
+        )
+    elif active_field.get("active_tensions"):
+        tension = active_field.get("active_tensions", [""])[0]
+        text = (
+            f"{chosen.get('response_seed', 'This is not stable yet.')} "
+            f"The live tension is {tension}. {chosen.get('probe', '')}".strip()
+        )
+    else:
+        text = f"{chosen.get('response_seed', 'This needs another pass.')} {chosen.get('probe', '')}".strip()
+    return {"user_response": {"text": text}}
+
+
 def choose_structural_operator_override(edge_kind: str, operator_hints: List[str], structural_fit: Dict) -> Dict[str, str]:
     if edge_kind == "contradicts" or "find_counterpoint" in operator_hints:
         return {}
@@ -825,4 +1070,11 @@ OPERATOR_REGISTRY = {
     "confidence_calibration": confidence_calibration,
     "relevance_check": relevance_check,
     "review_gate": review_gate,
+    "classify_fragment_role": classify_fragment_role,
+    "identify_parent_ideas": identify_parent_ideas,
+    "activate_dimensions": activate_dimensions,
+    "generate_candidate_transformations": generate_candidate_transformations,
+    "score_candidate_transformations": score_candidate_transformations,
+    "choose_probe_or_integration": choose_probe_or_integration,
+    "build_user_response": build_user_response,
 }

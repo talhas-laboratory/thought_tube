@@ -1301,12 +1301,34 @@ def extract_shape_signatures(root: Path, domain_overlays: List[str] | None = Non
         extract_meta_layer(root, domain_overlays=domain_overlays, ensure_dependencies=True)
     units = load_analysis_units(root)
     meta_rows = load_meta_records(root)
+
+    # Pre-build index of meta_rows by chunk_id for fast O(1) lookup
+    from collections import defaultdict
+    chunk_to_meta = defaultdict(list)
+    for row in meta_rows:
+        for chunk_id in row.get("chunk_ids", []):
+            chunk_to_meta[chunk_id].append(row)
+
     signatures: List[Dict] = []
     for unit in units:
-        matching_rows = _matching_meta_rows(unit, meta_rows)
+        unit_chunk_ids = unit.get("chunk_ids", [])
+        unit_source_ref = unit.get("source_ref")
+        
+        matched_set = {}
+        for chunk_id in unit_chunk_ids:
+            for row in chunk_to_meta[chunk_id]:
+                matched_set[id(row)] = row
+                
+        matching_rows = []
+        for row in matched_set.values():
+            if unit_source_ref and unit_source_ref not in row.get("source_refs", []):
+                continue
+            matching_rows.append(row)
+            
         signature = _build_signature_for_unit(unit, matching_rows)
         if signature is not None:
             signatures.append(signature)
+            
     write_jsonl(shape_signatures_path(root), signatures)
     return {
         "analysis_unit_count": len(units),

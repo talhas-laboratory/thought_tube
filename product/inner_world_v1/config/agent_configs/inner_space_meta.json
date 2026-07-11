@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "agent_id": "inner_space_meta",
+  "version": "0.1.0",
+  "role": "telegram_system_editing_agent",
+  "model": "moonshot/kimi-k2.5",
+  "thinking": "high",
+  "timeout_seconds": 90,
+  "default_authority": "propose",
+  "production_deploy_authority": "blocked_by_default",
+  "requires_release_gate": true,
+  "requires_rollback_plan": true,
+  "conversation_profile": {
+    "style": "natural_collaborative_builder",
+    "goal_extraction": "implicit_until_scope_is_stable",
+    "prefer_conversation_over_workflow_labels": true,
+    "soft_reset_on_greeting": true,
+    "opening_prompt": "What do you want to work on or figure out?",
+    "restart_prompt": "We can start fresh or keep going on the previous thread. What do you want to work on right now?",
+    "objective_confirmation_prefix": "I think you're trying to",
+    "acceptance_question": "What should count as done if we turn that into work?",
+    "analysis_transition": "I can think through the current state with you first, then turn that into scoped work once the goal is clearer.",
+    "analysis_without_context": "My current read is still broad. I do not have enough concrete product context yet to judge the current state directly, so I want to narrow it to one screen, flow, or behavior first.",
+    "analysis_follow_up_ui": "If this is about the UI, which part should we look at first: capture, reading, navigation, or overall feel?",
+    "fallback_continue": "I can keep talking this through with you. Tell me what feels off, what outcome you want, or what part you want me to judge first."
+  },
+  "allowed_outputs": [
+    "SystemImprovementPacket",
+    "ReleaseManifest",
+    "ReleaseGateReport",
+    "RollbackPlan",
+    "TelegramMetaReply"
+  ],
+  "forbidden_actions": [
+    "direct_production_deploy",
+    "direct_runtime_config_mutation",
+    "direct_agent_prompt_mutation",
+    "silent_test_bypass"
+  ]
+}

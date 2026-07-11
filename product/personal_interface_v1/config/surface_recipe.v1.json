@@ -56,12 +56,12 @@
     "feedback_learning": "explicit_only"
   },
   "runtime_dependencies": [
-    "product/personal_interface_v1/data/runtime.json"
+    "runtime/product_state/personal_interface_v1/data/runtime.json"
   ],
   "state_dependencies": [
     "memory/events",
     "memory/sessions",
-    "product/personal_interface_v1/data"
+    "runtime/product_state/personal_interface_v1/data"
   ],
   "entrypoints": [
     "python3 tools/conversation_os.py personal-interface calibrate-start",

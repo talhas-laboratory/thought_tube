@@ -1,0 +1,33 @@
+@import "./aesthetic-tokens.css";
+@import "./motion-tokens.css";
+
+:root {
+  --touch-target-min: 44px;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--surface-field);
+  color: var(--text-primary);
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+button,
+textarea {
+  font-family: inherit;
+}

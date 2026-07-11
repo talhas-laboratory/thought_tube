@@ -82,7 +82,7 @@
   "state_dependencies": [
     "memory/events",
     "memory/sessions",
-    "product/inner_world_v1/data"
+    "runtime/product_state/inner_world_v1/data"
   ],
   "entrypoints": [
     "python3 tools/run_inner_world_miniapp.py",

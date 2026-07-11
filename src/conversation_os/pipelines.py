@@ -19,6 +19,71 @@ __all__ = list(PUBLIC_API)
 
 
 DEFAULT_PIPELINES = {
+    "idea_embedding_v1": {
+        "pipeline_id": "idea_embedding_v1",
+        "description": "Take a live fragment and place it into the most plausible larger idea structure.",
+        "steps": [
+            "classify_fragment_role",
+            "identify_parent_ideas",
+            "activate_dimensions",
+            "generate_candidate_transformations",
+            "score_candidate_transformations",
+            "choose_probe_or_integration",
+            "build_user_response",
+        ],
+    },
+    "problem_reframing_v1": {
+        "pipeline_id": "problem_reframing_v1",
+        "description": "Handle high-ambiguity fragments by probing framing before premature integration.",
+        "steps": [
+            "classify_fragment_role",
+            "identify_parent_ideas",
+            "activate_dimensions",
+            "generate_candidate_transformations",
+            "score_candidate_transformations",
+            "choose_probe_or_integration",
+            "build_user_response",
+        ],
+    },
+    "candidate_evaluation_v1": {
+        "pipeline_id": "candidate_evaluation_v1",
+        "description": "Judge an existing candidate direction for fit, novelty, and next action.",
+        "steps": [
+            "classify_fragment_role",
+            "identify_parent_ideas",
+            "activate_dimensions",
+            "generate_candidate_transformations",
+            "score_candidate_transformations",
+            "choose_probe_or_integration",
+            "build_user_response",
+        ],
+    },
+    "intuition_expansion_v1": {
+        "pipeline_id": "intuition_expansion_v1",
+        "description": "Expand an intuitive or interpretive fragment into adjacent meanings without collapsing the spark too early.",
+        "steps": [
+            "classify_fragment_role",
+            "identify_parent_ideas",
+            "activate_dimensions",
+            "generate_candidate_transformations",
+            "score_candidate_transformations",
+            "choose_probe_or_integration",
+            "build_user_response",
+        ],
+    },
+    "symbolic_interpretation_v1": {
+        "pipeline_id": "symbolic_interpretation_v1",
+        "description": "Interpret a symbolic fragment by mapping latent meanings and adjacent associations without forcing a single literal reading.",
+        "steps": [
+            "classify_fragment_role",
+            "identify_parent_ideas",
+            "activate_dimensions",
+            "generate_candidate_transformations",
+            "score_candidate_transformations",
+            "choose_probe_or_integration",
+            "build_user_response",
+        ],
+    },
     "vault_decomposition_v1": {
         "pipeline_id": "vault_decomposition_v1",
         "description": "Turn one vault chunk into a reviewable meta-layer packet.",

@@ -1,0 +1,19 @@
+/**
+ * Aesthetic role tokens — binding names from AESTHETICS.md
+ * Values are roles, not literal metaphor. Tune per theme.
+ */
+:root {
+  --surface-field: #0a0a0c;
+  --surface-field-elevated: #121218;
+  --locus-emphasis: 1;
+  --context-recede-opacity: 0.42;
+  --context-recede-scale: 0.94;
+  --context-recede-type-scale: 0.88;
+  --accent-locus: #c4b5a8;
+  --text-primary: #f2efe8;
+  --text-receded: #8a8580;
+  --chrome-minimal: transparent;
+  --surface-dock: color-mix(in srgb, var(--surface-field-elevated) 11%, var(--surface-field));
+  --line-subtle: color-mix(in srgb, var(--text-receded) 14%, transparent);
+  --line-faint: color-mix(in srgb, var(--text-receded) 8%, transparent);
+}

@@ -31,6 +31,10 @@ Checkpoint creates:
 
 Checkpoint is lightweight. It does not create durable cards by itself.
 
+### Transcript mirror
+
+If you need a human-facing document, run `session transcript` after checkpointing. It mirrors the ordered transcript into `docs/transcripts/<session_id>.md` without changing the underlying event log.
+
 ### Close
 
 Closing a session triggers:
@@ -64,4 +68,4 @@ Imported transcripts or notes must be normalized into a session and then process
 ## Source and derived boundaries
 
 - Source of truth: `memory/events/` and explicit import files
-- Derived: `memory/sessions/<session_id>/`, `memory/cards/`, `context/task_packs/`, `product/inner_world_v1/exports/`
+- Derived: `memory/sessions/<session_id>/`, `memory/cards/`, `context/task_packs/`, `artifacts/exports/inner_world_v1/exports/`

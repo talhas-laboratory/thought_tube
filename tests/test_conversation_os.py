@@ -1,3 +1,4 @@
+import base64
 import json
 import importlib
 import importlib.util
@@ -73,7 +74,7 @@ from conversation_os.chat_backends import (
     rollback_openclaw_model_control,
     stage_openclaw_agent_model,
 )
-from conversation_os.cli import init_repo, main, session_append, session_close, session_import, session_start
+from conversation_os.cli import init_repo, main, session_append, session_close, session_import, session_start, session_transcript
 from conversation_os.holodeck import (
     _collect_completed_run_drift_warnings,
     _collect_constraint_violations,
@@ -2682,7 +2683,7 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertTrue((self.root / "product" / "personal_interface_v1" / "config" / "surface_recipe.v1.json").exists())
         self.assertGreaterEqual(len(recipe["module_refs"]), 2)
         self.assertGreaterEqual(len(recipe["adapter_refs"]), 2)
-        self.assertIn("product/personal_interface_v1/data", recipe["state_dependencies"])
+        self.assertIn("runtime/product_state/personal_interface_v1/data", recipe["state_dependencies"])
 
     def test_session_lifecycle_materializes_artifacts(self) -> None:
         started = session_start(
@@ -2706,6 +2707,27 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertTrue((self.root / "memory" / "sessions" / "session-test" / "analysis" / "session_packet.json").exists())
         self.assertTrue((self.root / "memory" / "indexes" / "current_state.md").exists())
         self.assertTrue((task_packs_dir(self.root) / "handoff-build-foundation.json").exists())
+
+    def test_session_transcript_mirrors_ordered_transcript_into_docs(self) -> None:
+        session_start(
+            self.root,
+            type("Args", (), {"session_id": "transcript-test", "title": "Transcript mirror", "participants": "user,agent", "source_type": "live_session", "domains": "research"})(),
+        )
+        session_append(
+            self.root,
+            type("Args", (), {"session_id": "transcript-test", "actor": "user", "kind": "request", "content": "Keep a transcript mirror.", "attachments": "", "tags": "transcript", "source_ref": None})(),
+        )
+        result = session_transcript(
+            self.root,
+            type("Args", (), {"session_id": "transcript-test", "output": ""})(),
+        )
+        ordered_path = self.root / "memory" / "sessions" / "transcript-test" / "ordered_transcript.md"
+        mirror_path = self.root / "docs" / "transcripts" / "transcript-test.md"
+
+        self.assertEqual(result["transcript_mirror"], str(mirror_path))
+        self.assertTrue(ordered_path.exists())
+        self.assertTrue(mirror_path.exists())
+        self.assertEqual(mirror_path.read_text(encoding="utf-8"), ordered_path.read_text(encoding="utf-8"))
 
     def test_import_parity_generates_same_shape(self) -> None:
         source = self.root / "tmp-import.md"
@@ -5498,13 +5520,18 @@ class ConversationOSTestCase(unittest.TestCase):
         bundle_dir = Path(bundle["bundle_dir"])
         self.assertTrue((bundle_dir / "app.json").exists())
         self.assertTrue((bundle_dir / "runtime-config.js").exists())
+        self.assertTrue((bundle_dir / "self-improvement.html").exists())
+        self.assertTrue((bundle_dir / "self-improvement" / "index.html").exists())
         self.assertTrue((bundle_dir / "world-studio.html").exists())
         self.assertTrue((bundle_dir / "world-studio.css").exists())
         self.assertTrue((bundle_dir / "world-studio.js").exists())
         index_html = (bundle_dir / "index.html").read_text(encoding="utf-8")
+        self_improvement_html = (bundle_dir / "self-improvement.html").read_text(encoding="utf-8")
         runtime_config = (bundle_dir / "runtime-config.js").read_text(encoding="utf-8")
         self.assertIn("./styles.css", index_html)
         self.assertIn("./app.js", index_html)
+        self.assertIn('const bundleApiBase = "/apps/api/inner-world-test";', self_improvement_html)
+        self.assertIn('`${apiBase}/self-improvement`', self_improvement_html)
         self.assertIn("/apps/api/inner-world-test", runtime_config)
 
     def test_miniapp_serves_feed_ui_enhancement_assets(self) -> None:
@@ -5651,6 +5678,61 @@ class ConversationOSTestCase(unittest.TestCase):
                 thread.join(timeout=2)
                 server.server_close()
 
+    def test_miniapp_mobile_compose_returns_insertion_payload(self) -> None:
+        with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                opener = self._mobile_session_opener(base_url)
+                session = ensure_mobile_capture_session(self.root)
+                with mock.patch(
+                    "conversation_os.mobile_capture_compose.run_reasoning",
+                    return_value={
+                        "result": {"response_text": "still open around: bridge compose"},
+                        "context_state": {
+                            "request_id": "req-http-compose",
+                            "attributes": {"routing_source": "heuristic", "bridge_behavior_ids": []},
+                        },
+                        "route": {"pipeline_id": "intuition_expansion_v1"},
+                        "frame_bundle": {"source_refs": ["retrieval:bridge compose"]},
+                    },
+                ):
+                    request = urllib_request.Request(
+                        f"{base_url}/api/mobile/compose",
+                        data=json.dumps(
+                            {
+                                "deposit": {
+                                    "local_deposit_id": "deposit-http-1",
+                                    "body": "How should compose route through the bridge?",
+                                    "created_at": 1719494400000,
+                                },
+                                "session_id": session["session_id"],
+                                "intent": "nudge",
+                                "composition_phase": "capture",
+                                "capture_mode_state": {
+                                    "mode": "exploration",
+                                    "response_contract": "continuation_cue",
+                                    "ai_presence": 2,
+                                    "goal_state": "preserve_flow",
+                                    "confidence": 0.7,
+                                },
+                            }
+                        ).encode("utf-8"),
+                        method="POST",
+                        headers={"Content-Type": "application/json"},
+                    )
+                    with opener.open(request) as response:
+                        self.assertEqual(response.status, 200)
+                        payload = json.loads(response.read().decode("utf-8"))
+                self.assertFalse(payload["fallback"])
+                self.assertEqual(payload["insertion"]["utterance_type"], "cue")
+                self.assertEqual(payload["reasoning"]["request_id"], "req-http-compose")
+                events = read_jsonl(session_events_path(self.root, session["session_id"]))
+                self.assertEqual(events[-1]["kind"], "insertion")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
     def test_miniapp_mobile_feedback_saved_persists_saved_state(self) -> None:
         with mock.patch.dict(os.environ, {"INNER_WORLD_MOBILE_PASSWORD": "mobile-pass"}, clear=False):
             server, thread, base_url = self._start_test_mobile_miniapp_server()
@@ -5778,7 +5860,366 @@ class ConversationOSTestCase(unittest.TestCase):
                 with opener.open(f"{base_url}/mobile") as response:
                     self.assertEqual(response.status, 200)
                     body = response.read().decode("utf-8")
-                self.assertIn("mobile", body)
+                self.assertIn("Inner World Mobile", body)
+                self.assertIn('id="root"', body)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_mobile_host_root_serves_mobile_shell_and_assets(self) -> None:
+        env = {
+            "INNER_WORLD_MOBILE_PASSWORD": "mobile-pass",
+            "INNER_WORLD_MOBILE_HOSTNAME": "mobile.example.test",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                root_request = urllib_request.Request(
+                    f"{base_url}/",
+                    headers={"Host": "mobile.example.test"},
+                )
+                with urllib_request.urlopen(root_request) as response:
+                    self.assertEqual(response.status, 200)
+                    html = response.read().decode("utf-8")
+                self.assertIn("Inner World Mobile", html)
+                self.assertIn('id="root"', html)
+                self.assertIn("./app.js", html)
+
+                asset_request = urllib_request.Request(
+                    f"{base_url}/app.js",
+                    headers={"Host": "mobile.example.test"},
+                )
+                with urllib_request.urlopen(asset_request) as response:
+                    self.assertEqual(response.status, 200)
+                    app_js = response.read().decode("utf-8")
+                self.assertIn("INNER_WORLD_MOBILE_CONFIG", app_js)
+                self.assertIn("bottom-glass-bar", app_js)
+                self.assertIn("capture-empty-orb", app_js)
+
+                manifest_request = urllib_request.Request(
+                    f"{base_url}/manifest.webmanifest",
+                    headers={"Host": "mobile.example.test"},
+                )
+                with urllib_request.urlopen(manifest_request) as response:
+                    self.assertEqual(response.status, 200)
+                    manifest = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(manifest["name"], "Inner World Mobile")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_capture_host_requires_basic_auth_for_shell_and_api(self) -> None:
+        capture_dist = REPO_ROOT / "product" / "thought_capture_pwa" / "dist"
+        if not (capture_dist / "index.html").exists():
+            self.skipTest("thought_capture_pwa dist not built")
+
+        env = {
+            "INNER_WORLD_MOBILE_PASSWORD": "mobile-pass",
+            "INNER_WORLD_CAPTURE_HOSTNAME": "notes.example.test",
+            "INNER_WORLD_CAPTURE_USERNAME": "capture",
+            "INNER_WORLD_CAPTURE_PASSWORD": "capture-pass",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            shutil.copytree(capture_dist, self.root / "product" / "thought_capture_pwa" / "dist", dirs_exist_ok=True)
+            server, thread, base_url = self._start_test_miniapp_server()
+            try:
+                unauthorized_request = urllib_request.Request(
+                    f"{base_url}/capture",
+                    headers={"Host": "notes.example.test"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as unauthorized_error:
+                    urllib_request.urlopen(unauthorized_request)
+                self.assertEqual(unauthorized_error.exception.code, 401)
+                self.assertIn("Basic", unauthorized_error.exception.headers["WWW-Authenticate"])
+
+                credentials = base64.b64encode(b"capture:capture-pass").decode("ascii")
+                authorized_headers = {
+                    "Authorization": f"Basic {credentials}",
+                    "Host": "notes.example.test",
+                }
+                capture_request = urllib_request.Request(
+                    f"{base_url}/capture",
+                    headers=authorized_headers,
+                )
+                with urllib_request.urlopen(capture_request) as response:
+                    self.assertEqual(response.status, 200)
+                    html = response.read().decode("utf-8")
+                    response_headers = response.headers
+                self.assertIn("Thought Capture", html)
+                self.assertEqual(response_headers["X-Content-Type-Options"], "nosniff")
+                self.assertEqual(response_headers["X-Frame-Options"], "DENY")
+                self.assertEqual(response_headers["Referrer-Policy"], "no-referrer")
+                self.assertIn("default-src 'self'", response_headers["Content-Security-Policy"])
+
+                compose_request = urllib_request.Request(
+                    f"{base_url}/api/mobile/capture/session",
+                    data=json.dumps({}).encode("utf-8"),
+                    method="POST",
+                    headers={
+                        "Authorization": f"Basic {credentials}",
+                        "Content-Type": "application/json",
+                        "Host": "notes.example.test",
+                    },
+                )
+                with urllib_request.urlopen(compose_request) as response:
+                    self.assertEqual(response.status, 200)
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertIn("session_id", payload)
+
+                meta_console_request = urllib_request.Request(
+                    f"{base_url}/meta",
+                    headers=authorized_headers,
+                )
+                with urllib_request.urlopen(meta_console_request) as response:
+                    self.assertEqual(response.status, 200)
+                    meta_html = response.read().decode("utf-8")
+                self.assertIn("Self Improvement Console", meta_html)
+                self.assertIn('href="/capture"', meta_html)
+                self.assertIn('href="/meta"', meta_html)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_capture_host_fails_closed_without_capture_password(self) -> None:
+        capture_dist = REPO_ROOT / "product" / "thought_capture_pwa" / "dist"
+        if not (capture_dist / "index.html").exists():
+            self.skipTest("thought_capture_pwa dist not built")
+
+        env = {
+            "INNER_WORLD_CAPTURE_HOSTNAME": "notes.example.test",
+            "INNER_WORLD_CAPTURE_PASSWORD": "",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            shutil.copytree(capture_dist, self.root / "product" / "thought_capture_pwa" / "dist", dirs_exist_ok=True)
+            server, thread, base_url = self._start_test_miniapp_server()
+            try:
+                request = urllib_request.Request(
+                    f"{base_url}/capture",
+                    headers={"Host": "notes.example.test"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as error_context:
+                    urllib_request.urlopen(request)
+                self.assertEqual(error_context.exception.code, 503)
+                payload = json.loads(error_context.exception.read().decode("utf-8"))
+                self.assertEqual(payload["error"], "capture_auth_not_configured")
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+                server.server_close()
+
+    def test_miniapp_self_improvement_packet_endpoint_returns_classified_packet(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/packet",
+                method="POST",
+                payload={
+                    "text": "Create versioned rollback before production deploy.",
+                    "session_id": "bridge-session-test",
+                    "turn_id": "bridge-turn-test",
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["classification"]["domain"], "deployment_release")
+            self.assertEqual(payload["classification"]["risk"], "critical")
+            self.assertFalse(payload["release"]["deploy_allowed"])
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_self_improvement_interpret_endpoint_returns_mode_state(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/interpret",
+                method="POST",
+                payload={
+                    "text": "Should we change how the bridge handles sidecar context?",
+                    "surface_mode": "meta",
+                    "meta_state": "discuss",
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["surface_mode"], "meta")
+            self.assertEqual(payload["meta_state"], "discuss")
+            self.assertEqual(payload["domain"], "bridge_work")
+            self.assertFalse(payload["should_create_packet"])
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_self_improvement_chat_endpoint_discuss_mode_stays_provisional(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/chat",
+                method="POST",
+                payload={
+                    "text": "Should we change how the bridge handles sidecar context?",
+                    "surface_mode": "meta",
+                    "meta_state": "discuss",
+                    "session_id": "bridge-session-test",
+                    "turn_id": "bridge-turn-test",
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["interpretation"]["meta_state"], "discuss")
+            self.assertFalse(payload["interpretation"]["should_create_packet"])
+            self.assertIsNone(payload["packet"])
+            self.assertEqual(payload["interpretation"]["builder_phase"], "objective_confirmation")
+            self.assertIn("I think you're trying to", payload["assistant_text"])
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_self_improvement_chat_endpoint_operate_mode_creates_packet_after_confirmation(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/chat",
+                method="POST",
+                payload={
+                    "text": "Implement rollback and gate-controlled deploy before production release.",
+                    "surface_mode": "meta",
+                    "meta_state": "operate",
+                    "session_id": "bridge-session-test",
+                    "turn_id": "bridge-turn-test",
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["interpretation"]["builder_phase"], "objective_confirmation")
+            self.assertFalse(payload["interpretation"]["should_create_packet"])
+
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/chat",
+                method="POST",
+                payload={
+                    "text": "yes",
+                    "surface_mode": "meta",
+                    "meta_state": "operate",
+                    "session_id": "bridge-session-test",
+                    "turn_id": "bridge-turn-test-2",
+                    "builder_state": payload["builder_state"],
+                    "workspace_context": {
+                        "workspace_id": "inner-world",
+                        "repository": {"changed_files": ["src/conversation_os/miniapp.py"], "source_revision": "abc123"},
+                        "orientation": {"blockers": [], "open_threads": ["deploy flow"]},
+                    },
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["interpretation"]["meta_state"], "operate")
+            self.assertFalse(payload["interpretation"]["should_create_packet"])
+            self.assertIn("What should count as done", payload["assistant_text"])
+
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/chat",
+                method="POST",
+                payload={
+                    "text": "Gate deploys and rollback before production release.",
+                    "surface_mode": "meta",
+                    "meta_state": "operate",
+                    "session_id": "bridge-session-test",
+                    "turn_id": "bridge-turn-test-3",
+                    "builder_state": payload["builder_state"],
+                    "workspace_context": {
+                        "workspace_id": "inner-world",
+                        "repository": {"changed_files": ["src/conversation_os/miniapp.py"], "source_revision": "abc123"},
+                        "orientation": {"blockers": [], "open_threads": ["deploy flow"]},
+                    },
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertTrue(payload["interpretation"]["should_create_packet"])
+            self.assertIsNotNone(payload["packet"])
+            self.assertEqual(payload["packet"]["classification"]["domain"], "deployment_release")
+            self.assertIn("Scope:", payload["assistant_text"])
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_self_improvement_release_candidate_endpoint_returns_manifest(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/release/candidate",
+                method="POST",
+                payload={"release_id": "miniapp-release-test"},
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["release_id"], "miniapp-release-test")
+            self.assertIn("runtime_config", payload["artifacts"])
+            self.assertEqual(payload["gates"]["status"], "blocked")
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_self_improvement_rollback_plan_endpoint_returns_dry_run(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            status, payload = self._json_request(
+                f"{base_url}/api/self-improvement/release/rollback-plan",
+                method="POST",
+                payload={
+                    "current_release_id": "inner-world-new",
+                    "previous_release_id": "inner-world-old",
+                },
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["current_release_id"], "inner-world-new")
+            self.assertEqual(payload["target_release_id"], "inner-world-old")
+            self.assertEqual(payload["status"], "dry_run")
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_self_improvement_console_serves_html(self) -> None:
+        server, thread, base_url = self._start_test_miniapp_server()
+        try:
+            with urllib_request.urlopen(f"{base_url}/self-improvement") as response:
+                self.assertEqual(response.status, 200)
+                html = response.read().decode("utf-8")
+            self.assertIn("Self Improvement Console", html)
+            self.assertIn("Note", html)
+            self.assertIn("Meta", html)
+            self.assertIn("Discuss", html)
+            self.assertIn("Operate", html)
+            self.assertIn("/api/self-improvement/chat", html)
+            self.assertIn("/api/self-improvement/interpret", html)
+            self.assertIn("/api/self-improvement/packet", html)
+            self.assertIn("/api/self-improvement/release/candidate", html)
+            self.assertIn("inferSelfImprovementApiBase", html)
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
+    def test_miniapp_mobile_host_root_still_gates_mobile_api(self) -> None:
+        env = {
+            "INNER_WORLD_MOBILE_PASSWORD": "mobile-pass",
+            "INNER_WORLD_MOBILE_HOSTNAME": "mobile.example.test",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            server, thread, base_url = self._start_test_mobile_miniapp_server()
+            try:
+                request = urllib_request.Request(
+                    f"{base_url}/api/mobile/feed",
+                    headers={"Host": "mobile.example.test"},
+                )
+                with self.assertRaises(urllib_error.HTTPError) as error_context:
+                    urllib_request.urlopen(request)
+                self.assertEqual(error_context.exception.code, 401)
+                payload = json.loads(error_context.exception.read().decode("utf-8"))
+                self.assertEqual(payload["error"], "auth_required")
             finally:
                 server.shutdown()
                 thread.join(timeout=2)
@@ -5794,22 +6235,39 @@ class ConversationOSTestCase(unittest.TestCase):
                     self.assertEqual(response.status, 200)
                     html = response.read().decode("utf-8")
                 self.assertIn("Inner World Mobile", html)
+                self.assertIn('id="root"', html)
+                self.assertIn("./runtime-config.js", html)
 
                 with opener.open(f"{base_url}/mobile/app.js") as response:
                     self.assertEqual(response.status, 200)
                     app_js = response.read().decode("utf-8")
                 self.assertIn("INNER_WORLD_MOBILE_CONFIG", app_js)
+                self.assertIn("bottom-glass-bar", app_js)
+                self.assertIn("Continue conversation", app_js)
+                self.assertIn("capture-empty-orb", app_js)
 
                 with opener.open(f"{base_url}/mobile/styles.css") as response:
                     self.assertEqual(response.status, 200)
                     css = response.read().decode("utf-8")
-                self.assertIn("Inner World Mobile", css)
+                compact_css = css.replace(" ", "")
+                self.assertIn("overflow-x:hidden", compact_css)
+                self.assertIn("min-width:0", compact_css)
+                self.assertIn("overflow-wrap:anywhere", compact_css)
+                self.assertIn(".bottom-glass-bar", css)
+                self.assertIn("backdrop-filter:blur(26px)", compact_css)
 
                 with opener.open(f"{base_url}/manifest.webmanifest") as response:
                     self.assertEqual(response.status, 200)
                     manifest = json.loads(response.read().decode("utf-8"))
                 self.assertEqual(manifest["name"], "Inner World Mobile")
-                self.assertEqual(manifest["start_url"], "/mobile/")
+                self.assertEqual(manifest["start_url"], "/")
+
+                with opener.open(f"{base_url}/mobile/service-worker.js") as response:
+                    self.assertEqual(response.status, 200)
+                    service_worker = response.read().decode("utf-8")
+                self.assertIn('const CACHE_NAME = "inner-world-mobile-v2"', service_worker)
+                self.assertIn('"/app.js"', service_worker)
+                self.assertIn('"/styles.css"', service_worker)
             finally:
                 server.shutdown()
                 thread.join(timeout=2)
@@ -7074,7 +7532,7 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(third["counts"]["changed"], 2)
         self.assertEqual(third["ingested_item_count"], 2)
 
-        registry = read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl")
+        registry = load_source_registry_raw(self.root)
         source_refs = {row["source_ref"] for row in registry}
         self.assertIn(str(chat_file.resolve()), source_refs)
         self.assertIn(f"sqlite://{db_path.resolve()}#memory_items/1", source_refs)
@@ -7113,7 +7571,7 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(second["ingested_item_count"], 2)
         self.assertEqual(second["deferred_item_count"], 0)
 
-        registry = read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl")
+        registry = load_source_registry_raw(self.root)
         self.assertEqual(len(registry), 3)
 
     def test_library_sync_purges_deleted_sources(self) -> None:
@@ -7139,14 +7597,14 @@ class ConversationOSTestCase(unittest.TestCase):
 
         sync_library_sources(self.root)
         self.assertTrue(
-            any(row["source_ref"] == str(source.resolve()) for row in read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl"))
+            any(row["source_ref"] == str(source.resolve()) for row in load_source_registry_raw(self.root))
         )
 
         source.unlink()
         result = sync_library_sources(self.root)
         self.assertEqual(result["counts"]["deleted"], 1)
         self.assertFalse(
-            any(row["source_ref"] == str(source.resolve()) for row in read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl"))
+            any(row["source_ref"] == str(source.resolve()) for row in load_source_registry_raw(self.root))
         )
 
     def test_cli_library_commands_return_structured_payloads(self) -> None:
@@ -8137,7 +8595,7 @@ class ConversationOSTestCase(unittest.TestCase):
         result = sync_library_sources(self.root)
         self.assertEqual(result["counts"]["new"], 1)
         self.assertEqual(result["ingested_item_count"], 1)
-        registry = read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl")
+        registry = load_source_registry_raw(self.root)
         self.assertEqual(registry[0]["source_ref"], str(source.resolve()))
 
     def test_library_sync_supports_remote_sqlite_sources(self) -> None:
@@ -8172,7 +8630,7 @@ class ConversationOSTestCase(unittest.TestCase):
         result = sync_library_sources(self.root)
         self.assertEqual(result["counts"]["new"], 1)
         self.assertEqual(result["ingested_item_count"], 1)
-        registry = read_jsonl(self.root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl")
+        registry = load_source_registry_raw(self.root)
         self.assertEqual(registry[0]["source_ref"], f"sqlite://{db_path.resolve()}#memories/1")
 
     def test_pond_router_status_bootstraps_defaults_and_runtime_overview(self) -> None:
@@ -12243,7 +12701,7 @@ class ConversationOSTestCase(unittest.TestCase):
                 "--mobile-hostname",
                 "mobile.example.test",
                 "--mobile-service-url",
-                "http://127.0.0.1:3010/apps/inner-world/mobile/",
+                "http://127.0.0.1:8422",
                 "--mobile-password",
                 "mobile-secret",
             ]
@@ -12251,10 +12709,23 @@ class ConversationOSTestCase(unittest.TestCase):
 
         self.assertTrue(args.with_mobile_surface)
         self.assertEqual(args.mobile_hostname, "mobile.example.test")
-        self.assertEqual(args.mobile_service_url, "http://127.0.0.1:3010/apps/inner-world/mobile/")
+        self.assertEqual(args.mobile_service_url, "http://127.0.0.1:8422")
         self.assertEqual(args.mobile_password, "mobile-secret")
 
-    def test_patch_cloudflared_config_accepts_full_service_url(self) -> None:
+    def test_deploy_inner_world_syncs_mobile_surface_bundle(self) -> None:
+        module = _load_tool_module("deploy_inner_world_to_openclaw_sync_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        self.assertIn("product/mobile_surface_v1", module.PRODUCT_SYNC_ITEMS)
+        self.assertIn("src", module.SYNC_ITEMS)
+        self.assertEqual(module.verify_bridge_modules_present(self.root), [])
+
+    def test_deploy_inner_world_bridge_modules_exist_locally(self) -> None:
+        module = _load_tool_module("deploy_inner_world_bridge_modules_test", "tools/deploy_inner_world_to_openclaw.py")
+        repo_root = Path(__file__).resolve().parents[1]
+        missing = module.verify_bridge_modules_present(repo_root)
+        self.assertEqual(missing, [])
+
+    def test_patch_cloudflared_config_replaces_existing_hostname_block(self) -> None:
         module = _load_tool_module("deploy_inner_world_to_openclaw_cloudflared_test", "tools/deploy_inner_world_to_openclaw.py")
 
         with mock.patch.object(module, "run") as run_mock:
@@ -12262,13 +12733,14 @@ class ConversationOSTestCase(unittest.TestCase):
                 "talha@example",
                 "/tmp/config.yml",
                 "mobile.example.test",
-                "http://127.0.0.1:3010/apps/inner-world/mobile/",
+                "http://127.0.0.1:8422",
             )
 
         run_mock.assert_called_once()
         args, kwargs = run_mock.call_args
         self.assertEqual(args[0], ["ssh", "talha@example", "python3 -"])
-        self.assertIn("service: http://127.0.0.1:3010/apps/inner-world/mobile/", kwargs["input_text"])
+        self.assertIn("pattern = re.compile", kwargs["input_text"])
+        self.assertIn("service: http://127.0.0.1:8422", kwargs["input_text"])
 
     def test_install_service_with_stdin_injects_environment_file_for_mobile_surface(self) -> None:
         module = _load_tool_module("deploy_inner_world_to_openclaw_service_test", "tools/deploy_inner_world_to_openclaw.py")
@@ -12281,6 +12753,48 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertEqual(args[0], ["ssh", "talha@example", "mkdir -p ~/.config/systemd/user && cat > ~/.config/systemd/user/inner-world.service"])
         self.assertIn("EnvironmentFile=-%h/.config/inner-world.env", kwargs["input_text"])
         self.assertIn("Environment=PYTHONPATH=/srv/inner-world/src", kwargs["input_text"])
+
+    def test_install_inner_world_env_writes_mobile_hostname_and_password(self) -> None:
+        module = _load_tool_module("deploy_inner_world_to_openclaw_env_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        with mock.patch.object(module, "run") as run_mock:
+            module.install_inner_world_env(
+                "talha@example",
+                mobile_password="mobile-secret",
+                mobile_hostname="mobile.example.test",
+            )
+
+        run_mock.assert_called_once()
+        args, kwargs = run_mock.call_args
+        self.assertEqual(args[0], ["ssh", "talha@example", "mkdir -p ~/.config && cat > ~/.config/inner-world.env"])
+        self.assertIn("INNER_WORLD_MOBILE_HOSTNAME=mobile.example.test", kwargs["input_text"])
+        self.assertIn("INNER_WORLD_MOBILE_PASSWORD=mobile-secret", kwargs["input_text"])
+
+    def test_restart_services_restarts_inner_world_service(self) -> None:
+        module = _load_tool_module("deploy_inner_world_to_openclaw_restart_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        with mock.patch.object(module, "run") as run_mock:
+            module.restart_services("talha@example")
+
+        run_mock.assert_called_once()
+        args, _ = run_mock.call_args
+        self.assertEqual(args[0][0:2], ["ssh", "talha@example"])
+        self.assertIn("systemctl --user restart inner-world.service", args[0][2])
+
+    def test_restart_cloudflared_waits_for_exact_old_process_exit(self) -> None:
+        module = _load_tool_module("deploy_inner_world_cloudflared_restart_test", "tools/deploy_inner_world_to_openclaw.py")
+
+        with mock.patch.object(module, "run") as run_mock:
+            module.restart_cloudflared("talha@example", "/tmp/config.yml", "test-tunnel")
+
+        run_mock.assert_called_once()
+        script = run_mock.call_args.args[0][2]
+        self.assertIn('PROCESS_PATTERN="^$BIN tunnel --config $CONFIG run $TUNNEL$"', script)
+        self.assertIn('while pgrep -f "$PROCESS_PATTERN"', script)
+        self.assertIn('kill -KILL $OLD_PIDS', script)
+        self.assertIn("systemctl --user restart cloudflared-klarorder-gpt.service", script)
+        self.assertIn("docker restart cloudflared", script)
+        self.assertNotIn('pkill -f "cloudflared tunnel', script)
 
     def test_rewrite_outgoing_message_updates_shared_bridge_state(self) -> None:
         self._write_personal_interface_profile()

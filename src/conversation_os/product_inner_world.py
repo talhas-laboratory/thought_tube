@@ -9,6 +9,15 @@ from typing import Any, Dict, Iterable, List
 
 from .analysis import update_manifest
 from .chat_backends import request_openclaw_reply, resolve_chat_backend
+from .bridge_controller import load_bridge_config
+from .reasoning_bridge import (
+    find_latest_context_for_thought,
+    find_latest_result_for_request,
+    get_context_bundle,
+    is_incognito_context,
+)
+from .reasoning_learning import persist_bridge_behavior_preferences, record_learning_event
+from .reasoning_runtime import run_reasoning
 from .conversation_synthesis import (
     load_concept_edges,
     load_concept_nodes,
@@ -94,6 +103,7 @@ from .review_queue import (
     load_review_queue as _load_review_queue,
     write_review_state,
 )
+from .runtime_layout import product_artifact_dir, product_config_dir, product_runtime_dir
 from .runtime_pipeline import (
     ensure_runtime_pipeline_config,
     execute_runtime_pipeline,
@@ -101,7 +111,7 @@ from .runtime_pipeline import (
     load_runtime_pipeline_config,
     update_runtime_pipeline_component as update_runtime_pipeline_component_config,
 )
-from .models import ConversationEvent, SessionManifest
+from .models import ConversationEvent, ReasoningLearningEvent, ReasoningRequest, SessionManifest
 from .storage import ensure_dir, make_id, read_json, read_jsonl, utc_now, write_json, write_jsonl, write_markdown
 from .storage import append_jsonl, session_dir, session_events_path
 from .thought_factory import (
@@ -175,11 +185,11 @@ __all__ = list(PUBLIC_API)
 
 
 def _data_dir(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data"
+    return product_runtime_dir(root, "inner_world_v1", "data")
 
 
 def _exports_dir(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "exports"
+    return product_artifact_dir(root, "inner_world_v1", "exports")
 
 
 def _threads_dir(root: Path) -> Path:
@@ -203,7 +213,11 @@ def _context_bubbles_progress_path(root: Path) -> Path:
 
 
 def _surface_recipe_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "config" / "surface_recipe.v1.json"
+    return product_config_dir(root, "inner_world_v1") / "surface_recipe.v1.json"
+
+
+def _repo_relative(root: Path, path: Path) -> str:
+    return str(path.relative_to(root))
 
 
 def _default_surface_recipe(root: Path) -> Dict[str, Any]:
@@ -290,7 +304,7 @@ def _default_surface_recipe(root: Path) -> Dict[str, Any]:
         "state_dependencies": [
             "memory/events",
             "memory/sessions",
-            "product/inner_world_v1/data",
+            _repo_relative(root, _data_dir(root)),
         ],
         "entrypoints": [
             "python3 tools/run_inner_world_miniapp.py",
@@ -876,6 +890,7 @@ def _append_session_event(
     kind: str,
     content: str,
     tags: List[str] | None = None,
+    attributes: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     event = ConversationEvent(
         event_id=make_id("event"),
@@ -888,8 +903,11 @@ def _append_session_event(
         tags=list(tags or []),
         source_ref=None,
     )
-    append_jsonl(session_events_path(root, session_id), event.to_dict())
-    return event.to_dict()
+    payload = event.to_dict()
+    if attributes:
+        payload["attributes"] = dict(attributes)
+    append_jsonl(session_events_path(root, session_id), payload)
+    return payload
 
 
 def _require_non_blank_mobile_content(content: str, *, field_name: str) -> str:
@@ -923,8 +941,11 @@ def _mobile_reply_context(session_manifest: Dict[str, Any], events: List[Dict[st
     return {
         "character": "Grounded Inner World companion",
         "system_prompt": (
-            "Stay concise and grounded in the user's own session captures and recent messages. "
-            "Do not invent outside evidence. End with one concrete next move."
+            "You are a thoughtful companion in a private thought-capture session. "
+            "Reply naturally in one to three short sentences, like a calm chat partner. "
+            "Stay grounded in what the user actually said; do not invent facts. "
+            "Do not mention scores, embeddings, integration, routing, or internal system behavior. "
+            "Ask at most one gentle follow-up when it helps them continue thinking."
         ),
         "source_snippets": source_snippets,
         "session_title": session_manifest.get("title", ""),
@@ -932,14 +953,37 @@ def _mobile_reply_context(session_manifest: Dict[str, Any], events: List[Dict[st
 
 
 def _generate_mobile_session_reply(context: Dict[str, Any], user_message: str, events: List[Dict[str, Any]]) -> str:
-    captures = [event.get("content", "").strip() for event in events if event.get("kind") == "capture" and event.get("content", "").strip()]
-    latest_capture = captures[-1] if captures else user_message
-    return " ".join(
-        [
-            f"What feels most live is {shorten(latest_capture, 180).rstrip('.')}.",
-            f"Your next question is really about {shorten(user_message, 140).rstrip('.')}.",
-            "Next move: name the concrete pressure or contradiction in one sentence.",
-        ]
+    msg = user_message.strip()
+    if not msg:
+        return "I'm here when you're ready."
+
+    lower = msg.lower().rstrip("!. ")
+    if lower in {"hi", "hello", "hey", "yo", "hiya", "howdy"}:
+        return "Hey — what's on your mind?"
+
+    if lower in {"thanks", "thank you", "thx"}:
+        return "Anytime. Say more whenever something else surfaces."
+
+    user_turns = [
+        str(event.get("content", "")).strip()
+        for event in events
+        if event.get("actor") == "user" and str(event.get("content", "")).strip()
+    ]
+
+    if "?" in msg:
+        return (
+            f"That's a good question. From what you've shared, it sounds like you're circling "
+            f"\"{shorten(msg, 110).rstrip('?')}\" — what would a useful answer look like for you?"
+        )
+
+    if len(user_turns) >= 2 and len(msg) > 48:
+        return (
+            f"I hear you on {shorten(msg, 170).rstrip('.')}. "
+            "It connects to what you've been tracing — what part feels most important to go deeper on?"
+        )
+
+    return (
+        f"{shorten(msg, 220).rstrip('.')} — say more about what feels most alive in that for you right now."
     )
 
 
@@ -3424,6 +3468,40 @@ def _generate_assistant_reply(context: Dict, user_message: str, thread: Dict) ->
     return " ".join(response_parts)
 
 
+def _thought_chat_reasoning_request(
+    root: Path,
+    thought_id: str,
+    user_message: str,
+    thread: Dict,
+    context: Dict,
+    domain_overlays: List[str] | None,
+) -> ReasoningRequest:
+    source_refs = [
+        str(snippet.get("source_ref", "")).strip()
+        for snippet in context.get("source_snippets", [])[:4]
+        if str(snippet.get("source_ref", "")).strip()
+    ]
+    thought = context.get("thought", {}) or {}
+    if not source_refs:
+        source_refs = [str(ref) for ref in thought.get("source_refs", []) or [] if str(ref).strip()]
+    return ReasoningRequest(
+        request_id=make_id("thought-chat"),
+        session_id=thread["thread_id"],
+        surface="thought_chat",
+        raw_text=user_message,
+        source_refs=source_refs,
+        timestamp=utc_now(),
+        domain_hints=list(domain_overlays or []),
+        caller_hints={
+            "thought_id": thought_id,
+            "thread_id": thread["thread_id"],
+            "workspace_id": f"thought:{thought_id}",
+            "object_scope": "same_main",
+            "routing_tags": list(context.get("routing_tags", []) or []),
+        },
+    )
+
+
 def chat_with_thought(
     root: Path,
     thought_id: str,
@@ -3436,28 +3514,44 @@ def chat_with_thought(
         raise KeyError(thought_id)
     thread = _load_thread(root, thread_id) if thread_id else _create_thread(root, thought_id, domain_overlays)
     context = build_thought_context(root, thought_id, domain_overlays)
-    backend = resolve_chat_backend(root)
+    bridge_config = load_bridge_config(root)
     user_entry = {"message_id": make_id("message"), "role": "user", "content": user_message, "created_at": utc_now()}
     thread["messages"].append(user_entry)
-    if backend["id"] == "heuristic":
-        assistant_content = _generate_assistant_reply(context, user_message, thread)
-        backend_id = "heuristic"
+    reasoning_result = None
+    if bridge_config.get("enabled"):
+        reasoning_result = run_reasoning(
+            root,
+            _thought_chat_reasoning_request(root, thought_id, user_message, thread, context, domain_overlays),
+        )
+        assistant_content = str(reasoning_result["result"].get("response_text", "")).strip()
+        routing_source = (
+            (reasoning_result.get("context_state", {}) or {}).get("attributes", {}) or {}
+        ).get("routing_source", "bridge")
+        backend_id = f"bridge:{routing_source}"
     else:
-        reply = request_openclaw_reply(root, context, user_message, thread, backend)
-        assistant_content = reply["content"]
-        backend_id = reply["backend_id"]
+        backend = resolve_chat_backend(root)
+        if backend["id"] == "heuristic":
+            assistant_content = _generate_assistant_reply(context, user_message, thread)
+            backend_id = "heuristic"
+        else:
+            reply = request_openclaw_reply(root, context, user_message, thread, backend)
+            assistant_content = reply["content"]
+            backend_id = reply["backend_id"]
     assistant_entry = {"message_id": make_id("message"), "role": "assistant", "content": assistant_content, "created_at": utc_now()}
     thread["messages"].append(assistant_entry)
     thread["updated_at"] = utc_now()
     thread["backend_id"] = backend_id
     _write_thread(root, thread)
     _record_feed_learning_event(root, thought=thought_lookup[thought_id], event_type="thought_chat", thread_id=thread["thread_id"])
-    return {
+    payload = {
         "thread": thread,
         "assistant_message": assistant_entry,
         "thought": thought_lookup[thought_id],
         "context": context,
     }
+    if reasoning_result is not None:
+        payload["reasoning"] = reasoning_result
+    return payload
 
 
 def _append_thread_to_library(root: Path, thread: Dict) -> List[str]:
@@ -3501,6 +3595,68 @@ def delete_thread(root: Path, thread_id: str) -> Dict:
     return {"thread_id": thread_id, "status": thread["status"]}
 
 
+def _feedback_kind_for_thought_feedback(feedback_state: str) -> str:
+    mapping = {
+        "saved": "confirm",
+        "relevant": "accept",
+        "revisit_later": "prefer",
+    }
+    return mapping.get(str(feedback_state).strip().lower(), "")
+
+
+def _record_bridge_learning_from_thought_feedback(
+    root: Path,
+    *,
+    thought: Dict[str, Any],
+    feedback_state: str,
+) -> Dict[str, Any] | None:
+    feedback_kind = _feedback_kind_for_thought_feedback(feedback_state)
+    if not feedback_kind:
+        return None
+
+    context_state = find_latest_context_for_thought(root, str(thought.get("thought_id", "")).strip())
+    if context_state is None or is_incognito_context(context_state):
+        return None
+    context_bundle = get_context_bundle(root, context_state)
+    envelope = dict(context_bundle.get("session_envelope", {}) or {})
+    learning_mode = str(envelope.get("learning_mode", "allowed") or "allowed")
+    persistence_mode = str(envelope.get("persistence_mode", "gated") or "gated")
+    if learning_mode == "disabled" or persistence_mode != "gated":
+        return None
+
+    request_id = str(context_state.get("request_id", "")).strip()
+    result = find_latest_result_for_request(root, request_id) if request_id else None
+    learning_event = ReasoningLearningEvent(
+        learning_event_id=make_id("reasoning-learning"),
+        request_id=request_id or make_id("thought-feedback"),
+        result_id=str((result or {}).get("result_id", "")),
+        feedback_kind=feedback_kind,
+        accepted_framing=str(feedback_state),
+        rejected_framing="",
+        reframing_text="",
+        preferred_abstraction_shift="",
+        evidence_refs=list(thought.get("source_refs", []) or []),
+        sequence_signature=["thought_feedback", feedback_state],
+        timestamp=utc_now(),
+        attributes={
+            "surface": "thought_feedback",
+            "thought_id": thought.get("thought_id", ""),
+            "insight_id": thought.get("insight_id", ""),
+        },
+    )
+    event_payload = learning_event.to_dict()
+    record_learning_event(root, event_payload)
+    persisted_patterns = persist_bridge_behavior_preferences(
+        root,
+        event_payload,
+        context_state=context_state,
+        result=result,
+    )
+    if persisted_patterns:
+        event_payload.setdefault("attributes", {})["persisted_bridge_behavior_patterns"] = persisted_patterns
+    return event_payload
+
+
 def record_feedback(root: Path, insight_id: str, feedback_state: str) -> Dict:
     path = _data_dir(root) / "feedback_events.jsonl"
     rows = _load_feedback_events(root)
@@ -3511,14 +3667,28 @@ def record_feedback(root: Path, insight_id: str, feedback_state: str) -> Dict:
     snapshot = update_policy_snapshot(root, rows)
     thought = _thought_by_insight_lookup(root).get(insight_id)
     taste_profile = _load_feed_taste_profile(root)
+    bridge_learning_event = None
     if thought is not None:
+        bridge_learning_event = _record_bridge_learning_from_thought_feedback(
+            root,
+            thought=thought,
+            feedback_state=feedback_state,
+        )
         taste_profile = _record_feed_learning_event(
             root,
             thought=thought,
             event_type="explicit_feedback",
             feedback_state=feedback_state,
         )["taste_profile"]
-    return {"insight_id": insight_id, "feedback_state": feedback_state, "policy_snapshot": snapshot, "taste_profile": taste_profile}
+    payload = {
+        "insight_id": insight_id,
+        "feedback_state": feedback_state,
+        "policy_snapshot": snapshot,
+        "taste_profile": taste_profile,
+    }
+    if bridge_learning_event is not None:
+        payload["bridge_learning_event"] = bridge_learning_event
+    return payload
 
 
 def ensure_mobile_capture_session(root: Path, session_id: str | None = None) -> Dict[str, Any]:
@@ -3544,9 +3714,18 @@ def ensure_mobile_capture_session(root: Path, session_id: str | None = None) -> 
     return manifest.to_dict()
 
 
-def append_mobile_capture(root: Path, *, content: str, session_id: str | None = None) -> Dict[str, Any]:
+def append_mobile_capture(
+    root: Path,
+    *,
+    content: str,
+    session_id: str | None = None,
+    provenance: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     _require_non_blank_mobile_content(content, field_name="content")
     manifest = ensure_mobile_capture_session(root, session_id=session_id)
+    event_attributes: Dict[str, Any] = {}
+    if provenance:
+        event_attributes["provenance"] = dict(provenance)
     capture_event = _append_session_event(
         root,
         session_id=manifest["session_id"],
@@ -3554,12 +3733,24 @@ def append_mobile_capture(root: Path, *, content: str, session_id: str | None = 
         kind="capture",
         content=content,
         tags=["mobile_surface", "capture"],
+        attributes=event_attributes or None,
+    )
+    from .element_ingest import ingest_to_element_space
+
+    element_ingest = ingest_to_element_space(
+        root,
+        raw_text=content,
+        source_kind="mobile_capture",
+        source_ref=f"memory/events/{manifest['session_id']}.jsonl#{capture_event['event_id']}",
+        session_id=manifest["session_id"],
+        surface_hints=["mobile_surface", "mobile"],
     )
     return {
         "capture_id": capture_event["event_id"],
         "session_id": manifest["session_id"],
         "created_at": capture_event["timestamp"],
         "continue_conversation_available": True,
+        "element_ingest": element_ingest,
     }
 
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import secrets
 import shutil
 import subprocess
@@ -27,10 +28,10 @@ DEFAULT_APP_ID = "inner-world"
 DEFAULT_PORT = 8422
 DEFAULT_GPT_BRIDGE_PORT = 8093
 DEFAULT_GPT_BRIDGE_HOSTNAME = "inner-world-gpt.talhaslaboratory.xyz"
-DEFAULT_MOBILE_HOSTNAME = "mobile.talhaslaboratory.xyz"
+DEFAULT_MOBILE_HOSTNAME = "mobilegrid.talhaslaboratory.xyz"
 DEFAULT_GPT_CLOUDFLARED_CONFIG = "/home/talha/.cloudflared/config.yml"
 DEFAULT_GPT_CLOUDFLARED_TUNNEL = "klarorder-gpt"
-DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL = "http://127.0.0.1:3010"
+DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL = f"http://127.0.0.1:{DEFAULT_PORT}"
 DEFAULT_INNER_WORLD_ENV_PATH = "%h/.config/inner-world.env"
 
 SYNC_ITEMS = [
@@ -52,16 +53,36 @@ SYNC_ITEMS = [
 ]
 
 PRODUCT_SYNC_ITEMS = [
+    "product/mobile_surface_v1",
     "product/inner_world_v1/CONTRACT.md",
     "product/inner_world_v1/FEEDBACK_MODEL.md",
     "product/inner_world_v1/README.md",
     "product/inner_world_v1/config",
-    "product/inner_world_v1/data",
-    "product/inner_world_v1/exports",
     "product/inner_world_v1/miniapp",
     "product/inner_world_v1/pipelines",
-    "product/inner_world_v1/portable",
+    "runtime",
+    "artifacts",
 ]
+
+
+BRIDGE_SYNC_MODULES = (
+    "src/conversation_os/bridge_controller.py",
+    "src/conversation_os/reasoning_bridge.py",
+    "src/conversation_os/reasoning_runtime.py",
+    "src/conversation_os/reasoning_router.py",
+    "src/conversation_os/reasoning_evaluator.py",
+    "src/conversation_os/reasoning_learning.py",
+    "src/conversation_os/active_field.py",
+    "product/inner_world_v1/config/bridge_behaviors/creative_expansion.json",
+)
+
+
+def verify_bridge_modules_present(root: Path) -> list[str]:
+    missing: list[str] = []
+    for relative_path in BRIDGE_SYNC_MODULES:
+        if not (root / relative_path).exists():
+            missing.append(relative_path)
+    return missing
 
 
 def run(cmd: list[str], *, input_text: str | None = None) -> None:
@@ -80,7 +101,8 @@ def build_bundle(api_base_url: str) -> Path:
 
 
 def build_mobile_service_url(app_id: str, host_service_base_url: str = DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL) -> str:
-    return f"{host_service_base_url.rstrip('/')}/apps/{app_id}/mobile/"
+    del app_id
+    return host_service_base_url.rstrip("/")
 
 
 def refresh_generated_agent_docs() -> None:
@@ -128,9 +150,10 @@ def install_service_with_stdin(remote: str, remote_repo_path: str) -> None:
     )
 
 
-def install_inner_world_env(remote: str, *, mobile_password: str) -> None:
+def install_inner_world_env(remote: str, *, mobile_password: str, mobile_hostname: str) -> None:
     payload = "\n".join(
         [
+            f"INNER_WORLD_MOBILE_HOSTNAME={mobile_hostname}",
             f"INNER_WORLD_MOBILE_PASSWORD={mobile_password}",
             "",
         ]
@@ -297,17 +320,29 @@ print(f'patched {path}')
 def patch_cloudflared_config(remote: str, config_path: str, hostname: str, service_url: str) -> None:
     patch_script = f"""
 from pathlib import Path
+import re
 
 path = Path({config_path!r})
 text = path.read_text(encoding='utf-8')
 block = "  - hostname: {hostname}\\n    service: {service_url}\\n"
-if f"hostname: {hostname}" in text:
-    print("cloudflared hostname already present")
-    raise SystemExit(0)
-marker = "  - service: http_status:404\\n"
-if marker not in text:
-    raise SystemExit("cloudflared fallback marker not found")
-text = text.replace(marker, block + marker, 1)
+fallback = "  - service: http_status:404\\n"
+pattern = re.compile(r"(?ms)^  - hostname: {hostname}\\n(?:    .*\\n)*?(?=^  - hostname: |^  - service: http_status:404\\n|\\Z)")
+if pattern.search(text):
+    text = pattern.sub(block, text, count=1)
+    if fallback not in text:
+        if not text.endswith("\\n"):
+            text += "\\n"
+        text += fallback
+elif fallback in text:
+    text = text.replace(fallback, block + fallback, 1)
+else:
+    if not text.endswith("\\n"):
+        text += "\\n"
+    text += fallback
+    ingress_anchor = "ingress:\\n"
+    if ingress_anchor not in text:
+        raise SystemExit("cloudflared ingress section not found")
+    text = text.replace(ingress_anchor, ingress_anchor + block, 1)
 path.write_text(text, encoding='utf-8')
 print(f"patched {{path}}")
 """
@@ -330,10 +365,45 @@ BIN="$HOME/.local/bin/cloudflared"
 CONFIG={config_path!r}
 TUNNEL={tunnel_name!r}
 LOG="$HOME/.cloudflared/cloudflared.log"
-pkill -f "cloudflared tunnel --config $CONFIG run" >/dev/null 2>&1 || true
-nohup "$BIN" tunnel --config "$CONFIG" run "$TUNNEL" >"$LOG" 2>&1 &
-sleep 2
-pgrep -af "cloudflared tunnel --config $CONFIG run"
+PROCESS_PATTERN="^$BIN tunnel --config $CONFIG run $TUNNEL$"
+USER_SERVICE="cloudflared-klarorder-gpt.service"
+HAS_USER_SERVICE=false
+if systemctl --user cat "$USER_SERVICE" >/dev/null 2>&1; then
+  HAS_USER_SERVICE=true
+  systemctl --user stop "$USER_SERVICE"
+fi
+OLD_PIDS=$(pgrep -f "$PROCESS_PATTERN" || true)
+if [ -n "$OLD_PIDS" ]; then
+  kill $OLD_PIDS >/dev/null 2>&1 || true
+fi
+attempt=0
+while pgrep -f "$PROCESS_PATTERN" >/dev/null 2>&1; do
+  attempt=$((attempt + 1))
+  if [ "$attempt" -ge 20 ]; then
+    kill -KILL $OLD_PIDS >/dev/null 2>&1 || true
+    break
+  fi
+  sleep 0.25
+done
+if [ "$HAS_USER_SERVICE" = true ]; then
+  systemctl --user restart cloudflared-klarorder-gpt.service
+else
+  nohup "$BIN" tunnel --config "$CONFIG" run "$TUNNEL" >"$LOG" 2>&1 &
+fi
+if command -v docker >/dev/null 2>&1 && docker ps --format '{{{{.Names}}}}' | grep -qx cloudflared; then
+  docker restart cloudflared >/dev/null
+fi
+attempt=0
+while ! pgrep -f "$PROCESS_PATTERN" >/dev/null 2>&1; do
+  attempt=$((attempt + 1))
+  if [ "$attempt" -ge 20 ]; then
+    echo "cloudflared failed to start" >&2
+    exit 1
+  fi
+  sleep 0.25
+done
+test "$(pgrep -fc "$PROCESS_PATTERN")" -eq 1
+pgrep -af "$PROCESS_PATTERN"
 """
     run(["ssh", remote, script])
 
@@ -342,6 +412,7 @@ def restart_services(remote: str, *, with_gpt_bridge: bool = False) -> None:
     units = [
         "systemctl --user daemon-reload",
         "systemctl --user enable --now inner-world.service",
+        "systemctl --user restart inner-world.service",
         "systemctl --user restart openclaw-miniapps.service",
     ]
     if with_gpt_bridge:
@@ -360,7 +431,8 @@ def verify(remote: str, app_id: str, *, verify_mobile_surface: bool = False) -> 
     ]
     if verify_mobile_surface:
         checks.append(
-            f"status=$(curl -s -o /dev/null -w '%{{http_code}}' http://127.0.0.1:3010/apps/{app_id}/mobile/) && "
+            "source ~/.config/inner-world.env && "
+            f"status=$(curl -s -o /dev/null -w '%{{http_code}}' -H \"Host: $INNER_WORLD_MOBILE_HOSTNAME\" http://127.0.0.1:{DEFAULT_PORT}/) && "
             "[ \"$status\" = \"200\" ] || [ \"$status\" = \"401\" ]"
         )
     run(["ssh", remote, " && ".join(checks)])
@@ -375,6 +447,17 @@ def verify_gpt_bridge(remote: str, bridge_port: int) -> None:
         f"curl -fsS -H \"X-Inner-World-Action-Key: $INNER_WORLD_GPT_ACTION_KEY\" http://127.0.0.1:{bridge_port}/sync/local-status > /dev/null",
     ]
     run(["ssh", remote, " && ".join(checks)])
+
+
+def assert_release_gate(args: argparse.Namespace) -> None:
+    if getattr(args, "allow_ungated_deploy", False):
+        return
+    report_path = getattr(args, "release_gate_report", "")
+    if not report_path:
+        raise SystemExit("--release-gate-report is required unless --allow-ungated-deploy is set")
+    report = json.loads(Path(report_path).read_text(encoding="utf-8"))
+    if report.get("status") != "passed":
+        raise SystemExit(f"release gates blocked deploy: {report.get('missing_checks', [])}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -398,11 +481,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mobile-service-url", default="")
     parser.add_argument("--openclaw-host-service-base-url", default=DEFAULT_OPENCLOW_HOST_SERVICE_BASE_URL)
     parser.add_argument("--mobile-password", default="")
+    parser.add_argument("--release-gate-report", default="")
+    parser.add_argument("--allow-ungated-deploy", action="store_true")
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
+    assert_release_gate(args)
     refresh_generated_agent_docs()
     run(["ssh", args.remote, f"mkdir -p {args.repo_path} {args.apps_root}/{args.app_id}"])
     bundle_dir = build_bundle(args.api_base_url)
@@ -430,7 +516,11 @@ def main() -> None:
         rsync_repo(args.remote, args.repo_path)
         rsync_bundle(bundle_dir, args.remote, args.apps_root, args.app_id)
         if args.with_mobile_surface:
-            install_inner_world_env(args.remote, mobile_password=mobile_password)
+            install_inner_world_env(
+                args.remote,
+                mobile_password=mobile_password,
+                mobile_hostname=args.mobile_hostname,
+            )
         install_service_with_stdin(args.remote, args.repo_path)
         patch_remote_host(args.remote)
         if args.with_gpt_bridge:
@@ -461,7 +551,6 @@ def main() -> None:
         print(f"Deployed Inner World to {args.remote}:{args.repo_path}")
         print(f"Miniapp URL path: /apps/{args.app_id}/")
         if args.with_mobile_surface:
-            print(f"Mobile surface URL path: /apps/{args.app_id}/mobile/")
             print(f"Mobile surface hostname: https://{args.mobile_hostname}")
             print(f"Mobile surface host service target: {mobile_service_url}")
             print(f"Mobile surface password: {mobile_password}")

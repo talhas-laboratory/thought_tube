@@ -107,10 +107,10 @@ python3 tools/build_world_studio_master_library.py
 
 Outputs:
 
-- `product/inner_world_v1/portable/world-studio-portable`
-- `product/inner_world_v1/portable/world-studio-portable.zip`
-- `product/inner_world_v1/portable/world-studio-master-library`
-- `product/inner_world_v1/portable/world-studio-master-library.zip`
+- `artifacts/exports/inner_world_v1/portable/world-studio-portable`
+- `artifacts/exports/inner_world_v1/portable/world-studio-portable.zip`
+- `artifacts/exports/inner_world_v1/portable/world-studio-master-library`
+- `artifacts/exports/inner_world_v1/portable/world-studio-master-library.zip`
 
 Current provider behavior:
 

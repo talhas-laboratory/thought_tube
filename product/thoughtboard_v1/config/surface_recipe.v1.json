@@ -1,0 +1,75 @@
+{
+  "recipe_id": "recipe.thoughtboard.v1",
+  "surface_id": "surface.thoughtboard",
+  "name": "Thoughtboard Surface v1 Reference Surface",
+  "status": "transitional",
+  "version": "0.1.0",
+  "target_layer": "surface",
+  "purpose": "Present a relational mix of moodboard cards, feeds, and syntheses over the conversation substrate.",
+  "module_refs": [
+    {
+      "module_id": "kernel.foundation.storage",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Shared storage boundary used by the reference surface."
+    },
+    {
+      "module_id": "kernel.foundation.models",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Shared record shapes used by runtime and surface payloads."
+    },
+    {
+      "module_id": "kernel.analysis.analysis_units",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Provides canonical analysis units for downstream shaping."
+    },
+    {
+      "module_id": "kernel.synthesis.conversation_synthesis",
+      "version_range": ">=0.1.0",
+      "required": true,
+      "notes": "Extracts and synthesizes formations and shapes."
+    }
+  ],
+  "adapter_refs": [
+    {
+      "adapter_id": "surface.thoughtboard.runtime_payloads",
+      "repo_paths": [
+        "src/conversation_os/product_thoughtboard.py"
+      ],
+      "purpose": "Shape raw formations and imported logs into thoughtboard cards and relational collections.",
+      "depends_on": [
+        "kernel.foundation.storage",
+        "kernel.foundation.models",
+        "kernel.synthesis.conversation_synthesis"
+      ]
+    },
+    {
+      "adapter_id": "surface.thoughtboard.miniapp",
+      "repo_paths": [
+        "src/conversation_os/thoughtboard_miniapp.py"
+      ],
+      "purpose": "Serve embeddable HTML elements and JSON APIs.",
+      "depends_on": [
+        "surface.thoughtboard.runtime_payloads"
+      ]
+    }
+  ],
+  "policy_defaults": {
+    "public_source_attribution": "snippets_only",
+    "allow_interactive_chat": false
+  },
+  "runtime_dependencies": [
+    "product/thoughtboard_v1/config/runtime.json"
+  ],
+  "state_dependencies": [
+    "memory/events",
+    "memory/sessions",
+    "product/thoughtboard_v1/data"
+  ],
+  "entrypoints": [
+    "python3 tools/run_thoughtboard_miniapp.py"
+  ],
+  "config_path": "/Users/talhauddin/software/inner_space/product/thoughtboard_v1/config/surface_recipe.v1.json"
+}

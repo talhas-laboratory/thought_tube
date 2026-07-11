@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-27T17:30:00Z",
+  "elements": [
+    {
+      "element_key": "frontend",
+      "label": "Frontend",
+      "status": "active",
+      "holodeck_id": "sol-frontend",
+      "topology_default": "spine",
+      "artifact_roots": [
+        "product/thought_capture_pwa/",
+        "product/mobile_surface_v1/",
+        "product/inner_world_v1/miniapp/",
+        "product/thoughtboard_v1/"
+      ],
+      "pwa_source_doc": "mobile_artifacts/2026-06-27/pwa-thought-capture-source-doc.md",
+      "bound_systems": ["10-surface-adapters", "11-shared-workspace-framework"],
+      "lens_pack": null,
+      "surface_profile": "cursor_glass",
+      "workboard_ref": "docs/workboards/sol-frontend/README.md",
+      "pillars_ref": "docs/workboards/sol-frontend/PILLARS.md",
+      "keywords": [
+        "mobile",
+        "ui",
+        "feed",
+        "miniapp",
+        "surface",
+        "layout",
+        "react",
+        "css",
+        "frontend",
+        "pwa",
+        "component"
+      ]
+    },
+    {
+      "element_key": "backend",
+      "label": "Backend",
+      "status": "active",
+      "holodeck_id": "sol-backend",
+      "topology_default": "spine",
+      "artifact_roots": [
+        "src/conversation_os/",
+        "tools/",
+        "product/inner_world_v1/config/"
+      ],
+      "bound_systems": ["04-capture-promotion", "07-evaluators-gates", "08-agent-work-coordination"],
+      "lens_pack": null,
+      "surface_profile": "mcp_bridge",
+      "keywords": [
+        "bridge",
+        "api",
+        "mcp",
+        "runtime",
+        "session",
+        "retrieval",
+        "ocean",
+        "backend",
+        "server",
+        "pipeline"
+      ]
+    },
+    {
+      "element_key": "marketing",
+      "label": "Marketing",
+      "status": "seeded",
+      "holodeck_id": "sol-marketing",
+      "topology_default": "sidecar",
+      "artifact_roots": [
+        "docs/product-thesis/",
+        "docs/plans/"
+      ],
+      "bound_systems": ["06-lens-layer", "11-shared-workspace-framework"],
+      "lens_pack": "marketing_v1",
+      "surface_profile": "narrative",
+      "keywords": [
+        "positioning",
+        "audience",
+        "gtm",
+        "launch",
+        "brand",
+        "messaging",
+        "marketing",
+        "story",
+        "narrative"
+      ]
+    },
+    {
+      "element_key": "monetization",
+      "label": "Monetization",
+      "status": "seeded",
+      "holodeck_id": "sol-monetization",
+      "topology_default": "sidecar",
+      "artifact_roots": [],
+      "bound_systems": ["06-lens-layer", "07-evaluators-gates"],
+      "lens_pack": "monetization_v1",
+      "surface_profile": "decision_sheet",
+      "keywords": [
+        "pricing",
+        "subscription",
+        "revenue",
+        "paywall",
+        "tier",
+        "monetization",
+        "billing",
+        "plan"
+      ]
+    }
+  ]
+}

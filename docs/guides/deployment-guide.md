@@ -9,6 +9,7 @@ Use it when you need to:
 - run the backend locally
 - expose the GPT bridge
 - run the Personal Interface MCP service
+- run the Bridge MCP service
 - build portable Worldbuilding Studio handoff packs
 - publish the repo to GitHub
 
@@ -27,6 +28,7 @@ If you are unsure which path to use, start with the deployment matrix below.
 | Target | Command | Use When |
 | --- | --- | --- |
 | Full OpenClaw deploy | `python3 tools/deploy_inner_world_to_openclaw.py` | The runtime, bundle, repo mirror, and host patches all need to stay in sync. |
+| Thought Capture deploy | `python3 tools/deploy_thought_capture_pwa_to_openclaw.py` | Deploy the authenticated notes surface with bridge-governed OpenClaw replies. |
 | OpenClaw deploy with GPT bridge | `python3 tools/deploy_inner_world_to_openclaw.py --with-gpt-bridge` | You need the live GPT bridge service, cloudflared config, and bridge validation. |
 | UI-only sync | `python3 tools/sync_inner_world_ui_to_openclaw.py` | The backend is already correct and you only changed miniapp assets. |
 | UI watch loop | `python3 tools/sync_inner_world_ui_to_openclaw.py --watch` | You want continuous UI updates during local iteration. |
@@ -34,6 +36,7 @@ If you are unsure which path to use, start with the deployment matrix below.
 | Backend GPT bridge mode | `python3 tools/run_inner_world_backend.py --mode gpt_bridge` | You need the GPT bridge HTTP surface instead of the app surface. |
 | Local miniapp | `python3 tools/run_inner_world_miniapp.py` | You want to run the OpenClaw miniapp locally without the deploy wrapper. |
 | Personal Interface MCP | `python3 tools/run_personal_interface_mcp.py` | You need the Personal Interface MCP server over stdio. |
+| Bridge MCP | `python3 tools/run_bridge_mcp.py` | You need the bridge inspect/control-plane MCP server over stdio. |
 | Portable Worldbuilding pack | `python3 tools/build_world_studio_portable_pack.py` | You need a disconnected miniapp handoff bundle. |
 | Worldbuilding master library | `python3 tools/build_world_studio_master_library.py` | You need the full worldbuilding knowledge pack and supporting docs. |
 | GitHub publish/release | `git push origin <branch>` and `gh pr create` / `gh release create` | You want to publish source, open review, or tag a release. |
@@ -57,6 +60,42 @@ git diff --stat
 ```
 
 If the atlas is stale or invalid, stop and fix that first. The repo now treats atlas freshness as part of deployment readiness.
+
+## Versioned Releases And Rollback
+
+Production deploys should be attached to a release manifest.
+
+Create a candidate:
+
+```bash
+python3 tools/inner_world_release.py candidate --release-id inner-world-YYYYMMDDTHHMMSSZ
+```
+
+Deploy scripts now accept a release gate report and should use it for normal production promotion:
+
+```bash
+python3 tools/deploy_inner_world_to_openclaw.py \
+  --release-gate-report product/inner_world_v1/releases/<release_id>/gate_report.json
+```
+
+```bash
+python3 tools/deploy_thought_capture_pwa_to_openclaw.py \
+  --release-gate-report product/inner_world_v1/releases/<release_id>/gate_report.json
+```
+
+You can bypass this only for explicit recovery work:
+
+```bash
+python3 tools/deploy_inner_world_to_openclaw.py --allow-ungated-deploy
+```
+
+Rollback planning:
+
+```bash
+python3 tools/inner_world_release.py rollback-plan \
+  --current-release-id <current> \
+  --previous-release-id <previous>
+```
 
 ## Full OpenClaw Deploy
 
@@ -202,6 +241,34 @@ python3 tools/run_personal_interface_mcp.py
 
 This is a local service surface, not an OpenClaw deploy target. Use it when you want the MCP boundary to stay separate from the browser/runtime deployment path.
 
+## Bridge MCP
+
+Run the Bridge MCP server when a toolchain needs inspect-only access to the Thought Tube bridge control plane over stdio.
+
+```bash
+python3 tools/run_bridge_mcp.py
+```
+
+MCP tools:
+
+- `bridge_prepare_turn` (primary steering entrypoint)
+- `bridge_inspect_request`
+- `bridge_list_control_packets`
+- `bridge_list_behaviors`
+- `bridge_get_config`
+- `bridge_classify_preview`
+- `bridge_run`
+
+This is a local service surface, not an OpenClaw deploy target. Use it for debugging routing, control packets, and bridge configuration from Cursor or other MCP clients.
+
+Portable install pack: `.thought-tube/README.md`
+
+Per-turn steering CLI:
+
+```bash
+python3 tools/bridge_prepare_turn.py --text "user message" --surface cursor --json
+```
+
 ## Local Miniapp
 
 Use the local miniapp runner when you want to test the OpenClaw miniapp without the full remote deploy wrapper.
@@ -231,8 +298,8 @@ python3 tools/build_world_studio_portable_pack.py
 
 Outputs:
 
-- `product/inner_world_v1/portable/world-studio-portable`
-- `product/inner_world_v1/portable/world-studio-portable.zip`
+- `artifacts/exports/inner_world_v1/portable/world-studio-portable`
+- `artifacts/exports/inner_world_v1/portable/world-studio-portable.zip`
 
 Use this when you want the miniapp slice plus handoff documents, not the full production backend.
 
@@ -246,8 +313,8 @@ python3 tools/build_world_studio_master_library.py
 
 Outputs:
 
-- `product/inner_world_v1/portable/world-studio-master-library`
-- `product/inner_world_v1/portable/world-studio-master-library.zip`
+- `artifacts/exports/inner_world_v1/portable/world-studio-master-library`
+- `artifacts/exports/inner_world_v1/portable/world-studio-master-library.zip`
 
 This pack includes the worldbuilding workflow, model behavior notes, and representative packet/execution artifacts.
 
@@ -293,6 +360,55 @@ Before you hand deployment work to another agent or close the session:
 
 ## Recovery And Rollback
 
+### Canonical Workspace Service
+
+The deployed multi-agent context layer uses one SQLite database and a localhost-only HTTP service. Install the samples after replacing the repository path or service user if the server differs:
+
+```bash
+install -m 0600 ops/systemd/inner-space-workspace.env.sample ~/.config/inner-space-workspace.env
+install -m 0644 ops/systemd/inner-space-workspace.service.sample ~/.config/systemd/user/inner-space-workspace.service
+install -m 0644 ops/systemd/inner-space-workspace-observer.service.sample ~/.config/systemd/user/inner-space-workspace-observer.service
+systemctl --user daemon-reload
+systemctl --user enable --now inner-space-workspace.service inner-space-workspace-observer.service
+```
+
+The service binds to `127.0.0.1:8765`. Keep it private; remote agent surfaces should reach it through the existing authenticated server boundary or a restricted reverse proxy.
+
+Verify liveness, store integrity, and agent context:
+
+```bash
+curl --fail http://127.0.0.1:8765/health
+curl --fail http://127.0.0.1:8765/ready
+curl --fail 'http://127.0.0.1:8765/api/workspaces/inner-world/context?agent_id=operator&surface=server'
+```
+
+Set the same API base for Codex automation and the Telegram meta agent:
+
+```bash
+INNER_WORLD_WORKSPACE_API_BASE=http://127.0.0.1:8765/api
+```
+
+Create a consistent live backup before deployment or schema-affecting work:
+
+```bash
+python3 tools/backup_workspace_store.py \
+  --source state/workspace.db \
+  --output backups/workspace-pre-deploy.db
+```
+
+Restore only after stopping both writers. Restore automatically preserves the current target as a uniquely named pre-restore backup:
+
+```bash
+systemctl --user stop inner-space-workspace-observer.service inner-space-workspace.service
+python3 tools/restore_workspace_store.py \
+  --backup backups/workspace-pre-deploy.db \
+  --target state/workspace.db
+systemctl --user start inner-space-workspace.service inner-space-workspace-observer.service
+curl --fail http://127.0.0.1:8765/ready
+```
+
+After restore, request `/context` and verify the expected task, decision, test, and repository revision before allowing agent mutations.
+
 If a deployment fails:
 
 1. Check the remote service state.
@@ -305,6 +421,7 @@ If the runtime was interrupted, resume from the last safe stage using the runtim
 ## Related References
 
 - [AGENTS.md](/Users/talhauddin/software/inner_space/AGENTS.md)
+- [Canonical Workspace Access](canonical-workspace-access.md)
 - [GitHub Deployment Guide](github-deployment-guide.md)
 - [Inner World Server Deployment Plan](../plans/2026-04-14-inner-world-server-deployment-plan.md)
 - [Runtime Rebuild Runbook](../plans/2026-04-21-runtime-rebuild-runbook.md)

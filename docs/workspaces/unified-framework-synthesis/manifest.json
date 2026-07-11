@@ -1,0 +1,96 @@
+{
+  "workspace_id": "unified-framework-synthesis-4f48",
+  "label": "Unified Framework Synthesis",
+  "status": "active",
+  "maturation_stage": "synthesizing",
+  "goal": "Synthesize MTSF, SDS, and ThoughtShape into one framework; design capture surfaces and community pipeline; then build around locked schemas",
+  "purpose": "Cross-agent working space with full analyses, source docs, and continuity for Thought Tube pre-build phase",
+  "domains": ["research", "structure", "product"],
+  "holodeck_workspace_id": "unified-framework-synthesis-4f48",
+  "session_id": "cursor-unified-framework-synthesis-4f48",
+  "task_pack_id": "unified-framework-continuity-4f48",
+  "pr": "https://github.com/talhas-laboratory/thought_tube/pull/7",
+  "created_at": "2026-07-10",
+  "artifacts": {
+    "sources": [
+      {
+        "id": "mtsf-framework",
+        "title": "MTSF Framework (operational)",
+        "path": "docs/frameworks/metaphysical-thought-space/README.md",
+        "kind": "framework_source",
+        "status": "operational"
+      },
+      {
+        "id": "sds-v1",
+        "title": "SDS v1.0 Report",
+        "path": "docs/frameworks/system-dynamic-signature/SDS-v1.0-report.md",
+        "workspace_copy": "sources/sds-v1.0-report.md",
+        "kind": "framework_source",
+        "status": "design_only"
+      },
+      {
+        "id": "thoughtshape-v1",
+        "title": "ThoughtShape Framework v1",
+        "path": "docs/frameworks/thought-shape/ThoughtShape-framework-v1.md",
+        "workspace_copy": "sources/thoughtshape-framework-v1.md",
+        "kind": "framework_source",
+        "status": "design_only"
+      },
+      {
+        "id": "three-framework-eval",
+        "title": "Three-Framework Comparative Evaluation",
+        "path": "docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md",
+        "workspace_copy": "sources/three-framework-comparative-evaluation.md",
+        "kind": "analysis",
+        "status": "canonical"
+      },
+      {
+        "id": "unified-synthesis",
+        "title": "Unified Framework Synthesis",
+        "path": "docs/plans/2026-07-10-unified-framework-synthesis.md",
+        "workspace_copy": "sources/unified-framework-synthesis.md",
+        "kind": "synthesis",
+        "status": "canonical_pre_build"
+      },
+      {
+        "id": "pilot-003",
+        "title": "Pilot 003 Reasoning Signature",
+        "path": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-003-meta-reasoning-pass/README.md",
+        "kind": "prototype",
+        "status": "sandbox"
+      },
+      {
+        "id": "philosophical-product",
+        "title": "Philosophical Framework to Product",
+        "path": "docs/plans/2026-05-18-philosophical-framework-to-product.md",
+        "kind": "product_translation",
+        "status": "reference"
+      }
+    ],
+    "analyses": [
+      {"id": "decomposition", "path": "analyses/framework-primitive-decomposition.md", "title": "Primitive decomposition (~120-140 pieces)"},
+      {"id": "epistemology", "path": "analyses/epistemology-and-overlap.md", "title": "Epistemology and ontology overlap"},
+      {"id": "fresh-compare", "path": "analyses/fresh-comparison-jul-10.md", "title": "Fresh comparison Jul 10"},
+      {"id": "sds-non-movement", "path": "analyses/sds-non-movement-problem.md", "title": "SDS non-movement problem"},
+      {"id": "reasoning-capture", "path": "analyses/reasoning-step-capture.md", "title": "Thought Trace / ReasoningStep"},
+      {"id": "curator", "path": "analyses/inner-space-curator.md", "title": "Inner Space Curator"},
+      {"id": "community", "path": "analyses/community-pipeline.md", "title": "Community pipeline and clustering"},
+      {"id": "cross-agent", "path": "analyses/cross-agent-workspace-design.md", "title": "Cross-agent workspace design"}
+    ],
+    "continuity": [
+      {"id": "transcript", "path": "continuity/thread-transcript.md", "title": "Full Cursor thread transcript"},
+      {"id": "task-pack", "path": "continuity/task-pack.md", "title": "Task pack handoff"}
+    ]
+  },
+  "locked_decisions": [
+    "One ontology, three views — stack don't compete",
+    "MTSF = store; ThoughtShape = grammar; SDS = overlay on demand",
+    "Synthesize before building surfaces",
+    "Cross-agent continuity via docs/workspaces + docs/continuity"
+  ],
+  "open_next": [
+    "Rearrange decomposed primitives into single unified framework",
+    "Lock schemas: ThoughtObject, ReasoningStep, ReasoningSignature",
+    "Phase 1 capture kernel"
+  ]
+}

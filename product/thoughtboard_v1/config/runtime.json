@@ -1,0 +1,21 @@
+{
+  "chat_backend": "heuristic",
+  "openclaw": {
+    "agent": "thought_tube_router",
+    "thinking": "off",
+    "timeout_seconds": 30,
+    "deliver": false
+  },
+  "model_roles": {
+    "dimension_local_fast": {
+      "backend": "",
+      "model_id": "",
+      "enabled": false,
+      "fallback_role_id": "",
+      "endpoint": "",
+      "attributes": {
+        "purpose": "Fast evidence-posture classification."
+      }
+    }
+  }
+}

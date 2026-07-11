@@ -76,5 +76,62 @@
     "local_role_id": "pond_router_local",
     "judge_role_id": "pond_router_judge",
     "router_version": "v1"
+  },
+  "bridge": {
+    "enabled": true,
+    "agent": "thought_tube_router",
+    "model": "moonshot/kimi-k2.5",
+    "thinking": "low",
+    "timeout_seconds": 25,
+    "fallback": "heuristic",
+    "emit_heuristic_preview": true,
+    "execution_mode": "agent",
+    "openclaw_mode": "auto",
+    "tracking": {
+      "require_active_session": true,
+      "default_context_mode": "session_only",
+      "max_turn_window": 12,
+      "retention": {
+        "max_stored_turns": 200,
+        "max_user_text_chars": 12000,
+        "max_assistant_text_chars": 16000,
+        "compact_after_turns": 150,
+        "ledger_tail_entries": 5000,
+        "max_events_per_session": 400,
+        "slim_control_packets": true
+      },
+      "element_context": {
+        "max_provisional_captures": 5,
+        "max_promoted_records": 8,
+        "allow_cross_element": false,
+        "min_capture_chars": 40,
+        "min_capture_confidence": 0.6,
+        "auto_apply_on_session_end": false
+      },
+      "default_session_binding": {
+        "element_key": "frontend",
+        "holodeck_id": "sol-frontend",
+        "subproject_id": "sol-frontend-mobile-capture"
+      }
+    }
+  },
+  "self_improvement": {
+    "enabled": false,
+    "agent": "thought_tube_self_improve",
+    "model": "moonshot/kimi-k2.5",
+    "thinking": "high",
+    "timeout_seconds": 90,
+    "default_authority": "propose",
+    "allow_production_deploy": false,
+    "config_path": "product/inner_world_v1/config/self_improvement.json",
+    "agent_config_path": "product/inner_world_v1/config/agent_configs/thought_tube_self_improve.json"
+  },
+  "telegram_meta": {
+    "enabled": false,
+    "agent": "inner_space_meta",
+    "default_state": "discuss",
+    "allow_production_deploy": false,
+    "require_explicit_approval": true,
+    "agent_config_path": "product/inner_world_v1/config/agent_configs/inner_space_meta.json"
   }
 }

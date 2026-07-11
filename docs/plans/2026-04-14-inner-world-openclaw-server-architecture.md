@@ -105,10 +105,10 @@ The deployed repo should preserve these paths:
 - `docs/plans/`
 - `ops/systemd/`
 
-The backend relies on local product data and exports under:
+The backend relies on local runtime state and exports under:
 
-- `product/inner_world_v1/data/`
-- `product/inner_world_v1/exports/`
+- `runtime/product_state/inner_world_v1/data/`
+- `artifacts/exports/inner_world_v1/exports/`
 
 ## Request Flow
 

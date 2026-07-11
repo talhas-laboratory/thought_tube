@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from .models import ChunkRecord, SourceRegistryEntry
+from .runtime_layout import product_runtime_dir
 from .storage import ensure_dir, read_jsonl, utc_now, write_jsonl
 
 
@@ -172,16 +173,20 @@ def _content_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _data_dir(root: Path) -> Path:
+    return product_runtime_dir(root, "inner_world_v1", "data")
+
+
 def _source_registry_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "source_registry.jsonl"
+    return _data_dir(root) / "source_registry.jsonl"
 
 
 def _chunk_index_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "chunk_index.jsonl"
+    return _data_dir(root) / "chunk_index.jsonl"
 
 
 def _legacy_source_items_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "source_items.jsonl"
+    return _data_dir(root) / "source_items.jsonl"
 
 
 def _looks_like_command(text: str) -> bool:

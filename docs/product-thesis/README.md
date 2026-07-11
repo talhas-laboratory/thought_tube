@@ -7,6 +7,7 @@ Use this folder when updating:
 - product scope
 - canonical vocabulary
 - bridge behavior
+- state-dependent reasoning architecture
 - formation-surface decisions
 - interpolation research
 
@@ -22,6 +23,7 @@ Sections:
 - [04 OpenClaw Conversation Synthesis](04-openclaw-conversation-synthesis.md)
 - [05 Formation Surface Decision Sheet](05-formation-surface-decision-sheet.md)
 - [06 Formation Interpolation Research](06-formation-interpolation-research.md)
+- [07 State-Dependent Reasoning Architecture](07-state-dependent-reasoning-architecture.md)
 
 Maintenance rules:
 

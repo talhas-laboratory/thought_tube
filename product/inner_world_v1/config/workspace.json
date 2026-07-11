@@ -1,0 +1,41 @@
+{
+  "workspace_id": "inner-world",
+  "label": "Inner World",
+  "status": "active",
+  "maturation_stage": "developing",
+  "goal": "Coordinate reliable multi-agent work on Inner World and notes.talhaslaboratory.xyz.",
+  "purpose": "Canonical meta/context repository for Codex, Telegram/OpenClaw, and future agents.",
+  "success_condition": "Agents share task state, claims, decisions, blockers, repository context, verification evidence, and governed release readiness.",
+  "artifact_roots": [
+    "src/conversation_os/",
+    "tools/",
+    "product/inner_world_v1/",
+    "product/thought_capture_pwa/",
+    "product/mobile_surface_v1/",
+    "docs/workboards/",
+    "ops/"
+  ],
+  "objectives": [
+    "Keep agent context current and provenance-backed.",
+    "Coordinate product changes without overlapping work or lost reasoning.",
+    "Deploy only after verification, source observation, and rollback gates pass."
+  ],
+  "scope_out": [
+    "Unauthenticated public workspace-service exposure.",
+    "Untracked production mutation.",
+    "Silent fallback from server state to a local state copy."
+  ],
+  "domains": [
+    "frontend",
+    "backend",
+    "bridge",
+    "knowledge",
+    "agent_behavior",
+    "deployment"
+  ],
+  "active_subprojects": [
+    "sol-frontend-mobile-capture",
+    "sol-context-frames"
+  ],
+  "workboard_ref": "docs/workboards/inner-space-agent-ops/README.md"
+}

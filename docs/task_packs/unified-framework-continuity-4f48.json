@@ -1,0 +1,65 @@
+{
+  "task_id": "unified-framework-continuity-4f48",
+  "request": "Continue unified framework synthesis: rearrange decomposed primitives into one framework, lock schemas, then build capture kernel. Recover full Cursor thread for foreign agents (Codex).",
+  "task_type": "continuity_handoff",
+  "domain_overlays": ["research", "structure", "product"],
+  "tenets": [],
+  "relevant_sessions": [
+    {
+      "session_id": "cursor-unified-framework-synthesis-4f48",
+      "title": "Unified framework synthesis thread",
+      "status": "closed",
+      "source_type": "imported_transcript",
+      "domains": ["research", "structure", "product"]
+    }
+  ],
+  "relevant_cards": [],
+  "active_plans": [
+    {"path": "docs/plans/2026-07-10-unified-framework-synthesis.md", "score": 10},
+    {"path": "docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md", "score": 9}
+  ],
+  "constraints": [
+    "One ontology three views — do not build parallel storage",
+    "Synthesize and lock schemas before surfaces",
+    "Run engineering guard before substantial code changes",
+    "Extend MTSF assertion store; do not replace with new substrate",
+    "Read full workspace analyses in docs/workspaces/unified-framework-synthesis/ for complete thread depth"
+  ],
+  "open_questions": [
+    "Unified framework rearrangement: which name wins per shared primitive?",
+    "Thought Trace vs Curator: one app with mode switch or two entry points?",
+    "Initial cluster count: 4 archetypes or data-driven?",
+    "SDS overlay: user-request only or automatic on tension detection?"
+  ],
+  "next_actions": [
+    "Read docs/cross-agent/README.md for foreign agent boot sequence",
+    "Read docs/workspaces/unified-framework-synthesis/README.md for full workspace (sources + 8 analyses)",
+    "Read analyses/framework-primitive-decomposition.md before rearrangement",
+    "Rearrange decomposed primitives into single unified framework document",
+    "Draft ThoughtObject, ReasoningStep, ReasoningSignature schemas",
+    "Update docs/product-thesis/02-glossary.md after schema lock"
+  ],
+  "reference_docs": {
+    "cross_agent_readme": "docs/cross-agent/README.md",
+    "agent_workspaces_index": "docs/workspaces/INDEX.md",
+    "full_workspace": "docs/workspaces/unified-framework-synthesis/README.md",
+    "workspace_manifest": "docs/workspaces/unified-framework-synthesis/manifest.json",
+    "primitive_decomposition": "docs/workspaces/unified-framework-synthesis/analyses/framework-primitive-decomposition.md",
+    "continuity_index": "docs/continuity/INDEX.md",
+    "continuity_transcript": "docs/workspaces/unified-framework-synthesis/continuity/thread-transcript.md",
+    "unified_synthesis": "docs/plans/2026-07-10-unified-framework-synthesis.md",
+    "three_framework_comparison": "docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md",
+    "pilot_003_reasoning": "sandbox/2026-07-05-metaphysical-thought-space/experiments/pilot-003-meta-reasoning-pass/README.md",
+    "pr_branch": "https://github.com/talhas-laboratory/thought_tube/pull/7"
+  },
+  "relevant_concepts": [
+    "ThoughtShape",
+    "MTSF",
+    "SDS",
+    "ReasoningStep",
+    "ReasoningSignature",
+    "Inner Space Curator",
+    "Thought Trace"
+  ],
+  "continuity_note": "Full agent workspace at docs/workspaces/unified-framework-synthesis/ (sources, 8 analyses, continuity, manifest). Foreign agents start at docs/cross-agent/README.md. Session replay in memory/ (local, gitignored)."
+}

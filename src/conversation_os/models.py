@@ -57,6 +57,17 @@ PUBLIC_MODELS = (
     "ModelRoleBinding",
     "ChunkDimensionProfile",
     "DimensionRun",
+    "ReasoningRequest",
+    "ContextPolicy",
+    "ControlPacket",
+    "ContextState",
+    "ThoughtInterpretation",
+    "UserState",
+    "RetrievalPolicy",
+    "ResponseModeDecision",
+    "ActiveFieldState",
+    "ReasoningResult",
+    "ReasoningLearningEvent",
 )
 __all__ = ["MODULE_ID", "CONTRACT_VERSION", *PUBLIC_MODELS]
 
@@ -944,6 +955,251 @@ class DimensionRun:
     cache_hit_count: int
     model_roles: List[str] = field(default_factory=list)
     method_counts: Dict[str, int] = field(default_factory=dict)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ReasoningRequest:
+    request_id: str
+    session_id: str
+    surface: str
+    raw_text: str
+    source_refs: List[str]
+    timestamp: str
+    domain_hints: List[str] = field(default_factory=list)
+    caller_hints: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ContextPolicy:
+    mode: str
+    depth_mode: str
+    token_budget: int
+    include_layers: List[str]
+    exclude_layers: List[str]
+    cross_ocean: bool
+    retrieval_limit: int
+    neighbor_limit: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "ContextPolicy":
+        return cls(
+            mode=str(payload.get("mode", "semantic_narrow")),
+            depth_mode=str(payload.get("depth_mode", "focused")),
+            token_budget=int(payload.get("token_budget", 0) or 0),
+            include_layers=[str(value) for value in payload.get("include_layers", []) or []],
+            exclude_layers=[str(value) for value in payload.get("exclude_layers", []) or []],
+            cross_ocean=bool(payload.get("cross_ocean", False)),
+            retrieval_limit=int(payload.get("retrieval_limit", 0) or 0),
+            neighbor_limit=int(payload.get("neighbor_limit", 0) or 0),
+        )
+
+
+@dataclass
+class ControlPacket:
+    packet_id: str
+    request_id: str
+    active_topic: str
+    object_scope: str
+    object_id: str
+    user_goal: str
+    reasoning_posture: str
+    factual_anchor_level: str
+    bridge_behaviors: List[str]
+    pipeline_id: str
+    context_policy: ContextPolicy
+    steering_constraints: List[str]
+    confidence: float
+    routing_source: str
+    parent_object_id: Optional[str] = None
+    dimension_axis: str = ""
+    current_tension: str = ""
+    answer_shape: str = ""
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = asdict(self)
+        payload["context_policy"] = self.context_policy.to_dict()
+        return payload
+
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "ControlPacket":
+        policy_payload = payload.get("context_policy", {}) or {}
+        if isinstance(policy_payload, ContextPolicy):
+            policy = policy_payload
+        else:
+            policy = ContextPolicy.from_dict(policy_payload)
+        return cls(
+            packet_id=str(payload.get("packet_id", "")),
+            request_id=str(payload.get("request_id", "")),
+            active_topic=str(payload.get("active_topic", "")),
+            object_scope=str(payload.get("object_scope", "same_main")),
+            object_id=str(payload.get("object_id", "")),
+            user_goal=str(payload.get("user_goal", "explore")),
+            reasoning_posture=str(payload.get("reasoning_posture", "")),
+            factual_anchor_level=str(payload.get("factual_anchor_level", "medium")),
+            bridge_behaviors=[str(value) for value in payload.get("bridge_behaviors", []) or []],
+            pipeline_id=str(payload.get("pipeline_id", "")),
+            context_policy=policy,
+            steering_constraints=[str(value) for value in payload.get("steering_constraints", []) or []],
+            confidence=float(payload.get("confidence", 0.0) or 0.0),
+            routing_source=str(payload.get("routing_source", "heuristic")),
+            parent_object_id=payload.get("parent_object_id"),
+            dimension_axis=str(payload.get("dimension_axis", "") or ""),
+            current_tension=str(payload.get("current_tension", "") or ""),
+            answer_shape=str(payload.get("answer_shape", "") or ""),
+            attributes=dict(payload.get("attributes", {}) or {}),
+        )
+
+
+@dataclass
+class ContextState:
+    context_id: str
+    request_id: str
+    active_topic: str
+    object_scope: str
+    object_id: str
+    user_goal: str
+    current_tension: str
+    answer_shape: str
+    active_workspace_id: str
+    depth_mode: str
+    confidence: float
+    bundle_layers: List[str]
+    source_refs: List[str]
+    reasoning_posture: str = ""
+    factual_anchor_level: str = ""
+    bridge_behaviors: List[Dict[str, Any]] = field(default_factory=list)
+    parent_object_id: Optional[str] = None
+    dimension_axis: str = ""
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ThoughtInterpretation:
+    topic_signals: List[str] = field(default_factory=list)
+    tension_signals: List[str] = field(default_factory=list)
+    intent: str = ""
+    abstraction_level: str = "mixed"
+    emotional_weight: float = 0.0
+    symbolic_weight: float = 0.0
+    practical_weight: float = 0.0
+    novelty_weight: float = 0.0
+    continuation_pressure: float = 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class UserState:
+    mode: str
+    confidence: float
+    pace: str = "steady"
+    response_pressure: str = "medium"
+    retrieval_appetite: str = "bounded"
+    preferred_shape: str = "conversation"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class RetrievalPolicy:
+    retrieval_mode: str
+    cross_ocean: bool = False
+    retrieval_limit: int = 0
+    neighbor_limit: int = 0
+    include_layers: List[str] = field(default_factory=list)
+    exclude_layers: List[str] = field(default_factory=list)
+    anchor_strategy: str = "topic_first"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ResponseModeDecision:
+    mode: str
+    directness: str = "balanced"
+    length: str = "short"
+    abstraction: str = "mixed"
+    preserve_ambiguity: bool = True
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ActiveFieldState:
+    field_id: str
+    request_id: str
+    context_id: str
+    fragment_role: str
+    candidate_parent_ideas: List[Dict[str, Any]]
+    active_dimensions: List[str]
+    active_tensions: List[str]
+    constraints: List[str]
+    ambiguity_level: float
+    fixation_risk: float
+    novelty_confidence: float
+    fit_targets: List[str]
+    suggested_reasoning_family: str
+    source_refs: List[str]
+    retrieval_bundle_summary: Dict[str, Any]
+    bridge_behaviors: List[Dict[str, Any]] = field(default_factory=list)
+    perturbation_markers: List[str] = field(default_factory=list)
+    state_update_scope: str = "local_adjustment"
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ReasoningResult:
+    result_id: str
+    request_id: str
+    field_id: str
+    pipeline_id: str
+    response_text: str
+    integration_verdict: str
+    fit_score: float
+    novelty_score: float
+    confidence: float
+    recommended_next_action: str
+    operator_trace: List[str] = field(default_factory=list)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ReasoningLearningEvent:
+    learning_event_id: str
+    request_id: str
+    result_id: str
+    feedback_kind: str
+    accepted_framing: str
+    rejected_framing: str
+    reframing_text: str
+    preferred_abstraction_shift: str
+    evidence_refs: List[str]
+    sequence_signature: List[str]
+    timestamp: str
     attributes: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:

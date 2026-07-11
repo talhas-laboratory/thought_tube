@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-06-29T00:00:00Z",
+  "agent_id": "thought_tube_self_improve",
+  "default_authority": "propose",
+  "allow_direct_code_mutation": false,
+  "allow_production_deploy": false,
+  "feedback_domains": [
+    {
+      "domain": "ui_ux",
+      "default_risk": "medium",
+      "required_gates": ["pwa_tests", "build", "browser_smoke"],
+      "artifact_roots": ["product/thought_capture_pwa", "product/mobile_surface_v1", "product/inner_world_v1/miniapp"]
+    },
+    {
+      "domain": "agent_behavior",
+      "default_risk": "high",
+      "required_gates": ["golden_conversation_examples", "prompt_diff", "bridge_trace_review"],
+      "artifact_roots": ["product/inner_world_v1/config/agent_configs", "product/inner_world_v1/config/bridge_behaviors"]
+    },
+    {
+      "domain": "backend_setup",
+      "default_risk": "high",
+      "required_gates": ["python_tests", "service_smoke", "rollback_plan"],
+      "artifact_roots": ["src/conversation_os", "tools", "product/inner_world_v1/config"]
+    },
+    {
+      "domain": "tool_creation",
+      "default_risk": "medium",
+      "required_gates": ["cli_tests", "dry_run", "docs"],
+      "artifact_roots": ["tools", "src/conversation_os"]
+    },
+    {
+      "domain": "thought_pipeline_config",
+      "default_risk": "high",
+      "required_gates": ["fixture_pipeline_eval", "trace_comparison", "provenance_check"],
+      "artifact_roots": ["product/inner_world_v1/pipelines", "product/inner_world_v1/config"]
+    },
+    {
+      "domain": "bridge_work",
+      "default_risk": "high",
+      "required_gates": ["control_packet_tests", "context_policy_tests", "fallback_tests"],
+      "artifact_roots": ["src/conversation_os", "product/inner_world_v1/config/bridge_behaviors"]
+    },
+    {
+      "domain": "deployment_release",
+      "default_risk": "critical",
+      "required_gates": ["release_manifest", "gate_report", "rollback_dry_run", "live_smoke"],
+      "artifact_roots": ["tools", "docs/guides", "product/inner_world_v1/releases"]
+    }
+  ]
+}

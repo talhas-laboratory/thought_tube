@@ -1,0 +1,20 @@
+[Unit]
+Description=Inner Space Workspace Repository Observer
+Requires=inner-space-workspace.service
+After=inner-space-workspace.service
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/inner-space-workspace.env
+WorkingDirectory=/home/talha/.openclaw/workspace/containers/inner-world
+Environment=PYTHONPATH=/home/talha/.openclaw/workspace/containers/inner-world/src
+ExecStart=/usr/bin/env python3 /home/talha/.openclaw/workspace/containers/inner-world/tools/observe_workspace.py --root /home/talha/.openclaw/workspace/containers/inner-world --workspace-id inner-world --store sqlite --sqlite-path /home/talha/.openclaw/workspace/containers/inner-world/state/workspace.db --interval 5
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=%h/.openclaw/workspace/containers/inner-world
+
+[Install]
+WantedBy=default.target

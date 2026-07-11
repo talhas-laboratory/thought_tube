@@ -10,6 +10,7 @@ from .context_bubbles import load_bubble_edges, load_bubble_memberships, load_co
 from .conversation_threads import build_conversation_threads, load_conversation_threads, load_thread_links
 from .meta_layer import load_meta_records
 from .models import KnowledgeEdge, KnowledgeNode
+from .runtime_layout import product_runtime_dir
 from .storage import read_json, read_jsonl, utc_now, write_json, write_jsonl
 from .thread_abstractions import (
     build_thread_abstractions,
@@ -39,24 +40,28 @@ PUBLIC_API = (
 __all__ = list(PUBLIC_API)
 
 
+def _data_dir(root: Path) -> Path:
+    return product_runtime_dir(root, "inner_world_v1", "data")
+
+
 def _nodes_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "knowledge_nodes.jsonl"
+    return _data_dir(root) / "knowledge_nodes.jsonl"
 
 
 def _edges_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "knowledge_edges.jsonl"
+    return _data_dir(root) / "knowledge_edges.jsonl"
 
 
 def _context_links_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "context_links.jsonl"
+    return _data_dir(root) / "context_links.jsonl"
 
 
 def _capsules_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "semantic_capsules.jsonl"
+    return _data_dir(root) / "semantic_capsules.jsonl"
 
 
 def _link_governance_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "link_governance.json"
+    return _data_dir(root) / "link_governance.json"
 
 
 def _default_link_governance(root: Path) -> Dict[str, Any]:

@@ -1,0 +1,16 @@
+{
+  "behavior_id": "objective_evaluation",
+  "priority": 84,
+  "preferred_pipeline": "candidate_evaluation_v1",
+  "routing_mode": "override",
+  "reasoning_posture": "evaluative",
+  "response_directives": [
+    "state_assessment_directly",
+    "separate_signal_from_speculation",
+    "surface_key_risks"
+  ],
+  "operator_biases": {
+    "prefer_objective_language": true,
+    "prefer_comparative_scoring": true
+  }
+}

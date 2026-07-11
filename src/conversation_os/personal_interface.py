@@ -32,6 +32,7 @@ from .analysis import (
 )
 from .conversation_learning import analyze_conversation_turns, parse_conversation_transcript
 from .models import ConversationEvent, SessionManifest
+from .runtime_layout import product_config_dir, product_runtime_dir, product_source_dir
 from .storage import (
     append_jsonl,
     ensure_dir,
@@ -440,11 +441,11 @@ class PersonalInterfaceError(RuntimeError):
 
 
 def _product_dir(root: Path) -> Path:
-    return root / "product" / "personal_interface_v1"
+    return product_source_dir(root, "personal_interface_v1")
 
 
 def _data_dir(root: Path) -> Path:
-    return _product_dir(root) / "data"
+    return product_runtime_dir(root, "personal_interface_v1", "data")
 
 
 def _profile_path(root: Path) -> Path:
@@ -456,7 +457,11 @@ def _runtime_path(root: Path) -> Path:
 
 
 def _surface_recipe_path(root: Path) -> Path:
-    return _product_dir(root) / "config" / "surface_recipe.v1.json"
+    return product_config_dir(root, "personal_interface_v1") / "surface_recipe.v1.json"
+
+
+def _repo_relative(root: Path, path: Path) -> str:
+    return str(path.relative_to(root))
 
 
 def _rewrite_events_path(root: Path) -> Path:
@@ -544,12 +549,12 @@ def _default_surface_recipe(root: Path) -> Dict[str, Any]:
             "feedback_learning": "explicit_only",
         },
         "runtime_dependencies": [
-            "product/personal_interface_v1/data/runtime.json",
+            _repo_relative(root, _runtime_path(root)),
         ],
         "state_dependencies": [
             "memory/events",
             "memory/sessions",
-            "product/personal_interface_v1/data",
+            _repo_relative(root, _data_dir(root)),
         ],
         "entrypoints": [
             "python3 tools/conversation_os.py personal-interface calibrate-start",
@@ -2205,7 +2210,7 @@ def rewrite_outgoing_message(
         raise PersonalInterfaceError(
             "rewrite_backend_unavailable",
             "Rewrite backend is not configured.",
-            {"next_action": "Configure product/personal_interface_v1/data/runtime.json"},
+            {"next_action": f"Configure {_runtime_path(root)}"},
         )
 
     mode, confidence, inference_source = _infer_mode(user_message, draft_text, caller_hints or {}, profile)
