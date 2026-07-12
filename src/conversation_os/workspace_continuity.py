@@ -42,6 +42,7 @@ def assemble_workspace_continuity_export(
 def render_workspace_continuity_markdown(export: dict[str, Any]) -> str:
     focus = dict(export.get("focus", {}) or {})
     task = dict(focus.get("task", {}) or {})
+    task_id = str(task.get("task_id") or task.get("work_item_id") or "")
     lines = [
         "<!-- generated: workspace continuity export; canonical store remains authoritative -->",
         f"<!-- workspace_id: {export.get('workspace_id', '')} -->",
@@ -57,7 +58,7 @@ def render_workspace_continuity_markdown(export: dict[str, Any]) -> str:
         "",
         "## Focus task",
         "",
-        f"- id: `{task.get('task_id', '')}`",
+        f"- id: `{task_id}`",
         f"- status: `{task.get('status', '')}`",
         f"- title: {task.get('title', '')}",
     ]

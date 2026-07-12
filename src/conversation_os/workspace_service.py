@@ -36,6 +36,7 @@ from .workspace_runs import begin_workspace_run, end_workspace_run, heartbeat_wo
 from .workspace_reasoning import list_workspace_reasoning, record_workspace_reasoning
 from .workspace_progress import derive_workspace_task_progress
 from .workspace_continuity import assemble_workspace_continuity_export
+from .workspace_observer import observe_workspace
 from .workspace_health import workspace_health
 
 
@@ -96,7 +97,22 @@ def serve_workspace_service(
     workspace_root = root.resolve()
     workspace_store = store or FileWorkspaceStore(workspace_root)
     idempotency_lock = threading.Lock()
+    observation_lock = threading.Lock()
     idempotency_path = workspace_root / "state" / "workspace_idempotency.json"
+
+    def refresh_repository_observation(workspace_id: str) -> None:
+        """Refresh the repository projection before serving revision-sensitive state.
+
+        The workspace service may also be used against a non-git fixture or a
+        read-only export. In those environments observation is best-effort and
+        the existing unobserved state remains available to callers.
+        """
+
+        with observation_lock:
+            try:
+                observe_workspace(workspace_root, workspace_id, store=workspace_store)
+            except (FileNotFoundError, OSError, ValueError):
+                return
 
     class WorkspaceHandler(BaseHTTPRequestHandler):
         def log_message(self, format: str, *args: object) -> None:  # noqa: A003
@@ -139,6 +155,7 @@ def serve_workspace_service(
                     _write_json(self, HTTPStatus.OK, payload)
                     return
                 if action == "context":
+                    refresh_repository_observation(workspace_id)
                     payload = assemble_workspace_context_packet(
                         workspace_root,
                         workspace_id,
@@ -151,6 +168,7 @@ def serve_workspace_service(
                     _write_json(self, HTTPStatus.OK, payload)
                     return
                 if action == "gate":
+                    refresh_repository_observation(workspace_id)
                     _write_json(
                         self,
                         HTTPStatus.OK,
@@ -193,9 +211,11 @@ def serve_workspace_service(
                     )
                     return
                 if action == "continuity":
+                    refresh_repository_observation(workspace_id)
                     _write_json(self, HTTPStatus.OK, assemble_workspace_continuity_export(workspace_root, workspace_id, task_id=_query_value(query, "task_id"), store=workspace_store))
                     return
                 if action == "health":
+                    refresh_repository_observation(workspace_id)
                     _write_json(self, HTTPStatus.OK, workspace_health(workspace_root, workspace_id, store=workspace_store))
                     return
             except FileNotFoundError as exc:

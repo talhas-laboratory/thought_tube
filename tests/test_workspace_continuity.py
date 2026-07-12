@@ -23,3 +23,18 @@ def test_continuity_export_is_bounded_and_marks_canonical_revision(tmp_path: Pat
     assert "canonical_revision:" in markdown
     assert "Another device should resume." in markdown
     assert "canonical store remains authoritative" in markdown
+
+
+def test_continuity_renderer_accepts_legacy_work_item_id_shape() -> None:
+    markdown = render_workspace_continuity_markdown(
+        {
+            "workspace_id": "inner-world",
+            "canonical_revision": "revision-1",
+            "focus": {"task": {"work_item_id": "LEGACY-1", "status": "ready", "title": "Legacy task"}},
+            "runs": {"recent": []},
+            "reasoning": [],
+            "tests": [],
+        }
+    )
+
+    assert "- id: `LEGACY-1`" in markdown

@@ -19,6 +19,13 @@ def _request_json(url: str, *, method: str = "GET", payload: dict | None = None)
         return response.getcode(), json.loads(response.read().decode("utf-8"))
 
 
+def _git(root: Path, *args: str) -> str:
+    import subprocess
+
+    result = subprocess.run(["git", *args], cwd=root, check=True, capture_output=True, text=True)
+    return result.stdout.strip()
+
+
 def test_workspace_service_serves_prepare_and_claim_flow(tmp_path: Path) -> None:
     root = tmp_path
     store = SQLiteWorkspaceStore(root, database_path=root / "state" / "workspace.db")
@@ -157,6 +164,32 @@ def test_workspace_service_exposes_agent_context_packet(tmp_path: Path) -> None:
         assert payload["workspace"]["purpose"] == "Give agents shared orientation."
         assert payload["agent"]["agent_id"] == "openclaw"
         assert payload["agent"]["surface"] == "telegram"
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_workspace_service_refreshes_repository_revision_before_context(tmp_path: Path) -> None:
+    _git(tmp_path, "init")
+    _git(tmp_path, "config", "user.email", "agent@example.test")
+    _git(tmp_path, "config", "user.name", "Agent")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "tracked.py").write_text("value = 1\n", encoding="utf-8")
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-m", "initial")
+
+    store = SQLiteWorkspaceStore(root=tmp_path, database_path=tmp_path / "state" / "workspace.db")
+    store.write_json(
+        store.manifest_path("inner-world"),
+        {"workspace_id": "inner-world", "artifact_roots": ["src/"]},
+    )
+    server = serve_workspace_service(root=tmp_path, host="127.0.0.1", port=0, store=store)
+    try:
+        base_url = f"http://127.0.0.1:{server.server_address[1]}/api/workspaces/inner-world"
+        code, payload = _request_json(f"{base_url}/context")
+        assert code == 200
+        assert payload["repository"]["source_revision"] == _git(tmp_path, "rev-parse", "HEAD")
+        assert payload["repository"]["freshness_status"] == "observed"
     finally:
         server.shutdown()
         server.server_close()
