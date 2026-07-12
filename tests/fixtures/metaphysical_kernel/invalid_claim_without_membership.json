@@ -1,0 +1,26 @@
+{
+  "claims": [
+    {
+      "envelope": {
+        "id": "cl_orphan",
+        "record_kind": "claim",
+        "type_id": "core:claim",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_orphan",
+        "maturity_status": "differentiating",
+        "epistemic_status": "candidate",
+        "governance_status": "local"
+      },
+      "proposition": {
+        "predicate": "inhibits",
+        "arguments": ["st_control", "st_initiative"]
+      },
+      "claimant": "service:interpretation",
+      "branch_id": "branch_a",
+      "scope_id": "scope_org",
+      "polarity": "affirmative"
+    }
+  ],
+  "branch_memberships": []
+}

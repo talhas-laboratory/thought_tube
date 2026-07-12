@@ -1,0 +1,26 @@
+{
+  "profile_definitions": [
+    {
+      "envelope": {
+        "id": "profile_bad",
+        "record_kind": "profile_definition",
+        "type_id": "profile:field",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "user:steward",
+        "provenance_id": "prov_profile",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "review_required"
+      },
+      "profile_id": "profile:field",
+      "profile_version": "1.0.0",
+      "purpose": "invalid profile",
+      "kernel_records_used": ["source_fragment", "claim"],
+      "profile_record_types": ["field_record"],
+      "profile_dependencies": [],
+      "invariants": [],
+      "steward": "user:steward",
+      "forbidden_kernel_redefinitions": ["claim_is_state"]
+    }
+  ]
+}

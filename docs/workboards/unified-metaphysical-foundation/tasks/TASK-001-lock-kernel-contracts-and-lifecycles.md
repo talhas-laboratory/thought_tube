@@ -1,8 +1,8 @@
 # TASK-001-lock-kernel-contracts-and-lifecycles: Lock kernel contracts and lifecycles
 
-Status: ready
-Owner: unassigned
-Current gate: readiness
+Status: review
+Owner: cursor-cloud-agent
+Current gate: verification
 
 ## Problem
 
@@ -53,15 +53,17 @@ Generated context pack: `context/task_packs/unified-metaphysical-foundation-sche
 
 ## Verification Evidence
 
-- Planned commands:
-  - `python3 tools/conversation_os.py repo-overview refresh`
-  - `python3 tools/conversation_os.py repo-overview validate`
-  - targeted schema and invariant test command selected after owner inspection
+- `PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_contracts -v` — 12 tests, OK
+- `python3 tools/conversation_os.py repo-overview refresh` — 0 errors
+- `python3 tools/conversation_os.py repo-overview validate` — 0 errors; 1 repo-wide warning (129 modules without manifests on this branch, pre-existing)
+- Implementation: `src/conversation_os/metaphysical_kernel.py`, `src/conversation_os/metaphysical_kernel_contracts.py`
+- Fixtures: `tests/fixtures/metaphysical_kernel/*.json` (2 valid, 3 invalid adversarial cases)
 
 ## Updates
 
 - Created: `2026-07-12T14:18:38.450683+00:00`
 - Readiness completed: canonical source, scope, failure modes, acceptance criteria, and test strategy recorded.
+- Implementation completed (2026-07-12): kernel record dataclasses, contract validators, fixtures, and 12 invariant tests.
 
 ## Handoff Notes
 
