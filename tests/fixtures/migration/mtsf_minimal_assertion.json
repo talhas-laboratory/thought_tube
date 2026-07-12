@@ -1,0 +1,41 @@
+{
+  "fixture_id": "migration-mtsf-minimal-001",
+  "fixture_version": "1.0.0",
+  "source_family": "mtsf",
+  "source_vocabulary_version": "mtsf-historical",
+  "mapping_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md#appendix-f",
+  "source_records": {
+    "idea_entity": {
+      "entity_id": "mtsf-entity-brand-x",
+      "label": "Brand X",
+      "systemhood": "product",
+      "confidence": 0.88
+    },
+    "assertion": {
+      "assertion_id": "mtsf-assert-quality",
+      "subject": "mtsf-entity-brand-x",
+      "predicate": "has_perceived_quality",
+      "object": "low",
+      "confidence": 0.72
+    },
+    "evidence_span": {
+      "source_ref": "doc:brand-study-2024",
+      "text": "Users rate perceived quality poorly in blind tests.",
+      "kind": "observation"
+    },
+    "candidate_shape": {
+      "shape_name": "Brand Trust Erosion",
+      "confidence": 0.65,
+      "rationale": "Quality perception decline precedes trust loss."
+    }
+  },
+  "expected_loss_report": [
+    "MTSF CandidateShape `Brand Trust Erosion` deferred to ShapeCore profile projection"
+  ],
+  "expected_record_counts": {
+    "claims": 1,
+    "referents": 1,
+    "source_fragments": 1,
+    "states": 0
+  }
+}

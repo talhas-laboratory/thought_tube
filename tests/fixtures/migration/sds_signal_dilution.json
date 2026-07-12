@@ -1,0 +1,111 @@
+{
+  "fixture_id": "migration-sds-signal-dilution-001",
+  "fixture_version": "1.0.0",
+  "source_family": "sds",
+  "source_vocabulary_version": "sds-v1.0",
+  "mapping_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md#appendix-f",
+  "source_records": {
+    "signature": {
+      "signature_id": "signature-product-overload",
+      "source_ref": "session:session-shape-1",
+      "source_kind": "session",
+      "source_anchor_id": "session-shape-1",
+      "title": "Product clarity failure under feature accumulation",
+      "summary": "Feature growth competes with user attention and obscures the core value.",
+      "system_boundary": "Product experience and user interpretation",
+      "observer_lens": "product_strategy_ux",
+      "entities": [
+        {
+          "entity_id": "entity-features",
+          "label": "Features",
+          "node_type": "entity",
+          "role": "added_elements",
+          "confidence": 0.78
+        },
+        {
+          "entity_id": "entity-core-value",
+          "label": "Core value",
+          "node_type": "entity",
+          "role": "primary_signal",
+          "confidence": 0.82
+        }
+      ],
+      "states": [
+        {
+          "state_id": "state-unclear-value",
+          "label": "Unclear perceived value",
+          "confidence": 0.74
+        }
+      ],
+      "relations": [
+        {
+          "relation_id": "rel-features-hide-value",
+          "source_id": "entity-features",
+          "target_id": "entity-core-value",
+          "edge_type": "hides",
+          "operation": "accumulate",
+          "confidence": 0.71
+        }
+      ],
+      "feedback_loops": [
+        {
+          "loop_id": "loop-confusion-complexity",
+          "label": "Confusion creates more explanation and more complexity",
+          "node_ids": ["state-unclear-value", "entity-features"],
+          "edge_ids": ["rel-features-hide-value"],
+          "confidence": 0.67
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_id": "constraint-limited-attention",
+          "label": "Limited user attention",
+          "confidence": 0.81
+        }
+      ],
+      "candidate_shapes": [
+        {
+          "shape_name": "Signal Dilution Through Accumulation",
+          "confidence": 0.76,
+          "rationale": "Many useful elements compete for attention and hide the core signal."
+        }
+      ],
+      "evidence_spans": [
+        {
+          "source_ref": "session:session-shape-1",
+          "chunk_id": "chunk-shape-1",
+          "text": "Users do not understand what the product is.",
+          "kind": "direct_quote"
+        }
+      ],
+      "confidence": 0.76,
+      "created_at": "2026-05-24T09:00:00+00:00"
+    },
+    "shape_memory": {
+      "memory_id": "shape-memory-signal-dilution",
+      "shape_name": "Signal Dilution Through Accumulation",
+      "anti_matches": ["analogy-maze"]
+    },
+    "analogy_evaluation": {
+      "evaluation_id": "evaluation-overproduced-song",
+      "signature_id": "signature-product-overload",
+      "analogy_id": "analogy-overproduced-song",
+      "deterministic_score": 0.84,
+      "verdict": "strong_match",
+      "confidence": 0.84,
+      "does_not_transfer": ["literal_sound_frequency"]
+    }
+  },
+  "expected_loss_report": [
+    "SDS feedback loop `loop-confusion-complexity` deferred to TransformationProcess profile",
+    "SDS movement signature `Signal Dilution Through Accumulation` deferred to Pattern profile",
+    "SDS anti-match `analogy-maze` deferred to AntiMatch profile record"
+  ],
+  "expected_record_counts": {
+    "claims": 2,
+    "referents": 2,
+    "relation_instances": 1,
+    "source_fragments": 1,
+    "states": 0
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "fixture_id": "migration-conversation-os-001",
+  "fixture_version": "1.0.0",
+  "source_family": "conversation_os",
+  "source_vocabulary_version": "conversation-os-current",
+  "mapping_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md#appendix-f",
+  "source_records": {
+    "session": {
+      "session_id": "session-demo-001",
+      "title": "Kernel migration fixture session",
+      "started_at": "2026-07-12T10:00:00Z",
+      "ended_at": null,
+      "participants": ["user:founder"],
+      "source_type": "live",
+      "status": "closed",
+      "artifact_refs": {},
+      "domains": ["foundation"]
+    },
+    "events": [
+      {
+        "event_id": "evt-001",
+        "session_id": "session-demo-001",
+        "timestamp": "2026-07-12T10:01:00Z",
+        "actor": "user:founder",
+        "kind": "request",
+        "content": "We need to lock kernel contracts before building profiles."
+      },
+      {
+        "event_id": "evt-002",
+        "session_id": "session-demo-001",
+        "timestamp": "2026-07-12T10:02:00Z",
+        "actor": "agent:cursor",
+        "kind": "response",
+        "content": "Agreed. State and Claim must remain distinct."
+      }
+    ],
+    "concept": {
+      "concept_id": "concept-kernel-separation",
+      "label": "State-Claim separation",
+      "summary": "Represented state requires explicit commitment from claims.",
+      "abstract_pattern": "adoption_requires_commitment",
+      "transfer_shape": "governance_gate",
+      "aliases": ["claim-state boundary"],
+      "artifact_refs": [],
+      "source_refs": ["session:session-demo-001"],
+      "session_ids": ["session-demo-001"],
+      "status": "active",
+      "confidence": 0.91,
+      "created_at": "2026-07-12T10:03:00Z",
+      "updated_at": "2026-07-12T10:03:00Z"
+    },
+    "formation_candidate": {
+      "candidate_id": "formation-001",
+      "meta_id": "meta-tension-001",
+      "kind": "tension",
+      "label": "Schema lock vs velocity",
+      "summary": "Team wants speed but foundation requires contract lock first.",
+      "source_refs": ["session:session-demo-001"],
+      "chunk_ids": ["chunk-001"],
+      "candidate_score": 0.74
+    },
+    "workspace_knowledge": {
+      "record_id": "wk-001",
+      "record_kind": "insight",
+      "claim_posture": "asserts",
+      "statement": "Kernel contracts precede profile implementation.",
+      "confidence": 0.85,
+      "actor": "workspace:unified-framework-synthesis"
+    }
+  },
+  "expected_loss_report": [
+    "Workspace knowledge migrated as Claim; State requires StateCommitment"
+  ],
+  "expected_record_counts": {
+    "claims": 3,
+    "referents": 1,
+    "source_fragments": 2,
+    "states": 0
+  }
+}
