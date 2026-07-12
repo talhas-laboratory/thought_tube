@@ -24,6 +24,7 @@ Live workspace id: `unified-framework-synthesis`
 ## Board Shape
 
 - `TASKS.md`: board index and task status
+- `GAP-REPORT-2026-07-12.md`: blocking audit findings and worker repair sequence
 - `lanes/`: Asana/Jira-style task lanes
 - `tasks/`: one durable task packet per work item
 - `GATES.md`: mandatory requirements and verification gates
