@@ -18,6 +18,8 @@ projection cannot silently lose the focus task during a schema transition.
 - `gate` refreshes before evaluating repository freshness.
 - Deployments write the published Git `HEAD` into the service environment so
   rsync-only remote projections remain revision-bound without a `.git` folder.
+- Deployments include the canonical continuity projection so remote health
+  checks can verify the same handoff artifact that Cursor reads from Git.
 - Observation failures remain best-effort for non-git fixtures and read-only
   deployments; those callers retain the existing unobserved signal.
 - No raw event logs or semantic framework sources are changed.

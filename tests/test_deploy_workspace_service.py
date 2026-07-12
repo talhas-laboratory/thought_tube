@@ -21,6 +21,7 @@ def test_deployment_scope_contains_only_workspace_runtime_dependencies() -> None
     assert "tools/run_workspace_service.py" in paths
     assert "tools/run_telegram_meta_agent.py" in paths
     assert "product/inner_world_v1/config/workspace.json" in paths
+    assert "docs/workspaces/unified-framework-synthesis/CONTINUITY.md" in paths
     assert "product/inner_world_v1/miniapp" not in paths
     assert "product/mobile_surface_v1" not in paths
 

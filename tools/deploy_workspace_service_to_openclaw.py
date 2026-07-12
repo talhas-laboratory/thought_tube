@@ -50,6 +50,7 @@ def workspace_sync_paths() -> list[str]:
         "ops/systemd/inner-space-workspace-observer.service.sample",
         "ops/systemd/inner-space-workspace.service.sample",
         "product/inner_world_v1/config/workspace.json",
+        "docs/workspaces/unified-framework-synthesis/CONTINUITY.md",
         "docs/guides/deployment-guide.md",
         "docs/implementation/workspace-coordination/README.md",
         "docs/superpowers/plans/2026-06-30-agent-context-repository-gap-plan.md",
