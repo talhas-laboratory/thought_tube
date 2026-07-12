@@ -1,0 +1,26 @@
+{
+  "fixture_id": "profile-field-formation-v1-0-0",
+  "profile_id": "profile:field_formation",
+  "profile_version": "1.0.0",
+  "purpose": "Represent unresolved meaning and progressive stabilization into formations.",
+  "kernel_records_used": [
+    "source_fragment",
+    "referent",
+    "scope",
+    "claim",
+    "state",
+    "provenance",
+    "model_branch",
+    "branch_membership",
+    "state_commitment"
+  ],
+  "profile_record_types": ["field", "hold", "formation"],
+  "profile_dependencies": [],
+  "invariants": [
+    "hold_preserves_source_without_forcing_differentiation",
+    "formation_requires_coherence_basis",
+    "no_claim_without_branch_membership",
+    "no_state_without_state_commitment"
+  ],
+  "steward": "service:profile_registry"
+}
