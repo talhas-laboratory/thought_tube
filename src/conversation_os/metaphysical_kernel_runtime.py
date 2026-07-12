@@ -186,6 +186,7 @@ class FoundationRuntime:
         media_type: str = "text",
         source_kind: str = "user_input",
         provenance_id: Optional[str] = None,
+        maturity_status: str = "raw",
     ) -> Dict[str, Any]:
         fragment_id = make_id("sf")
         prov_id = provenance_id or make_id("prov")
@@ -197,7 +198,7 @@ class FoundationRuntime:
                 "source_fragment",
                 "core:source_fragment",
                 provenance_id=prov_id,
-                maturity_status="raw",
+                maturity_status=maturity_status,
                 epistemic_status="not_applicable",
                 created_at=captured_at,
                 created_by=author_or_origin,
