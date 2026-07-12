@@ -217,6 +217,9 @@ From workspace v1.1 cutover and implementation:
 Run in order:
 
 ```bash
+# 0. One-shot automated review (preferred)
+python3 tools/conversation_os.py foundation review
+
 # 1. Full test suite
 python3 tools/conversation_os.py foundation test --verbose
 
@@ -318,6 +321,7 @@ docs/workboards/unified-metaphysical-foundation/
 
 | Need | Location |
 |------|----------|
+| Reviewer fast path | [`REVIEWER-START.md`](./REVIEWER-START.md) |
 | CLI tools | [`TOOLS.md`](./TOOLS.md) |
 | Per-task acceptance | [`tasks/`](./tasks/) |
 | Build sequencing | [`../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md`](../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md) |

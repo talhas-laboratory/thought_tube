@@ -9,6 +9,16 @@ All commands assume repo root and `python3`.
 ## Quick start for reviewers
 
 ```bash
+# One-shot Phase 1 verification (recommended first command)
+python3 tools/conversation_os.py foundation review
+
+# Same checklist but mutates memory/foundation/ in the repo
+python3 tools/conversation_os.py foundation review --in-place --verbose
+```
+
+See [`REVIEWER-START.md`](./REVIEWER-START.md) for the full reviewer protocol.
+
+```bash
 # Run the Phase 1 kernel test suite (53 tests via CLI; 56 with CLI handler tests)
 python3 tools/conversation_os.py foundation test --verbose
 PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
@@ -50,6 +60,7 @@ python3 tools/conversation_os.py foundation migrate-fixture \
 
 | Command | Purpose |
 |---------|---------|
+| `foundation review [--verbose] [--in-place]` | **Run full reviewer checklist** (tests + slice + consumers + migration) |
 | `foundation status` | Event log path, record counts, validation errors |
 | `foundation validate` | Validate folded kernel bundle in store |
 | `foundation bootstrap` | Register `profile:field_formation` v1.0.0 |
@@ -111,7 +122,8 @@ Note: guard may report `needs_index` due to repo-wide missing module manifests o
 
 ## Review reading order
 
-1. `PHASE-1-IMPLEMENTATION-REVIEW.md` (this workboard) — architecture + task map
+1. [`REVIEWER-START.md`](./REVIEWER-START.md) — one-command verify + reading order
+2. `PHASE-1-IMPLEMENTATION-REVIEW.md` (this workboard) — architecture + task map
 2. `tasks/TASK-001` … `tasks/TASK-005` — per-task acceptance + verification
 3. `docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md` — normative sequencing
 4. Framework v1.1 sections 4–6, 8A, 20, 22, Appendix F

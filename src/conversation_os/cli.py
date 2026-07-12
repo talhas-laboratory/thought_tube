@@ -154,6 +154,7 @@ from conversation_os.metaphysical_kernel_cli import (
     foundation_conformance,
     foundation_consumer,
     foundation_migrate_fixture,
+    foundation_review,
     foundation_slice,
     foundation_status,
     foundation_test,
@@ -1544,6 +1545,17 @@ def build_parser() -> argparse.ArgumentParser:
     foundation_sub.add_parser("validate")
     foundation_sub.add_parser("bootstrap")
 
+    foundation_review_parser = foundation_sub.add_parser(
+        "review",
+        help="Run full Phase 1 reviewer checklist (tests, slice, consumers, migration)",
+    )
+    foundation_review_parser.add_argument("--verbose", action="store_true")
+    foundation_review_parser.add_argument(
+        "--in-place",
+        action="store_true",
+        help="Use repo memory/foundation store instead of an ephemeral temp directory",
+    )
+
     foundation_test_parser = foundation_sub.add_parser("test")
     foundation_test_parser.add_argument("--module", default="")
     foundation_test_parser.add_argument("--verbose", action="store_true")
@@ -2282,6 +2294,8 @@ def main(argv: list[str] | None = None) -> int:
             result = foundation_consumer(root, args)
         elif args.foundation_command == "conformance":
             result = foundation_conformance(root, args)
+        elif args.foundation_command == "review":
+            result = foundation_review(root, args)
         else:
             raise ValueError(args.foundation_command)
     elif args.command == "personal-interface":

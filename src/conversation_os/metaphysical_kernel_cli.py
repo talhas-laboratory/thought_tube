@@ -204,6 +204,189 @@ def foundation_consumer(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
     )
 
 
+MIGRATION_FIXTURE_PATHS = [
+    "tests/fixtures/migration/mtsf_minimal_assertion.json",
+    "tests/fixtures/migration/thoughtshape_stateclaim_hold.json",
+    "tests/fixtures/migration/sds_signal_dilution.json",
+    "tests/fixtures/migration/conversation_os_minimal_session.json",
+]
+
+
+def foundation_review(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
+    """Run the Phase 1 reviewer checklist and return a structured pass/fail report."""
+    review_root = root
+    cleanup: Path | None = None
+    if not args.in_place:
+        import tempfile
+
+        cleanup = Path(tempfile.mkdtemp(prefix="foundation-review-"))
+        review_root = cleanup
+
+    steps: list[Dict[str, Any]] = []
+
+    def record(step: str, passed: bool, detail: Dict[str, Any]) -> None:
+        steps.append({"step": step, "passed": passed, **detail})
+
+    test_args = argparse.Namespace(module="", verbose=args.verbose)
+    test_result = foundation_test(root, test_args)
+    record(
+        "unit_tests",
+        test_result["passed"],
+        {"test_count_modules": len(KERNEL_TEST_MODULES), "returncode": test_result["returncode"]},
+    )
+
+    bootstrap = foundation_bootstrap(review_root)
+    record(
+        "bootstrap_profile",
+        not bootstrap["validation_errors"],
+        {
+            "profile_id": bootstrap["profile_id"],
+            "validation_errors": bootstrap["validation_errors"],
+        },
+    )
+
+    slice_result = run_vertical_slice(
+        review_root,
+        session_event={
+            "event_id": "event-foundation-review",
+            "session_id": "session-foundation-review",
+            "timestamp": utc_now(),
+            "actor": "agent:reviewer",
+            "kind": "request",
+            "content": "Automated review vertical slice.",
+        },
+        referent_label="Review subject",
+        claim_predicate="relates",
+        claim_arguments=[],
+        branch_id="branch_main",
+        scope_id="scope_foundation",
+    )
+    record(
+        "vertical_slice",
+        not slice_result.get("validation_errors"),
+        {
+            "source_fragment_id": slice_result.get("source_fragment_id"),
+            "claim_id": slice_result.get("claim_id"),
+            "provenance_complete": slice_result.get("provenance_trace", {}).get("complete"),
+            "validation_errors": slice_result.get("validation_errors", []),
+        },
+    )
+
+    validated = foundation_validate(review_root)
+    record(
+        "validate_bundle",
+        validated["valid"],
+        {"record_counts": validated["record_counts"], "validation_errors": validated["validation_errors"]},
+    )
+
+    world_studio = foundation_consumer(
+        review_root,
+        argparse.Namespace(
+            consumer="world-studio",
+            actor="agent:reviewer",
+            branch_id="branch_main",
+            scope_id="scope_foundation",
+            content="Review harbor scene.",
+            referent_label="Harbor",
+            world_id="world-review",
+            workspace_id="unified-framework-synthesis",
+            adopt_state=False,
+        ),
+    )
+    record(
+        "consumer_world_studio",
+        world_studio.get("capture", {}).get("success") and world_studio.get("claim", {}).get("success"),
+        {"application": world_studio.get("application")},
+    )
+
+    workspace_curator = foundation_consumer(
+        review_root,
+        argparse.Namespace(
+            consumer="workspace-curator",
+            actor="agent:reviewer",
+            branch_id="branch_main",
+            scope_id="scope_foundation",
+            content="Kernel contracts precede profiles.",
+            referent_label="Subject",
+            world_id="world-review",
+            workspace_id="unified-framework-synthesis",
+            adopt_state=False,
+        ),
+    )
+    record(
+        "consumer_workspace_curator",
+        workspace_curator.get("capture", {}).get("success"),
+        {"application": workspace_curator.get("application")},
+    )
+
+    conformance = foundation_conformance(
+        review_root,
+        argparse.Namespace(
+            application_id="app:foundation",
+            actor="agent:reviewer",
+            branch_id="branch_main",
+            scope_id="scope_foundation",
+            profile_id=FIELD_FORMATION_PROFILE_ID,
+            profile_version=FIELD_FORMATION_PROFILE_VERSION,
+            evaluated_record_id="bundle",
+        ),
+    )
+    record(
+        "profile_conformance",
+        conformance.get("success", False),
+        {"operation": conformance.get("operation"), "validation_errors": conformance.get("validation_errors", [])},
+    )
+
+    migration_results = []
+    migration_passed = True
+    for fixture_rel in MIGRATION_FIXTURE_PATHS:
+        fixture_path = root / fixture_rel
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        errors = validate_migration_fixture(fixture)
+        migration_results.append(
+            {
+                "fixture_id": fixture.get("fixture_id"),
+                "path": fixture_rel,
+                "valid": not errors,
+                "errors": errors,
+            }
+        )
+        if errors:
+            migration_passed = False
+    record("migration_fixtures_validate", migration_passed, {"fixtures": migration_results})
+
+    execute_fixture = root / MIGRATION_FIXTURE_PATHS[0]
+    execute_result = foundation_migrate_fixture(
+        root,
+        argparse.Namespace(fixture_path=str(execute_fixture), execute=True),
+    )
+    record(
+        "migration_fixture_execute",
+        bool(execute_result.get("mapping_rule_count", 0)),
+        execute_result,
+    )
+
+    if cleanup is not None:
+        import shutil
+
+        shutil.rmtree(cleanup, ignore_errors=True)
+
+    passed = all(step["passed"] for step in steps)
+    return {
+        "phase": "1",
+        "branch": "cursor/metaphysical-kernel-contracts-423a",
+        "review_root": str(review_root),
+        "ephemeral": cleanup is not None,
+        "passed": passed,
+        "steps": steps,
+        "documentation": {
+            "start": "docs/workboards/unified-metaphysical-foundation/REVIEWER-START.md",
+            "architecture": "docs/workboards/unified-metaphysical-foundation/PHASE-1-IMPLEMENTATION-REVIEW.md",
+            "tools": "docs/workboards/unified-metaphysical-foundation/TOOLS.md",
+        },
+    }
+
+
 def foundation_conformance(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
     sdk = FoundationApplicationSdk(
         root,
@@ -233,4 +416,6 @@ __all__ = [
     "foundation_migrate_fixture",
     "foundation_consumer",
     "foundation_conformance",
+    "foundation_review",
+    "MIGRATION_FIXTURE_PATHS",
 ]

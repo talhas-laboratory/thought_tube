@@ -25,6 +25,7 @@ Live workspace id: `unified-framework-synthesis`
 
 - `TASKS.md`: board index and task status
 - `PHASE-1-IMPLEMENTATION-REVIEW.md`: **start here for code review** (architecture, invariants, checklist)
+- `REVIEWER-START.md`: **fast path for reviewers** (`foundation review` + reading order)
 - `TOOLS.md`: CLI and verification commands (`conversation_os.py foundation …`)
 - `lanes/`: Asana/Jira-style task lanes
 - `tasks/`: one durable task packet per work item

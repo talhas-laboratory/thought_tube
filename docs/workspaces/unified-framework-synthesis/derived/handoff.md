@@ -52,10 +52,11 @@ MTSF, SDS, ThoughtShape, and earlier synthesis documents remain preserved as pro
 
 Phase 1 foundation code is implemented on branch `cursor/metaphysical-kernel-contracts-423a` (PR #11). Review starts at:
 
+- `docs/workboards/unified-metaphysical-foundation/REVIEWER-START.md`
 - `docs/workboards/unified-metaphysical-foundation/PHASE-1-IMPLEMENTATION-REVIEW.md`
 - `docs/workboards/unified-metaphysical-foundation/TOOLS.md`
 
-Verify with: `python3 tools/conversation_os.py foundation test --verbose`
+Verify with: `python3 tools/conversation_os.py foundation review`
 
 ## Next actions
 

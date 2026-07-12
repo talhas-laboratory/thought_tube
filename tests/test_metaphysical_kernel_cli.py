@@ -7,6 +7,7 @@ from pathlib import Path
 from conversation_os.metaphysical_kernel_cli import (
     KERNEL_TEST_MODULES,
     foundation_bootstrap,
+    foundation_review,
     foundation_status,
     foundation_validate,
 )
@@ -29,6 +30,17 @@ class MetaphysicalKernelCliTestCase(unittest.TestCase):
             self.assertEqual(bootstrap["profile_id"], "profile:field_formation")
             validated = foundation_validate(root)
             self.assertTrue(validated["valid"])
+
+    def test_foundation_review_passes_in_ephemeral_root(self) -> None:
+        import argparse
+
+        root = Path(__file__).resolve().parents[1]
+        result = foundation_review(
+            root,
+            argparse.Namespace(verbose=False, in_place=False),
+        )
+        self.assertTrue(result["passed"], result["steps"])
+        self.assertTrue(result["ephemeral"])
 
 
 if __name__ == "__main__":

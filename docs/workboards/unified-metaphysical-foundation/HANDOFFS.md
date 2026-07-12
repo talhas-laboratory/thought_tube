@@ -12,14 +12,15 @@ Complete Phase 1 metaphysical kernel implementation: contracts, migration fixtur
 
 ### Where to start reviewing
 
-1. **[PHASE-1-IMPLEMENTATION-REVIEW.md](./PHASE-1-IMPLEMENTATION-REVIEW.md)** — architecture, module map, invariants, verification checklist
-2. **[TOOLS.md](./TOOLS.md)** — `python3 tools/conversation_os.py foundation …` command reference
-3. **Per-task packets** — `tasks/TASK-001` … `tasks/TASK-005` (acceptance criteria + verification evidence)
+1. **[REVIEWER-START.md](./REVIEWER-START.md)** — run `foundation review`, then read in order
+2. **[PHASE-1-IMPLEMENTATION-REVIEW.md](./PHASE-1-IMPLEMENTATION-REVIEW.md)** — architecture, module map, invariants, verification checklist
+3. **[TOOLS.md](./TOOLS.md)** — `python3 tools/conversation_os.py foundation …` command reference
+4. **Per-task packets** — `tasks/TASK-001` … `tasks/TASK-005` (acceptance criteria + verification evidence)
 
 ### Fast verification
 
 ```bash
-python3 tools/conversation_os.py foundation test --verbose
+python3 tools/conversation_os.py foundation review
 ```
 
 ### Intentionally not done
