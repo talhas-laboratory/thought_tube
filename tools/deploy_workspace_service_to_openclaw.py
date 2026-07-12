@@ -99,6 +99,10 @@ def run(command: list[str], *, input_text: str | None = None) -> None:
     subprocess.run(command, input=input_text, text=input_text is not None, check=True)
 
 
+def source_revision() -> str:
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+
+
 def _remote_command(remote: str, command: str) -> None:
     run(["ssh", remote, command])
 
@@ -138,7 +142,11 @@ def deploy(args: argparse.Namespace) -> dict[str, object]:
         "--manifest product/inner_world_v1/config/workspace.json",
     )
 
-    workspace_env = f"PYTHONUNBUFFERED=1\nINNER_WORLD_WORKSPACE_API_BASE={args.workspace_api_base}\n"
+    workspace_env = (
+        "PYTHONUNBUFFERED=1\n"
+        f"INNER_WORLD_WORKSPACE_API_BASE={args.workspace_api_base}\n"
+        f"INNER_SPACE_REPOSITORY_SOURCE_REVISION={source_revision()}\n"
+    )
     _install_user_file(args.remote, "/home/talha/.config/inner-space-workspace.env", workspace_env)
     for unit_name in ("inner-space-workspace", "inner-space-workspace-observer"):
         unit = render_unit(ROOT / f"ops/systemd/{unit_name}.service.sample", repo_path)

@@ -195,6 +195,25 @@ def test_workspace_service_refreshes_repository_revision_before_context(tmp_path
         server.server_close()
 
 
+def test_workspace_service_uses_published_revision_for_rsync_projection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INNER_SPACE_REPOSITORY_SOURCE_REVISION", "published-commit-1")
+    store = SQLiteWorkspaceStore(root=tmp_path, database_path=tmp_path / "state" / "workspace.db")
+    store.write_json(
+        store.manifest_path("inner-world"),
+        {"workspace_id": "inner-world", "artifact_roots": ["src/"]},
+    )
+    server = serve_workspace_service(root=tmp_path, host="127.0.0.1", port=0, store=store)
+    try:
+        base_url = f"http://127.0.0.1:{server.server_address[1]}/api/workspaces/inner-world"
+        code, payload = _request_json(f"{base_url}/context")
+        assert code == 200
+        assert payload["repository"]["source_revision"] == "published-commit-1"
+        assert payload["repository"]["freshness_status"] == "observed"
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def test_workspace_service_returns_structured_completion_gate_failure(tmp_path: Path) -> None:
     store = SQLiteWorkspaceStore(tmp_path, database_path=tmp_path / "state" / "workspace.db")
     store.write_json(

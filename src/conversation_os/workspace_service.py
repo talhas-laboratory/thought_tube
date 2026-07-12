@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 import uuid
 from hashlib import sha256
@@ -110,7 +111,12 @@ def serve_workspace_service(
 
         with observation_lock:
             try:
-                observe_workspace(workspace_root, workspace_id, store=workspace_store)
+                observe_workspace(
+                    workspace_root,
+                    workspace_id,
+                    store=workspace_store,
+                    source_revision_override=os.environ.get("INNER_SPACE_REPOSITORY_SOURCE_REVISION", ""),
+                )
             except (FileNotFoundError, OSError, ValueError):
                 return
 

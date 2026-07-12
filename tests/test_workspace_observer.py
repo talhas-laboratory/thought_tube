@@ -98,3 +98,21 @@ def test_observer_records_clean_transition_once(tmp_path: Path) -> None:
     assert clean["recorded"] is True
     assert clean["snapshot"]["changes"] == []
     assert repeated["recorded"] is False
+
+
+def test_observer_accepts_explicit_revision_for_rsync_projection(tmp_path: Path) -> None:
+    store = SQLiteWorkspaceStore(tmp_path, database_path=tmp_path / "state" / "workspace.db")
+    store.write_json(
+        store.manifest_path("inner-world"),
+        {"workspace_id": "inner-world", "artifact_roots": ["src/"]},
+    )
+
+    result = observe_workspace(
+        tmp_path,
+        "inner-world",
+        store=store,
+        source_revision_override="published-commit-1",
+    )
+
+    assert result["snapshot"]["source_revision"] == "published-commit-1"
+    assert result["recorded"] is True

@@ -44,3 +44,7 @@ def test_rendered_units_and_meta_env_use_remote_paths_and_shared_api(tmp_path: P
     assert "INNER_SPACE_META_WORKSPACE_ROOT=/srv/inner-world/product/inner_world_v1/meta_agent/state/runtime" in rendered
     assert "PYTHONPATH=/srv/inner-world/src" in rendered
     assert "INNER_WORLD_WORKSPACE_API_BASE=http://127.0.0.1:8765/api" in rendered
+
+
+def test_source_revision_reads_published_git_head() -> None:
+    assert len(runner.source_revision()) == 40

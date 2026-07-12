@@ -86,9 +86,14 @@ def build_repository_snapshot(
     artifact_roots: list[str],
     *,
     excluded_paths: list[str] | None = None,
+    source_revision_override: str = "",
 ) -> dict[str, Any]:
-    revision = _git(root, "rev-parse", "HEAD").decode("utf-8").strip()
-    parsed = _parse_status(_git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all"))
+    revision = str(source_revision_override or "").strip()
+    if revision:
+        parsed: list[dict[str, str]] = []
+    else:
+        revision = _git(root, "rev-parse", "HEAD").decode("utf-8").strip()
+        parsed = _parse_status(_git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all"))
     exclusions = {str(path).strip().strip("/") for path in list(excluded_paths or []) if str(path).strip()}
     changes = [
         row
@@ -130,6 +135,7 @@ def observe_workspace(
     workspace_id: str,
     *,
     store: WorkspaceStore | None = None,
+    source_revision_override: str = "",
 ) -> dict[str, Any]:
     resolved_store = store or FileWorkspaceStore(root)
     manifest = load_workspace_manifest(root, workspace_id, store=resolved_store)
@@ -146,6 +152,7 @@ def observe_workspace(
         root,
         list(manifest.get("artifact_roots", []) or []),
         excluded_paths=excluded_paths,
+        source_revision_override=source_revision_override,
     )
     previous = latest_workspace_snapshot(root, workspace_id, store=resolved_store)
     recorded = snapshot["fingerprint"] != previous.get("fingerprint")

@@ -16,6 +16,8 @@ projection cannot silently lose the focus task during a schema transition.
 - `context` refreshes the repository snapshot before returning the agent packet.
 - `continuity` refreshes before exporting the bounded handoff projection.
 - `gate` refreshes before evaluating repository freshness.
+- Deployments write the published Git `HEAD` into the service environment so
+  rsync-only remote projections remain revision-bound without a `.git` folder.
 - Observation failures remain best-effort for non-git fixtures and read-only
   deployments; those callers retain the existing unobserved signal.
 - No raw event logs or semantic framework sources are changed.
