@@ -148,6 +148,17 @@ from .worldbuilding_studio import (
     update_character_feature_object as worldstudio_update_character_feature_object,
     update_character_profile_section as worldstudio_update_character_profile_section,
 )
+from conversation_os.metaphysical_kernel_cli import (
+    foundation_bootstrap,
+    foundation_capture,
+    foundation_conformance,
+    foundation_consumer,
+    foundation_migrate_fixture,
+    foundation_slice,
+    foundation_status,
+    foundation_test,
+    foundation_validate,
+)
 
 
 MODULE_ID = "assembly.bootstrap.cli"
@@ -1525,6 +1536,71 @@ def build_parser() -> argparse.ArgumentParser:
     world_graph.add_argument("--world-id", required=True)
 
     world_studio_sub.add_parser("guide")
+
+    foundation = sub.add_parser("foundation")
+    foundation_sub = foundation.add_subparsers(dest="foundation_command", required=True)
+
+    foundation_sub.add_parser("status")
+    foundation_sub.add_parser("validate")
+    foundation_sub.add_parser("bootstrap")
+
+    foundation_test_parser = foundation_sub.add_parser("test")
+    foundation_test_parser.add_argument("--module", default="")
+    foundation_test_parser.add_argument("--verbose", action="store_true")
+
+    foundation_capture_parser = foundation_sub.add_parser("capture")
+    foundation_capture_parser.add_argument("--application-id", default="app:foundation")
+    foundation_capture_parser.add_argument("--actor", default="user:foundation")
+    foundation_capture_parser.add_argument("--branch-id", default="branch_main")
+    foundation_capture_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_capture_parser.add_argument("--content-pointer", default="")
+    foundation_capture_parser.add_argument("--integrity-hash", default="sha256:manual")
+    foundation_capture_parser.add_argument("--source-kind", default="user_input")
+    foundation_capture_parser.add_argument("--session-id", default="")
+    foundation_capture_parser.add_argument("--event-id", default="")
+    foundation_capture_parser.add_argument("--kind", default="request")
+    foundation_capture_parser.add_argument("--content", default="")
+
+    foundation_slice_parser = foundation_sub.add_parser("slice")
+    foundation_slice_parser.add_argument("--session-id", default="session-foundation-demo")
+    foundation_slice_parser.add_argument("--event-id", default="event-foundation-demo")
+    foundation_slice_parser.add_argument("--actor", default="user:foundation")
+    foundation_slice_parser.add_argument("--content", required=True)
+    foundation_slice_parser.add_argument("--referent-label", required=True)
+    foundation_slice_parser.add_argument("--claim-predicate", default="relates")
+    foundation_slice_parser.add_argument("--claim-arguments", default="")
+    foundation_slice_parser.add_argument("--branch-id", default="branch_main")
+    foundation_slice_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_slice_parser.add_argument("--adopt-state", action="store_true")
+    foundation_slice_parser.add_argument("--state-value", default="")
+
+    foundation_migrate_parser = foundation_sub.add_parser("migrate-fixture")
+    foundation_migrate_parser.add_argument("--fixture-path", required=True)
+    foundation_migrate_parser.add_argument("--execute", action="store_true")
+
+    foundation_consumer_parser = foundation_sub.add_parser("consumer")
+    foundation_consumer_parser.add_argument(
+        "consumer",
+        choices=["world-studio", "workspace-curator"],
+    )
+    foundation_consumer_parser.add_argument("--actor", default="user:foundation")
+    foundation_consumer_parser.add_argument("--branch-id", default="branch_main")
+    foundation_consumer_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_consumer_parser.add_argument("--content", required=True)
+    foundation_consumer_parser.add_argument("--referent-label", default="Subject")
+    foundation_consumer_parser.add_argument("--world-id", default="world-demo")
+    foundation_consumer_parser.add_argument("--workspace-id", default="unified-framework-synthesis")
+    foundation_consumer_parser.add_argument("--adopt-state", action="store_true")
+
+    foundation_conformance_parser = foundation_sub.add_parser("conformance")
+    foundation_conformance_parser.add_argument("--application-id", default="app:foundation")
+    foundation_conformance_parser.add_argument("--actor", default="user:foundation")
+    foundation_conformance_parser.add_argument("--branch-id", default="branch_main")
+    foundation_conformance_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_conformance_parser.add_argument("--profile-id", default="profile:field_formation")
+    foundation_conformance_parser.add_argument("--profile-version", default="1.0.0")
+    foundation_conformance_parser.add_argument("--evaluated-record-id", default="bundle")
+
     return parser
 
 
@@ -2187,6 +2263,27 @@ def main(argv: list[str] | None = None) -> int:
             result = worldstudio_get_guide(root)
         else:
             raise ValueError(args.world_studio_command)
+    elif args.command == "foundation":
+        if args.foundation_command == "status":
+            result = foundation_status(root)
+        elif args.foundation_command == "validate":
+            result = foundation_validate(root)
+        elif args.foundation_command == "bootstrap":
+            result = foundation_bootstrap(root)
+        elif args.foundation_command == "test":
+            result = foundation_test(root, args)
+        elif args.foundation_command == "capture":
+            result = foundation_capture(root, args)
+        elif args.foundation_command == "slice":
+            result = foundation_slice(root, args)
+        elif args.foundation_command == "migrate-fixture":
+            result = foundation_migrate_fixture(root, args)
+        elif args.foundation_command == "consumer":
+            result = foundation_consumer(root, args)
+        elif args.foundation_command == "conformance":
+            result = foundation_conformance(root, args)
+        else:
+            raise ValueError(args.foundation_command)
     elif args.command == "personal-interface":
         if args.personal_command == "calibrate-start":
             result = start_calibration_interview(root)
