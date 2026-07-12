@@ -68,14 +68,15 @@ claims, runs, test evidence, or task-completion history for the Cursor work.
 The implementation handoff states that the cloud agent could not reach the
 live workspace API.
 
-The audit has now set live TASK-001 to `blocked` and recorded blocker
-`blocker-7f7662afad54`; Git review statuses remain untrusted until the ledger
-is reconciled.
+The audit has now set all five live tasks to `blocked`, recorded blocker
+`blocker-7f7662afad54`, and declared the dependency chain
+TASK-001 → TASK-002 → TASK-003 → TASK-004 → TASK-005. Git review statuses
+remain untrusted until the ledger is reconciled.
 
 Required repair:
 
-1. Keep TASK-001 blocked and do not mark any Phase 1 task done until gap 1 is
-   fixed and verified.
+1. Keep the full Phase 1 chain blocked and do not mark any Phase 1 task done
+   until gap 1 is fixed and verified.
 2. From a surface that can reach `INNER_WORLD_WORKSPACE_API_BASE`, record the
    implementation runs, decisions, verification commands, results, residual
    risks, and handoff evidence against the five live tasks.
