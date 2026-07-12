@@ -1,50 +1,72 @@
-# Unified Framework Synthesis — Agent Workspace
+# Unified Metaphysical Framework — Foundation Workspace
 
-**Workspace ID:** `unified-framework-synthesis-4f48`  
-**Status:** Active — pre-build synthesis phase  
-**Holodeck:** `unified-framework-synthesis-4f48` (local machine linkage)
+**Workspace ID:** `unified-framework-synthesis`  
+**Status:** Active — canonical foundation and schema-lock phase  
+**Coordination authority:** canonical workspace service  
+**Git projection:** `docs/workspaces/unified-framework-synthesis/`
 
-**Any agent** (Codex, Cursor, ChatGPT) should start here for the full framework design thread: source docs, deep analyses, comparisons, and continuity.
+This workspace is the focal point for translating the unified metaphysical modeling framework into an executable software foundation and application-building platform.
+
+The workspace has one normative source:
+
+> [`Thought Tube Unified Metaphysical Modeling Framework v1.1`](./sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)
+
+All earlier framework documents remain preserved as intellectual lineage, comparison material, migration evidence, and implementation history. They are not parallel runtime frameworks.
 
 ---
 
 ## Quick start (foreign agent)
 
 ```bash
-# 1. Boot
-cat docs/cross-agent/README.md
-cat docs/workspaces/unified-framework-synthesis/README.md
+# 1. Live workspace first
+python3 tools/workspace_coordination.py status --workspace-id unified-framework-synthesis
+python3 tools/workspace_coordination.py context --workspace-id unified-framework-synthesis --agent-id <agent> --surface <surface> --session-id <session>
 
-# 2. Handoff summary
+# 2. Canonical framework source
+cat docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md
+
+# 3. Handoff and build plan
 cat docs/workspaces/unified-framework-synthesis/derived/handoff.md
+cat docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md
 
-# 3. Full thread
-cat docs/workspaces/unified-framework-synthesis/continuity/thread-transcript.md
+# 4. Published continuity projection
+cat docs/workspaces/unified-framework-synthesis/CONTINUITY.md
 
-# 4. Canonical synthesis
-cat docs/workspaces/unified-framework-synthesis/sources/unified-framework-synthesis.md
+# 5. Focused task pack
+cat docs/workspaces/unified-framework-synthesis/continuity/task-pack.md
 ```
 
 Machine-readable catalog: [`manifest.json`](./manifest.json)
+Sync contract: [`derived/sync-contract.md`](./derived/sync-contract.md)
+
+Execution board: [`docs/workboards/unified-metaphysical-foundation/`](../../workboards/unified-metaphysical-foundation/README.md)
 
 ---
 
-## Source frameworks (original docs)
+## Normative foundation
 
-| Framework | Status | Canonical path | Workspace copy |
+| Document | Status | Purpose |
+|---|---|---|
+| [`sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`](./sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) | **Canonical** | Kernel, profiles, applications, invariants, lifecycles, architecture, build order, tests, and migration |
+| [`derived/foundation-build-plan.md`](./derived/foundation-build-plan.md) | Active execution bridge | Converts the normative paper into bounded implementation work |
+| [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
+
+## Historical framework sources
+
+| Framework | Current status | Original path | Workspace copy |
 |-----------|--------|----------------|----------------|
-| **MTSF** | Operational (kernel, 13/13 evals) | [`docs/frameworks/metaphysical-thought-space/`](../../frameworks/metaphysical-thought-space/README.md) | — (large tree; use canonical) |
-| **SDS** | Design v1.0 | [`docs/frameworks/system-dynamic-signature/SDS-v1.0-report.md`](../../frameworks/system-dynamic-signature/SDS-v1.0-report.md) | [`sources/sds-v1.0-report.md`](./sources/sds-v1.0-report.md) |
-| **ThoughtShape** | Design v1.0 | [`docs/frameworks/thought-shape/ThoughtShape-framework-v1.md`](../../frameworks/thought-shape/ThoughtShape-framework-v1.md) | [`sources/thoughtshape-framework-v1.md`](./sources/thoughtshape-framework-v1.md) |
+| **MTSF** | Operational predecessor; migration source | [`docs/frameworks/metaphysical-thought-space/`](../../frameworks/metaphysical-thought-space/README.md) | Use original tree |
+| **SDS** | Historical dynamics design; migration source | [`docs/frameworks/system-dynamic-signature/SDS-v1.0-report.md`](../../frameworks/system-dynamic-signature/SDS-v1.0-report.md) | [`sources/sds-v1.0-report.md`](./sources/sds-v1.0-report.md) |
+| **ThoughtShape** | Historical semantic grammar; migration source | [`docs/frameworks/thought-shape/ThoughtShape-framework-v1.md`](../../frameworks/thought-shape/ThoughtShape-framework-v1.md) | [`sources/thoughtshape-framework-v1.md`](./sources/thoughtshape-framework-v1.md) |
 
 ---
 
-## Synthesized & comparative docs
+## Historical synthesis and comparison
 
 | Document | Path |
 |----------|------|
 | Three-framework comparison (Jul 8) | [`sources/three-framework-comparative-evaluation.md`](./sources/three-framework-comparative-evaluation.md) |
-| Unified pre-build synthesis | [`sources/unified-framework-synthesis.md`](./sources/unified-framework-synthesis.md) |
+| Unified pre-build synthesis — superseded by v1.1 | [`sources/unified-framework-synthesis.md`](./sources/unified-framework-synthesis.md) |
 | Product thesis index | [`docs/product-thesis/07-unified-framework-synthesis.md`](../../product-thesis/07-unified-framework-synthesis.md) |
 
 ---
@@ -86,38 +108,43 @@ Machine-readable catalog: [`manifest.json`](./manifest.json)
 
 ---
 
-## Stack (locked)
+## Foundation architecture (locked)
 
 ```text
-NETWORK     Community pipeline (mimic → signature → cluster)
-SURFACES    Thought Trace + Inner Space Curator
-GRAMMAR     ThoughtShape (Dimension × Station × Facet = StateClaim)
-OVERLAY     SDS on demand (loops, analogies, intervention)
-SUBSTRATE   MTSF (events, assertions, graph, shapes, discovery)
+APPLICATIONS  Thought Trace · Curator · World Studio · future products
+PROFILES      Field · Formation · Shape · Transformation · Pattern
+              Agent · Conversation · Personal Formation · Execution
+KERNEL        Source · identity · scope · state · occurrence · relation
+              claim · perspective · evidence · provenance · branch · types
 ```
 
 ---
 
 ## Locked decisions
 
-1. One ontology, three views — do not build parallel systems
-2. Synthesize framework before building surfaces
-3. MTSF = canonical store; extend schema for ThoughtShape primitives
-4. SDS attaches as optional overlay
-5. Cross-agent continuity lives in **this workspace** + `docs/continuity/`
+1. Version 1.1 is the normative foundation.
+2. One universal kernel supports governed profiles and application projections.
+3. Historical frameworks map into the canonical model; they are not runtime layers.
+4. Unity applies to identity and provenance, not one imposed truth.
+5. Profiles may extend but not redefine kernel semantics.
+6. Applications may compose profiles but not create parallel stores.
+7. Build order follows the conformance-gated phases in the paper and build plan.
+8. Cross-agent continuity lives in this workspace, its live workspace service record, and its published task pack.
 
 ---
 
-## Open next steps
+## Immediate implementation boundary
 
-1. **Rearrange** primitives from [`analyses/framework-primitive-decomposition.md`](./analyses/framework-primitive-decomposition.md) into one unified framework
-2. **Lock schemas:** ThoughtObject, ReasoningStep, ReasoningSignature, Cluster
-3. **Phase 1:** capture kernel (per-drop ReasoningStep, Hold, trace)
+1. Lock machine-readable contracts for the eight-record MVP, `BranchMembership`, `StateCommitment`, and orthogonal lifecycle axes.
+2. Define `ProfileDefinition` and conformance validation.
+3. Create migration fixtures for MTSF, SDS, ThoughtShape, and existing Conversation OS records.
+4. Implement the Phase 1 capture/identity/branch vertical slice.
+5. Do not begin broad application surfaces until the foundation gates pass.
 
 ---
 
 ## PR & session
 
-- **PR:** https://github.com/talhas-laboratory/thought_tube/pull/7
-- **Session (local replay):** `cursor-unified-framework-synthesis-4f48`
-- **Task pack ID:** `unified-framework-continuity-4f48`
+- **Live coordination ID:** `unified-framework-synthesis`
+- **Session lineage:** `cursor-unified-framework-synthesis-4f48` (historical synthesis thread)
+- **Current task pack ID:** `unified-metaphysical-foundation-schema-lock`

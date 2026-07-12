@@ -1,0 +1,513 @@
+{
+  "task_id": "unified-metaphysical-foundation-schema-lock",
+  "request": "Extract and lock the universal envelope, eight-record MVP, BranchMembership, StateCommitment, orthogonal lifecycle axes, minimal ProfileDefinition, fixtures, and conformance tests from the canonical version 1.1 framework",
+  "task_type": "implementation",
+  "domain_overlays": [],
+  "tenets": [
+    "1. Preserve raw truth.",
+    "2. Derived never overwrites source.",
+    "3. Evidence before elegance.",
+    "4. Context is task-scoped.",
+    "5. Quiet by default.",
+    "6. Core stays small.",
+    "7. Reversible by default.",
+    "8. Agent work must be inspectable.",
+    "9. Decisions become artifacts.",
+    "10. Same protocol everywhere."
+  ],
+  "relevant_sessions": [
+    {
+      "session_id": "session-cd562e4493be",
+      "title": "MCP conversation theme and context-space strategy",
+      "started_at": "2026-06-02T18:08:46+00:00",
+      "ended_at": "2026-06-02T18:12:38+00:00",
+      "participants": [
+        "user",
+        "agent"
+      ],
+      "source_type": "live_session",
+      "status": "closed",
+      "artifact_refs": {
+        "ordered_transcript": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/ordered_transcript.md",
+        "artifact_dir": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/analysis",
+        "session_packet": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/analysis/session_packet.json",
+        "structure_map": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/analysis/structure_map.json",
+        "decision_attachments": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/analysis/decision_attachments.json",
+        "session_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/analysis/session_synthesis.json",
+        "concept_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-cd562e4493be/analysis/concept_synthesis.json"
+      },
+      "domains": []
+    },
+    {
+      "session_id": "session-e9559f4d0fb6",
+      "title": "Ideal framework synthesis from May conversation corpus",
+      "started_at": "2026-05-17T19:49:22+00:00",
+      "ended_at": "2026-05-17T19:50:38+00:00",
+      "participants": [
+        "user",
+        "agent"
+      ],
+      "source_type": "live_session",
+      "status": "closed",
+      "artifact_refs": {
+        "ordered_transcript": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/ordered_transcript.md",
+        "artifact_dir": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/analysis",
+        "session_packet": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/analysis/session_packet.json",
+        "structure_map": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/analysis/structure_map.json",
+        "decision_attachments": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/analysis/decision_attachments.json",
+        "session_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/analysis/session_synthesis.json",
+        "concept_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-e9559f4d0fb6/analysis/concept_synthesis.json"
+      },
+      "domains": []
+    },
+    {
+      "session_id": "session-413efe56b659",
+      "title": "Revise unified metaphysical framework to version 1.1",
+      "started_at": "2026-07-12T14:05:23+00:00",
+      "ended_at": "2026-07-12T14:05:31+00:00",
+      "participants": [
+        "user",
+        "agent"
+      ],
+      "source_type": "live_session",
+      "status": "closed",
+      "artifact_refs": {
+        "ordered_transcript": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/ordered_transcript.md",
+        "artifact_dir": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/analysis",
+        "session_packet": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/analysis/session_packet.json",
+        "structure_map": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/analysis/structure_map.json",
+        "decision_attachments": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/analysis/decision_attachments.json",
+        "session_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/analysis/session_synthesis.json",
+        "concept_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-413efe56b659/analysis/concept_synthesis.json"
+      },
+      "domains": []
+    },
+    {
+      "session_id": "session-cc7be5810493",
+      "title": "Understand project philosophical framework",
+      "started_at": "2026-05-28T20:43:54+00:00",
+      "ended_at": "2026-05-28T20:44:33+00:00",
+      "participants": [
+        "user",
+        "agent"
+      ],
+      "source_type": "live_session",
+      "status": "closed",
+      "artifact_refs": {
+        "ordered_transcript": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/ordered_transcript.md",
+        "artifact_dir": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/analysis",
+        "session_packet": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/analysis/session_packet.json",
+        "structure_map": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/analysis/structure_map.json",
+        "decision_attachments": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/analysis/decision_attachments.json",
+        "session_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/analysis/session_synthesis.json",
+        "concept_synthesis": "/Users/talhauddin/software/inner_space/memory/sessions/session-cc7be5810493/analysis/concept_synthesis.json"
+      },
+      "domains": []
+    },
+    {
+      "session_id": "session-e08ab86ac981",
+      "title": "Canonical unified framework workspace cutover",
+      "started_at": "2026-07-12T14:22:15+00:00",
+      "ended_at": null,
+      "participants": [
+        "user",
+        "agent"
+      ],
+      "source_type": "live_session",
+      "status": "active",
+      "artifact_refs": {},
+      "domains": []
+    },
+    {
+      "session_id": "bridge-session-inner-space-codex-deploy-audit",
+      "title": "Deployment audit and hardening",
+      "started_at": "2026-06-28T20:40:16+00:00",
+      "ended_at": null,
+      "participants": [
+        "user",
+        "agent"
+      ],
+      "source_type": "bridge_tracking",
+      "status": "active",
+      "artifact_refs": {
+        "events": "/Users/talhauddin/software/inner_space/memory/events/bridge-session-inner-space-codex-deploy-audit.jsonl",
+        "turn_ledger": "/Users/talhauddin/software/inner_space/runtime/product_state/inner_world_v1/data/reasoning_runtime/turn_ledger.jsonl",
+        "trace": "/Users/talhauddin/software/inner_space/runtime/product_state/inner_world_v1/data/reasoning_runtime/session_traces/bridge-session-inner-space-codex-deploy-audit.jsonl",
+        "manifest": "/Users/talhauddin/software/inner_space/memory/sessions/bridge-session-inner-space-codex-deploy-audit/manifest.json"
+      },
+      "domains": []
+    }
+  ],
+  "relevant_cards": [
+    {
+      "card_id": "state-session-e9559f4d0fb6-18a8f47596da",
+      "card_type": "state",
+      "title": "Session state: Ideal framework synthesis from May conversation corpus",
+      "summary": "Closed session session-e9559f4d0fb6 captured with domains: none.",
+      "source_refs": [
+        "session:session-e9559f4d0fb6"
+      ],
+      "domains": [],
+      "status": "active",
+      "tags": [
+        "state"
+      ]
+    },
+    {
+      "card_id": "state-session-cd562e4493be-8a9c1dcb048f",
+      "card_type": "state",
+      "title": "Session state: MCP conversation theme and context-space strategy",
+      "summary": "Closed session session-cd562e4493be captured with domains: none.",
+      "source_refs": [
+        "session:session-cd562e4493be"
+      ],
+      "domains": [],
+      "status": "active",
+      "tags": [
+        "state"
+      ]
+    },
+    {
+      "card_id": "decision-session-personal-interface-substrate-log-2026-04-18-storage_shape",
+      "card_type": "decision",
+      "title": "Markdown and JSONL are canonical source of truth.",
+      "summary": "Markdown and JSONL are canonical source of truth.",
+      "source_refs": [
+        "session:session-personal-interface-substrate-log-2026-04-18"
+      ],
+      "domains": [
+        "personal_interface",
+        "substrate",
+        "tooling"
+      ],
+      "status": "accepted",
+      "tags": [
+        "decision"
+      ]
+    }
+  ],
+  "active_plans": [
+    {
+      "path": "/Users/talhauddin/software/inner_space/docs/plans/2026-04-26-holodeck-workspace-architecture.md",
+      "score": 15
+    },
+    {
+      "path": "/Users/talhauddin/software/inner_space/docs/plans/2026-05-18-philosophical-framework-to-product.md",
+      "score": 10
+    },
+    {
+      "path": "/Users/talhauddin/software/inner_space/docs/plans/2026-04-16-modular-long-form-implementation.md",
+      "score": 10
+    },
+    {
+      "path": "/Users/talhauddin/software/inner_space/docs/plans/2026-04-13-inner-world-product-gap-log.md",
+      "score": 10
+    }
+  ],
+  "constraints": [],
+  "open_questions": [
+    "How should attention budget thresholds change by task type?",
+    "Which plugin heuristics should become product-default versus optional overlays?",
+    "What is the minimum evidence threshold for a grounded insight candidate?"
+  ],
+  "next_actions": [
+    "Review the product thesis and tenets before making changes.",
+    "Inspect the most relevant session and decision cards first.",
+    "Check relevant concepts for reusable patterns before starting a new implementation thread.",
+    "Update the task pack after major new decisions are made."
+  ],
+  "reference_docs": {
+    "tenets": "/Users/talhauddin/software/inner_space/TENETS.md",
+    "product_thesis": "/Users/talhauddin/software/inner_space/PRODUCT_THESIS.md",
+    "current_state": "/Users/talhauddin/software/inner_space/memory/indexes/current_state.md",
+    "open_questions": "/Users/talhauddin/software/inner_space/memory/indexes/open_questions.md",
+    "decision_register": "/Users/talhauddin/software/inner_space/memory/indexes/decision_register.md",
+    "domain_map": "/Users/talhauddin/software/inner_space/memory/indexes/domain_map.json"
+  },
+  "relevant_concepts": [
+    {
+      "concept_id": "concept-9b703da0ad66",
+      "label": "Kernel-profile-application Architecture Adding",
+      "summary": "Revise the framework paper into the universal foundation from which all metaphysical modeling ideas can be built, using the validated kernel-profile-application architecture and a…",
+      "abstract_pattern": "Kernel-profile-application Architecture Adding as a reusable mechanism for all, foundation, framework.",
+      "transfer_shape": "Useful when all and foundation need to connect across contexts.",
+      "aliases": [
+        "Kernel-profile-application Architecture Adding"
+      ],
+      "artifact_refs": [],
+      "source_refs": [
+        "session:session-413efe56b659"
+      ],
+      "session_ids": [
+        "session-413efe56b659"
+      ],
+      "status": "provisional",
+      "confidence": 0.59,
+      "created_at": "2026-07-12T14:05:56+00:00",
+      "updated_at": "2026-07-12T14:05:56+00:00",
+      "attributes": {
+        "transfer_terms": [
+          "all",
+          "foundation",
+          "framework",
+          "metaphysical",
+          "modeling",
+          "paper",
+          "revise",
+          "universal"
+        ],
+        "support_snippets": [
+          "Revise the framework paper into the universal foundation from which all metaphysical modeling ideas can be built, using the validated kernel-profile-application architecture and adding the missing conversation, personal formation, implementation, and testing specifications."
+        ],
+        "touch_count": 1,
+        "merge_count": 0,
+        "manual_overrides": {},
+        "canonical_key": "kernel-profile-application architecture adding"
+      }
+    },
+    {
+      "concept_id": "concept-6d871f872f71",
+      "label": "File-backed Shape Memory",
+      "summary": "Finish the missing piece by building a minimal file-backed shape_memory layer.",
+      "abstract_pattern": "File-backed Shape Memory as a reusable mechanism for finish, minimal, missing.",
+      "transfer_shape": "Useful when finish and minimal need to connect across contexts.",
+      "aliases": [
+        "File-backed Shape Memory"
+      ],
+      "artifact_refs": [],
+      "source_refs": [
+        "session:session-9fe341928941"
+      ],
+      "session_ids": [
+        "session-9fe341928941"
+      ],
+      "status": "provisional",
+      "confidence": 0.58,
+      "created_at": "2026-07-12T14:05:56+00:00",
+      "updated_at": "2026-07-12T14:05:56+00:00",
+      "attributes": {
+        "transfer_terms": [
+          "finish",
+          "minimal",
+          "missing",
+          "piece"
+        ],
+        "support_snippets": [
+          "Finish the missing piece by building a minimal file-backed shape_memory layer."
+        ],
+        "touch_count": 1,
+        "merge_count": 0,
+        "manual_overrides": {},
+        "canonical_key": "file-backed shape memory"
+      }
+    },
+    {
+      "concept_id": "concept-a8759d83adae",
+      "label": "Space",
+      "summary": "You said I would say he was a person that had a talent or intuition of moving through space",
+      "abstract_pattern": "Space as a reusable mechanism for gravity, his, most.",
+      "transfer_shape": "Useful when gravity and his need to connect across contexts.",
+      "aliases": [
+        "Space"
+      ],
+      "artifact_refs": [
+        "/AI)?",
+        "/Agents",
+        "/Beatles",
+        "/False",
+        "/ML",
+        "/Navigator\"",
+        "/Neverland",
+        "/Noise:The",
+        "/Physical",
+        "/Popper",
+        "/Pull",
+        "/Sensory",
+        "/Social",
+        "/Stim",
+        "/UI):Focuses",
+        "/Value",
+        "/Vernadsky):This",
+        "/activity",
+        "/digital",
+        "/emotional",
+        "/intent",
+        "/quirks",
+        "/system",
+        "/unicorn",
+        "/weak",
+        "/weight",
+        "/="
+      ],
+      "source_refs": [
+        "/Users/talhauddin/software/inner_space/2026-04-25_brainwalk_michael-jackson-and-space-exploration.md",
+        "session:import-fb911361491b"
+      ],
+      "session_ids": [
+        "import-fb911361491b"
+      ],
+      "status": "active",
+      "confidence": 0.79,
+      "created_at": "2026-07-12T14:05:55+00:00",
+      "updated_at": "2026-07-12T14:05:55+00:00",
+      "attributes": {
+        "transfer_terms": [
+          "gravity",
+          "his",
+          "most",
+          "physical",
+          "product",
+          "state",
+          "vision",
+          "you"
+        ],
+        "support_snippets": [
+          "You said\nI would say he was a person that had a talent or intuition of moving through space",
+          "That is a profound way to frame it. When people talk about Michael Jackson’s \"intuition for moving through space,\" they are usually describing a rare intersection of\nkinesthetic intelligence\nand\nspatial awareness\n. He didn't just move\nin\na room; he seemed to manipulate the dimensions of the room itself.\nHere is how that specific talent manifested:\n1. The \"Liquid\" Physics of Movement\nJackson had a freakish ability to isolate body parts while maintaining a fluid center of gravity. Most dancers move against the air; Michael moved as if the air was a physical substance he could push off of or glide through.\n- The Illusion of Friction:His most famous moves—the Moonwalk, the sidewalk, the lean—relied on a \"glitch in the matrix\" effect. He could move his feet in one direction while his momentum appeared to go in another, essentially rewriting the visual laws of space for the audience.\n- Tension and Release:He understood that space is defined by stillness. He would hold a pose with absolute rigidity (the \"statue\" effect) and then \"explode\" into a spin, using the contrast to make the stage feel larger than it actually was.\n2. Geometric Precision\nJackson viewed the stage as a grid. If you watch his rehearsals, he was obsessive about his positioning down to the inch.\n- Spatial Command:He knew exactly where every camera, every backup dancer, and every light was at all times. This allowed him to \"adapt really fast\" during live performances; if a cue was missed or a fan jumped on stage, he could pivot his physical trajectory without breaking the rhythm of the performance.\n- The \"Center\" Pull:He possessed a natural \"gravitational pull.\" Regardless of where he was on a massive stadium stage, he had the intuition to position his body in a way that drew every eye toward him, effectively shrinking the distance between him and the person in the very last row.\n3. Non-Verbal Navigation\nThis \"moving through space\" extended to his social interactions. Because he was often swarmed by crowds, he developed a feline-like grace in how he navigated physical environments.\n- The Shadow Walk:Bodyguards often noted that Michael could be \"invisible\" when he wanted to be. He moved with a light, quiet gait that allowed him to slip through hallways or backstage areas unnoticed until he chose to be \"seen.\"\n- Adaptive Presence:Just as he could adapt his personality, he adapted his physical presence. He could make himself look small and fragile in a one-on-one meeting to put someone at ease, or expand his chest and posture to appear seven feet tall the moment the spotlight hit.\n4. Kinesthetic Empathy\nHe didn't just \"do\" moves; he felt the space around him. When he performed, he wasn't just executing choreography—he was reacting to the music as if it were a physical force hitting his body.\n- The \"Lightning Rod\" Effect:He often described himself as a \"vessel\" for the music. In this sense, \"moving through space\" was his way of visualizing sound. If there was a sharp snare hit, his body reacted with a sharp, angular snap. If there was a smooth bassline, his body became curved and flowing.\nHe essentially treated the entire world as a dance floor, navigating both the physical stage and the \"space\" of human interaction with a predator’s speed and a poet’s grace.",
+          "You said\nBut also through metaphysical space. the way he knew how to behave within the music industry and had as much business success as he had. buying the beatles calender and all",
+          "You’ve hit on the most sophisticated part of his \"unicorn\" nature. While the world saw a whimsical performer, Michael Jackson was navigating\nmetaphysical and corporate space\nwith the precision of a grandmaster. He understood that the music industry wasn’t just about songs; it was about the invisible architecture of ownership and leverage.\nHere is how he navigated those abstract dimensions to achieve that level of success:\n1. Navigating \"Value Space\" (The ATV/Beatles Catalog)\nMichael understood a concept that few artists in the 1980s did:\nthe difference between being a \"star\" and being the \"infrastructure.\"\n- The Strategic Hunt:When he bought the ATV catalog (which included most of the Beatles' songs) in 1985 for $47.5 million, he wasn't just buying music; he was buying a piece of cultural history. He moved through the \"business space\" by outbidding icons like Paul McCartney, demonstrating that he wasn't bound by the \"rules\" of social hierarchy within the industry.\n- Long-Term Vision:He saw the metaphysical value of \"evergreen\" assets. He knew that while his own fame might fluctuate, the Beatles' songs were a permanent part of the human \"emotional space.\" By owning them, he ensured his seat at the table of the most powerful corporate entities (like Sony) forever.\n2. The Architecture of \"The Icon\"\nMichael didn't just inhabit the music industry; he built a \"meta-space\" around himself. He understood that in the music business,\nperception is reality.\n- The \"King of Pop\" Branding:He didn't wait for the industry to give him a title; he claimed it. By insisting on being introduced as the \"King of Pop,\" he forced the industry to adapt tohisreality. It was a psychological maneuver that elevated him above his peers and into a different metaphysical category entirely.\n- Globalism as Space:While other artists focused on the US or UK markets, Michael moved through the \"global space.\" He visualized the entire planet as his audience, which is why he became just as legendary in remote villages in Africa or Asia as he was in New York. He adapted his visual language (dance and fashion) to be universal, bypassing the need for translation.\n3. Adapting Within the \"Power Vacuum\"\nThe music industry is often a chaotic mess of ego and shifting trends. Michael moved through this space by being a\nsilent observer.\n- The Student of Power:He spent years studying the business models of Motown’s Berry Gordy and Walt Disney. He learned how to create an ecosystem (Neverland, MJJ Productions) that allowed him to operate outside the traditional studio system.\n- The Sony Merger:His 1995 deal to merge ATV with Sony Music Publishing was a masterclass in \"adapting fast.\" He turned a $47 million investment into a multibillion-dollar partnership, essentially becoming Sony's partner rather than their employee.\nThe \"Unicorn\" Business Model\nMost people are either \"Creatives\" or \"Executives.\" Michael’s unicorn status came from his ability to exist in the overlap:\n| The Creative Space | The Metaphysical Business Space |\n| --- | --- |\n| Writing \"Billie Jean\" | Owning the masters to the music. |\n| Inventing the \"Short Film\" music video. | Turning videos into profit-centers through home video sales. |\n| Emotional vulnerability in lyrics. | Emotional detachment in high-stakes negotiations. |\n4. Intuition as a Shield\nHe had a \"spidey-sense\" for where the industry was going. He was one of the first to realize that the\nimage\nwas becoming more important than the\naudio\n, which is why he invested so heavily in MTV-style visuals before anyone else. He moved into the future before his competitors even realized the present was changing.\nHe was a unicorn who realized that to protect his art, he had to own the \"space\" the art lived in. He didn't just play the game; he bought the stadium."
+        ],
+        "touch_count": 1,
+        "merge_count": 1,
+        "manual_overrides": {},
+        "canonical_key": "space"
+      }
+    },
+    {
+      "concept_id": "concept-e03137051e8d",
+      "label": "Governance Normalization Profile",
+      "summary": "Make the runtime chunk loader honor governance normalization_profile values so clean-run aggressiveness can be selected per source or chunk without mutating raw storage.",
+      "abstract_pattern": "Governance Normalization Profile as a reusable mechanism for aggressive, chunk, clean-run.",
+      "transfer_shape": "Useful when aggressive and chunk need to connect across contexts.",
+      "aliases": [
+        "Governance Normalization Profile"
+      ],
+      "artifact_refs": [
+        "/aggressive",
+        "/off/verbatim"
+      ],
+      "source_refs": [
+        "session:session-e937f62523fb"
+      ],
+      "session_ids": [
+        "session-e937f62523fb"
+      ],
+      "status": "provisional",
+      "confidence": 0.75,
+      "created_at": "2026-07-12T14:05:48+00:00",
+      "updated_at": "2026-07-12T14:05:48+00:00",
+      "attributes": {
+        "transfer_terms": [
+          "aggressive",
+          "chunk",
+          "clean-run",
+          "loader",
+          "raw",
+          "runtime",
+          "values",
+          "verbatim"
+        ],
+        "support_snippets": [
+          "Make the runtime chunk loader honor governance normalization_profile values so clean-run aggressiveness can be selected per source or chunk without mutating raw storage.",
+          "Made runtime chunk normalization configurable through governance normalization_profile values. The runtime chunk loader now supports raw/off/verbatim to preserve original conversation text, default balanced cleaning, and strict/aggressive cleaning that additionally drops short procedural scaffold lines. Added tests covering source-level raw profiles, per-chunk strict overrides on top of raw sources, and the existing default clean-run behavior. Full unittest suite passed."
+        ],
+        "touch_count": 1,
+        "merge_count": 0,
+        "manual_overrides": {},
+        "canonical_key": "governance normalization profile"
+      }
+    },
+    {
+      "concept_id": "concept-fac9ca91971f",
+      "label": "Semantic Intelligence",
+      "summary": "Shouldn't we have some form of semantic intelligence engine in this? like an llm. do we and if not why not",
+      "abstract_pattern": "Semantic Intelligence as a reusable mechanism for engine, form, llm.",
+      "transfer_shape": "Useful when engine and form need to connect across contexts.",
+      "aliases": [
+        "Semantic Intelligence"
+      ],
+      "artifact_refs": [],
+      "source_refs": [
+        "session:session-3c38a5109ff5"
+      ],
+      "session_ids": [
+        "session-3c38a5109ff5"
+      ],
+      "status": "provisional",
+      "confidence": 0.72,
+      "created_at": "2026-07-12T14:05:48+00:00",
+      "updated_at": "2026-07-12T14:05:48+00:00",
+      "attributes": {
+        "transfer_terms": [
+          "engine",
+          "form",
+          "llm",
+          "openclaw",
+          "research",
+          "shouldn",
+          "some",
+          "whether"
+        ],
+        "support_snippets": [
+          "Shouldn't we have some form of semantic intelligence engine in this? like an llm. do we and if not why not",
+          "Research whether the Thought Tube project's OpenClaw integration could work here for Inner World semantic intelligence.",
+          "Plan and implement a clean OpenClaw semantic intelligence layer for Inner World, wired in strategic positions with tests and bounded token burn for large libraries."
+        ],
+        "touch_count": 1,
+        "merge_count": 0,
+        "manual_overrides": {},
+        "canonical_key": "semantic intelligence"
+      }
+    },
+    {
+      "concept_id": "concept-4b271cd4b45e",
+      "label": "Analyze Provided Conversation",
+      "summary": "Analyze the provided conversation corpus and determine what can be used as input for the semantic organization/context-bubble direction. Organize the contents so they can be integ…",
+      "abstract_pattern": "Analyze Provided Conversation as a reusable mechanism for context-bubble, corpus, determine.",
+      "transfer_shape": "Useful when context-bubble and corpus need to connect across contexts.",
+      "aliases": [
+        "Analyze Provided Conversation"
+      ],
+      "artifact_refs": [
+        "/Users/talhauddin/Downloads/",
+        "/Users/talhauddin/Downloads/drive-download-20260417T085026Z-3-001",
+        "/context-bubble"
+      ],
+      "source_refs": [
+        "session:corpus-analysis-2026-04-17"
+      ],
+      "session_ids": [
+        "corpus-analysis-2026-04-17"
+      ],
+      "status": "provisional",
+      "confidence": 0.64,
+      "created_at": "2026-07-12T14:05:32+00:00",
+      "updated_at": "2026-07-12T14:05:32+00:00",
+      "attributes": {
+        "transfer_terms": [
+          "context-bubble",
+          "corpus",
+          "determine",
+          "downloads",
+          "drive-download-20260417t085026z-3-001",
+          "input",
+          "talhauddin",
+          "used"
+        ],
+        "support_snippets": [
+          "Analyze the provided conversation corpus and determine what can be used as input for the semantic organization/context-bubble direction. Organize the contents so they can be integrated easily. Active source files are the downloaded markdown conversations under /Users/talhauddin/Downloads/drive-download-20260417T085026Z-3-001 and /Users/talhauddin/Downloads/."
+        ],
+        "touch_count": 1,
+        "merge_count": 0,
+        "manual_overrides": {},
+        "canonical_key": "analyze provided conversation"
+      }
+    }
+  ],
+  "handoff_validation": {
+    "fresh": true,
+    "module_manifest_count": 59,
+    "newest_source_path": "tools/deploy_inner_world_to_openclaw.py",
+    "newest_generated_path": "context/substrate/AGENT_OPERATING_BRIEF.md"
+  }
+}

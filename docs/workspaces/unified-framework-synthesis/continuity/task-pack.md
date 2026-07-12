@@ -1,58 +1,67 @@
-# Task Pack — unified-framework-continuity-4f48
+# Task Pack — Unified Metaphysical Foundation Schema Lock
 
-- request: Continue unified framework work — rearrange decomposed primitives into one framework, then lock schemas and build capture kernel
-- task_type: continuity_handoff
-- domain_overlays: research, structure, product
+- request: Extract and lock the first machine-readable contracts from the canonical version 1.1 framework
+- task_type: foundation_schema_lock
+- domain_overlays: ontology, epistemics, governance, storage, validation
 
-> **Canonical copy:** [`docs/task_packs/unified-framework-continuity-4f48.md`](../../../task_packs/unified-framework-continuity-4f48.md)  
-> **Branch:** `cursor/mtsf-semantic-substrate-g01-g05-4f48` (PR #7) until merged to `main`.
+> **Canonical copy:** [`context/task_packs/unified-metaphysical-foundation-schema-lock.md`](../../../../context/task_packs/unified-metaphysical-foundation-schema-lock.md)  
+> **Canonical authority:** [`sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`](../sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)
+> **Live coordination:** `python3 tools/workspace_coordination.py context --workspace-id unified-framework-synthesis --agent-id <agent> --surface <surface> --session-id <session>`
 
 ## Primary continuity surface
 
 | Artifact | Path |
 |----------|------|
-| Foreign agent entry | `docs/cross-agent/README.md` |
 | **Full agent workspace** | `docs/workspaces/unified-framework-synthesis/README.md` |
-| All deep analyses (8) | `docs/workspaces/unified-framework-synthesis/analyses/` |
-| Full thread transcript | `docs/workspaces/unified-framework-synthesis/continuity/thread-transcript.md` |
-| Index / resume commands | `docs/continuity/INDEX.md` |
-| Unified synthesis | `docs/plans/2026-07-10-unified-framework-synthesis.md` |
-| Three-framework comparison | `docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md` |
-| Session ID (local replay) | `cursor-unified-framework-synthesis-4f48` |
-| Events log (local) | `memory/events/cursor-unified-framework-synthesis-4f48.jsonl` |
+| **Canonical paper** | `docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md` |
+| Build sequence | `docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md` |
+| Current handoff | `docs/workspaces/unified-framework-synthesis/derived/handoff.md` |
+| Migration evidence | `docs/workspaces/unified-framework-synthesis/sources/` and `analyses/` |
 
 ## Thread summary
 
-1. Added ThoughtShape to MTSF vs SDS comparative evaluation (PR #7)
-2. Confirmed frameworks are overlapping/concurring ontologies — stack, don't compete
-3. Designed Thought Trace (reasoning-step capture) and Inner Space Curator surfaces
-4. Designed community pipeline (mimic → signature → cluster → connect)
-5. Created unified pre-build synthesis doc
-6. Re-compared frameworks; full primitive decomposition (~120–140 pieces)
-7. Established cross-agent workspace (`docs/cross-agent/`)
+1. Historical MTSF, SDS, and ThoughtShape work was compared and decomposed.
+2. Conversation, personal formation, bridge, curation, and community extensions were added.
+3. The material was consolidated into version 1.1 of one universal metaphysical modeling framework.
+4. Version 1.1 replaces the old framework stack with a kernel → profiles → applications architecture.
+5. The workspace has moved from synthesis into foundation schema lock.
 
 ## Locked decisions
 
-- One ontology, three views: ThoughtShape grammar on MTSF store, SDS overlay on demand
-- Synthesize framework before building surfaces
-- Cross-agent handoff: continuity transcript + task pack + INDEX
-- Build order: schemas → capture kernel → surfaces → community
+- Version 1.1 is normative.
+- The twelve kernel concepts remain the universal semantic foundation.
+- The first implementation uses the eight-record MVP plus `BranchMembership` and `StateCommitment`.
+- Maturity, epistemic standing, and governance are separate lifecycles.
+- Profiles compose kernel records; applications compose profiles.
+- Historical framework documents remain migration evidence.
 
 ## Next work (agreed)
 
-1. **Rearrange/synthesize** decomposed primitives into single unified framework
-2. **Lock schemas**: ThoughtObject, ReasoningStep, ReasoningSignature, Cluster
-3. **Update glossary** (`docs/product-thesis/02-glossary.md`)
-4. **Phase 1 capture kernel** — ReasoningStep per drop, Hold record, trace links
+1. Define the universal record envelope.
+2. Define `SourceFragment`, `Referent`, `Scope`, `State`, `Claim`, `RelationInstance`, `Provenance`, and `ModelBranch`.
+3. Define `BranchMembership` and `StateCommitment`.
+4. Define the three lifecycle axes and valid transitions.
+5. Define `ProfileDefinition` and `ProfileConformanceResult` minimally enough to validate the foundation.
+6. Add valid and invalid fixtures for every contract.
+7. Stop before persistence services, reasoning pipelines, surfaces, or migrations are implemented.
 
 ## Constraints
 
-- Do not implement parallel ontologies or three storage systems
-- Do not build surfaces before schemas are locked
+- Use the live workspace service for claims, runs, blockers, decisions, and verification.
+- Refresh `CONTINUITY.md` after live workspace mutations.
+- Do not add product-specific fields to the universal kernel.
+- Do not implement parallel ontologies or framework-specific stores.
+- Do not infer a represented State from a Claim without `StateCommitment`.
+- Do not collapse the three lifecycle axes.
+- Do not modify historical source documents.
+- Do not create runtime services during this task.
 - Run `engineering-guard assess` before substantial code changes
-- Prefer extending MTSF assertion store over new subsystems
-- Task packs are curated handoffs — read full transcript for complete arc
+- Preserve exact provenance and reversible migration paths.
 
-## PR
+## Acceptance conditions
 
-- https://github.com/talhas-laboratory/thought_tube/pull/7
+- All contracts validate through one deterministic entrypoint.
+- Invalid fixtures cover branch leakage, Claim/State collapse, missing provenance, illegal lifecycle combinations, and profile semantic redefinition.
+- The codebase overview validates with zero errors and warnings.
+- No application or profile behavior is smuggled into the kernel.
+- A follow-on task pack can implement Phase 1 without reopening primitive definitions.
