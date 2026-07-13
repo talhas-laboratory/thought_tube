@@ -18,6 +18,7 @@ from conversation_os.metaphysical_kernel_application_sdk import (
     world_studio_capture_scene,
     workspace_curator_capture_insight,
 )
+from conversation_os.metaphysical_kernel_contracts import validate_fixture_bundle
 from conversation_os.metaphysical_kernel_migration import migrate_source_fixture, validate_migration_fixture
 from conversation_os.metaphysical_kernel_profile_registry import (
     FIELD_FORMATION_PROFILE_ID,
@@ -211,6 +212,199 @@ MIGRATION_FIXTURE_PATHS = [
     "tests/fixtures/migration/conversation_os_minimal_session.json",
 ]
 
+ADVERSARIAL_STATE_FIXTURE_PATHS = [
+    "tests/fixtures/metaphysical_kernel/invalid_state_branch_membership_mismatch.json",
+    "tests/fixtures/metaphysical_kernel/invalid_state_scope_membership_mismatch.json",
+    "tests/fixtures/metaphysical_kernel/invalid_state_missing_commitment_link.json",
+    "tests/fixtures/metaphysical_kernel/invalid_state_unknown_source_claim.json",
+]
+
+FOUNDATION_TASK_IDS = [
+    "TASK-001-lock-kernel-contracts-and-lifecycles",
+    "TASK-002-build-historical-and-current-migration-fixtures",
+    "TASK-003-implement-phase-1-foundation-vertical-slice",
+    "TASK-004-build-profile-registry-and-conformance",
+    "TASK-005-prove-application-sdk-with-two-consumers",
+]
+
+FOUNDATION_BLOCKER_ID = "blocker-7f7662afad54"
+FOUNDATION_WORKSPACE_ID = "unified-framework-synthesis"
+
+
+def _workspace_api_base() -> str:
+    configured = os.environ.get("INNER_WORLD_WORKSPACE_API_BASE", "").strip()
+    if configured:
+        return configured
+    config_path = Path.home() / ".config" / "inner-space-workspace.env"
+    if config_path.is_file():
+        for line in config_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("INNER_WORLD_WORKSPACE_API_BASE="):
+                return stripped.split("=", 1)[1].strip()
+    return ""
+
+
+def _git_head(root: Path) -> str:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return completed.stdout.strip() if completed.returncode == 0 else ""
+
+
+def foundation_reconcile_ledger(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
+    """Record Gap 1 verification in the live workspace or emit offline commands."""
+    head = _git_head(root)
+    review = foundation_review(root, argparse.Namespace(verbose=False, in_place=False))
+    verify_command = "python3 tools/conversation_os.py foundation review"
+    evidence = f"branch cursor/metaphysical-kernel-contracts-423a @ {head}; {verify_command}; passed={review['passed']}"
+
+    command_template: list[list[str]] = []
+    for task_id in FOUNDATION_TASK_IDS:
+        command_template.append(
+            [
+                "python3",
+                "tools/workspace_coordination.py",
+                "verify",
+                "--workspace-id",
+                FOUNDATION_WORKSPACE_ID,
+                "--task-id",
+                task_id,
+                "--agent-id",
+                args.agent_id,
+                "--surface",
+                args.surface,
+                "--session-id",
+                args.session_id,
+                "--test-name",
+                "foundation_phase1_review",
+                "--result",
+                "pass" if review["passed"] else "fail",
+                "--evidence-ref",
+                head,
+                "--command-or-protocol",
+                verify_command,
+                "--notes",
+                evidence,
+            ]
+        )
+    command_template.append(
+        [
+            "python3",
+            "tools/workspace_coordination.py",
+            "decision",
+            "--workspace-id",
+            FOUNDATION_WORKSPACE_ID,
+            "--task-id",
+            FOUNDATION_TASK_IDS[0],
+            "--agent-id",
+            args.agent_id,
+            "--summary",
+            "Gap 1 state adoption cross-link validation repaired",
+            "--reasoning",
+            evidence,
+        ]
+    )
+    if review["passed"]:
+        command_template.append(
+            [
+                "python3",
+                "tools/workspace_coordination.py",
+                "resolve-blocker",
+                "--workspace-id",
+                FOUNDATION_WORKSPACE_ID,
+                "--blocker-id",
+                FOUNDATION_BLOCKER_ID,
+                "--agent-id",
+                args.agent_id,
+                "--reasoning",
+                "Gap 1 repaired with adversarial fixtures; foundation review passed.",
+            ]
+        )
+        for task_id in FOUNDATION_TASK_IDS:
+            command_template.append(
+                [
+                    "python3",
+                    "tools/workspace_coordination.py",
+                    "update-task",
+                    "--workspace-id",
+                    FOUNDATION_WORKSPACE_ID,
+                    "--task-id",
+                    task_id,
+                    "--agent-id",
+                    args.agent_id,
+                    "--task-status",
+                    "review",
+                    "--reasoning",
+                    "Phase 1 implementation verified; pending merge approval.",
+                ]
+            )
+
+    api_base = _workspace_api_base()
+    if not api_base:
+        return {
+            "mode": "offline",
+            "workspace_id": FOUNDATION_WORKSPACE_ID,
+            "api_reachable": False,
+            "foundation_review_passed": review["passed"],
+            "commands": [" ".join(command) for command in command_template],
+            "documentation": "docs/workboards/unified-metaphysical-foundation/GAP-2-RECONCILIATION.md",
+        }
+
+    import urllib.error
+    import urllib.request
+
+    health_url = f"{api_base.rstrip('/')}/health"
+    try:
+        with urllib.request.urlopen(health_url, timeout=10) as response:
+            response.read()
+    except (urllib.error.URLError, TimeoutError) as exc:
+        return {
+            "mode": "offline",
+            "workspace_id": FOUNDATION_WORKSPACE_ID,
+            "api_reachable": False,
+            "api_base": api_base,
+            "error": str(exc),
+            "foundation_review_passed": review["passed"],
+            "commands": [" ".join(command) for command in command_template],
+            "documentation": "docs/workboards/unified-metaphysical-foundation/GAP-2-RECONCILIATION.md",
+        }
+
+    if args.dry_run:
+        return {
+            "mode": "dry_run",
+            "workspace_id": FOUNDATION_WORKSPACE_ID,
+            "api_reachable": True,
+            "foundation_review_passed": review["passed"],
+            "commands": [" ".join(command) for command in command_template],
+        }
+
+    results: list[Dict[str, Any]] = []
+    passed = True
+    for command in command_template:
+        completed = subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)
+        entry = {
+            "command": command,
+            "returncode": completed.returncode,
+            "stdout": completed.stdout.strip(),
+            "stderr": completed.stderr.strip(),
+        }
+        results.append(entry)
+        if completed.returncode != 0:
+            passed = False
+
+    return {
+        "mode": "connected",
+        "workspace_id": FOUNDATION_WORKSPACE_ID,
+        "api_reachable": True,
+        "foundation_review_passed": review["passed"],
+        "passed": passed and review["passed"],
+        "results": results,
+    }
+
 
 def foundation_review(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
     """Run the Phase 1 reviewer checklist and return a structured pass/fail report."""
@@ -355,6 +549,23 @@ def foundation_review(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
             migration_passed = False
     record("migration_fixtures_validate", migration_passed, {"fixtures": migration_results})
 
+    adversarial_results = []
+    adversarial_passed = True
+    for fixture_rel in ADVERSARIAL_STATE_FIXTURE_PATHS:
+        fixture_path = root / fixture_rel
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        errors = validate_fixture_bundle(fixture)
+        adversarial_results.append(
+            {
+                "path": fixture_rel,
+                "rejected": bool(errors),
+                "error_count": len(errors),
+            }
+        )
+        if not errors:
+            adversarial_passed = False
+    record("adversarial_state_fixtures", adversarial_passed, {"fixtures": adversarial_results})
+
     execute_fixture = root / MIGRATION_FIXTURE_PATHS[0]
     execute_result = foundation_migrate_fixture(
         root,
@@ -417,5 +628,8 @@ __all__ = [
     "foundation_consumer",
     "foundation_conformance",
     "foundation_review",
+    "foundation_reconcile_ledger",
     "MIGRATION_FIXTURE_PATHS",
+    "ADVERSARIAL_STATE_FIXTURE_PATHS",
+    "FOUNDATION_TASK_IDS",
 ]

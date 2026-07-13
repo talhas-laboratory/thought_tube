@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.metaphysical.application_sdk",
+  "path": "src/conversation_os/metaphysical_kernel_application_sdk.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Profile-bound application SDK and consumer proofs for World Studio and Workspace Curator (Gate F4).",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["FoundationApplicationSdk", "ApplicationContext", "SdkMutationResult"],
+  "contains": ["FoundationApplicationSdk", "world_studio_capture_scene", "workspace_curator_capture_insight"],
+  "depends_on": ["kernel.metaphysical.profile_registry", "kernel.metaphysical.runtime"],
+  "feeds_into": ["kernel.metaphysical.cli"],
+  "inputs": ["application context", "capture payloads"],
+  "outputs": ["SdkMutationResult"],
+  "state_owned": [],
+  "surfaces_using": ["app:world_studio", "app:workspace_curator"],
+  "test_targets": ["tests/test_metaphysical_kernel_application_sdk.py"]
+}

@@ -89,9 +89,13 @@ Required repair:
 4. Republish `docs/workspaces/unified-framework-synthesis/CONTINUITY.md` from
    the live workspace after every coordination mutation.
 
+**Repair tooling (2026-07-13):** see [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md)
+and `python3 tools/conversation_os.py foundation reconcile-ledger`.
+Gap 1 is repaired on branch; live reconciliation still requires a connected surface.
+
 ## Gap 3 — Required quality gate is not satisfied
 
-Severity: **P2 — resolve before closing TASK-001**
+Severity: **P2 — partial repair (kernel manifests added)**
 
 TASK-001 requires repo overview and targeted tests with zero errors or warnings.
 On the audited branch, the generated overview is absent before refresh and
@@ -99,12 +103,18 @@ refresh reports 135 modules without manifests. The new kernel modules are part
 of that gap. The review document also says 56 tests, while its reported counts
 are 53 foundation tests plus 4 CLI tests (57).
 
+**Repair (2026-07-13):** eight kernel module manifests added under
+`docs/workboards/unified-metaphysical-foundation/manifests/` (tracked source; copy
+to `context/substrate/modules/` for local overview refresh). Repo overview reports
+`module_manifest_count: 8` after install.
+
 Required repair:
 
 - Add manifests for the new kernel modules as part of the repo's manifest
   recovery work, or explicitly revise the task criterion through a recorded
   decision before closure.
 - Correct the test count in the reviewer documentation and rerun the commands.
+  **Test counts updated to 58 kernel + 4 CLI = 62; review includes adversarial step.**
 
 ## Non-blocking strengths to preserve
 

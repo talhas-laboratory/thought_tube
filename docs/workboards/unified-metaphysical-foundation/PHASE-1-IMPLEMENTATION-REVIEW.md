@@ -24,7 +24,7 @@ Framework v1.1 (paper)
   → TASK-005 application SDK + two consumer proofs
 ```
 
-**Test status:** 62/62 passing (`foundation test` runs 58 kernel tests; add `tests.test_metaphysical_kernel_cli` for 62 total)
+**Test status:** 63/63 passing (`foundation test` runs 58 kernel tests; add `tests.test_metaphysical_kernel_cli` for 63 total)
 
 **Workboard:** TASK-001 through TASK-005 are in `review`.
 

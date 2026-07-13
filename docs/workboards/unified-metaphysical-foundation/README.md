@@ -25,6 +25,7 @@ Live workspace id: `unified-framework-synthesis`
 
 - `TASKS.md`: board index and task status
 - `GAP-REPORT-2026-07-12.md`: blocking audit findings and worker repair sequence
+- `GAP-2-RECONCILIATION.md`: live workspace ledger reconciliation commands
 - `PHASE-1-IMPLEMENTATION-REVIEW.md`: architecture, invariants, checklist
 - `REVIEWER-START.md`: fast path for reviewers (`foundation review` + reading order)
 - `TOOLS.md`: CLI and verification commands (`conversation_os.py foundation …`)

@@ -19,7 +19,7 @@ python3 tools/conversation_os.py foundation review --in-place --verbose
 See [`REVIEWER-START.md`](./REVIEWER-START.md) for the full reviewer protocol.
 
 ```bash
-# Run the Phase 1 kernel test suite (58 tests via CLI; 62 with CLI handler tests)
+# Run the Phase 1 kernel test suite (58 tests via CLI; 63 with CLI handler tests)
 python3 tools/conversation_os.py foundation test --verbose
 PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
 
@@ -60,7 +60,8 @@ python3 tools/conversation_os.py foundation migrate-fixture \
 
 | Command | Purpose |
 |---------|---------|
-| `foundation review [--verbose] [--in-place]` | **Run full reviewer checklist** (tests + slice + consumers + migration) |
+| `foundation reconcile-ledger [--dry-run]` | Record live workspace verification (or emit offline commands) |
+| `foundation review [--verbose] [--in-place]` | **Run full reviewer checklist** (tests + slice + consumers + migration + adversarial) |
 | `foundation status` | Event log path, record counts, validation errors |
 | `foundation validate` | Validate folded kernel bundle in store |
 | `foundation bootstrap` | Register `profile:field_formation` v1.0.0 |

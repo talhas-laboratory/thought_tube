@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.metaphysical.migration",
+  "path": "src/conversation_os/metaphysical_kernel_migration.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Historical framework to kernel migration mappers and Gate F1 fixtures.",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["migrate_source_fixture", "validate_migration_fixture"],
+  "contains": ["migrate_source_fixture", "MappingRule"],
+  "depends_on": ["kernel.metaphysical.contracts"],
+  "feeds_into": ["kernel.metaphysical.cli"],
+  "inputs": ["migration source fixtures"],
+  "outputs": ["kernel bundles", "loss reports"],
+  "state_owned": [],
+  "surfaces_using": [],
+  "test_targets": ["tests/test_metaphysical_kernel_migration.py"]
+}

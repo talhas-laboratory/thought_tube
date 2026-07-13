@@ -155,6 +155,7 @@ from conversation_os.metaphysical_kernel_cli import (
     foundation_consumer,
     foundation_migrate_fixture,
     foundation_review,
+    foundation_reconcile_ledger,
     foundation_slice,
     foundation_status,
     foundation_test,
@@ -1556,6 +1557,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use repo memory/foundation store instead of an ephemeral temp directory",
     )
 
+    foundation_reconcile_parser = foundation_sub.add_parser(
+        "reconcile-ledger",
+        help="Record Phase 1 verification in live workspace (or emit offline commands)",
+    )
+    foundation_reconcile_parser.add_argument("--agent-id", default="cursor-cloud-agent")
+    foundation_reconcile_parser.add_argument("--surface", default="cursor")
+    foundation_reconcile_parser.add_argument("--session-id", default="session-foundation-reconcile")
+    foundation_reconcile_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Check API reachability and print commands without mutating live workspace",
+    )
+
     foundation_test_parser = foundation_sub.add_parser("test")
     foundation_test_parser.add_argument("--module", default="")
     foundation_test_parser.add_argument("--verbose", action="store_true")
@@ -2296,6 +2310,8 @@ def main(argv: list[str] | None = None) -> int:
             result = foundation_conformance(root, args)
         elif args.foundation_command == "review":
             result = foundation_review(root, args)
+        elif args.foundation_command == "reconcile-ledger":
+            result = foundation_reconcile_ledger(root, args)
         else:
             raise ValueError(args.foundation_command)
     elif args.command == "personal-interface":

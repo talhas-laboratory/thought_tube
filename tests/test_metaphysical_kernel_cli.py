@@ -7,6 +7,7 @@ from pathlib import Path
 from conversation_os.metaphysical_kernel_cli import (
     KERNEL_TEST_MODULES,
     foundation_bootstrap,
+    foundation_reconcile_ledger,
     foundation_review,
     foundation_status,
     foundation_validate,
@@ -41,6 +42,25 @@ class MetaphysicalKernelCliTestCase(unittest.TestCase):
         )
         self.assertTrue(result["passed"], result["steps"])
         self.assertTrue(result["ephemeral"])
+        step_names = [step["step"] for step in result["steps"]]
+        self.assertIn("adversarial_state_fixtures", step_names)
+
+    def test_foundation_reconcile_ledger_offline_mode(self) -> None:
+        import argparse
+
+        root = Path(__file__).resolve().parents[1]
+        result = foundation_reconcile_ledger(
+            root,
+            argparse.Namespace(
+                agent_id="test-agent",
+                surface="test",
+                session_id="test-session",
+                dry_run=False,
+            ),
+        )
+        self.assertEqual(result["mode"], "offline")
+        self.assertFalse(result["api_reachable"])
+        self.assertGreaterEqual(len(result["commands"]), 1)
 
 
 if __name__ == "__main__":
