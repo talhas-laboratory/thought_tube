@@ -19,7 +19,7 @@ python3 tools/conversation_os.py foundation review --in-place --verbose
 See [`REVIEWER-START.md`](./REVIEWER-START.md) for the full reviewer protocol.
 
 ```bash
-# Run the Phase 1 kernel test suite (53 tests via CLI; 56 with CLI handler tests)
+# Run the Phase 1 kernel test suite (58 tests via CLI; 62 with CLI handler tests)
 python3 tools/conversation_os.py foundation test --verbose
 PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
 

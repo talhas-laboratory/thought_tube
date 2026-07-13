@@ -33,7 +33,9 @@
         "epistemic_status": "not_applicable",
         "governance_status": "local"
       },
-      "source_refs": ["sf_control_loop"]
+      "source_refs": [
+        "sf_control_loop"
+      ]
     }
   ],
   "branch_memberships": [
@@ -110,7 +112,10 @@
       },
       "proposition": {
         "predicate": "inhibits",
-        "arguments": ["st_control", "st_initiative"]
+        "arguments": [
+          "st_control",
+          "st_initiative"
+        ]
       },
       "claimant": "service:interpretation",
       "branch_id": "branch_control_failure",
@@ -131,7 +136,9 @@
         "epistemic_status": "supported",
         "governance_status": "review_required"
       },
-      "source_claim_ids": ["cl_control_inhibits_initiative"],
+      "source_claim_ids": [
+        "cl_unknown"
+      ],
       "resulting_state_id": "st_initiative_low",
       "branch_id": "branch_control_failure",
       "scope_id": "scope_org",
@@ -154,7 +161,9 @@
         "epistemic_status": "supported",
         "governance_status": "local"
       },
-      "subject_refs": ["ref_company_x"],
+      "subject_refs": [
+        "ref_company_x"
+      ],
       "state_type": "workspace:initiative",
       "value": "low",
       "value_type": "ordinal",

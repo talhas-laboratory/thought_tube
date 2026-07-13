@@ -19,7 +19,7 @@ This runs, in order:
 
 | Step | What it checks |
 |------|----------------|
-| `unit_tests` | 53 tests across 5 unittest modules |
+| `unit_tests` | 58 tests across 5 unittest modules |
 | `bootstrap_profile` | `profile:field_formation` v1.0.0 registration |
 | `vertical_slice` | capture → referent → claim → bounded view → provenance |
 | `validate_bundle` | folded kernel bundle invariants |

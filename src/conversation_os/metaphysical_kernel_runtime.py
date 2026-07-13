@@ -409,6 +409,13 @@ class FoundationRuntime:
         self._append_record(commitment)
         self._append_record(state)
         self.attach_branch_membership(
+            record_id=commitment_id,
+            branch_id=branch_id,
+            scope_id=scope_id,
+            provenance_id=provenance_id,
+            membership_kind="asserted",
+        )
+        self.attach_branch_membership(
             record_id=state_id,
             branch_id=branch_id,
             scope_id=scope_id,

@@ -1,8 +1,8 @@
 # TASK-005-prove-application-sdk-with-two-consumers: Prove application SDK with two consumers
 
-Status: review
+Status: blocked
 Owner: cursor-cloud-agent
-Current gate: verification
+Current gate: implementation
 
 ## Problem
 
@@ -53,3 +53,9 @@ Out:
 
 - Foundation workboard Phase 1 stack (TASK-001–005) is code-complete pending human review/merge.
 - Optional: opt-in `session_append --foundation-capture` CLI flag using `capture_source_from_event`.
+- Blocked pending Gap 1 repair per .
+- Audit alignment: candidate SDK work exists on the unmerged branch, but TASK-005 is blocked until TASK-004 profile conformance is revalidated.
+
+## Handoff Notes
+
+- See `GAP-REPORT-2026-07-12.md`; unblock only after TASK-004 revalidation and live-ledger reconciliation.

@@ -1,8 +1,8 @@
 # TASK-002-build-historical-and-current-migration-fixtures: Build historical and current migration fixtures
 
-Status: review
+Status: blocked
 Owner: cursor-cloud-agent
-Current gate: verification
+Current gate: implementation
 
 ## Problem
 
@@ -60,3 +60,9 @@ Out:
 
 - Profile-level targets (CandidateShape, AntiMatch, feedback loops) are recorded in `loss_report` and `MappingRule.semantic_loss_warnings`, not materialized as kernel records yet.
 - TASK-003 should wire `session_append` → `SourceFragment` using the Conversation OS migrator patterns established here.
+- Blocked pending Gap 1 repair per .
+- Audit alignment: candidate migration work exists on the unmerged branch, but TASK-002 is blocked by TASK-001 contract repair and missing live verification evidence.
+
+## Handoff Notes
+
+- See `GAP-REPORT-2026-07-12.md`; unblock only after TASK-001 repair and live-ledger reconciliation.

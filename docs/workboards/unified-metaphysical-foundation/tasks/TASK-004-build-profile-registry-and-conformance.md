@@ -1,8 +1,8 @@
 # TASK-004-build-profile-registry-and-conformance: Build profile registry and conformance
 
-Status: review
+Status: blocked
 Owner: cursor-cloud-agent
-Current gate: verification
+Current gate: implementation
 
 ## Problem
 
@@ -58,3 +58,9 @@ Out:
 
 - TASK-005 should expose bounded SDK methods (`capture_source`, `create_branch`, etc.) bound to registered profiles.
 - Profile record instances (`field`, `hold`, `formation`) remain profile-layer projections; kernel store stays canonical.
+- Blocked pending Gap 1 repair per .
+- Audit alignment: candidate profile work exists on the unmerged branch, but TASK-004 is blocked until TASK-003 is revalidated against repaired contracts.
+
+## Handoff Notes
+
+- See `GAP-REPORT-2026-07-12.md`; unblock only after TASK-003 revalidation and live-ledger reconciliation.

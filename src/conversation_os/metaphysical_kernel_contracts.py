@@ -182,6 +182,7 @@ def validate_state(
     state: State,
     commitments: Sequence[StateCommitment],
     memberships: Sequence[BranchMembership],
+    claims: Optional[Sequence[Claim]] = None,
 ) -> List[str]:
     """Represented State requires explicit adoption path (§5.4, §6.11)."""
     section = FRAMEWORK_SECTIONS["state"]
@@ -206,10 +207,102 @@ def validate_state(
     ]
     if not branch_memberships:
         errors.append(f"[{FRAMEWORK_SECTIONS['branch_membership']}] state requires BranchMembership")
+    if claims is not None:
+        errors.extend(
+            validate_state_adoption_links(state, commitments, memberships, claims)
+        )
     return errors
 
 
-def validate_state_commitment(commitment: StateCommitment) -> List[str]:
+def validate_state_adoption_links(
+    state: State,
+    commitments: Sequence[StateCommitment],
+    memberships: Sequence[BranchMembership],
+    claims: Sequence[Claim],
+) -> List[str]:
+    """State, StateCommitment, BranchMembership, and source Claims must agree (§5.16, §6.11)."""
+    section_sc = FRAMEWORK_SECTIONS["state_commitment"]
+    section_bm = FRAMEWORK_SECTIONS["branch_membership"]
+    errors: List[str] = []
+
+    commitments_by_id = {item.envelope.id: item for item in commitments}
+    commitments_for_state = [
+        item for item in commitments if item.resulting_state_id == state.envelope.id
+    ]
+
+    active_commitment: Optional[StateCommitment] = None
+    if state.commitment_id:
+        linked = commitments_by_id.get(state.commitment_id)
+        if linked is None:
+            errors.append(f"[{section_sc}] state.commitment_id does not resolve to StateCommitment")
+        elif linked.resulting_state_id != state.envelope.id:
+            errors.append(
+                f"[{section_sc}] state.commitment_id must reference commitment adopting this state"
+            )
+        else:
+            active_commitment = linked
+    elif len(commitments_for_state) == 1:
+        active_commitment = commitments_for_state[0]
+    elif len(commitments_for_state) > 1:
+        errors.append(f"[{section_sc}] state requires explicit commitment_id when multiple commitments exist")
+
+    if active_commitment is None:
+        return errors
+
+    aligned_memberships = [
+        membership
+        for membership in memberships
+        if membership.record_id == state.envelope.id
+        and membership.branch_id == active_commitment.branch_id
+        and membership.effective_scope_id == active_commitment.scope_id
+    ]
+    if not aligned_memberships:
+        errors.append(
+            f"[{section_bm}] state BranchMembership must match StateCommitment branch and scope"
+        )
+
+    if state.valid_scope_id != active_commitment.scope_id:
+        errors.append(f"[{section_sc}] state.valid_scope_id must match StateCommitment scope_id")
+
+    claims_by_id = {item.envelope.id: item for item in claims}
+    for claim_id in active_commitment.source_claim_ids:
+        claim = claims_by_id.get(claim_id)
+        if claim is None:
+            errors.append(f"[{section_sc}] source claim {claim_id} does not exist")
+            continue
+        if claim.branch_id != active_commitment.branch_id:
+            errors.append(
+                f"[{section_sc}] source claim {claim_id} branch incompatible with commitment"
+            )
+        if claim.scope_id != active_commitment.scope_id:
+            errors.append(
+                f"[{section_sc}] source claim {claim_id} scope incompatible with commitment"
+            )
+        claim_memberships = [
+            membership
+            for membership in memberships
+            if membership.record_id == claim_id and membership.branch_id == claim.branch_id
+        ]
+        if not claim_memberships:
+            errors.append(f"[{section_bm}] source claim {claim_id} requires BranchMembership")
+
+    commitment_memberships = [
+        membership
+        for membership in memberships
+        if membership.record_id == active_commitment.envelope.id
+        and membership.branch_id == active_commitment.branch_id
+        and membership.effective_scope_id == active_commitment.scope_id
+    ]
+    if not commitment_memberships:
+        errors.append(f"[{section_bm}] state_commitment requires BranchMembership")
+
+    return errors
+
+
+def validate_state_commitment(
+    commitment: StateCommitment,
+    memberships: Optional[Sequence[BranchMembership]] = None,
+) -> List[str]:
     section = FRAMEWORK_SECTIONS["state_commitment"]
     errors = validate_envelope(commitment.envelope)
     if commitment.envelope.record_kind != "state_commitment":
@@ -226,6 +319,18 @@ def validate_state_commitment(commitment: StateCommitment) -> List[str]:
         errors.append(f"[{section}] responsible_actor is required")
     if not commitment.commitment_provenance_id:
         errors.append(f"[{section}] commitment_provenance_id is required")
+    if memberships is not None:
+        commitment_memberships = [
+            membership
+            for membership in memberships
+            if membership.record_id == commitment.envelope.id
+            and membership.branch_id == commitment.branch_id
+            and membership.effective_scope_id == commitment.scope_id
+        ]
+        if not commitment_memberships:
+            errors.append(
+                f"[{FRAMEWORK_SECTIONS['branch_membership']}] state_commitment requires BranchMembership"
+            )
     return errors
 
 
@@ -502,13 +607,13 @@ def validate_fixture_bundle(bundle: Mapping[str, Any]) -> List[str]:
         errors.extend(validate_branch_membership(membership))
 
     for commitment in commitments:
-        errors.extend(validate_state_commitment(commitment))
+        errors.extend(validate_state_commitment(commitment, memberships))
 
     for claim in claims:
         errors.extend(validate_claim(claim, memberships))
 
     for state in states:
-        errors.extend(validate_state(state, commitments, memberships))
+        errors.extend(validate_state(state, commitments, memberships, claims))
 
     for profile in profiles:
         errors.extend(validate_profile_definition(profile))

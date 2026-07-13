@@ -1,8 +1,8 @@
 # TASK-001-lock-kernel-contracts-and-lifecycles: Lock kernel contracts and lifecycles
 
-Status: review
+Status: blocked
 Owner: cursor-cloud-agent
-Current gate: verification
+Current gate: implementation
 
 ## Problem
 
@@ -64,6 +64,8 @@ Generated context pack: `context/task_packs/unified-metaphysical-foundation-sche
 - Created: `2026-07-12T14:18:38.450683+00:00`
 - Readiness completed: canonical source, scope, failure modes, acceptance criteria, and test strategy recorded.
 - Implementation completed (2026-07-12): kernel record dataclasses, contract validators, fixtures, and 12 invariant tests.
+- Blocked pending Gap 1 repair per .
+- Blocked by audit: `blocker-7f7662afad54` records a reproduced cross-branch StateCommitment/State/BranchMembership validation gap in the unmerged Phase 1 branch. See `GAP-REPORT-2026-07-12.md`.
 
 ## Handoff Notes
 
@@ -71,3 +73,4 @@ Generated context pack: `context/task_packs/unified-metaphysical-foundation-sche
 - Run the engineering guard with the smallest owner paths before editing code.
 - Main failure mode: designing a second abstract schema beside existing records instead of defining a migration-compatible canonical contract.
 - Residual risk before implementation: the local branch diverges from the cloud implementation branch; inspect rather than blindly import owners.
+- Do not advance or merge the Phase 1 branch until the audit report's P1 contract repair and live-ledger reconciliation are verified.

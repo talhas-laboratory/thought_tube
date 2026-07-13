@@ -23,6 +23,7 @@ from conversation_os.metaphysical_kernel_contracts import (
     validate_profile_conformance,
     validate_profile_definition,
     validate_state,
+    validate_state_adoption_links,
     validate_state_commitment,
 )
 
@@ -61,6 +62,45 @@ class MetaphysicalKernelContractTestCase(unittest.TestCase):
     def test_valid_state_commitment_path_fixture(self) -> None:
         errors = validate_fixture_bundle(_load_fixture("valid_state_commitment_path.json"))
         self.assertEqual(errors, [])
+
+    def test_invalid_state_branch_membership_mismatch_fixture(self) -> None:
+        errors = validate_fixture_bundle(
+            _load_fixture("invalid_state_branch_membership_mismatch.json")
+        )
+        self.assertTrue(
+            any("BranchMembership must match StateCommitment" in error for error in errors)
+        )
+
+    def test_invalid_state_scope_membership_mismatch_fixture(self) -> None:
+        errors = validate_fixture_bundle(
+            _load_fixture("invalid_state_scope_membership_mismatch.json")
+        )
+        self.assertTrue(
+            any("BranchMembership must match StateCommitment" in error for error in errors)
+        )
+
+    def test_invalid_state_missing_commitment_link_fixture(self) -> None:
+        errors = validate_fixture_bundle(
+            _load_fixture("invalid_state_missing_commitment_link.json")
+        )
+        self.assertTrue(
+            any("commitment_id does not resolve" in error for error in errors)
+        )
+
+    def test_invalid_state_unknown_source_claim_fixture(self) -> None:
+        errors = validate_fixture_bundle(
+            _load_fixture("invalid_state_unknown_source_claim.json")
+        )
+        self.assertTrue(any("source claim cl_unknown does not exist" in error for error in errors))
+
+    def test_state_adoption_rejects_cross_branch_membership(self) -> None:
+        bundle = _load_fixture("valid_state_commitment_path.json")
+        for membership in bundle["branch_memberships"]:
+            if membership["record_id"] == "st_initiative_low":
+                membership["branch_id"] = "branch-conflicting"
+                membership["effective_scope_id"] = "scope_conflicting"
+        errors = validate_fixture_bundle(bundle)
+        self.assertTrue(errors)
 
     def test_invalid_claim_without_membership_fixture(self) -> None:
         errors = validate_fixture_bundle(_load_fixture("invalid_claim_without_membership.json"))

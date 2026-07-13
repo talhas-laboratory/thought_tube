@@ -1,8 +1,8 @@
 # TASK-003-implement-phase-1-foundation-vertical-slice: Implement Phase 1 foundation vertical slice
 
-Status: review
+Status: blocked
 Owner: cursor-cloud-agent
-Current gate: verification
+Current gate: implementation
 
 ## Problem
 
@@ -61,3 +61,9 @@ Out:
 
 - TASK-004 should register Field/Formation profiles against this store without redefining kernel semantics.
 - Optional follow-up: wire `foundation_capture_from_session` into `session_append` CLI as an opt-in flag.
+- Blocked pending Gap 1 repair per .
+- Audit alignment: candidate runtime work exists on the unmerged branch, but TASK-003 is blocked by TASK-001 and TASK-002 repair/revalidation.
+
+## Handoff Notes
+
+- See `GAP-REPORT-2026-07-12.md`; unblock only after prerequisite repair and live-ledger reconciliation.
