@@ -54,7 +54,7 @@ Out:
 - Foundation workboard Phase 1 stack (TASK-001–005) is code-complete pending human review/merge.
 - Optional: opt-in `session_append --foundation-capture` CLI flag using `capture_source_from_event`.
 - Blocked pending Gap 1 repair per .
-- Audit alignment: candidate SDK work exists on the unmerged branch, but TASK-005 is blocked until TASK-004 profile conformance is revalidated.
+- Audit alignment: candidate SDK work exists on the unmerged branch and profile conformance review evidence is recorded; TASK-005 is in `review` pending branch review.
 
 ## Handoff Notes
 

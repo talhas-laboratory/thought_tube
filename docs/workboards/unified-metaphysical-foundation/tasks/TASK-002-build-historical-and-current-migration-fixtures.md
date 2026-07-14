@@ -61,7 +61,7 @@ Out:
 - Profile-level targets (CandidateShape, AntiMatch, feedback loops) are recorded in `loss_report` and `MappingRule.semantic_loss_warnings`, not materialized as kernel records yet.
 - TASK-003 should wire `session_append` → `SourceFragment` using the Conversation OS migrator patterns established here.
 - Blocked pending Gap 1 repair per .
-- Audit alignment: candidate migration work exists on the unmerged branch, but TASK-002 is blocked by TASK-001 contract repair and missing live verification evidence.
+- Audit alignment: candidate migration work exists on the unmerged branch and live verification evidence is recorded; TASK-002 is in `review` pending branch review.
 
 ## Handoff Notes
 

@@ -59,7 +59,7 @@ Out:
 - TASK-005 should expose bounded SDK methods (`capture_source`, `create_branch`, etc.) bound to registered profiles.
 - Profile record instances (`field`, `hold`, `formation`) remain profile-layer projections; kernel store stays canonical.
 - Blocked pending Gap 1 repair per .
-- Audit alignment: candidate profile work exists on the unmerged branch, but TASK-004 is blocked until TASK-003 is revalidated against repaired contracts.
+- Audit alignment: candidate profile work exists on the unmerged branch and the Phase 1 review evidence is recorded; TASK-004 is in `review` pending branch review.
 
 ## Handoff Notes
 

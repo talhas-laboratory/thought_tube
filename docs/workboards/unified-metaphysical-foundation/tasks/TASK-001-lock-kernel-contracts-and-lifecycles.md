@@ -65,7 +65,7 @@ Generated context pack: `context/task_packs/unified-metaphysical-foundation-sche
 - Readiness completed: canonical source, scope, failure modes, acceptance criteria, and test strategy recorded.
 - Implementation completed (2026-07-12): kernel record dataclasses, contract validators, fixtures, and 12 invariant tests.
 - Gap 1 repaired (2026-07-13): `validate_state_adoption_links` + four adversarial fixtures; see `REVIEWER-START.md` §4.
-- Blocked by audit: `blocker-7f7662afad54` until live ledger reconciled per `GAP-2-RECONCILIATION.md`.
+- Live ledger reconciliation is complete; task is in `review` pending branch review and merge decision.
 
 ## Handoff Notes
 

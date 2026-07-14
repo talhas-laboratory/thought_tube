@@ -1,5 +1,9 @@
 # Gap 2 Reconciliation — Live Workspace Ledger
 
+**Status:** Complete as of 2026-07-14. The live ledger has verification evidence for TASK-001 through TASK-005, all five tasks are `review`, the formal blocker is resolved, and `CONTINUITY.md` is freshly projected.
+
+The commands below are retained as an explicit procedure for a future, authorized reconciliation. They are not routine test commands: the connected path mutates the live coordination service.
+
 **Blocker:** `blocker-7f7662afad54`  
 **Workspace:** `unified-framework-synthesis`  
 **Prerequisite:** Gap 1 repair merged on branch; `foundation review` passes.

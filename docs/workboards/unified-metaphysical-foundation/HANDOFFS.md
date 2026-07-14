@@ -2,7 +2,7 @@
 
 ## 2026-07-14 — Phase 1 merged to `codex/unified-framework-sync`
 
-Phase 1 kernel code and reviewer docs are now on the coordination branch. Remaining close-out: Gap 2 live ledger reconciliation (`foundation reconcile-ledger` from a connected machine), then merge codex → `main`.
+Phase 1 kernel code and reviewer docs are now on the coordination branch. Gap 2 live ledger reconciliation is complete: the live workspace has verification evidence for TASK-001 through TASK-005, all five tasks are `review`, and no blocker remains. Remaining close-out is branch review and the merge decision.
 
 ---
 
@@ -24,7 +24,7 @@ Added [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) — single entry for a fres
 **Branch:** `cursor/metaphysical-kernel-contracts-423a`
 
 Updated [`REVIEWER-START.md`](./REVIEWER-START.md) with current status, all 10 `foundation review` steps,
-Gap 1 spot-checks, Gap 2 merge gate, manifests path, and 63-test count.
+Gap 1 spot-checks, the reconciled Gap 2 ledger, manifests path, and the foundation-review verification boundary.
 
 **Reviewer entry point:** [`REVIEWER-START.md`](./REVIEWER-START.md)
 
@@ -42,12 +42,11 @@ python3 tools/conversation_os.py foundation review
 
 Repairing P1 Gap 1 from [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md) — **done on branch**.
 
-Gap 2 live ledger: use [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) or
-`python3 tools/conversation_os.py foundation reconcile-ledger` from a connected surface.
+Gap 2 live ledger is complete; use [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) only when an explicitly authorized future reconciliation is needed. The connected command is state-changing and must not run as a routine test.
 
 ### Prior handoffs
 
-- **2026-07-12 audit repair** — audit blocked tasks; live ledger reconciliation still required.
+- **2026-07-12 audit repair** — audit initially blocked tasks; the live ledger was subsequently reconciled and projections refreshed.
 - **2026-07-12 Phase 1 implementation** — see [`REVIEWER-START.md`](./REVIEWER-START.md) and
   [`PHASE-1-IMPLEMENTATION-REVIEW.md`](./PHASE-1-IMPLEMENTATION-REVIEW.md).
 

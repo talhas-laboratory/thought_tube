@@ -1,5 +1,7 @@
 # Gap Report — Phase 1 Metaphysical Foundation
 
+> **Current status (2026-07-14):** The live workspace has reconciled the findings below. TASK-001 through TASK-005 are in `review`, the formal blocker is resolved, and the continuity projection is fresh. The historical findings and evidence below are retained unchanged as the audit record.
+
 Status: **blocking review gaps**  
 Audited branch: `cursor/metaphysical-kernel-contracts-423a`  
 Audited head: `5e5502f69d`  

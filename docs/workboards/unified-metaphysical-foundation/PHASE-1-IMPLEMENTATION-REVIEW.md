@@ -24,11 +24,11 @@ Framework v1.1 (paper)
   → TASK-005 application SDK + two consumer proofs
 ```
 
-**Test status:** 63/63 passing (`foundation test` runs 58 kernel tests; add `tests.test_metaphysical_kernel_cli` for 63 total)
+**Verification status:** `foundation review` passes all 10 review steps, including 58 kernel tests and adversarial state fixtures. CLI handler tests are separate and include a connected-environment reconciliation path that must remain isolated from live coordination.
 
-**Audit:** See [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md). Gap 1 repaired on branch; Gap 2 (live ledger) open until [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) completes.
+**Audit:** See [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md). Gap 1 is repaired on branch and Gap 2 has been reconciled in the live workspace.
 
-**Workboard:** TASK-001 through TASK-005 are `blocked` pending live ledger reconciliation (formal blocker `blocker-7f7662afad54`).
+**Workboard:** TASK-001 through TASK-005 are `review`; the live workspace has no open blockers.
 
 ---
 
@@ -249,12 +249,11 @@ python3 tools/conversation_os.py foundation conformance
 python3 tools/conversation_os.py foundation migrate-fixture \
   --fixture-path tests/fixtures/migration/sds_signal_dilution.json
 
-# 6. Live workspace reconciliation (connected surface only — required before merge)
-python3 tools/conversation_os.py foundation reconcile-ledger --dry-run
-python3 tools/conversation_os.py foundation reconcile-ledger
+# 6. Live workspace state (read-only confirmation)
+python3 tools/workspace_coordination.py tasks --workspace-id unified-framework-synthesis
 ```
 
-**Expected:** `foundation review` → `"passed": true` (all 10 steps); adversarial state fixtures rejected; after reconcile-ledger → live tasks move to `review` and blocker `blocker-7f7662afad54` resolved.
+**Expected:** `foundation review` → `"passed": true` (all 10 steps); adversarial state fixtures rejected; live tasks remain `review` with blocker `blocker-7f7662afad54` resolved.
 
 ---
 
@@ -267,7 +266,7 @@ python3 tools/conversation_os.py foundation reconcile-ledger
 | CLI `session_append --foundation-capture` | Not wired; use `foundation capture` or SDK |
 | Kernel module manifests | Tracked in `manifests/`; copy to `context/substrate/modules/` locally |
 | Repo-wide module manifests | Not recovered; engineering guard may report `needs_index` |
-| Live workspace ledger | Must be reconciled via `foundation reconcile-ledger` before merge |
+| Live workspace ledger | Reconciled; all five tasks are `review` and no blocker is open |
 | Round-trip inverse migration loaders | Not implemented |
 | Production auth | SDK uses `ApplicationContext.authorized` flag only |
 
@@ -324,7 +323,7 @@ docs/workboards/unified-metaphysical-foundation/
 
 ## 9. Suggested next work after merge
 
-1. Merge PR #11 into `codex/unified-framework-sync` (only after Gap 2 reconciliation).
+1. Complete branch review, then merge PR #11 into `codex/unified-framework-sync` when the reviewer accepts the recorded evidence.
 2. Opt-in `session_append` → foundation capture flag.
 3. Register Shape profile; implement `derive_shape` beyond abstain.
 4. Wire World Studio / workspace services to `FoundationApplicationSdk` at application boundaries.

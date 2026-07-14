@@ -3,7 +3,7 @@
 > **Visibility:** This file is on `main` (since PR #13, commit `0080fa7`). If your agent cannot find it, your local clone is stale — run `git fetch origin && git checkout main && git pull origin main` before searching again.
 
 **Audience:** a fresh local agent with no prior chat context  
-**Mission:** close Gap 2 (live ledger reconciliation) on a connected machine  
+**Mission:** review the reconciled Phase 1 implementation and prepare a merge decision
 **Branch:** `main`  
 **Live workspace id:** `unified-framework-synthesis`  
 **Formal blocker:** `blocker-7f7662afad54` (resolve via live API)
@@ -18,7 +18,7 @@ You are finished when **all** of the following are true:
 |---|-----------|---------------|
 | 1 | Code on branch passes automated review | `python3 tools/conversation_os.py foundation review` → `"passed": true` (all 10 steps) |
 | 2 | Gap 1 (state adoption) holds under adversarial fixtures | Step `adversarial_state_fixtures` passes; spot-check §4 below |
-| 3 | Gap 2 (live ledger) reconciled | `foundation reconcile-ledger` succeeds in `connected` mode **or** manual commands in GAP-2 doc executed |
+| 3 | Gap 2 (live ledger) reconciled | Live API shows all five tasks in `review`, no open blocker, and fresh projections |
 | 4 | Live blocker resolved | `blocker-7f7662afad54` resolved in live workspace |
 | 5 | Live tasks match git | TASK-001–005 at `review` (or `done` after human merge approval) with verification evidence recorded |
 | 6 | Continuity refreshed | `docs/workspaces/unified-framework-synthesis/CONTINUITY.md` republished via `foundation sync-projections` (or `workspace_projection_sync.py publish`) after mutations |
@@ -54,7 +54,7 @@ If Cursor shows `stdout maxBuffer length exceeded` on checkout, **ignore the UI*
 | **Audit repair packet** | `GAP-REPORT-2026-07-12.md` | same |
 | **What to do next** | This file + `GAP-2-RECONCILIATION.md` | `TASKS.md`, `UPDATES.jsonl` |
 
-**Rule:** Query the live workspace **before** mutating task state. After mutations, run projection sync — see [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md). Git workboard files are projections; the audit explicitly blocked merge when git said `review` but live said `backlog`.
+**Rule:** Query the live workspace **before** mutating task state. After mutations, run projection sync — see [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md). Git workboard files are projections; the live ledger currently reports all five tasks as `review` with no blocker.
 
 ---
 
@@ -137,26 +137,24 @@ Valid path (must **pass**): `tests/fixtures/metaphysical_kernel/valid_state_comm
 
 ---
 
-### Gap 2 — Live workspace ledger (P1) — **YOUR PRIMARY WORK**
+### Gap 2 — Live workspace ledger (P1) — **RECONCILED**
 
 | Item | Detail |
 |------|--------|
 | Problem | Git workboard and live workspace diverged; no verification evidence recorded live |
 | Blocker | `blocker-7f7662afad54` |
 | Dependency chain | TASK-001 → TASK-002 → TASK-003 → TASK-004 → TASK-005 |
-| Your todo | Record verification, resolve blocker, set tasks to `review` |
+| Current state | Verification is recorded, blocker is resolved, and tasks are `review` |
 
 ```bash
-# Dry-run first
-python3 tools/conversation_os.py foundation reconcile-ledger --dry-run
-
-# Execute (requires live API)
-python3 tools/conversation_os.py foundation reconcile-ledger
+# Inspect the already-reconciled live state; do not execute the state-changing
+# reconciliation command unless a new authorization is explicitly provided.
+python3 tools/workspace_coordination.py tasks --workspace-id unified-framework-synthesis
 ```
 
 Full manual command list: [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md)
 
-**After reconcile:** confirm live tasks show `review`, blocker resolved, and refresh continuity from the service.
+**Current verification:** live tasks show `review`, blocker resolved, and continuity is fresh from the service.
 
 ---
 
@@ -195,15 +193,11 @@ python3 tools/workspace_coordination.py context \
 python3 tools/conversation_os.py foundation review
 PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
 
-# ── 4. Reconcile live ledger (Gap 2) ─────────────────────
-python3 tools/conversation_os.py foundation reconcile-ledger --dry-run
-python3 tools/conversation_os.py foundation reconcile-ledger
-
-# ── 5. Confirm live state ────────────────────────────────
+# ── 4. Confirm live state ────────────────────────────────
 python3 tools/workspace_coordination.py tasks --workspace-id unified-framework-synthesis
 # expect: TASK-001..005 → review; blocker resolved
 
-# ── 6. Optional manifests (Gap 3) ────────────────────────
+# ── 5. Optional manifests (Gap 3) ────────────────────────
 mkdir -p context/substrate/modules
 cp docs/workboards/unified-metaphysical-foundation/manifests/*.json context/substrate/modules/
 python3 tools/conversation_os.py repo-overview refresh
@@ -224,7 +218,7 @@ Phase 1 on this branch includes:
 | TASK-005 | Application SDK + World Studio / Workspace Curator proofs |
 
 **CLI:** `python3 tools/conversation_os.py foundation …`  
-**Tests:** 63 total (58 kernel + 5 CLI)
+**Tests:** `foundation review` covers the 58 kernel tests; CLI handler tests are a separate suite.
 
 ---
 
@@ -279,7 +273,7 @@ docs/workboards/unified-metaphysical-foundation/
 |---------|--------|
 | `foundation review` fails on `adversarial_state_fixtures` | Gap 1 regression — fix `metaphysical_kernel_contracts.py`, do not reconcile ledger yet |
 | `reconcile-ledger` returns `mode: offline` | Fix Tailscale / `INNER_WORLD_WORKSPACE_API_BASE`; use manual commands in GAP-2 doc |
-| Live tasks still `blocked` after reconcile | Re-run with `--verbose`; check blocker id; inspect live workspace runs endpoint |
+| Live tasks do not match the current projection | Query the live API, then run projection sync; do not hand-edit task status |
 | Engineering guard `needs_index` | Expected repo-wide; kernel tests still authoritative for Phase 1 |
 | Wrong branch / maxBuffer on checkout | Use §1 terminal checkout of `cursor/metaphysical-kernel-contracts-423a` |
 

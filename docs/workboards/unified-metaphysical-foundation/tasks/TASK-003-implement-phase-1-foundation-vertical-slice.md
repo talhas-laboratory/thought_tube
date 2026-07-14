@@ -62,7 +62,7 @@ Out:
 - TASK-004 should register Field/Formation profiles against this store without redefining kernel semantics.
 - Optional follow-up: wire `foundation_capture_from_session` into `session_append` CLI as an opt-in flag.
 - Blocked pending Gap 1 repair per .
-- Audit alignment: candidate runtime work exists on the unmerged branch, but TASK-003 is blocked by TASK-001 and TASK-002 repair/revalidation.
+- Audit alignment: candidate runtime work exists on the unmerged branch and the repaired contract/migration gates have live verification evidence; TASK-003 is in `review` pending branch review.
 
 ## Handoff Notes
 
