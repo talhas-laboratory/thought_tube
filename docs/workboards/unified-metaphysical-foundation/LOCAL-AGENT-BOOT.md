@@ -1,10 +1,10 @@
 # Local Agent Boot — Close Phase 1 Foundation Gaps
 
-> **Visibility:** This file lives on `codex/unified-framework-sync` (coordination branch). After Phase 1 merge, kernel code is here too. If missing, run `git fetch origin` and checkout `codex/unified-framework-sync` — it is **not** on `main` until codex merges there.
+> **Visibility:** This file is on `main` (since PR #13, commit `0080fa7`). If your agent cannot find it, your local clone is stale — run `git fetch origin && git checkout main && git pull origin main` before searching again.
 
 **Audience:** a fresh local agent with no prior chat context  
-**Mission:** close remaining Gap 2 (live ledger) and merge `codex/unified-framework-sync` → `main`  
-**Branch:** `codex/unified-framework-sync` (Phase 1 code merged here)  
+**Mission:** close Gap 2 (live ledger reconciliation) on a connected machine  
+**Branch:** `main`  
 **Live workspace id:** `unified-framework-synthesis`  
 **Formal blocker:** `blocker-7f7662afad54` (resolve via live API)
 
@@ -29,21 +29,15 @@ You are finished when **all** of the following are true:
 
 ## 1. Check out the correct branch (terminal, not Cursor UI)
 
-Use **`codex/unified-framework-sync`** (Phase 1 code merged here), not `cursor/primitive-catalogue-doc-423a` (docs-only, different work).
+Use **`main`** at `0080fa7` or later.
 
 ```bash
 cd /path/to/thought_tube
 git fetch origin
-
-# Optional if LFS checkout is noisy or Cursor hit maxBuffer errors:
-export GIT_LFS_SKIP_SMUDGE=1
-
-git checkout -B codex/unified-framework-sync \
-  origin/codex/unified-framework-sync
-
-git lfs pull   # if you skipped smudge above
+git checkout main
+git pull origin main
 git log --oneline -1
-# expect: latest commit on codex/unified-framework-sync with Phase 1 kernel code
+# expect: 0080fa7 or later — "Merge unified framework sync (Phase 1 foundation) to main"
 ```
 
 If Cursor shows `stdout maxBuffer length exceeded` on checkout, **ignore the UI** and use the terminal commands above.

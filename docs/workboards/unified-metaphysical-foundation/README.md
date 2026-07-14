@@ -13,7 +13,7 @@ Live workspace id: `unified-framework-synthesis`
 
 ## Agent Start Protocol
 
-0. **Fresh local agent:** read [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) first; work on `codex/unified-framework-sync`.
+0. **Fresh local agent:** read [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) first. Ensure you are on `main` at commit `0080fa7` or later (`git fetch origin && git pull origin main`).
 1. Read `README.md`, `REVIEWER-START.md`, `GAP-REPORT-2026-07-12.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and the latest entries in `UPDATES.jsonl`.
 2. Claim one task by editing its task file and adding an update row.
 3. Work only inside the task scope unless the board owner expands it.
