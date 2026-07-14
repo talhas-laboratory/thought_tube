@@ -1,0 +1,23 @@
+{
+  "module_id": "kernel.metaphysical.cli",
+  "path": "src/conversation_os/metaphysical_kernel_cli.py",
+  "layer": "tooling",
+  "owner": "conversation_os",
+  "purpose": "CLI handlers for conversation_os.py foundation commands including review and reconcile.",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["foundation_review", "foundation_status", "foundation_reconcile_ledger"],
+  "contains": ["foundation_review", "foundation_reconcile_ledger"],
+  "depends_on": [
+    "kernel.metaphysical.application_sdk",
+    "kernel.metaphysical.migration",
+    "kernel.metaphysical.profile_registry",
+    "kernel.metaphysical.runtime"
+  ],
+  "feeds_into": ["assembly.bootstrap.cli"],
+  "inputs": ["CLI arguments"],
+  "outputs": ["JSON command results"],
+  "state_owned": [],
+  "surfaces_using": [],
+  "test_targets": ["tests/test_metaphysical_kernel_cli.py"]
+}

@@ -1,5 +1,7 @@
 # Agent Rules
 
+**Fresh local agent closing Phase 1 gaps:** start at [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) (checkout `cursor/metaphysical-kernel-contracts-423a` for code).
+
 - Prefer sparse, high-signal updates over verbose status narratives.
 - Keep task packets self-contained enough for another agent to resume.
 - Update board state as part of the work, not after memory fades.
