@@ -23,6 +23,7 @@ Live workspace id: `unified-framework-synthesis`
 
 ## Board Shape
 
+- `LOCAL-AGENT-BOOT.md`: **start here for a fresh local agent** (find workspace, gaps, close-out checklist)
 - `TASKS.md`: board index and task status
 - `GAP-REPORT-2026-07-12.md`: blocking audit findings and worker repair sequence
 - `GAP-2-RECONCILIATION.md`: live workspace ledger reconciliation commands

@@ -68,7 +68,8 @@ PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
 
 ## 2. Reading order
 
-1. **This file** — fast path and merge gates
+0. **[`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)** — if you are a **fresh local agent** closing gaps (start here)
+1. **This file** — fast path for code review and merge gates
 2. [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md) — audit findings (Gap 1 repaired; Gap 2 open)
 3. [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) — live workspace ledger steps
 4. [`PHASE-1-IMPLEMENTATION-REVIEW.md`](./PHASE-1-IMPLEMENTATION-REVIEW.md) — architecture, invariants, module map

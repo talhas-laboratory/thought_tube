@@ -1,5 +1,11 @@
 # Handoffs
 
+## 2026-07-14 — Local agent boot guide
+
+Added [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) — single entry for a fresh local agent to find workspace context, gap todos, and close-out checklist.
+
+---
+
 ## 2026-07-14 — Reviewer documentation refresh
 
 **Agent:** cursor-cloud-agent  

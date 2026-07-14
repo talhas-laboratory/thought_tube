@@ -58,6 +58,8 @@ Phase 1 foundation code is implemented on branch `cursor/metaphysical-kernel-con
 
 Verify with: `python3 tools/conversation_os.py foundation review`
 
+**Local agent close-out:** [`docs/workboards/unified-metaphysical-foundation/LOCAL-AGENT-BOOT.md`](../../workboards/unified-metaphysical-foundation/LOCAL-AGENT-BOOT.md)
+
 Reviewer docs: `docs/workboards/unified-metaphysical-foundation/REVIEWER-START.md`
 
 ## Next actions

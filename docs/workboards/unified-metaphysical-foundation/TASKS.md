@@ -12,8 +12,7 @@ Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
 Audit alignment: the Phase 1 candidate branch contains work for all five tasks,
-but the chain is blocked pending the P1 contract repair and live-ledger
-reconciliation described in `GAP-REPORT-2026-07-12.md`.
+but the chain is blocked pending live-ledger reconciliation (Gap 2). Gap 1 code
+repair is on branch `cursor/metaphysical-kernel-contracts-423a`.
 
-Gap 1 repair (StateCommitment cross-link validation) is in progress on branch
-`cursor/metaphysical-kernel-contracts-423a`.
+**Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)
