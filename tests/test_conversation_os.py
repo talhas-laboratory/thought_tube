@@ -68,7 +68,9 @@ from conversation_os.analysis import refresh_indexes
 from conversation_os.analysis_units import build_analysis_units, load_analysis_units
 from conversation_os.chat_backends import (
     apply_openclaw_model_control,
+    diagnose_openclaw_telegram_config,
     get_openclaw_model_control_state,
+    migrate_openclaw_telegram_bindings,
     request_openclaw_reply,
     resolve_chat_backend,
     rollback_openclaw_model_control,
@@ -5151,6 +5153,67 @@ class ConversationOSTestCase(unittest.TestCase):
         restored = json.loads(config_path.read_text(encoding="utf-8"))
         main = next(item for item in restored["agents"]["list"] if item["id"] == "main")
         self.assertNotIn("model", main)
+
+    def _write_openclaw_telegram_fixture(self, *, include_legacy_agent_id: bool = True) -> Path:
+        config_path = self.root / "openclaw.json"
+        account = {
+            "botToken": "123:telegram-test-token",
+            "dmPolicy": "pairing",
+        }
+        if include_legacy_agent_id:
+            account["agentId"] = "telegram"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "agents": {
+                        "list": [
+                            {"id": "main", "default": True},
+                            {"id": "telegram", "name": "Telegram"},
+                        ]
+                    },
+                    "channels": {
+                        "telegram": {
+                            "enabled": True,
+                            "accounts": {
+                                "default": account,
+                            },
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        config_dir = self.root / "product" / "inner_world_v1" / "config"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        (config_dir / "runtime.json").write_text(
+            json.dumps({"openclaw": {"config_path": str(config_path)}}),
+            encoding="utf-8",
+        )
+        return config_path
+
+    def test_openclaw_telegram_diagnose_flags_legacy_account_agent_id(self) -> None:
+        self._write_openclaw_telegram_fixture(include_legacy_agent_id=True)
+        diagnosis = diagnose_openclaw_telegram_config(self.root)
+        self.assertFalse(diagnosis["ok"])
+        codes = {issue["code"] for issue in diagnosis["issues"]}
+        self.assertIn("legacy_account_agent_id", codes)
+
+    def test_openclaw_telegram_migration_moves_account_agent_id_to_bindings(self) -> None:
+        config_path = self._write_openclaw_telegram_fixture(include_legacy_agent_id=True)
+        preview = migrate_openclaw_telegram_bindings(self.root, apply=False)
+        self.assertTrue(preview["changes"])
+        self.assertTrue(preview["diagnosis"]["ok"])
+
+        result = migrate_openclaw_telegram_bindings(self.root, apply=True)
+        self.assertTrue(result["applied"])
+        self.assertTrue(result["diagnosis"]["ok"])
+        updated = json.loads(config_path.read_text(encoding="utf-8"))
+        account = updated["channels"]["telegram"]["accounts"]["default"]
+        self.assertNotIn("agentId", account)
+        self.assertEqual(
+            updated["bindings"],
+            [{"agentId": "telegram", "match": {"channel": "telegram", "accountId": "default"}}],
+        )
 
     def test_miniapp_exposes_openclaw_model_control_routes(self) -> None:
         self._write_openclaw_control_fixture()

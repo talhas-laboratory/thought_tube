@@ -1,0 +1,43 @@
+{
+  "task_id": "mtsf-activation-continuity-4f48",
+  "request": "Continue MTSF work after activation binding: traversal router (follow intent) and cross-session dedup. Recover full Cursor thread context when compressed.",
+  "task_type": "continuity_handoff",
+  "domain_overlays": ["research", "structure", "mtsf"],
+  "tenets": [],
+  "relevant_sessions": [
+    {
+      "session_id": "cursor-mtsf-activation-thread-4f48",
+      "title": "MTSF activation thread continuity",
+      "status": "closed",
+      "source_type": "imported_transcript",
+      "domains": ["research", "structure", "mtsf"]
+    }
+  ],
+  "relevant_cards": [],
+  "active_plans": [],
+  "constraints": [
+    "Prefer extending mtsf_graph.py before new subsystems",
+    "Do not edit raw event logs",
+    "Run engineering guard before substantial code changes"
+  ],
+  "open_questions": [
+    "Traversal router: structured intents vs natural language phrases for v1?",
+    "Cross-session dedup: when to auto-merge vs require explicit alias event?",
+    "Unbound catalog entities: stub graph nodes or richer ingest detection?"
+  ],
+  "next_actions": [
+    "Read docs/continuity/cursor-mtsf-activation-thread-2026-07-07.md for full thread arc",
+    "Read docs/continuity/INDEX.md for session id and PR links",
+    "Implement resolve_traversal_intent + --intent on graph-follow (item #2)",
+    "Implement node_merged / node_alias / node_retracted in graph_events (item #3)"
+  ],
+  "reference_docs": {
+    "continuity_index": "docs/continuity/INDEX.md",
+    "continuity_transcript": "docs/continuity/cursor-mtsf-activation-thread-2026-07-07.md",
+    "mtsf_system_map": "context/substrate/generated/purpose/structure.mtsf.system-map.md",
+    "pr_promotion": "https://github.com/talhas-laboratory/thought_tube/pull/3",
+    "pr_activation_binding": "https://github.com/talhas-laboratory/thought_tube/pull/4"
+  },
+  "relevant_concepts": [],
+  "continuity_note": "Canonical transcript is in docs/continuity (git). Session replay is in memory/ (local, gitignored): memory/events/cursor-mtsf-activation-thread-4f48.jsonl"
+}
