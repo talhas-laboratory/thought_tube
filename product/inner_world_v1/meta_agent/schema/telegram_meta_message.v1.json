@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "kind": "telegram_meta_message",
+  "required": [
+    "channel",
+    "chat_id",
+    "user_id",
+    "message_id",
+    "text"
+  ]
+}

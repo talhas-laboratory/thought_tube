@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "kind": "approval_event",
+  "required": [
+    "event_id",
+    "packet_id",
+    "actor",
+    "decision",
+    "created_at"
+  ]
+}

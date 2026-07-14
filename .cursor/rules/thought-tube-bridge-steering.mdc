@@ -1,0 +1,23 @@
+---
+description: Thought Tube bridge steering contract for every agent turn
+alwaysApply: true
+---
+
+# Thought Tube bridge steering
+
+This repository uses the Thought Tube bridge control plane.
+
+## Every turn
+
+1. If `.thought-tube/latest-steering.md` exists, read it and honor it as binding guidance for the current turn.
+2. If steering is missing or stale, call MCP tool `bridge_prepare_turn` with the user's message and the current `session_id`.
+3. Honor `context_policy` budgets. Do not request full corpus dumps.
+
+## Contract
+
+See `.thought-tube/STEERING.md` for the portable cross-host contract.
+
+## Debug
+
+- `bridge_inspect_request` for persisted turns
+- `bridge_list_control_packets` for recent routing history

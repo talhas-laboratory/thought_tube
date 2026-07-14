@@ -11,5 +11,35 @@
     "thinking": "minimal",
     "timeout_seconds": 90,
     "deliver": false
+  },
+  "bridge": {
+    "enabled": true,
+    "agent": "thought_tube_router",
+    "model": "moonshot/kimi-k2.5",
+    "thinking": "low",
+    "timeout_seconds": 25,
+    "fallback": "heuristic",
+    "emit_heuristic_preview": true,
+    "execution_mode": "agent",
+    "openclaw_mode": "auto"
+  },
+  "self_improvement": {
+    "enabled": false,
+    "agent": "thought_tube_self_improve",
+    "model": "moonshot/kimi-k2.5",
+    "thinking": "high",
+    "timeout_seconds": 90,
+    "default_authority": "propose",
+    "allow_production_deploy": false,
+    "config_path": "product/inner_world_v1/config/self_improvement.json",
+    "agent_config_path": "product/inner_world_v1/config/agent_configs/thought_tube_self_improve.json"
+  },
+  "telegram_meta": {
+    "enabled": false,
+    "agent": "inner_space_meta",
+    "default_state": "discuss",
+    "allow_production_deploy": false,
+    "require_explicit_approval": true,
+    "agent_config_path": "product/inner_world_v1/config/agent_configs/inner_space_meta.json"
   }
 }

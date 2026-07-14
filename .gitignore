@@ -17,14 +17,24 @@ context/
 memory/
 mobile_artifacts/
 output/
+runtime/
 tmp/
 vaults/
+artifacts/
 
 # Generated product state
 product/inner_world_v1/data/
+product/inner_world_v1/runs/
 product/inner_world_v1/exports/
+product/inner_world_v1/backups/
+product/inner_world_v1/portable/
+product/inner_world_v1/openclaw_bundle/
 product/personal_interface_v1/data/
+product/development_layer_v1/data/
 
 # Local ops/runtime files
 ops/*.log
 ops/*.pid
+
+# Generated Thought Tube bridge steering (per-turn)
+.thought-tube/latest-steering.md

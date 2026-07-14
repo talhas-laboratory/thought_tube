@@ -1,0 +1,16 @@
+{
+  "behavior_id": "implementation_scaffold",
+  "priority": 82,
+  "preferred_pipeline": "idea_embedding_v1",
+  "routing_mode": "bias",
+  "reasoning_posture": "implementation",
+  "response_directives": [
+    "translate_into_steps",
+    "preserve_architectural_shape",
+    "move_toward_execution"
+  ],
+  "operator_biases": {
+    "prefer_actionable_structure": true,
+    "prefer_scaffold_over_abstraction": true
+  }
+}

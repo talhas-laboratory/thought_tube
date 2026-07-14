@@ -40,7 +40,11 @@ PUBLIC_API = (
     "workspace_context_dir",
     "workspace_manifest_path",
     "workspace_events_path",
+    "workspace_activity_events_path",
     "workspace_artifact_links_path",
+    "workspace_blockers_path",
+    "workspace_claims_path",
+    "workspace_decisions_path",
     "workspace_work_item_events_path",
     "workspace_test_cases_path",
     "workspace_test_runs_path",
@@ -191,8 +195,24 @@ def workspace_events_path(root: Path, workspace_id: str) -> Path:
     return workspace_dir(root, workspace_id) / "events.jsonl"
 
 
+def workspace_activity_events_path(root: Path, workspace_id: str) -> Path:
+    return workspace_dir(root, workspace_id) / "activity_events.jsonl"
+
+
 def workspace_artifact_links_path(root: Path, workspace_id: str) -> Path:
     return workspace_dir(root, workspace_id) / "artifact_links.jsonl"
+
+
+def workspace_blockers_path(root: Path, workspace_id: str) -> Path:
+    return workspace_dir(root, workspace_id) / "blockers.jsonl"
+
+
+def workspace_claims_path(root: Path, workspace_id: str) -> Path:
+    return workspace_dir(root, workspace_id) / "claims.jsonl"
+
+
+def workspace_decisions_path(root: Path, workspace_id: str) -> Path:
+    return workspace_dir(root, workspace_id) / "decisions.jsonl"
 
 
 def workspace_work_item_events_path(root: Path, workspace_id: str) -> Path:
@@ -236,7 +256,11 @@ def workspace_materialized_paths(root: Path, workspace_id: str) -> Dict[str, Pat
 def workspace_source_paths(root: Path, workspace_id: str) -> List[Path]:
     return [
         workspace_events_path(root, workspace_id),
+        workspace_activity_events_path(root, workspace_id),
         workspace_artifact_links_path(root, workspace_id),
+        workspace_blockers_path(root, workspace_id),
+        workspace_claims_path(root, workspace_id),
+        workspace_decisions_path(root, workspace_id),
         workspace_work_item_events_path(root, workspace_id),
         workspace_test_cases_path(root, workspace_id),
         workspace_test_runs_path(root, workspace_id),

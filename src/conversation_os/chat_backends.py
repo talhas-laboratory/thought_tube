@@ -22,12 +22,16 @@ PUBLIC_API = (
     "stage_openclaw_agent_model",
     "apply_openclaw_model_control",
     "rollback_openclaw_model_control",
+    "ensure_bridge_openclaw_agent",
     "diagnose_openclaw_telegram_config",
     "migrate_openclaw_telegram_bindings",
     "apply_openclaw_host_telegram_fix",
     "resolve_chat_backend",
     "compose_openclaw_message",
+    "compose_execution_message",
+    "trim_context_bundle",
     "request_openclaw_reply",
+    "request_bridge_execution_reply",
 )
 __all__ = list(PUBLIC_API)
 
@@ -443,6 +447,77 @@ def rollback_openclaw_model_control(root: Path) -> Dict[str, Any]:
     }
 
 
+def ensure_bridge_openclaw_agent(
+    root: Path,
+    *,
+    agent_id: str,
+    model_id: str = "",
+    workspace: str = "",
+) -> Dict[str, Any]:
+    config_path = _openclaw_config_path(root)
+    config = _read_openclaw_config(config_path)
+    agents = config.setdefault("agents", {})
+    agent_list = agents.setdefault("list", [])
+    if not isinstance(agent_list, list):
+        raise RuntimeError("OpenClaw config agents.list must be a list")
+
+    lookup = _agent_lookup(config)
+    default_model = _default_model_id(config)
+    available_models = set(_available_model_ids(config))
+    requested_model = model_id.strip()
+    if requested_model and requested_model not in available_models:
+        raise ValueError(
+            f"Unknown OpenClaw model for bridge agent: {requested_model}. "
+            f"Available models: {', '.join(sorted(available_models)) or '(none)'}"
+        )
+    target_model = requested_model or default_model
+
+    defaults = agents.get("defaults", {}) if isinstance(agents.get("defaults"), dict) else {}
+    default_workspace = defaults.get("workspace")
+    if isinstance(default_workspace, dict):
+        default_workspace = ""
+    resolved_workspace = (
+        workspace.strip()
+        or (default_workspace if isinstance(default_workspace, str) else "")
+        or str(Path.home() / ".openclaw" / "workspace")
+    )
+
+    changed = False
+    row = lookup.get(agent_id)
+    if row is None:
+        entry: Dict[str, Any] = {
+            "id": agent_id,
+            "name": "Thought Tube Router",
+            "workspace": resolved_workspace,
+        }
+        if target_model:
+            entry["model"] = target_model
+        agent_list.append(entry)
+        row = entry
+        changed = True
+    else:
+        if resolved_workspace and row.get("workspace") != resolved_workspace:
+            row["workspace"] = resolved_workspace
+            changed = True
+        if target_model and row.get("model") != target_model:
+            row["model"] = target_model
+            changed = True
+
+    if changed:
+        _write_openclaw_config(config_path, config)
+
+    effective_model = row.get("model") if isinstance(row.get("model"), str) and row.get("model") else default_model
+    return {
+        "ok": True,
+        "changed": changed,
+        "config_path": str(config_path),
+        "agent_id": agent_id,
+        "model": effective_model,
+        "workspace": row.get("workspace", resolved_workspace),
+    }
+
+
+
 def _telegram_channel_config(config: Dict[str, Any]) -> Dict[str, Any]:
     channels = config.get("channels")
     if not isinstance(channels, dict):
@@ -758,7 +833,6 @@ def apply_openclaw_host_telegram_fix(
         result["ok"] = bool(result.get("ok")) and gateway["ok"]
     return result
 
-
 def resolve_chat_backend(root: Path) -> Dict:
     config = _read_runtime_config(root)
     backend = (
@@ -818,6 +892,245 @@ def compose_openclaw_message(context: Dict, user_message: str, thread: Dict) -> 
             "- End with one concrete next move.",
         ]
     )
+
+
+def trim_context_bundle(bundle: Dict[str, Any], policy: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    layers = list((bundle.get("context_state") or {}).get("bundle_layers", []) or [])
+    effective_policy = policy or bundle.get("context_policy") or {}
+    if isinstance(effective_policy, dict) and effective_policy:
+        include_layers = [str(value) for value in effective_policy.get("include_layers", []) or [] if str(value).strip()]
+        exclude_layers = {str(value) for value in effective_policy.get("exclude_layers", []) or [] if str(value).strip()}
+        if include_layers:
+            layers = [name for name in layers if name in include_layers]
+        if exclude_layers:
+            layers = [name for name in layers if name not in exclude_layers]
+
+    trimmed: Dict[str, Any] = {
+        "bundle_layers": layers,
+        "budget": dict(bundle.get("budget", {}) or {}),
+        "session_envelope": dict(bundle.get("session_envelope", {}) or {}),
+        "frame_spec": dict(bundle.get("frame_spec", {}) or {}),
+        "frame_bundle": dict(bundle.get("frame_bundle", {}) or {}),
+    }
+    if "session" in layers:
+        trimmed["session_local"] = list(bundle.get("session_local", []) or [])
+    if "workspace" in layers:
+        trimmed["workspace_local"] = dict(bundle.get("workspace_local", {}) or {})
+    if "user" in layers:
+        trimmed["user_local"] = dict(bundle.get("user_local", {}) or {})
+    if "global" in layers:
+        trimmed["global_fallback"] = dict(bundle.get("global_fallback", {}) or {})
+    return trimmed
+
+
+def _format_frame_block_lines(rows: List[Dict[str, Any]]) -> str:
+    if not rows:
+        return "- none"
+    return "\n".join(
+        f"- {str(row.get('layer', 'unknown'))}: {str(row.get('summary', '')).strip() or 'no summary'}"
+        for row in rows
+    )
+
+
+def _format_provenance_lines(source_refs: List[str]) -> str:
+    refs = [str(value).strip() for value in source_refs if str(value).strip()]
+    if not refs:
+        return "- none"
+    return "\n".join(f"- {value}" for value in refs[:6])
+
+
+def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Dict[str, Any], user_text: str) -> str:
+    policy = dict(control_packet.get("context_policy", {}) or {})
+    layers = list(trimmed_bundle.get("bundle_layers", []) or [])
+    constraints = [str(value) for value in control_packet.get("steering_constraints", []) or [] if str(value).strip()]
+    behavior_ids = [str(value) for value in control_packet.get("bridge_behaviors", []) or [] if str(value).strip()]
+    envelope = dict(trimmed_bundle.get("session_envelope", {}) or {})
+    frame_spec = dict(trimmed_bundle.get("frame_spec", {}) or {})
+    frame_bundle = dict(trimmed_bundle.get("frame_bundle", {}) or {})
+
+    session_block = "No session-local events disclosed."
+    if "session" in layers:
+        events = trimmed_bundle.get("session_local", []) or []
+        if events:
+            session_block = "\n".join(
+                f"- {row.get('actor', 'unknown')}: {row.get('content', '')[:240]}"
+                for row in events[-6:]
+            )
+
+    workspace_block = "No workspace-local context disclosed."
+    workspace = trimmed_bundle.get("workspace_local", {}) or {}
+    if "workspace" in layers and workspace:
+        workspace_block = json.dumps(workspace, ensure_ascii=False, indent=2)
+
+    user_block = "No user-local patterns disclosed."
+    if "user" in layers:
+        user_local = trimmed_bundle.get("user_local", {}) or {}
+        if user_local:
+            user_block = json.dumps(user_local, ensure_ascii=False, indent=2)
+
+    global_block = "No global retrieval disclosed."
+    if "global" in layers:
+        retrieval = trimmed_bundle.get("global_fallback", {}) or {}
+        seeds = list(retrieval.get("seed_capsules", []) or [])[:4]
+        if seeds:
+            global_block = "\n".join(
+                f"- {row.get('label', row.get('capsule_id', 'capsule'))}: {str(row.get('summary', ''))[:180]}"
+                for row in seeds
+            )
+        elif retrieval.get("count"):
+            global_block = f"Retrieval count: {retrieval.get('count')}"
+
+    constraint_block = "\n".join(f"- {item}" for item in constraints) if constraints else "- Stay inside disclosed context."
+    frame_included_block = _format_frame_block_lines(list(frame_bundle.get("included_blocks", []) or []))
+    frame_suppressed_block = _format_frame_block_lines(list(frame_bundle.get("suppressed_blocks", []) or []))
+    provenance_block = _format_provenance_lines(
+        list((frame_bundle.get("provenance_summary", {}) or {}).get("source_refs", []) or [])
+    )
+
+    return "\n".join(
+        [
+            "Inner World bridge execution request.",
+            "Answer the user inside the control packet bounds below.",
+            "",
+            f"Active topic: {control_packet.get('active_topic', '')}",
+            f"User goal: {control_packet.get('user_goal', '')}",
+            f"Reasoning posture: {control_packet.get('reasoning_posture', '')}",
+            f"Pipeline: {control_packet.get('pipeline_id', '')}",
+            f"Bridge behaviors: {', '.join(behavior_ids) if behavior_ids else 'none'}",
+            f"Context policy mode: {policy.get('mode', '')}",
+            f"Depth mode: {policy.get('depth_mode', '')}",
+            f"Session envelope mode: {envelope.get('mode', '')}",
+            f"Learning mode: {envelope.get('learning_mode', '')}",
+            f"Persistence mode: {envelope.get('persistence_mode', '')}",
+            f"Frame id: {frame_spec.get('frame_id', frame_bundle.get('frame_id', ''))}",
+            f"Frame assembly: {frame_bundle.get('assembly_status', '')}",
+            "",
+            "Steering constraints:",
+            constraint_block,
+            "",
+            "Included frame blocks:",
+            frame_included_block,
+            "",
+            "Suppressed frame blocks:",
+            frame_suppressed_block,
+            "",
+            "Frame provenance:",
+            provenance_block,
+            "",
+            "Session local:",
+            session_block,
+            "",
+            "Workspace local:",
+            workspace_block,
+            "",
+            "User local:",
+            user_block,
+            "",
+            "Global retrieval:",
+            global_block,
+            "",
+            f"User message: {user_text}",
+            "",
+            "Instructions:",
+            "- Answer directly for the user.",
+            "- Honor steering constraints and disclosed layers only.",
+            "- Do not invent evidence outside the bundle.",
+            "- Do not mention internal bridge, routing, frame, or context-assembly mechanics.",
+            "- End with one concrete next move.",
+        ]
+    )
+
+
+def request_bridge_execution_reply(
+    root: Path,
+    control_packet: Dict[str, Any],
+    trimmed_bundle: Dict[str, Any],
+    user_text: str,
+    *,
+    backend: Dict[str, Any] | None = None,
+    bridge_config: Dict[str, Any] | None = None,
+    session_id: str = "",
+) -> Dict[str, Any]:
+    from .bridge_controller import load_bridge_config
+
+    resolved_backend = backend or resolve_chat_backend(root)
+    resolved_bridge = bridge_config or load_bridge_config(root)
+    openclaw = dict(resolved_backend.get("openclaw", {}) or {})
+    openclaw["agent"] = resolved_bridge.get("agent") or openclaw.get("agent") or "thought_tube_router"
+    openclaw["thinking"] = resolved_bridge.get("thinking") or openclaw.get("thinking") or "low"
+    openclaw["timeout_seconds"] = int(
+        resolved_bridge.get("timeout_seconds") or openclaw.get("timeout_seconds") or 25
+    )
+
+    message = compose_execution_message(control_packet, trimmed_bundle, user_text)
+    command = [
+        "openclaw",
+        "agent",
+        "--agent",
+        openclaw["agent"],
+        "--message",
+        message,
+        "--thinking",
+        openclaw["thinking"],
+        "--json",
+    ]
+    if session_id:
+        command.extend(["--session-id", session_id])
+    if resolved_backend.get("id") == "openclaw_local":
+        command.append("--local")
+    if openclaw.get("deliver"):
+        command.append("--deliver")
+
+    completed = subprocess.run(
+        command,
+        cwd=root,
+        capture_output=True,
+        text=True,
+        timeout=int(openclaw["timeout_seconds"]),
+        check=False,
+    )
+    stdout = completed.stdout.strip()
+    stderr = completed.stderr.strip()
+    if completed.returncode != 0:
+        raise RuntimeError(stderr or stdout or f"openclaw exited with code {completed.returncode}")
+
+    reply_text = stdout
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError:
+        payload = None
+    usage: Dict[str, Any] = {}
+    if isinstance(payload, dict):
+        reply_text = _extract_text_from_json(payload) or stdout
+        usage = _extract_usage_from_json(payload)
+
+    if not str(reply_text).strip():
+        raise RuntimeError("openclaw returned an empty reply")
+
+    prompt_tokens = usage.get("prompt_tokens") or estimate_token_count(message)
+    completion_tokens = usage.get("completion_tokens") or estimate_token_count(str(reply_text))
+    record_actual_cost(
+        root,
+        component="bridge_execution",
+        operation="reasoning_execution",
+        provider="openclaw",
+        model=usage.get("model") or resolved_backend.get("id"),
+        input_tokens=prompt_tokens,
+        output_tokens=completion_tokens,
+        usd_cost=usage.get("usd_cost"),
+        token_source="actual" if usage.get("prompt_tokens") or usage.get("completion_tokens") else "estimated",
+        metadata={
+            "session_id": session_id,
+            "backend_id": resolved_backend.get("id"),
+            "thinking": openclaw["thinking"],
+            "pipeline_id": control_packet.get("pipeline_id", ""),
+        },
+    )
+    return {
+        "content": str(reply_text).strip(),
+        "backend_id": resolved_backend.get("id"),
+        "agent": openclaw["agent"],
+    }
 
 
 def _extract_text_from_json(payload: Dict) -> str | None:

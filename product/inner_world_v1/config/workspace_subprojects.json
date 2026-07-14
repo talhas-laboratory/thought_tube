@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-27T20:00:00Z",
+  "subprojects": {
+    "sol-frontend-mobile-capture": {
+      "label": "Mobile Thought Capture PWA",
+      "holodeck_id": "sol-frontend",
+      "element_key": "frontend",
+      "workboard_ref": "docs/workboards/sol-frontend-mobile-capture/README.md",
+      "primary_artifact_root": "product/thought_capture_pwa/",
+      "pillars_ref": "docs/workboards/sol-frontend/PILLARS.md",
+      "scroll_ref": "docs/workboards/sol-frontend-mobile-capture/SCROLL.md",
+      "motion_ref": "docs/workboards/sol-frontend-mobile-capture/MOTION.md",
+      "contracts_ref": "docs/workboards/sol-frontend-mobile-capture/CONTRACTS.md",
+      "pwa_source_ref": "mobile_artifacts/2026-06-27/pwa-thought-capture-source-doc.md",
+      "spec_ref": "docs/workboards/sol-frontend-mobile-capture/SPEC.md"
+    }
+  }
+}

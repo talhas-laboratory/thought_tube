@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.metaphysical.runtime",
+  "path": "src/conversation_os/metaphysical_kernel_runtime.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Phase 1 vertical slice runtime: capture, branch, claim, state, bounded view, provenance.",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["FoundationRuntime", "run_vertical_slice"],
+  "contains": ["FoundationRuntime", "BoundedViewResult"],
+  "depends_on": ["kernel.metaphysical.contracts", "kernel.metaphysical.store"],
+  "feeds_into": ["kernel.metaphysical.profile_registry", "kernel.metaphysical.application_sdk"],
+  "inputs": ["session events", "kernel bundle"],
+  "outputs": ["kernel records", "bounded views", "provenance traces"],
+  "state_owned": ["memory/foundation/kernel_events.jsonl"],
+  "surfaces_using": [],
+  "test_targets": ["tests/test_metaphysical_kernel_runtime.py"]
+}

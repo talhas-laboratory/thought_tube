@@ -1,0 +1,21 @@
+[Unit]
+Description=Inner Space Canonical Workspace Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/inner-space-workspace.env
+WorkingDirectory=/home/talha/.openclaw/workspace/containers/inner-world
+Environment=PYTHONPATH=/home/talha/.openclaw/workspace/containers/inner-world/src
+ExecStartPre=/usr/bin/test -d /home/talha/.openclaw/workspace/containers/inner-world/state
+ExecStart=/usr/bin/env python3 /home/talha/.openclaw/workspace/containers/inner-world/tools/run_workspace_service.py --root /home/talha/.openclaw/workspace/containers/inner-world --host 127.0.0.1 --port 8765 --store sqlite --sqlite-path /home/talha/.openclaw/workspace/containers/inner-world/state/workspace.db
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=%h/.openclaw/workspace/containers/inner-world
+
+[Install]
+WantedBy=default.target

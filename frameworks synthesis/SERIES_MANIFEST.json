@@ -1,0 +1,27 @@
+{
+  "series": "frameworks synthesis",
+  "series_id": "frameworks-synthesis",
+  "policy": {
+    "append_only": true,
+    "overwrite_existing_entries": false,
+    "rename_existing_entries": false,
+    "modify_existing_entries_without_explicit_user_request": false
+  },
+  "entries": [
+    {
+      "series_index": 1,
+      "filename": "2026-05-28_01-philosophical-framework-evolution-from-uploaded-chat-corpus.md",
+      "status": "active"
+    },
+    {
+      "series_index": 2,
+      "filename": "2026-05-28_02-shape-thought-matching-philosophical-framework__chat-synthesis.md",
+      "status": "active"
+    },
+    {
+      "series_index": 3,
+      "filename": "2026-05-28_03-philosophical-framework-chat-synthesis.md",
+      "status": "active"
+    }
+  ]
+}

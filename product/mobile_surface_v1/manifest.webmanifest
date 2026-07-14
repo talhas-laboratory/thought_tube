@@ -1,0 +1,10 @@
+{
+  "name": "Inner World Mobile",
+  "short_name": "Inner World",
+  "description": "Mobile capture, feed, and library surface for Inner World.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111214",
+  "theme_color": "#121212"
+}

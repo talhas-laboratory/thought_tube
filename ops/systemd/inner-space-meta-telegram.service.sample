@@ -1,0 +1,17 @@
+[Unit]
+Description=Inner Space Telegram Meta Agent
+After=network-online.target inner-world.service inner-space-workspace.service
+Wants=network-online.target
+Requires=inner-space-workspace.service
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/inner-space-meta.env
+WorkingDirectory=/home/talha/.openclaw/workspace/containers/inner-world
+Environment=PYTHONPATH=/home/talha/.openclaw/workspace/containers/inner-world/src
+ExecStart=/usr/bin/env python3 /home/talha/.openclaw/workspace/containers/inner-world/tools/run_telegram_meta_agent.py --poll-forever
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,71 @@
+{
+  "fixture_id": "migration-invalid-claim-as-state-001",
+  "fixture_version": "1.0.0",
+  "source_family": "mtsf",
+  "expect_failure": true,
+  "expected_error_substring": "StateCommitment",
+  "source_records": {
+    "idea_entity": {
+      "entity_id": "entity-1",
+      "label": "Test"
+    },
+    "assertion": {
+      "assertion_id": "assert-1",
+      "subject": "entity-1",
+      "predicate": "is",
+      "object": "active"
+    },
+    "evidence_span": {
+      "source_ref": "doc:1",
+      "text": "test"
+    },
+    "illegal_direct_state": {
+      "state_id": "st_illegal",
+      "label": "active",
+      "without_commitment": true
+    }
+  },
+  "inject_kernel_bundle": {
+    "states": [
+      {
+        "envelope": {
+          "id": "st_illegal",
+          "record_kind": "state",
+          "type_id": "test:state",
+          "created_at": "2026-07-12T00:00:00Z",
+          "created_by": "test",
+          "provenance_id": "prov_bad",
+          "maturity_status": "structured",
+          "epistemic_status": "supported",
+          "governance_status": "local"
+        },
+        "subject_refs": ["ref_entity-1"],
+        "state_type": "test:state",
+        "value": "active",
+        "value_type": "literal",
+        "valid_scope_id": "scope_migration"
+      }
+    ],
+    "branch_memberships": [
+      {
+        "envelope": {
+          "id": "bm_bad",
+          "record_kind": "branch_membership",
+          "type_id": "core:branch_membership",
+          "created_at": "2026-07-12T00:00:00Z",
+          "created_by": "test",
+          "provenance_id": "prov_bad",
+          "maturity_status": "structured",
+          "epistemic_status": "not_applicable",
+          "governance_status": "local"
+        },
+        "record_id": "st_illegal",
+        "branch_id": "branch_main",
+        "membership_kind": "asserted",
+        "effective_scope_id": "scope_migration",
+        "introduced_by": "test",
+        "membership_provenance_id": "prov_bad"
+      }
+    ]
+  }
+}

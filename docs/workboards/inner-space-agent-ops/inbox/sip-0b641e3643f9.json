@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "packet_id": "sip-0b641e3643f9",
+  "created_at": "2026-07-11T10:27:49+00:00",
+  "status": "proposed",
+  "source": {
+    "session_id": "telegram:11",
+    "turn_id": "telegram:13",
+    "raw_user_signal": "Objective: make the notes app reply less verbose\nAcceptance criteria: Keep replies short while preserving action items.\nPlanned scope: Define the minimal change for 'make the notes app reply less verbose', implement it, then verify it against the accepted outcome. Acceptance criteria: Keep replies short while preserving action items.",
+    "provenance_refs": []
+  },
+  "classification": {
+    "domain": "agent_behavior",
+    "risk": "high",
+    "affected_layers": [
+      "agent_config",
+      "bridge"
+    ],
+    "change_type": "system_feedback"
+  },
+  "problem": {
+    "observed": "Objective: make the notes app reply less verbose\nAcceptance criteria: Keep replies short while preserving action items.\nPlanned scope: Define the minimal change for 'make the notes app reply less verbose', implement it, then verify it against the accepted outcome. Acceptance criteria: Keep replies short while preserving action items.",
+    "expected": "",
+    "evidence": []
+  },
+  "proposal": {
+    "summary": "",
+    "files_or_configs": [],
+    "runtime_effect": "",
+    "alternatives_considered": []
+  },
+  "gates": {
+    "required_tests": [
+      "golden_conversation_examples",
+      "prompt_diff",
+      "bridge_trace_review"
+    ],
+    "required_smokes": [],
+    "required_reviews": [
+      "release_gate_review"
+    ],
+    "rollback_required": true
+  },
+  "release": {
+    "version_bump": "patch",
+    "deploy_allowed": false,
+    "approval_required": true,
+    "rollback_plan": ""
+  }
+}

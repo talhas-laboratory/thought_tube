@@ -1,0 +1,18 @@
+{
+  "behavior_id": "creative_expansion",
+  "priority": 90,
+  "preferred_pipeline": "intuition_expansion_v1",
+  "routing_mode": "override",
+  "reasoning_posture": "expansive",
+  "response_directives": [
+    "connect_adjacent_paths",
+    "explain_signal_shape",
+    "preserve_creative_spark",
+    "avoid_unnecessary_caveats"
+  ],
+  "operator_biases": {
+    "prefer_expansion": true,
+    "prefer_connection_over_caveat": true,
+    "prefer_interpretation_over_closure": true
+  }
+}

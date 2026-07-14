@@ -4,6 +4,8 @@
 
 Make `notes.talhaslaboratory.xyz` / Inner World usable by multiple agents at the same time without losing task state, decision history, file ownership, verification evidence, or deployment context.
 
+The forward implementation and rollout plan is documented in [Reliable Cross-Agent Holodeck Work System](../../plans/2026-07-11-reliable-cross-agent-holodeck-work-system-design.md).
+
 The target operating model is:
 
 - Codex can implement changes locally.
@@ -29,6 +31,7 @@ Implemented:
 - overlap detection for active claims
 - release-gate evaluation over active claims, blockers, and verification state
 - task preparation packets with workspace, task, claims, blockers, decisions, tests, and recent activity
+- first-class task/subtask hierarchy with independently tracked claims, blockers, verification, and parent completion gates
 - atlas materialization from the workspace spine into `context/workspaces/<workspace_id>/atlas.*`
 - generated workboard projections for agent state, tasks, decisions, handoffs, releases, and changed surfaces
 - automatic atlas refresh after workspace mutations (`claim`, `handoff`, `decision`, `verify`, `blocker`)
@@ -42,6 +45,7 @@ Implemented:
 - health/readiness, atomic backup, guarded restore, and restart continuity
 - server-native Telegram polling with canonical task/context commands
 - persistent private SSH connectivity for local Codex with user-config discovery and no silent fallback
+- workspace catalog endpoint and safe file-to-SQLite migration tooling with legacy status normalization and conflict refusal
 
 Focused verification currently lives in:
 
@@ -79,13 +83,24 @@ Phase 2 now also has a usable server-native slice.
 
 Current HTTP surface:
 
+- `GET /api/workspaces` lists the canonical catalog with per-workspace revisions
+- `POST /api/workspaces` creates a workspace from a manifest
+- `POST /api/workspaces/import` imports a normalized workspace snapshot without overwriting divergent state
 - `GET /api/workspaces/<workspace_id>/prepare?task_id=&agent_id=&surface=&session_id=`
 - `GET /api/workspaces/<workspace_id>/context?task_id=&agent_id=&surface=&session_id=`
+- `GET /api/workspaces/<workspace_id>/runs?task_id=` lists durable agent-run state
+- `GET /api/workspaces/<workspace_id>/reasoning?task_id=&run_id=` lists bounded task reasoning records
+- `GET /api/workspaces/<workspace_id>/progress?task_id=` derives current task progress and the next safe action
 - `GET /api/workspaces/<workspace_id>/gate`
 - `GET /api/workspaces/<workspace_id>/status`
 - `GET /api/workspaces/<workspace_id>/tasks`
 - `POST /api/workspaces/<workspace_id>/tasks` creates a canonical task
 - `POST /api/workspaces/<workspace_id>/task-update`
+- `POST /api/workspaces/<workspace_id>/runs` begins an agent run
+- `POST /api/workspaces/<workspace_id>/run-heartbeat`
+- `POST /api/workspaces/<workspace_id>/run-end`
+- `POST /api/workspaces/<workspace_id>/run-recover-stale` releases expired runs and their linked claims
+- `POST /api/workspaces/<workspace_id>/reasoning` records a typed observation, decision, discovery, or next action
 - `POST /api/workspaces/<workspace_id>/claim`
 - `POST /api/workspaces/<workspace_id>/handoff`
 - `POST /api/workspaces/<workspace_id>/decision`
@@ -93,6 +108,14 @@ Current HTTP surface:
 - `POST /api/workspaces/<workspace_id>/blocker`
 - `POST /api/workspaces/<workspace_id>/blocker-resolve`
 - `POST /api/workspaces/<workspace_id>/complete`
+- `POST /api/workspaces/<workspace_id>/archive`
+
+Task hierarchy contract:
+
+- include `parent_task_id` when creating or updating a task to make it a subtask
+- hierarchy is intentionally limited to `task -> subtask`; a subtask cannot be a parent
+- parent completion is rejected while a child is neither `done` nor `cancelled`
+- task, context, atlas, and workboard projections render the hierarchy
 
 Recommended startup for server-native mode:
 
@@ -131,8 +154,82 @@ Current Codex/CLI cutover behavior:
 - `tools/workspace_coordination.py` uses the canonical workspace service for all coordination verbs when `INNER_WORLD_WORKSPACE_API_BASE` or `--workspace-api-base` is set
 - service errors are returned visibly and never trigger a silent local mutation fallback
 - file-backed operation remains available as an explicit offline mode when no service base is configured
+- CLI authority defaults to `connected`; pass `--mode offline --root /path/to/repo` for local-only operation, or use an explicit service URL to select `connected` mode even when `--root` is supplied for path resolution
+- `--idempotency-key <key>` makes one canonical mutation retry-safe; reusing the key with a different workspace operation or payload is rejected
 - when the environment variable is absent, the CLI reads `~/.config/inner-space-workspace.env`; the local installation points this at the private SSH tunnel on `127.0.0.1:18765/api`
 - `ops/launchd/com.inner-space.workspace-tunnel.plist.sample` keeps that tunnel alive without exposing the server service publicly
+
+Phase 0 catalog and migration commands:
+
+```bash
+# Inspect a local file-backed workspace catalog.
+python3 tools/workspace_catalog.py catalog --store file
+
+# Compare local workspaces with a SQLite candidate store.
+python3 tools/workspace_catalog.py audit --store file --target-store sqlite --target-sqlite-path state/workspace.db
+
+# Preview the pilot migration without writing records.
+python3 tools/workspace_catalog.py migrate --store file --target-store sqlite \
+  --target-sqlite-path state/workspace.db --workspace-id sol-context-frames --dry-run
+```
+
+Migrations normalize legacy `completed` task states to `done` and `passed` test results to `passing`. A target workspace with a different canonical revision is never overwritten. Mutating a nonempty SQLite target requires `--backup-path`.
+
+To import a local pilot directly through a running canonical workspace service:
+
+```bash
+python3 tools/workspace_catalog.py migrate --store file --workspace-id sol-context-frames \
+  --workspace-api-base http://127.0.0.1:18765/api
+```
+
+When the service imports into a nonempty SQLite store, it creates an atomic backup under `state/workspace-import-backups/` and returns that backup path in the import response.
+
+Retry-safe canonical mutation example:
+
+```bash
+python3 tools/workspace_coordination.py decision --workspace-id sol-context-frames \
+  --workspace-api-base http://127.0.0.1:18765/api \
+  --task-id CAW-001 --summary "Use canonical vocabulary" \
+  --reasoning "Status aliases must be normalized once." \
+  --idempotency-key caw-001-decision-20260711
+```
+
+Agent-run example:
+
+```bash
+python3 tools/workspace_coordination.py begin-run --workspace-id sol-context-frames \
+  --workspace-api-base http://127.0.0.1:18765/api \
+  --task-id CAW-201 --agent-id codex --device-id talha-macbook \
+  --session-id codex-workspace-201 --intent "Implement durable agent runs" \
+  --idempotency-key caw-201-run-start
+```
+
+Active runs are included in task context packets. A run becomes derived `stale` if its heartbeat exceeds its recorded TTL; stale state is visible and reclaimable but does not silently mutate the ledger.
+
+When `begin-run` receives `--claimed-path`, it creates a claim bound to that run. Existing compatible claims held by the same agent and task are adopted by the run. Heartbeats renew linked claims; ending a run releases only its linked claims.
+
+Connected surfaces can use [workspace_work_adapter.py](../../../src/conversation_os/workspace_work_adapter.py) to perform the standard begin, heartbeat/update, and handoff lifecycle through one contract. Surface-specific automatic invocation remains the next integration step.
+
+For Codex or another terminal agent, [workspace_work.py](../../../tools/workspace_work.py) exposes that adapter directly:
+
+```bash
+python3 tools/workspace_work.py begin --workspace-api-base http://127.0.0.1:18765/api \
+  --workspace-id sol-context-frames --task-id CAW-204 --device-id talha-macbook \
+  --session-id codex-caw-204 --intent "Wire the connected work wrapper" \
+  --claimed-path tools/workspace_work.py --next-action "Run the adapter integration test."
+```
+
+Reasoning records are intentionally compact and inspectable, not raw private chain-of-thought. Supported kinds are `observation`, `hypothesis`, `decision`, `tension`, `discovery`, `scope_change`, and `next_action`.
+
+```bash
+python3 tools/workspace_coordination.py record-reasoning --workspace-id sol-context-frames \
+  --workspace-api-base http://127.0.0.1:18765/api --task-id CAW-301 \
+  --reasoning-kind decision --summary "Keep reasoning records bounded" \
+  --reasoning "Handoffs need rationale, not hidden deliberation." \
+  --source-ref docs/plans/2026-07-11-reliable-cross-agent-holodeck-work-system-design.md
+```
+
+Derived progress never accepts a manually authored percentage. It reports task status, child completion, active claims/runs/blockers, passing verification, last activity, and a `recommended_next_action` determined from that evidence. Use `python3 tools/workspace_coordination.py progress --workspace-id <id> --task-id <task>` to read the same view locally or through the canonical service.
 
 Repository observation:
 

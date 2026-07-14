@@ -1,0 +1,89 @@
+.meta-page {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-field);
+}
+
+.meta-page__vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 0, transparent 38%),
+    radial-gradient(circle at 50% 30%, rgba(196, 181, 168, 0.08), transparent 0, transparent 52%);
+}
+
+.meta-page__body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0 1rem 1rem;
+}
+
+.meta-page__header {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.15rem 0 0.35rem;
+  border-bottom: 1px solid var(--line-faint);
+}
+
+.meta-page__eyebrow {
+  margin: 0;
+  color: var(--text-receded);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+.meta-page__title {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.15;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.meta-page__copy {
+  margin: 0;
+  max-width: 32rem;
+  color: var(--text-receded);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.meta-page__status {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--line-faint);
+}
+
+.meta-page__status-title,
+.meta-page__status-copy {
+  margin: 0;
+}
+
+.meta-page__status-title {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.meta-page__status-copy {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-receded);
+}
+
+.meta-page__status-copy code {
+  font-family: "SF Mono", "IBM Plex Mono", "Menlo", monospace;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}

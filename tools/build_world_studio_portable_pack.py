@@ -11,7 +11,7 @@ from textwrap import dedent
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_MINIAPP = ROOT / "product" / "inner_world_v1" / "miniapp"
-PORTABLE_ROOT = ROOT / "product" / "inner_world_v1" / "portable"
+PORTABLE_ROOT = ROOT / "artifacts" / "exports" / "inner_world_v1" / "portable"
 OUTPUT_DIR = PORTABLE_ROOT / "world-studio-portable"
 ZIP_BASENAME = PORTABLE_ROOT / "world-studio-portable"
 

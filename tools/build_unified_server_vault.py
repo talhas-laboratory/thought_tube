@@ -148,7 +148,10 @@ def ingest_snapshot(vault_root: Path) -> Dict:
     backup = backup_runtime(product_root)
     reset_runtime(product_root)
 
-    ingested_files: List[Dict] = []
+    from conversation_os.vault_ingest import ingest_text_items_batch
+
+    items = []
+    item_metadata = []
     for corpus in REMOTE_CORPORA:
         for remote_root in corpus.roots:
             local_root = vault_root / "raw" / corpus.corpus_id / slug_path(remote_root)
@@ -158,29 +161,39 @@ def ingest_snapshot(vault_root: Path) -> Dict:
                 relative = local_path.relative_to(local_root).as_posix()
                 remote_file = f"{remote_root.rstrip('/')}/{relative}" if relative != "." else remote_root
                 content = local_path.read_text(encoding="utf-8", errors="ignore")
-                ingest_result = ingest_text_content(
-                    REPO_ROOT,
-                    title=local_path.stem.replace("-", " ").replace("_", " "),
-                    content=content,
-                    source_ref=remote_file,
-                    source_type=corpus.source_type,
-                    source_family=corpus.source_family,
-                    metadata={
+                items.append({
+                    "title": local_path.stem.replace("-", " ").replace("_", " "),
+                    "content": content,
+                    "source_ref": remote_file,
+                    "source_type": corpus.source_type,
+                    "source_family": corpus.source_family,
+                    "metadata": {
                         "vault_id": vault_root.name,
                         "corpus_id": corpus.corpus_id,
                         "remote_root": remote_root,
                         "relative_path": relative,
                         "snapshot_path": str(local_path),
                     },
-                )
-                ingested_files.append(
-                    {
-                        "corpus_id": corpus.corpus_id,
-                        "remote_file": remote_file,
-                        "local_path": str(local_path),
-                        "seeded_count": ingest_result["seeded_count"],
-                    }
-                )
+                })
+                item_metadata.append({
+                    "corpus_id": corpus.corpus_id,
+                    "remote_file": remote_file,
+                    "local_path": str(local_path),
+                })
+
+    if items:
+        batch_result = ingest_text_items_batch(REPO_ROOT, items)
+        ingested_files = [
+            {
+                "corpus_id": meta["corpus_id"],
+                "remote_file": meta["remote_file"],
+                "local_path": meta["local_path"],
+                "seeded_count": 1,
+            }
+            for meta in item_metadata
+        ]
+    else:
+        ingested_files = []
 
     batch = generate_daily_batch(REPO_ROOT, limit=5, domain_overlays=["research", "art", "entrepreneurship"])
     state = export_state(REPO_ROOT)

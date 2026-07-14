@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.metaphysical.store",
+  "path": "src/conversation_os/metaphysical_kernel_store.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Append-only kernel event log and folded read model.",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["FoundationStore", "foundation_events_path"],
+  "contains": ["FoundationStore"],
+  "depends_on": ["external:conversation_os.storage"],
+  "feeds_into": ["kernel.metaphysical.runtime"],
+  "inputs": ["kernel events"],
+  "outputs": ["folded bundle"],
+  "state_owned": ["memory/foundation/kernel_events.jsonl"],
+  "surfaces_using": [],
+  "test_targets": ["tests/test_metaphysical_kernel_runtime.py"]
+}

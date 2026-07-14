@@ -1,0 +1,22 @@
+{
+  "board_id": "inner-space-agent-ops",
+  "name": "Inner Space Agent Ops",
+  "owner": "talha",
+  "created_at": "2026-06-26T16:26:32.170539+00:00",
+  "lanes": [
+    "backlog",
+    "ready",
+    "in-progress",
+    "review",
+    "blocked",
+    "done"
+  ],
+  "gates": [
+    "intake",
+    "readiness",
+    "implementation",
+    "verification",
+    "review",
+    "done"
+  ]
+}

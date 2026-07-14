@@ -60,6 +60,14 @@ def build_openclaw_bundle(
             shutil.copytree(source, target)
         else:
             shutil.copy2(source, target)
+            if target.suffix == ".html":
+                target.write_text(
+                    target.read_text(encoding="utf-8").replace(
+                        "__INNER_WORLD_API_BASE_URL__",
+                        api_base_url.rstrip("/") or "/api",
+                    ),
+                    encoding="utf-8",
+                )
         copied_files.append(str(target))
 
     runtime_config = destination / "runtime-config.js"

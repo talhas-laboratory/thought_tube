@@ -1,0 +1,22 @@
+{
+  "board_id": "semantic-operating-layer-context-frames",
+  "name": "Semantic Operating Layer Context Frames",
+  "owner": "talha",
+  "created_at": "2026-06-26T16:51:56.534179+00:00",
+  "lanes": [
+    "backlog",
+    "ready",
+    "in-progress",
+    "review",
+    "blocked",
+    "done"
+  ],
+  "gates": [
+    "intake",
+    "readiness",
+    "implementation",
+    "verification",
+    "review",
+    "done"
+  ]
+}

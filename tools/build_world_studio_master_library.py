@@ -10,13 +10,13 @@ from textwrap import dedent, indent
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PORTABLE_ROOT = ROOT / "product" / "inner_world_v1" / "portable"
+PORTABLE_ROOT = ROOT / "artifacts" / "exports" / "inner_world_v1" / "portable"
 OUTPUT_DIR = PORTABLE_ROOT / "world-studio-master-library"
 ZIP_BASENAME = PORTABLE_ROOT / "world-studio-master-library"
 WORLD_ID = "world-daylight-architecture-trial-b6c969e8df86"
-WORLD_DIR = ROOT / "product" / "inner_world_v1" / "data" / "worldbuilding_studio" / "worlds" / WORLD_ID
-PACKETS_DIR = ROOT / "product" / "inner_world_v1" / "data" / "worldbuilding_studio" / "packets"
-DATA_ROOT = ROOT / "product" / "inner_world_v1" / "data" / "worldbuilding_studio"
+WORLD_DIR = ROOT / "runtime" / "product_state" / "inner_world_v1" / "data" / "worldbuilding_studio" / "worlds" / WORLD_ID
+PACKETS_DIR = ROOT / "runtime" / "product_state" / "inner_world_v1" / "data" / "worldbuilding_studio" / "packets"
+DATA_ROOT = ROOT / "runtime" / "product_state" / "inner_world_v1" / "data" / "worldbuilding_studio"
 EXPERIMENTS_DIR = WORLD_DIR / "experiments"
 SOURCE_FILES = [
     ROOT / "src" / "conversation_os" / "worldbuilding_studio.py",
@@ -1121,7 +1121,7 @@ def build_docs(output: Path) -> None:
 
             There is already a disconnected frontend slice:
 
-            - `product/inner_world_v1/portable/world-studio-portable`
+            - `artifacts/exports/inner_world_v1/portable/world-studio-portable`
 
             This master pack complements that by documenting the entire system and experiment, not just the frontend.
             """
@@ -1843,7 +1843,7 @@ def build_docs(output: Path) -> None:
             - compiler / adapter: `src/conversation_os/worldbuilding_studio.py`
             - provider CLI: Higgsfield official local CLI
             - manifests written under:
-              - `product/inner_world_v1/data/worldbuilding_studio/worlds/{WORLD_ID}/experiments/`
+              - `runtime/product_state/inner_world_v1/data/worldbuilding_studio/worlds/{WORLD_ID}/experiments/`
 
             ## Why the harness mattered
 
@@ -2075,7 +2075,7 @@ def build_pack() -> Path:
         copy_file(src, OUTPUT_DIR / "05-source-snapshots" / src.relative_to(ROOT))
 
     # Portable UI snapshot
-    portable_ui = ROOT / "product" / "inner_world_v1" / "portable" / "world-studio-portable"
+    portable_ui = ROOT / "artifacts" / "exports" / "inner_world_v1" / "portable" / "world-studio-portable"
     if portable_ui.exists():
         copy_tree(portable_ui, OUTPUT_DIR / "05-source-snapshots" / "portable-ui" / portable_ui.name)
 

@@ -1,0 +1,50 @@
+/**
+ * Motion tokens — binding values from MOTION.md
+ * Import in app shell root. Do not add per-component duration literals.
+ */
+:root {
+  --motion-instant: 0ms;
+  --motion-micro: 120ms;
+  --motion-functional: 280ms;
+  --motion-structural: 320ms;
+  --ease-settle: cubic-bezier(0.2, 0.9, 0.2, 1);
+  --ease-reveal: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --motion-press-scale: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-micro: 0ms;
+    --motion-functional: 0ms;
+    --motion-structural: 0ms;
+  }
+}
+
+/* Primitive: motion.confirm — press active state */
+.motion-confirm:active {
+  transform: scale(var(--motion-press-scale));
+  transition: transform var(--motion-micro) var(--ease-settle);
+}
+
+/* Primitive: motion.reveal — progressive disclosure */
+.motion-reveal {
+  animation: motion-reveal-in var(--motion-functional) var(--ease-reveal) both;
+}
+
+@keyframes motion-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal {
+    animation: none;
+    opacity: 1;
+  }
+}

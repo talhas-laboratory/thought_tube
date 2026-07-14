@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "agent_id": "thought_tube_self_improve",
+  "version": "0.1.0",
+  "role": "governed_system_improvement_agent",
+  "model": "moonshot/kimi-k2.5",
+  "thinking": "high",
+  "timeout_seconds": 90,
+  "default_authority": "propose",
+  "allowed_outputs": [
+    "SystemImprovementPacket",
+    "ReleasePlan",
+    "RollbackPlan",
+    "ReleaseGateReport",
+    "FeedbackEvent"
+  ],
+  "forbidden_actions": [
+    "direct_production_deploy",
+    "direct_runtime_config_mutation",
+    "direct_agent_prompt_mutation",
+    "silent_test_bypass"
+  ],
+  "required_behavior": [
+    "classify the feedback domain",
+    "assign risk",
+    "name affected layers",
+    "define tests and smokes",
+    "define rollback path",
+    "preserve provenance"
+  ]
+}

@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import base64
+import binascii
+import hashlib
+import hmac
 import json
 import mimetypes
+import os
 from http import HTTPStatus
+from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from textwrap import dedent
 from typing import List
 from urllib.parse import parse_qs, urlparse
 
@@ -14,13 +21,18 @@ from .chat_backends import (
     rollback_openclaw_model_control,
     stage_openclaw_agent_model,
 )
+from .mobile_capture_compose import compose_mobile_capture_insertion
 from .product_inner_world import (
+    append_mobile_capture,
+    build_mobile_feed,
+    build_mobile_library,
     build_thought_archive,
     build_thought_feed,
     chat_with_thought,
     create_link_alias_resolution,
     delete_thread,
     derive_graph,
+    ensure_mobile_capture_session,
     generate_daily_batch,
     get_chunk_pond_detail,
     get_dimension_model_role_status,
@@ -28,6 +40,8 @@ from .product_inner_world import (
     get_linking_overview,
     get_retrieval_bundle,
     get_runtime_overview,
+    reply_in_mobile_session,
+    save_mobile_feed_item,
     search_library_dimensions,
     get_source_item_detail,
     get_thread_detail,
@@ -38,6 +52,10 @@ from .product_inner_world import (
     update_chunk_pond_detail,
     update_link_governance,
 )
+from .release_management import build_release_manifest, build_rollback_plan
+from .builder_behavior import compose_builder_packet_input
+from .self_improvement_agent import draft_self_improvement_packet
+from .self_improvement import build_self_improvement_chat_response, interpret_self_improvement_turn
 from .worldbuilding_studio import (
     answer_population_question as worldstudio_answer_population_question,
     bind_motion_object as worldstudio_bind_motion_object,
@@ -84,6 +102,9 @@ PUBLIC_API = (
 )
 __all__ = list(PUBLIC_API)
 
+_MOBILE_SESSION_COOKIE_NAME = "inner_world_mobile_session"
+_MOBILE_SESSION_PAYLOAD = "mobile-session"
+
 
 def _read_json_body(handler: BaseHTTPRequestHandler) -> dict:
     length = int(handler.headers.get("Content-Length", "0"))
@@ -106,8 +127,2252 @@ def _canonical_api_path(path: str, api_prefixes: List[str]) -> str | None:
     return None
 
 
+def _mobile_surface_dir(root: Path) -> Path:
+    return root / "product" / "mobile_surface_v1"
+
+
+def _thought_capture_pwa_dir(root: Path) -> Path:
+    return root / "product" / "thought_capture_pwa" / "dist"
+
+
+def _normalize_host_header(host_header: str | None) -> str:
+    if not host_header:
+        return ""
+    return host_header.split(":", 1)[0].strip().lower()
+
+
+def _configured_mobile_hostname() -> str:
+    return _normalize_host_header(os.environ.get("INNER_WORLD_MOBILE_HOSTNAME"))
+
+
+def _configured_capture_hostname() -> str:
+    return _normalize_host_header(os.environ.get("INNER_WORLD_CAPTURE_HOSTNAME"))
+
+
+def _configured_capture_username() -> str:
+    return (os.environ.get("INNER_WORLD_CAPTURE_USERNAME") or "capture").strip() or "capture"
+
+
+def _resolve_static_asset(base_dir: Path, relative: str) -> Path | None:
+    candidate = (base_dir / relative).resolve()
+    try:
+        candidate.relative_to(base_dir.resolve())
+    except ValueError:
+        return None
+    if candidate.exists() and candidate.is_file():
+        return candidate
+    return None
+
+
+def _self_improvement_console_html(
+    *,
+    api_base: str = "/api",
+    capture_href: str = "",
+    meta_href: str = "",
+) -> str:
+    switch_html = ""
+    if capture_href or meta_href:
+        switch_html = f"""
+                <nav class="capture-switch" aria-label="Surface mode">
+                  <a class="capture-switch__chip" href="{capture_href or '/capture'}">capture</a>
+                  <a class="capture-switch__chip capture-switch__chip--active" href="{meta_href or '/meta'}">meta</a>
+                </nav>
+        """
+    html = dedent(
+        """
+        <!doctype html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Self Improvement Console</title>
+            <style>
+              :root {
+                color-scheme: light;
+                --bg: #f3f1ea;
+                --panel: #fffdf8;
+                --ink: #1f1c18;
+                --muted: #6b6257;
+                --line: #d7cdbf;
+                --accent: #1d6c5a;
+                --accent-strong: #14493d;
+                --accent-soft: #dcefe9;
+                --note: #7b5f18;
+                --note-soft: #f6ebc9;
+                --risk: #8c3d0f;
+                --risk-soft: #f6e2d5;
+                --warn: #9f5a11;
+              }
+              * { box-sizing: border-box; }
+              body {
+                margin: 0;
+                font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+                background:
+                  linear-gradient(180deg, rgba(255,255,255,0.45), rgba(243,241,234,0.92)),
+                  linear-gradient(120deg, #efe8db, #f7f4ee 52%, #ece6da);
+                color: var(--ink);
+              }
+              main {
+                max-width: 1040px;
+                margin: 0 auto;
+                padding: 32px 20px 48px;
+              }
+              header {
+                display: grid;
+                gap: 10px;
+                margin-bottom: 24px;
+              }
+              .capture-switch {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 2px;
+              }
+              .capture-switch__chip {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                padding: 0 16px;
+                border-radius: 999px;
+                border: 1px solid var(--line);
+                background: rgba(255, 255, 255, 0.7);
+                color: var(--muted);
+                text-decoration: none;
+                font-size: 13px;
+                letter-spacing: 0.08em;
+                text-transform: lowercase;
+              }
+              .capture-switch__chip--active {
+                background: var(--accent-soft);
+                color: var(--accent-strong);
+                border-color: rgba(29, 108, 90, 0.25);
+              }
+              h1 {
+                margin: 0;
+                font-size: 38px;
+                line-height: 1;
+                font-weight: 600;
+              }
+              p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 16px;
+                line-height: 1.5;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 18px;
+              }
+              section {
+                background: rgba(255, 253, 248, 0.95);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                padding: 18px;
+                min-height: 280px;
+                display: grid;
+                gap: 12px;
+                align-content: start;
+              }
+              h2 {
+                margin: 0;
+                font-size: 18px;
+              }
+              label {
+                display: grid;
+                gap: 6px;
+                font-size: 13px;
+                color: var(--muted);
+              }
+              .hero {
+                display: grid;
+                gap: 14px;
+              }
+              .state-strip {
+                display: grid;
+                gap: 10px;
+                padding: 14px 16px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(240,235,224,0.9));
+              }
+              .chip-row, .stack-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+              }
+              .chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 10px;
+                border-radius: 999px;
+                border: 1px solid var(--line);
+                background: white;
+                color: var(--muted);
+                font-size: 12px;
+                letter-spacing: 0.03em;
+                text-transform: uppercase;
+              }
+              .chip.mode-meta, .chip.state-operate {
+                background: var(--accent-soft);
+                color: var(--accent-strong);
+                border-color: rgba(29, 108, 90, 0.25);
+              }
+              .chip.mode-note, .chip.state-discuss {
+                background: var(--note-soft);
+                color: var(--note);
+                border-color: rgba(123, 95, 24, 0.2);
+              }
+              .chip.risk-high, .chip.risk-critical {
+                background: var(--risk-soft);
+                color: var(--risk);
+                border-color: rgba(140, 61, 15, 0.18);
+              }
+              .segment {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+              }
+              .segment button {
+                background: rgba(255, 255, 255, 0.7);
+                color: var(--ink);
+                border: 1px solid var(--line);
+              }
+              .segment button.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: white;
+              }
+              .segment button.note-active {
+                background: #8c6a18;
+                border-color: #8c6a18;
+              }
+              .subtle {
+                color: var(--muted);
+                font-size: 12px;
+                line-height: 1.5;
+              }
+              .control-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+              }
+              textarea, input {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 6px;
+                background: #fffdf9;
+                color: var(--ink);
+                padding: 10px 12px;
+                font: inherit;
+              }
+              textarea {
+                min-height: 140px;
+                resize: vertical;
+              }
+              button {
+                border: 0;
+                border-radius: 6px;
+                padding: 11px 14px;
+                background: var(--accent);
+                color: white;
+                font: inherit;
+                cursor: pointer;
+              }
+              button:hover { background: var(--accent-strong); }
+              button.secondary {
+                background: transparent;
+                color: var(--ink);
+                border: 1px solid var(--line);
+              }
+              button.secondary:hover {
+                background: rgba(255,255,255,0.75);
+              }
+              button:disabled {
+                cursor: not-allowed;
+                opacity: 0.55;
+              }
+              pre {
+                margin: 0;
+                white-space: pre-wrap;
+                word-break: break-word;
+                background: #f8f4ec;
+                border: 1px solid var(--line);
+                border-radius: 6px;
+                padding: 12px;
+                min-height: 160px;
+                max-height: 420px;
+                overflow: auto;
+                font-size: 12px;
+              }
+              .status {
+                color: var(--warn);
+                font-size: 12px;
+              }
+              .info-panel {
+                display: grid;
+                gap: 8px;
+                padding: 14px 16px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: rgba(248, 244, 236, 0.9);
+              }
+              .info-title {
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--muted);
+              }
+            </style>
+          </head>
+          <body>
+            <main>
+              <header>
+                __SWITCH_HTML__
+                <h1>Self Improvement Console</h1>
+                <p>Switch between note and meta, discuss an idea without operationalizing it, then move into governed change work when it is ready.</p>
+                <p data-compat-endpoint="/api/self-improvement/interpret" hidden></p>
+                <p data-compat-endpoint="/api/self-improvement/chat" hidden></p>
+                <p data-compat-endpoint="/api/self-improvement/packet" hidden></p>
+                <p data-compat-endpoint="/api/self-improvement/release/candidate" hidden></p>
+              </header>
+              <div class="grid">
+                <section>
+                  <div class="hero">
+                    <h2>Mode Chat</h2>
+                    <div class="state-strip">
+                      <div class="chip-row">
+                        <span id="mode-chip" class="chip mode-meta">Meta</span>
+                        <span id="state-chip" class="chip state-discuss">Discuss</span>
+                        <span id="risk-chip" class="chip">Risk: provisional</span>
+                      </div>
+                      <div id="state-summary">Meta discuss keeps the idea provisional. Nothing operationalizes until you explicitly move into operate.</div>
+                      <div class="subtle" id="state-guidance">Use note for raw capture, meta discuss to shape a change, and meta operate when you want governed packet creation.</div>
+                    </div>
+                    <div>
+                      <div class="info-title">Surface Mode</div>
+                      <div class="segment">
+                        <button type="button" id="mode-note">Note</button>
+                        <button type="button" id="mode-meta">Meta</button>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="info-title">Meta State</div>
+                      <div class="segment">
+                        <button type="button" id="state-discuss">Discuss</button>
+                        <button type="button" id="state-operate">Operate</button>
+                      </div>
+                    </div>
+                  </div>
+                  <label>
+                    Message
+                    <textarea id="packet-text">Should we change how the bridge handles sidecar context?</textarea>
+                  </label>
+                  <div class="subtle">`Ctrl/Cmd + Enter` sends. `Operate` should be used only when you want a governed change packet drafted immediately.</div>
+                  <label>
+                    Session Id
+                    <input id="packet-session" value="web-self-improve-session" />
+                  </label>
+                  <label>
+                    Turn Id
+                    <input id="packet-turn" value="web-self-improve-turn" />
+                  </label>
+                  <div class="control-row">
+                    <button id="interpret-submit">Send Message</button>
+                    <button type="button" class="secondary" id="promote-operate">Promote to Operate</button>
+                    <button type="button" class="secondary" id="reset-chat">Reset Draft</button>
+                  </div>
+                  <div id="chat-status" class="status"></div>
+                  <pre id="chat-output"></pre>
+                  <div class="info-panel">
+                    <div class="info-title">Packet Preview</div>
+                    <div id="packet-preview-status" class="subtle">No packet drafted. Stay in discuss until the change is concrete.</div>
+                    <pre id="packet-preview-output"></pre>
+                  </div>
+                </section>
+                <section>
+                  <h2>Improvement Packet</h2>
+                  <p class="subtle">Manual packet creation stays available, but the preferred path is to reach it through `meta -> operate` so the packet carries explicit conversational intent.</p>
+                  <button id="packet-submit">Create Packet</button>
+                  <div id="packet-status" class="status"></div>
+                  <pre id="packet-output"></pre>
+                </section>
+                <section>
+                  <h2>Release Candidate</h2>
+                  <label>
+                    Release Id
+                    <input id="release-id" value="self-improve-web-release" />
+                  </label>
+                  <button id="release-submit">Build Manifest</button>
+                  <div id="release-status" class="status"></div>
+                  <pre id="release-output"></pre>
+                </section>
+                <section>
+                  <h2>Rollback Plan</h2>
+                  <label>
+                    Current Release
+                    <input id="rollback-current" value="inner-world-current" />
+                  </label>
+                  <label>
+                    Previous Release
+                    <input id="rollback-previous" value="inner-world-previous" />
+                  </label>
+                  <button id="rollback-submit">Build Rollback Plan</button>
+                  <div id="rollback-status" class="status"></div>
+                  <pre id="rollback-output"></pre>
+                </section>
+              </div>
+            </main>
+            <script>
+              function inferSelfImprovementApiBase() {
+                const path = window.location.pathname || "";
+                const marker = "/self-improvement";
+                if (path.endsWith(marker)) {
+                  const base = path.slice(0, -marker.length);
+                  return base || "/api";
+                }
+                return "/api";
+              }
+
+              const selfImprovementApiBase = __API_BASE_JSON__;
+
+              function apiPath(suffix) {
+                return `${selfImprovementApiBase}${suffix}`;
+              }
+
+              async function postJson(path, payload) {
+                const response = await fetch(path, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                  throw new Error(data.error || "request_failed");
+                }
+                return data;
+              }
+
+              function wireButton(buttonId, statusId, outputId, buildPayload) {
+                const button = document.getElementById(buttonId);
+                const status = document.getElementById(statusId);
+                const output = document.getElementById(outputId);
+                button.addEventListener("click", async () => {
+                  status.textContent = "Working...";
+                  output.textContent = "";
+                  try {
+                    const { path, payload } = buildPayload();
+                    const result = await postJson(path, payload);
+                    output.textContent = JSON.stringify(result, null, 2);
+                    status.textContent = "";
+                  } catch (error) {
+                    status.textContent = String(error.message || error);
+                  }
+                });
+              }
+
+              const appState = {
+                surfaceMode: "meta",
+                metaState: "discuss",
+                transcript: [],
+                pending: false,
+              };
+
+              function humanizeRisk(interpretation) {
+                if (!interpretation) {
+                  return "provisional";
+                }
+                if (interpretation.surface_mode !== "meta") {
+                  return "none";
+                }
+                return interpretation.risk || "provisional";
+              }
+
+              function toggleActive(buttonId, isActive, extraClass) {
+                const button = document.getElementById(buttonId);
+                button.classList.toggle("active", isActive);
+                if (extraClass) {
+                  button.classList.toggle(extraClass, isActive);
+                }
+              }
+
+              function setBusy(isBusy) {
+                appState.pending = isBusy;
+                [
+                  "interpret-submit",
+                  "promote-operate",
+                  "reset-chat",
+                  "packet-submit",
+                  "release-submit",
+                  "rollback-submit",
+                  "mode-note",
+                  "mode-meta",
+                  "state-discuss",
+                  "state-operate",
+                ].forEach((id) => {
+                  document.getElementById(id).disabled = isBusy;
+                });
+              }
+
+              function updateStateChrome(interpretation) {
+                const modeChip = document.getElementById("mode-chip");
+                const stateChip = document.getElementById("state-chip");
+                const riskChip = document.getElementById("risk-chip");
+                const summary = document.getElementById("state-summary");
+                const guidance = document.getElementById("state-guidance");
+                const packetButton = document.getElementById("packet-submit");
+                const promoteButton = document.getElementById("promote-operate");
+                const resolvedMode = interpretation ? interpretation.surface_mode : appState.surfaceMode;
+                const resolvedState = interpretation ? interpretation.meta_state : appState.metaState;
+                const risk = humanizeRisk(interpretation);
+
+                toggleActive("mode-note", resolvedMode === "note", "note-active");
+                toggleActive("mode-meta", resolvedMode === "meta");
+                toggleActive("state-discuss", resolvedState === "discuss");
+                toggleActive("state-operate", resolvedMode === "meta" && resolvedState === "operate");
+
+                modeChip.textContent = resolvedMode === "note" ? "Note" : "Meta";
+                modeChip.className = `chip mode-${resolvedMode}`;
+                stateChip.textContent = resolvedState === "operate" ? "Operate" : "Discuss";
+                stateChip.className = `chip state-${resolvedState}`;
+                riskChip.textContent = `Risk: ${risk}`;
+                riskChip.className = `chip risk-${risk}`;
+
+                if (resolvedMode === "note") {
+                  summary.textContent = "Note mode captures thought without operational behavior. This is safe for raw reflection and context capture.";
+                  guidance.textContent = "Switch into meta only when you want to reason about the product/system itself.";
+                } else if (resolvedState === "operate") {
+                  summary.textContent = "Meta operate is armed. Sending the next message will draft a governed change packet and surface required tests and release gates.";
+                  guidance.textContent = "Use operate only when the request is concrete enough to become tracked implementation work.";
+                } else {
+                  summary.textContent = "Meta discuss keeps the idea provisional. You can refine intent, scope, and risks before turning it into tracked change.";
+                  guidance.textContent = "Promote to operate only after the implementation direction is explicit enough to test and release safely.";
+                }
+
+                packetButton.disabled = appState.pending || !(resolvedMode === "meta" && resolvedState === "operate");
+                promoteButton.disabled = appState.pending || !(resolvedMode === "meta" && resolvedState === "discuss");
+              }
+
+              function renderTranscript() {
+                const output = document.getElementById("chat-output");
+                output.textContent = appState.transcript.map((row) => {
+                  return `[${row.actor}] ${row.text}`;
+                }).join("\\n\\n");
+              }
+
+              function renderPacketPreview(packet, interpretation) {
+                const status = document.getElementById("packet-preview-status");
+                const output = document.getElementById("packet-preview-output");
+                if (!packet) {
+                  status.textContent = interpretation.next_action;
+                  output.textContent = JSON.stringify(
+                    {
+                      mode: interpretation.surface_mode,
+                      state: interpretation.meta_state,
+                      domain: interpretation.domain,
+                      risk: interpretation.risk,
+                    },
+                    null,
+                    2,
+                  );
+                  return;
+                }
+                status.textContent = `Packet drafted for ${packet.classification.domain}. Required tests: ${packet.gates.required_tests.join(", ")}.`;
+                output.textContent = JSON.stringify(packet, null, 2);
+                document.getElementById("packet-output").textContent = JSON.stringify(packet, null, 2);
+              }
+
+              document.getElementById("mode-note").addEventListener("click", () => {
+                appState.surfaceMode = "note";
+                appState.metaState = "discuss";
+                updateStateChrome();
+              });
+              document.getElementById("mode-meta").addEventListener("click", () => {
+                appState.surfaceMode = "meta";
+                if (appState.metaState !== "operate") {
+                  appState.metaState = "discuss";
+                }
+                updateStateChrome();
+              });
+              document.getElementById("state-discuss").addEventListener("click", () => {
+                appState.metaState = "discuss";
+                updateStateChrome();
+              });
+              document.getElementById("state-operate").addEventListener("click", () => {
+                appState.surfaceMode = "meta";
+                appState.metaState = "operate";
+                updateStateChrome();
+              });
+              document.getElementById("promote-operate").addEventListener("click", () => {
+                appState.surfaceMode = "meta";
+                appState.metaState = "operate";
+                updateStateChrome();
+              });
+              document.getElementById("reset-chat").addEventListener("click", () => {
+                appState.transcript = [];
+                document.getElementById("chat-status").textContent = "";
+                document.getElementById("packet-preview-status").textContent = "No packet drafted. Stay in discuss until the change is concrete.";
+                document.getElementById("packet-preview-output").textContent = "";
+                renderTranscript();
+                updateStateChrome();
+              });
+
+              async function submitModeChat() {
+                const status = document.getElementById("chat-status");
+                try {
+                  setBusy(true);
+                  const message = document.getElementById("packet-text").value;
+                  appState.transcript.push({ actor: "user", text: message });
+                  const result = await postJson(apiPath("/self-improvement/chat"), {
+                    text: message,
+                    surface_mode: appState.surfaceMode,
+                    meta_state: appState.metaState,
+                    session_id: document.getElementById("packet-session").value,
+                    turn_id: document.getElementById("packet-turn").value,
+                  });
+                  const interpretation = result.interpretation;
+                  appState.surfaceMode = interpretation.surface_mode;
+                  appState.metaState = interpretation.meta_state;
+                  appState.transcript.push({
+                    actor: "assistant",
+                    text: `${result.assistant_text} Domain: ${interpretation.domain}. Next: ${interpretation.next_action}`,
+                  });
+                  if (result.packet) {
+                    appState.transcript.push({
+                      actor: "packet",
+                      text: JSON.stringify(result.packet, null, 2),
+                    });
+                  }
+                  renderTranscript();
+                  renderPacketPreview(result.packet, interpretation);
+                  updateStateChrome(interpretation);
+                  status.textContent = "";
+                } catch (error) {
+                  status.textContent = String(error.message || error);
+                } finally {
+                  setBusy(false);
+                  updateStateChrome();
+                }
+              }
+
+              document.getElementById("interpret-submit").addEventListener("click", submitModeChat);
+              document.getElementById("packet-text").addEventListener("keydown", (event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                  event.preventDefault();
+                  if (!appState.pending) {
+                    submitModeChat();
+                  }
+                }
+              });
+
+              wireButton("packet-submit", "packet-status", "packet-output", () => ({
+                path: apiPath("/self-improvement/packet"),
+                payload: {
+                  text: document.getElementById("packet-text").value,
+                  session_id: document.getElementById("packet-session").value,
+                  turn_id: document.getElementById("packet-turn").value,
+                  surface_mode: appState.surfaceMode,
+                  meta_state: appState.metaState,
+                },
+              }));
+
+              wireButton("release-submit", "release-status", "release-output", () => ({
+                path: apiPath("/self-improvement/release/candidate"),
+                payload: { release_id: document.getElementById("release-id").value },
+              }));
+
+              wireButton("rollback-submit", "rollback-status", "rollback-output", () => ({
+                path: apiPath("/self-improvement/release/rollback-plan"),
+                payload: {
+                  current_release_id: document.getElementById("rollback-current").value,
+                  previous_release_id: document.getElementById("rollback-previous").value,
+                },
+              }));
+              updateStateChrome();
+            </script>
+          </body>
+        </html>
+        """
+    ).strip() + "\n"
+    return (
+        html.replace("__SWITCH_HTML__", switch_html)
+        .replace("__API_BASE_JSON__", json.dumps(api_base.rstrip("/") or "/api"))
+    )
+
+
+def _sign_mobile_session(password: str) -> str:
+    signature = hmac.new(
+        password.encode("utf-8"),
+        _MOBILE_SESSION_PAYLOAD.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"{_MOBILE_SESSION_PAYLOAD}.{signature}"
+
+
+def _verify_mobile_session(cookie_value: str | None, password: str | None) -> bool:
+    if not cookie_value or not password or "." not in cookie_value:
+        return False
+    payload, signature = cookie_value.rsplit(".", 1)
+    if payload != _MOBILE_SESSION_PAYLOAD:
+        return False
+    expected_signature = hmac.new(
+        password.encode("utf-8"),
+        payload.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected_signature)
+
+
 _FEED_UI_ENHANCEMENT_CSS = "feed-ui-enhancement.css"
 _FEED_UI_ENHANCEMENT_JS = "feed-ui-enhancement.js"
+_CONVERSATION_ATLAS_ROUTE = "/conversation-atlas.html"
+_CONVERSATION_ATLAS_MOBILE_ROUTE = "/conversation-atlas-mobile.html"
+
+
+def _conversation_atlas_specimen() -> dict:
+    return {
+        "title": "Conversation Atlas / This Thread",
+        "shared_threads": [
+            "main-thread",
+            "control-topology",
+            "context-workshop",
+            "assembly-layer",
+            "display-surface",
+            "mobilegrid-runtime",
+            "holodeck-translation",
+        ],
+        "translation_layer": {
+            "shared": [
+                "Same branch identity and thread lineage across desktop and mobile",
+                "Same user location primitives: thread, status, coupling, abstraction band",
+                "Same knowledge buckets feeding both surfaces",
+                "Same promotion and open-question markers",
+            ],
+            "desktop_unique": [
+                "Wide-map orientation across time and neighboring branches",
+                "Diagrammatic comparison between distant clusters",
+                "Visible topology for scanning drift and promotion",
+            ],
+            "mobile_unique": [
+                "Thumb-first focus on the active path and immediate neighbors",
+                "One-handed progression through buckets and branch cards",
+                "Fast return to where-am-I without decoding the whole map",
+            ],
+        },
+        "bands": [
+            {
+                "id": "entry",
+                "range": "01 to 07",
+                "title": "Opening thesis from this thread",
+                "summary": "This conversation begins by defining the product as a layer between a person and intelligence, with self-communication and personalization at the center.",
+                "nodes": [
+                    {
+                        "id": "u.01",
+                        "role": "user",
+                        "kind": "seed",
+                        "title": "We need a layer between the user and intelligence.",
+                        "summary": "The opening input frames intelligence as upstream material and asks for an efficient layer between the person and it.",
+                        "thread": "main-thread",
+                        "status": "main spine",
+                        "coupling": "shared with every later branch",
+                    },
+                    {
+                        "id": "a.02",
+                        "role": "agent",
+                        "kind": "reframe",
+                        "title": "This becomes a self-communication surface.",
+                        "summary": "The reply reframes the product as a place where a person can meet, reflect, and restructure their own thought.",
+                        "thread": "main-thread",
+                        "status": "promoted branch",
+                        "coupling": "coupled to product and ontology",
+                    },
+                    {
+                        "id": "u.03",
+                        "role": "user",
+                        "kind": "refinement",
+                        "title": "Personalization must become core.",
+                        "summary": "The thread insists that in a new era of cognitive tools, personalization cannot be a feature layered on top.",
+                        "thread": "main-thread",
+                        "status": "promoted branch",
+                        "coupling": "shared with assembly and context",
+                    },
+                    {
+                        "id": "u.04",
+                        "role": "user",
+                        "kind": "open",
+                        "title": "What exactly is being refined?",
+                        "summary": "The thread opens the question of whether the layer primarily refines thought, attention, feeling, decision-making, or self-model.",
+                        "thread": "main-thread",
+                        "status": "open question",
+                        "coupling": "isolated until resolved",
+                    },
+                    {
+                        "id": "a.05",
+                        "role": "agent",
+                        "kind": "synthesis",
+                        "title": "The job is transformation, not generation.",
+                        "summary": "The thread stabilizes around a first principle: the product refines intelligence into the right form for the moment rather than merely generating answers.",
+                        "thread": "main-thread",
+                        "status": "promoted branch",
+                        "coupling": "shared with every major branch",
+                    },
+                    {
+                        "id": "u.06",
+                        "role": "user",
+                        "kind": "constraint",
+                        "title": "Track the flow without flattening it.",
+                        "summary": "The user asks the assistant to organize itself around the flow of input and preserve the shape of the thread as it unfolds.",
+                        "thread": "main-thread",
+                        "status": "operating rule",
+                        "coupling": "shared with control topology",
+                    },
+                ],
+            },
+            {
+                "id": "control",
+                "range": "08 to 14",
+                "title": "Meta mode and topology control",
+                "summary": "This part of the thread defines how contexts should couple, isolate, route, and reintegrate without polluting the main spine.",
+                "nodes": [
+                    {
+                        "id": "u.08",
+                        "role": "user",
+                        "kind": "mode",
+                        "title": "Introduce a meta mode.",
+                        "summary": "The user asks for a meta mode where the assistant can be adjusted in real time while the conversation continues.",
+                        "thread": "control-topology",
+                        "status": "main spine",
+                        "coupling": "shared with orchestration only",
+                    },
+                    {
+                        "id": "u.09",
+                        "role": "user",
+                        "kind": "topology",
+                        "title": "Couple only specific dimensions.",
+                        "summary": "The thread specifies that some domains should pass between contexts while others should remain isolated in a latent-topographical sense.",
+                        "thread": "control-topology",
+                        "status": "promoted branch",
+                        "coupling": "shared with sidecars only",
+                    },
+                    {
+                        "id": "a.10",
+                        "role": "agent",
+                        "kind": "synthesis",
+                        "title": "Topology control over context flow.",
+                        "summary": "The assistant names the emerging pattern as topology control over context flow, with explicit sidecars and reintegration bridges.",
+                        "thread": "control-topology",
+                        "status": "promoted branch",
+                        "coupling": "coupled to UI state",
+                    },
+                    {
+                        "id": "u.11",
+                        "role": "user",
+                        "kind": "command",
+                        "title": "Hashtags should route and isolate.",
+                        "summary": "The user declares hashtags to be control syntax for mode switching or modular context isolation inside the thread.",
+                        "thread": "control-topology",
+                        "status": "operating rule",
+                        "coupling": "shared with parser and routing",
+                    },
+                    {
+                        "id": "u.12",
+                        "role": "user",
+                        "kind": "perturbation",
+                        "title": "Track outside influences too.",
+                        "summary": "The thread extends the model to include outside influences as forces acting on conceptual topology.",
+                        "thread": "control-topology",
+                        "status": "promoted branch",
+                        "coupling": "shared with measurement layer",
+                    },
+                    {
+                        "id": "a.14",
+                        "role": "agent",
+                        "kind": "measurement",
+                        "title": "Difference needs controlled observables.",
+                        "summary": "The response proposes controlled observables for measuring conceptual shifts rather than claiming direct access to raw hidden state.",
+                        "thread": "control-topology",
+                        "status": "open method",
+                        "coupling": "shared with latent navigation",
+                    },
+                ],
+            },
+            {
+                "id": "context",
+                "range": "15 to 21",
+                "title": "Context as workshop and navigation system",
+                "summary": "This thread turns context into an instrument set and treats the atlas as a navigation surface that helps the user stay oriented in flow.",
+                "nodes": [
+                    {
+                        "id": "u.15",
+                        "role": "user",
+                        "kind": "turn",
+                        "title": "Context should be stored as tooling.",
+                        "summary": "The conversation defines context as the instrument set used to bend, filter, compress, and crystallize intelligence.",
+                        "thread": "context-workshop",
+                        "status": "main spine",
+                        "coupling": "shared with personalization",
+                    },
+                    {
+                        "id": "a.16",
+                        "role": "agent",
+                        "kind": "synthesis",
+                        "title": "The product is the workshop, not the archive.",
+                        "summary": "The response sharpens the point: the product is a context workshop, not merely a storage vault.",
+                        "thread": "context-workshop",
+                        "status": "promoted branch",
+                        "coupling": "coupled to interface",
+                    },
+                    {
+                        "id": "u.17",
+                        "role": "user",
+                        "kind": "location",
+                        "title": "Help the user know where they are.",
+                        "summary": "The thread says the atlas should help the user stay in flow without losing where they are mentally.",
+                        "thread": "context-workshop",
+                        "status": "promoted branch",
+                        "coupling": "shared with display surface",
+                    },
+                    {
+                        "id": "a.18",
+                        "role": "agent",
+                        "kind": "navigation",
+                        "title": "Model current position in the thought space.",
+                        "summary": "The response identifies thread, abstraction level, neighborhood, motion direction, and stability as coordinates for locating the user.",
+                        "thread": "context-workshop",
+                        "status": "working model",
+                        "coupling": "shared with control topology",
+                    },
+                    {
+                        "id": "u.19",
+                        "role": "user",
+                        "kind": "design",
+                        "title": "The atlas should be a conversation substrate.",
+                        "summary": "The thread explicitly rejects a generic dashboard feeling and pushes toward a thought-support environment.",
+                        "thread": "context-workshop",
+                        "status": "design principle",
+                        "coupling": "shared with display surface",
+                    },
+                    {
+                        "id": "u.21",
+                        "role": "user",
+                        "kind": "save",
+                        "title": "Save before compression.",
+                        "summary": "The thread introduces an operating requirement: save and checkpoint the conversation before context compression erases usable continuity.",
+                        "thread": "context-workshop",
+                        "status": "operating rule",
+                        "coupling": "shared with session system",
+                    },
+                ],
+            },
+            {
+                "id": "assembly",
+                "range": "22 to 30",
+                "title": "Invisible infrastructure and mobilegrid runtime",
+                "summary": "The thread moves from thesis into stack design: raw provider, management layer, missing final assembly, and a stable versus preview mobile runtime.",
+                "nodes": [
+                    {
+                        "id": "u.22",
+                        "role": "user",
+                        "kind": "stack",
+                        "title": "ChatGPT, OpenClaw, and a missing final assembly layer.",
+                        "summary": "The thread names ChatGPT as raw provider, OpenClaw as management, and a missing final assembly or personalization layer between them and the user.",
+                        "thread": "assembly-layer",
+                        "status": "main spine",
+                        "coupling": "shared with platform design",
+                    },
+                    {
+                        "id": "a.23",
+                        "role": "agent",
+                        "kind": "system",
+                        "title": "The missing layer is adaptation, not another model.",
+                        "summary": "The response argues that this missing layer is adaptation and orchestration, not another model.",
+                        "thread": "assembly-layer",
+                        "status": "promoted branch",
+                        "coupling": "shared with personalization",
+                    },
+                    {
+                        "id": "u.24",
+                        "role": "user",
+                        "kind": "gap",
+                        "title": "Behavior must adjust reliably.",
+                        "summary": "The thread asks for a reliable system that can intelligently adjust behavior from rough, non-technical input.",
+                        "thread": "assembly-layer",
+                        "status": "promoted branch",
+                        "coupling": "coupled to personalization",
+                    },
+                    {
+                        "id": "u.25",
+                        "role": "user",
+                        "kind": "substrate",
+                        "title": "Be the invisible infrastructure under many tools.",
+                        "summary": "The thread says the product should sit invisibly beneath tools like Codex, Claude, and OpenClaw as communicative infrastructure.",
+                        "thread": "assembly-layer",
+                        "status": "platform thesis",
+                        "coupling": "shared with mobilegrid runtime",
+                    },
+                    {
+                        "id": "u.26",
+                        "role": "user",
+                        "kind": "material",
+                        "title": "Cognitive clay.",
+                        "summary": "The thread introduces `cognitive clay` as the metaphor for a user-shaped medium that can hold form and still be reworked.",
+                        "thread": "assembly-layer",
+                        "status": "promoted metaphor",
+                        "coupling": "shared with personal interface",
+                    },
+                    {
+                        "id": "u.27",
+                        "role": "user",
+                        "kind": "host",
+                        "title": "Mobilegrid should be the stable surface.",
+                        "summary": "The deployment part of the thread settles on `mobilegrid` as the stable phone-facing surface with a separate preview surface.",
+                        "thread": "mobilegrid-runtime",
+                        "status": "deployment decision",
+                        "coupling": "shared with runtime only",
+                    },
+                    {
+                        "id": "a.28",
+                        "role": "agent",
+                        "kind": "deploy",
+                        "title": "Preview continuously, publish selectively.",
+                        "summary": "The response recommends preview continuously and publish selectively, with local iteration and low-cost promotion.",
+                        "thread": "mobilegrid-runtime",
+                        "status": "recommended pattern",
+                        "coupling": "shared with OpenClaw routing",
+                    },
+                    {
+                        "id": "u.30",
+                        "role": "user",
+                        "kind": "approval",
+                        "title": "Phone stays in approval mode.",
+                        "summary": "The thread chooses approval mode for the phone rather than full remote control.",
+                        "thread": "mobilegrid-runtime",
+                        "status": "locked decision",
+                        "coupling": "shared with deployment surface",
+                    },
+                ],
+            },
+            {
+                "id": "display",
+                "range": "31 to 40",
+                "title": "Tree interface, holodeck translator, and live growth",
+                "summary": "The later thread turns toward the atlas UI itself, then toward an MCP translation layer and holodeck-like architect that can turn rough intent into buildable systems.",
+                "nodes": [
+                    {
+                        "id": "u.31",
+                        "role": "user",
+                        "kind": "display",
+                        "title": "Use a growing tree as the display form.",
+                        "summary": "The thread uses archival taxonomy and timeline references as the visual language for the desktop atlas.",
+                        "thread": "display-surface",
+                        "status": "main spine",
+                        "coupling": "shared with user interface",
+                    },
+                    {
+                        "id": "a.32",
+                        "role": "agent",
+                        "kind": "synthesis",
+                        "title": "The atlas is an orientation layer.",
+                        "summary": "The response defines the tree as an orientation layer rather than a decorative visualization.",
+                        "thread": "display-surface",
+                        "status": "promoted branch",
+                        "coupling": "coupled to main thread",
+                    },
+                    {
+                        "id": "u.33",
+                        "role": "user",
+                        "kind": "architect",
+                        "title": "Use an MCP translation layer as a demiurge.",
+                        "summary": "The thread imagines Codex as a demiurge-like architect that translates rough dumps into technically coherent features and systems.",
+                        "thread": "holodeck-translation",
+                        "status": "new spine branch",
+                        "coupling": "shared with holodeck only",
+                    },
+                    {
+                        "id": "a.34",
+                        "role": "agent",
+                        "kind": "translation",
+                        "title": "Interpretive expansion plus contextual binding.",
+                        "summary": "The response breaks the translation layer into interpretive expansion, contextual binding, clarification routing, and implementation shaping.",
+                        "thread": "holodeck-translation",
+                        "status": "working schema",
+                        "coupling": "shared with architect layer",
+                    },
+                    {
+                        "id": "u.35",
+                        "role": "user",
+                        "kind": "holodeck",
+                        "title": "The holodeck should grow dormant concepts too.",
+                        "summary": "The thread asks for dormant concepts to keep growing when nearby systems evolve, even before implementation.",
+                        "thread": "holodeck-translation",
+                        "status": "open system requirement",
+                        "coupling": "shared with backlog and synthesis",
+                    },
+                    {
+                        "id": "a.36",
+                        "role": "agent",
+                        "kind": "tracking",
+                        "title": "A living incompleteness tracker is needed.",
+                        "summary": "The response proposes a living incompleteness tracker instead of a dead backlog.",
+                        "thread": "holodeck-translation",
+                        "status": "promoted branch",
+                        "coupling": "shared with growth engine",
+                    },
+                    {
+                        "id": "u.37",
+                        "role": "user",
+                        "kind": "artifact",
+                        "title": "Desktop atlas should read like a populated document.",
+                        "summary": "This current request pushes the desktop atlas to use the conversation itself as the population substrate rather than generic mock content.",
+                        "thread": "display-surface",
+                        "status": "design request",
+                        "coupling": "shared with specimen layer",
+                    },
+                    {
+                        "id": "u.38",
+                        "role": "user",
+                        "kind": "restore",
+                        "title": "Bring back the strict reference style.",
+                        "summary": "The user rejects richer editorial chrome and asks to return to sparse taxonomy and archival-band language.",
+                        "thread": "display-surface",
+                        "status": "locked design constraint",
+                        "coupling": "shared with desktop only",
+                    },
+                    {
+                        "id": "u.39",
+                        "role": "user",
+                        "kind": "constraint",
+                        "title": "Leave mobile untouched.",
+                        "summary": "The mobile experience is explicitly protected while the desktop atlas continues to evolve.",
+                        "thread": "display-surface",
+                        "status": "locked scope",
+                        "coupling": "isolated from mobile",
+                    },
+                    {
+                        "id": "u.40",
+                        "role": "user",
+                        "kind": "open",
+                        "title": "Promotion rules still need governance.",
+                        "summary": "The atlas is legible and inhabited, but the policy for promotion, dormancy, and reintegration is still unfinished.",
+                        "thread": "display-surface",
+                        "status": "open question",
+                        "coupling": "not yet shared",
+                    },
+                ],
+            },
+        ],
+    }
+
+
+def _conversation_atlas_mobile_mockup_html() -> str:
+    payload = json.dumps(_conversation_atlas_specimen())
+    return (
+        dedent(
+            f"""
+            <!doctype html>
+            <html lang="en">
+              <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+                <title>Conversation Atlas Mobile</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+                <link
+                  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap"
+                  rel="stylesheet"
+                />
+                <style>
+                  :root {{
+                    --paper: #f6efe2;
+                    --paper-strong: #fcf7ef;
+                    --ink: #17120f;
+                    --ink-soft: #5b524a;
+                    --ink-faint: #91877a;
+                    --line: rgba(32, 24, 18, 0.14);
+                    --line-strong: rgba(32, 24, 18, 0.24);
+                    --accent: #9a6b2f;
+                    --accent-soft: rgba(154, 107, 47, 0.12);
+                    --shadow: 0 18px 36px rgba(56, 42, 29, 0.10);
+                    --viewport-h: 438px;
+                  }}
+
+                  * {{ box-sizing: border-box; }}
+                  html, body {{
+                    margin: 0;
+                    min-height: 100%;
+                    background: var(--paper);
+                    color: var(--ink);
+                    font-family: "Instrument Sans", sans-serif;
+                    scroll-behavior: smooth;
+                  }}
+                  body {{
+                    background-image:
+                      linear-gradient(rgba(27, 24, 21, 0.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(27, 24, 21, 0.025) 1px, transparent 1px);
+                    background-size: 28px 28px;
+                  }}
+                  a {{ color: inherit; text-decoration: none; }}
+                  .mobile-page {{
+                    width: min(100%, 480px);
+                    margin: 0 auto;
+                    padding: max(12px, env(safe-area-inset-top)) 12px calc(178px + env(safe-area-inset-bottom));
+                  }}
+                  .mobile-head {{
+                    position: sticky;
+                    top: 0;
+                    z-index: 20;
+                    margin: 0 -12px 14px;
+                    padding: 14px 12px 12px;
+                    background: linear-gradient(180deg, rgba(246,239,226,0.97), rgba(246,239,226,0.82));
+                    backdrop-filter: blur(18px);
+                    border-bottom: 1px solid var(--line);
+                  }}
+                  .mobile-kicker, .sheet-label, .tray-label, .metric-label, .card-meta, .tab-range {{
+                    margin: 0;
+                    color: var(--ink-faint);
+                    font-family: "IBM Plex Mono", monospace;
+                    font-size: 0.7rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                  }}
+                  .mobile-title, .sheet-title, .card-title {{
+                    margin: 0;
+                    font-family: "Cormorant Garamond", serif;
+                    letter-spacing: -0.02em;
+                  }}
+                  .mobile-title {{
+                    margin-top: 6px;
+                    font-size: 2.6rem;
+                    line-height: 0.94;
+                  }}
+                  .mobile-copy, .metric-copy, .card-copy, .sheet-copy, .tray-copy {{
+                    margin: 0;
+                    color: var(--ink-soft);
+                    line-height: 1.55;
+                  }}
+                  .mobile-copy {{ margin-top: 10px; font-size: 0.88rem; }}
+                  .metrics {{
+                    display: none;
+                  }}
+                  .deck-shell {{
+                    margin-top: 6px;
+                    padding: 0 0 18px;
+                    overflow: clip;
+                  }}
+                  .metric-grid {{
+                    display: none;
+                  }}
+                  .tab-rail {{
+                    display: flex;
+                    gap: 10px;
+                    overflow-x: auto;
+                    padding-bottom: 8px;
+                    margin-bottom: 12px;
+                    scroll-snap-type: x proximity;
+                    -webkit-overflow-scrolling: touch;
+                  }}
+                  .tab-rail::-webkit-scrollbar {{
+                    height: 7px;
+                  }}
+                  .tab-rail::-webkit-scrollbar-thumb {{
+                    background: rgba(32, 24, 18, 0.16);
+                    border-radius: 999px;
+                  }}
+                  .deck-tab {{
+                    flex: 0 0 auto;
+                    width: 168px;
+                    scroll-snap-align: start;
+                    padding: 12px;
+                    border: 1px solid var(--line);
+                    border-radius: 0;
+                    background:
+                      linear-gradient(180deg, rgba(255,255,255,0.58), rgba(250,246,238,0.4)),
+                      repeating-linear-gradient(90deg, rgba(74, 58, 43, 0.016) 0 1px, transparent 1px 8px);
+                    text-align: left;
+                    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+                  }}
+                  .deck-tab.is-active {{
+                    transform: translateY(-1px) scale(1.01);
+                    border-color: rgba(154, 107, 47, 0.34);
+                    background: var(--paper-strong);
+                    box-shadow: inset 0 0 0 1px rgba(154,107,47,0.12);
+                  }}
+                  .tab-title {{
+                    margin: 6px 0 0;
+                    font-size: 0.98rem;
+                    line-height: 1.25;
+                    color: var(--ink);
+                    font-weight: 600;
+                  }}
+                  .tab-summary {{
+                    margin: 8px 0 0;
+                    color: var(--ink-soft);
+                    font-size: 0.75rem;
+                    line-height: 1.45;
+                  }}
+                  .motion-note {{
+                    margin: 0 0 14px;
+                    color: var(--ink-faint);
+                    font-family: "IBM Plex Mono", monospace;
+                    font-size: 0.68rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                  }}
+                  .atlas-viewport {{
+                    position: relative;
+                    min-height: var(--viewport-h);
+                    border-radius: 0;
+                    overflow: hidden;
+                    background:
+                      radial-gradient(circle at center, rgba(255,255,255,0.42), rgba(255,255,255,0.08) 58%, rgba(255,255,255,0) 74%);
+                    touch-action: none;
+                  }}
+                  .atlas-viewport::before,
+                  .atlas-viewport::after {{
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    pointer-events: none;
+                  }}
+                  .atlas-viewport::before {{
+                    background-image:
+                      linear-gradient(rgba(27, 24, 21, 0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(27, 24, 21, 0.03) 1px, transparent 1px);
+                    background-size: 36px 36px;
+                    opacity: 0.55;
+                  }}
+                  .atlas-viewport::after {{
+                    background:
+                      radial-gradient(circle at center, rgba(246,239,226,0) 36%, rgba(246,239,226,0.30) 70%, rgba(246,239,226,0.92) 100%);
+                  }}
+                  .focus-ring {{
+                    position: absolute;
+                    inset: 50% auto auto 50%;
+                    width: min(82vw, 314px);
+                    height: 336px;
+                    transform: translate(-50%, -50%);
+                    border: 0;
+                    border-radius: 0;
+                    box-shadow: 0 0 0 999px rgba(246,239,226,0.02);
+                    pointer-events: none;
+                    z-index: 2;
+                  }}
+                  .focus-caption {{
+                    position: absolute;
+                    left: 50%;
+                    top: calc(50% + 184px);
+                    transform: translateX(-50%);
+                    z-index: 2;
+                    margin: 0;
+                    padding: 5px 10px;
+                    border-radius: 0;
+                    background: transparent;
+                    border: 0;
+                    color: var(--ink-faint);
+                    font-family: "IBM Plex Mono", monospace;
+                    font-size: 0.66rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    pointer-events: none;
+                  }}
+                  .card-field {{
+                    position: absolute;
+                    inset: 0;
+                  }}
+                  .node-card {{
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    width: min(82vw, 314px);
+                    border: 1px solid var(--line);
+                    border-radius: 0;
+                    background:
+                      linear-gradient(180deg, rgba(255,255,255,0.76), rgba(247,240,228,0.62)),
+                      repeating-linear-gradient(0deg, rgba(74, 58, 43, 0.028) 0 1px, transparent 1px 6px),
+                      repeating-linear-gradient(90deg, rgba(74, 58, 43, 0.018) 0 1px, transparent 1px 10px);
+                    padding: 14px;
+                    text-align: left;
+                    min-height: 336px;
+                    box-shadow: 0 8px 18px rgba(56, 42, 29, 0.06);
+                    transform-origin: center center;
+                    opacity: 0;
+                    filter: blur(8px);
+                    pointer-events: none;
+                    transition:
+                      opacity 360ms cubic-bezier(0.22, 1, 0.36, 1),
+                      transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+                      border-color 180ms ease,
+                      box-shadow 260ms ease,
+                      background 260ms ease,
+                      filter 360ms ease;
+                  }}
+                  .node-card.is-active {{
+                    border-color: var(--line-strong);
+                    background: var(--paper-strong);
+                    box-shadow:
+                      inset 0 0 0 1px rgba(138, 106, 63, 0.18),
+                      0 10px 24px rgba(56, 42, 29, 0.08);
+                    filter: blur(0);
+                    opacity: 1;
+                    pointer-events: auto;
+                    z-index: 3;
+                  }}
+                  .node-card.is-near {{
+                    opacity: 0.56;
+                    filter: blur(2.8px);
+                    pointer-events: auto;
+                    z-index: 1;
+                  }}
+                  .node-card.is-far {{
+                    opacity: 0.18;
+                    filter: blur(7px);
+                    z-index: 0;
+                  }}
+                  .node-card.is-hidden {{
+                    opacity: 0;
+                    filter: blur(10px);
+                  }}
+                  .card-meta {{
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                    align-items: center;
+                  }}
+                  .card-kind {{
+                    padding: 5px 8px;
+                    border-radius: 0;
+                    background: var(--accent-soft);
+                    color: var(--accent);
+                    font-size: 0.66rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    font-family: "IBM Plex Mono", monospace;
+                  }}
+                  .card-title {{
+                    margin: 14px 0 10px;
+                    font-size: 2rem;
+                    line-height: 0.94;
+                  }}
+                  .card-copy {{
+                    font-size: 0.9rem;
+                    min-height: 88px;
+                  }}
+                  .card-body {{
+                    display: grid;
+                    gap: 12px;
+                  }}
+                  .atlas-guides {{
+                    display: none;
+                  }}
+                  .card-strip {{
+                    margin-top: 14px;
+                    display: grid;
+                    gap: 10px;
+                  }}
+                  .strip-item {{
+                    padding-top: 10px;
+                    border-top: 1px solid var(--line);
+                  }}
+                  .strip-item p:last-child {{
+                    margin: 4px 0 0;
+                    color: var(--ink-soft);
+                    font-family: "IBM Plex Mono", monospace;
+                    font-size: 0.72rem;
+                    line-height: 1.45;
+                  }}
+                  .sheet {{
+                    position: fixed;
+                    left: 50%;
+                    bottom: 0;
+                    z-index: 30;
+                    width: min(86vw, 348px);
+                    min-height: 33vh;
+                    max-height: 33vh;
+                    transform: translateX(-50%);
+                    margin: 0 auto calc(8px + env(safe-area-inset-bottom));
+                    padding: 16px 16px 18px;
+                    border: 1px solid var(--line-strong);
+                    background:
+                      linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,240,228,0.78)),
+                      repeating-linear-gradient(0deg, rgba(74, 58, 43, 0.028) 0 1px, transparent 1px 6px),
+                      repeating-linear-gradient(90deg, rgba(74, 58, 43, 0.016) 0 1px, transparent 1px 10px);
+                    box-shadow: 0 12px 28px rgba(56, 42, 29, 0.10);
+                    overflow: hidden;
+                    transition:
+                      transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+                      max-height 420ms cubic-bezier(0.16, 1, 0.3, 1),
+                      min-height 420ms cubic-bezier(0.16, 1, 0.3, 1),
+                      box-shadow 260ms ease;
+                  }}
+                  .sheet.is-expanded {{
+                    min-height: 90vh;
+                    max-height: 90vh;
+                    transform: translateX(-50%) translateY(-10px) scale(1.01);
+                    box-shadow: 0 20px 44px rgba(56, 42, 29, 0.18);
+                  }}
+                  .sheet.is-transitioning .sheet-title,
+                  .sheet.is-transitioning .sheet-copy,
+                  .sheet.is-transitioning .sheet-item p:last-child {{
+                    opacity: 0;
+                    transform: translateY(8px);
+                  }}
+                  .sheet-title {{
+                    margin-top: 8px;
+                    font-size: 2.05rem;
+                    line-height: 0.96;
+                    transition: opacity 180ms ease, transform 240ms ease;
+                  }}
+                  .sheet-copy {{
+                    margin: 8px 0 0;
+                    line-height: 1.56;
+                    font-size: 0.9rem;
+                    transition: opacity 180ms ease 20ms, transform 240ms ease 20ms;
+                  }}
+                  .preview-handle {{
+                    width: 54px;
+                    height: 2px;
+                    background: rgba(32, 24, 18, 0.16);
+                    margin: 0 auto 12px;
+                  }}
+                  .sheet-grid {{
+                    display: grid;
+                    gap: 8px;
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    margin-top: 12px;
+                  }}
+                  .sheet-item {{
+                    padding-top: 8px;
+                    border-top: 1px solid var(--line);
+                  }}
+                  .sheet-item p:last-child {{
+                    margin: 4px 0 0;
+                    font-size: 0.72rem;
+                    color: var(--ink);
+                    line-height: 1.4;
+                    transition: opacity 180ms ease 40ms, transform 240ms ease 40ms;
+                  }}
+                </style>
+              </head>
+              <body>
+                <main class="mobile-page">
+                  <section class="deck-shell" aria-live="polite">
+                    <section id="atlas-viewport" class="atlas-viewport" aria-live="polite">
+                      <div id="card-field" class="card-field"></div>
+                    </section>
+                  </section>
+
+                  <aside class="sheet" aria-live="polite">
+                    <p class="sheet-label">Active card</p>
+                    <h2 id="sheet-title" class="sheet-title"></h2>
+                    <p id="sheet-copy" class="sheet-copy"></p>
+                    <div class="sheet-grid">
+                      <div class="sheet-item">
+                        <p class="sheet-label">Thread</p>
+                        <p id="sheet-thread"></p>
+                      </div>
+                      <div class="sheet-item">
+                        <p class="sheet-label">Status</p>
+                        <p id="sheet-status"></p>
+                      </div>
+                      <div class="sheet-item">
+                        <p class="sheet-label">Coupling</p>
+                        <p id="sheet-coupling"></p>
+                      </div>
+                    </div>
+                  </aside>
+                </main>
+
+                <script>
+                  const specimen = {payload};
+                  const tabRail = document.getElementById('tab-rail');
+                  const viewport = document.getElementById('atlas-viewport');
+                  const cardField = document.getElementById('card-field');
+                  const sharedThreadsCount = document.getElementById('shared-threads-count');
+                  const bucketCount = document.getElementById('bucket-count');
+                  const sheet = document.querySelector('.sheet');
+                  const sheetTitle = document.getElementById('sheet-title');
+                  const sheetCopy = document.getElementById('sheet-copy');
+                  const sheetThread = document.getElementById('sheet-thread');
+                  const sheetStatus = document.getElementById('sheet-status');
+                  const sheetCoupling = document.getElementById('sheet-coupling');
+                  const bandLayouts = new Map();
+                  const CARD_STEP_X = 190;
+                  const CARD_STEP_Y = 228;
+                  const MAX_DISTANCE = 2;
+                  let activeTab = null;
+                  let currentBandIndex = 0;
+                  let activeNodeId = specimen.bands[0].nodes[0].id;
+                  let gesture = null;
+                  let sheetGesture = null;
+                  let isAnimating = false;
+                  let previewExpanded = false;
+                  let sheetClickSuppressed = false;
+
+                  function setTab(tab) {{
+                    if (activeTab) activeTab.classList.remove('is-active');
+                    activeTab = tab;
+                    if (activeTab) activeTab.classList.add('is-active');
+                    activeTab?.scrollIntoView({{ behavior: 'smooth', inline: 'center', block: 'nearest' }});
+                  }}
+
+                  function setActive(node) {{
+                    sheet.classList.add('is-transitioning');
+                    window.setTimeout(() => {{
+                      sheetTitle.textContent = node.title;
+                      sheetCopy.textContent = node.summary;
+                      sheetThread.textContent = node.thread;
+                      sheetStatus.textContent = node.status;
+                      sheetCoupling.textContent = node.coupling;
+                      sheet.classList.remove('is-transitioning');
+                    }}, 130);
+                  }}
+
+                  function setPreviewExpanded(expanded) {{
+                    previewExpanded = expanded;
+                    sheet.classList.toggle('is-expanded', expanded);
+                  }}
+
+                  function activeBand() {{
+                    return specimen.bands[currentBandIndex];
+                  }}
+
+                  function buildLayout(band) {{
+                    const cols = Math.max(2, Math.ceil(Math.sqrt(band.nodes.length)));
+                    return band.nodes.map((node, index) => ({{
+                      ...node,
+                      x: index % cols,
+                      y: Math.floor(index / cols),
+                    }}));
+                  }}
+
+                  function bandLayout(band) {{
+                    if (!bandLayouts.has(band.id)) {{
+                      bandLayouts.set(band.id, buildLayout(band));
+                    }}
+                    return bandLayouts.get(band.id);
+                  }}
+
+                  function activeLayout() {{
+                    return bandLayout(activeBand());
+                  }}
+
+                  function activeNode() {{
+                    return activeLayout().find((node) => node.id === activeNodeId) || activeLayout()[0];
+                  }}
+
+                  function classifyNode(dx, dy) {{
+                    const distance = Math.abs(dx) + Math.abs(dy);
+                    if (distance === 0) return 'is-active';
+                    if (distance <= 1) return 'is-near';
+                    if (distance <= MAX_DISTANCE) return 'is-far';
+                    return 'is-hidden';
+                  }}
+
+                  function renderBand(index) {{
+                    currentBandIndex = index;
+                    const firstNode = activeLayout()[0];
+                    activeNodeId = firstNode.id;
+                    renderGrid();
+                    setActive(firstNode);
+                  }}
+
+                  function renderGrid() {{
+                    const layout = activeLayout();
+                    const centerNode = activeNode();
+                    cardField.innerHTML = '';
+                    layout.forEach((node) => {{
+                      const dx = node.x - centerNode.x;
+                      const dy = node.y - centerNode.y;
+                      const stateClass = classifyNode(dx, dy);
+                      const button = document.createElement('button');
+                      const rotation = Math.max(-6, Math.min(6, dx * 2.25));
+                      const scale = stateClass === 'is-active' ? 1 : stateClass === 'is-near' ? 0.92 : 0.84;
+                      const opacity = stateClass === 'is-active' ? 1 : stateClass === 'is-near' ? 0.56 : stateClass === 'is-far' ? 0.18 : 0;
+                      button.type = 'button';
+                      button.className = 'node-card ' + stateClass;
+                      button.style.transform =
+                        `translate3d(calc(-50% + ${{dx * CARD_STEP_X}}px), calc(-50% + ${{dy * CARD_STEP_Y}}px), 0) scale(${{scale}}) rotate(${{rotation}}deg)`;
+                      button.style.opacity = opacity;
+                      button.innerHTML = `
+                        <div class="card-meta">
+                          <span>${{node.id}}</span>
+                          <span class="card-kind">${{node.kind}}</span>
+                        </div>
+                        <h3 class="card-title">${{node.title}}</h3>
+                        <div class="card-body">
+                          <p class="card-copy">${{node.summary}}</p>
+                          <div class="card-strip">
+                            <div class="strip-item">
+                              <p class="tray-label">Folder</p>
+                              <p>${{activeBand().title}}</p>
+                            </div>
+                            <div class="strip-item">
+                              <p class="tray-label">Thread</p>
+                              <p>${{node.thread}}</p>
+                            </div>
+                            <div class="strip-item">
+                              <p class="tray-label">Coupling</p>
+                              <p>${{node.coupling}}</p>
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                      button.addEventListener('click', () => {{
+                        if (node.id === activeNodeId || stateClass === 'is-hidden') {{
+                          return;
+                        }}
+                        activeNodeId = node.id;
+                        renderGrid();
+                        setActive(node);
+                      }});
+                      cardField.appendChild(button);
+                    }});
+                  }}
+
+                  function findNodeAt(x, y) {{
+                    return activeLayout().find((node) => node.x === x && node.y === y);
+                  }}
+
+                  function bounce(axis, distance) {{
+                    const frames = axis === 'x'
+                      ? [{{ transform: 'translateX(0px)' }}, {{ transform: `translateX(${{distance}}px)` }}, {{ transform: 'translateX(0px)' }}]
+                      : [{{ transform: 'translateY(0px)' }}, {{ transform: `translateY(${{distance}}px)` }}, {{ transform: 'translateY(0px)' }}];
+                    viewport.animate(frames, {{ duration: 240, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }});
+                  }}
+
+                  function nudge(direction) {{
+                    if (isAnimating) {{
+                      return;
+                    }}
+                    const current = activeNode();
+                    const delta =
+                      direction === 'left' ? [-1, 0] :
+                      direction === 'right' ? [1, 0] :
+                      direction === 'up' ? [0, -1] :
+                      [0, 1];
+                    const next = findNodeAt(current.x + delta[0], current.y + delta[1]);
+                    if (!next) {{
+                      if (direction === 'left') bounce('x', 9);
+                      if (direction === 'right') bounce('x', -9);
+                      if (direction === 'up') bounce('y', 9);
+                      if (direction === 'down') bounce('y', -9);
+                      return;
+                    }}
+                    isAnimating = true;
+                    activeNodeId = next.id;
+                    renderGrid();
+                    setActive(next);
+                    window.setTimeout(() => {{
+                      isAnimating = false;
+                    }}, 320);
+                  }}
+
+                  function bindGestures() {{
+                    viewport.addEventListener('pointerdown', (event) => {{
+                      if (previewExpanded) {{
+                        return;
+                      }}
+                      gesture = {{
+                        id: event.pointerId,
+                        x: event.clientX,
+                        y: event.clientY,
+                        time: performance.now(),
+                      }};
+                      viewport.setPointerCapture(event.pointerId);
+                    }});
+
+                    viewport.addEventListener('pointerup', (event) => {{
+                      if (!gesture || gesture.id !== event.pointerId) {{
+                        return;
+                      }}
+                      const dx = event.clientX - gesture.x;
+                      const dy = event.clientY - gesture.y;
+                      const elapsed = Math.max(1, performance.now() - gesture.time);
+                      gesture = null;
+                      const absX = Math.abs(dx);
+                      const absY = Math.abs(dy);
+                      const velocity = Math.max(absX, absY) / elapsed;
+                      if (Math.max(absX, absY) < 28 && velocity < 0.2) {{
+                        return;
+                      }}
+                      if (absX > absY) {{
+                        nudge(dx < 0 ? 'right' : 'left');
+                      }} else {{
+                        nudge(dy < 0 ? 'down' : 'up');
+                      }}
+                    }});
+
+                    viewport.addEventListener('pointercancel', () => {{
+                      gesture = null;
+                    }});
+
+                    sheet.addEventListener('click', () => {{
+                      if (sheetClickSuppressed) {{
+                        sheetClickSuppressed = false;
+                        return;
+                      }}
+                      setPreviewExpanded(!previewExpanded);
+                    }});
+
+                    sheet.addEventListener('pointerdown', (event) => {{
+                      if (!previewExpanded) {{
+                        return;
+                      }}
+                      sheetGesture = {{
+                        id: event.pointerId,
+                        x: event.clientX,
+                        y: event.clientY,
+                      }};
+                      sheet.setPointerCapture(event.pointerId);
+                    }});
+
+                    sheet.addEventListener('pointerup', (event) => {{
+                      if (!previewExpanded || !sheetGesture || sheetGesture.id !== event.pointerId) {{
+                        return;
+                      }}
+                      const dx = event.clientX - sheetGesture.x;
+                      const dy = event.clientY - sheetGesture.y;
+                      sheetGesture = null;
+                      if (Math.abs(dx) < 18 && Math.abs(dy) < 18) {{
+                        sheetClickSuppressed = true;
+                        setPreviewExpanded(false);
+                        return;
+                      }}
+                      if (Math.abs(dy) > Math.abs(dx) && dy > 48) {{
+                        sheetClickSuppressed = true;
+                        setPreviewExpanded(false);
+                      }}
+                    }});
+
+                    sheet.addEventListener('pointercancel', () => {{
+                      sheetGesture = null;
+                    }});
+
+                    window.addEventListener('keydown', (event) => {{
+                      if (event.key === 'Escape' && previewExpanded) {{
+                        setPreviewExpanded(false);
+                      }}
+                      if (event.key === 'ArrowLeft') nudge('left');
+                      if (event.key === 'ArrowRight') nudge('right');
+                      if (event.key === 'ArrowUp') nudge('up');
+                      if (event.key === 'ArrowDown') nudge('down');
+                    }});
+                  }}
+
+                  if (false && tabRail) {{
+                    specimen.bands.forEach((band, bandIndex) => {{
+                      const tab = document.createElement('button');
+                      tab.type = 'button';
+                      tab.className = 'deck-tab';
+                      tab.innerHTML = `
+                        <p class="tab-range">${{band.range}}</p>
+                        <p class="tab-title">${{band.title}}</p>
+                        <p class="tab-summary">${{band.summary}}</p>
+                      `;
+                      tab.addEventListener('click', () => {{
+                        setTab(tab);
+                        renderBand(bandIndex);
+                      }});
+                      tabRail.appendChild(tab);
+                      if (bandIndex === 0) {{
+                        setTab(tab);
+                      }}
+                    }});
+                  }}
+
+                  renderBand(0);
+                  bindGestures();
+                </script>
+              </body>
+            </html>
+            """
+        ).strip()
+        + "\n"
+    )
+
+
+def _conversation_atlas_mockup_html() -> str:
+    payload = json.dumps(_conversation_atlas_specimen())
+    return (
+        dedent(
+            f"""
+            <!doctype html>
+            <html lang="en">
+              <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+                <title>Conversation Atlas</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+                <link
+                  href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garamond:wght@500;600;700&display=swap"
+                  rel="stylesheet"
+                />
+                <style>
+                  :root {{
+                    --paper: #f8f5ee;
+                    --ink: #1b1815;
+                    --ink-soft: #60574d;
+                    --ink-faint: #8d8478;
+                    --line: rgba(33, 28, 24, 0.24);
+                    --line-soft: rgba(33, 28, 24, 0.14);
+                    --accent: #111111;
+                  }}
+
+                  * {{ box-sizing: border-box; }}
+                  html, body {{
+                    margin: 0;
+                    min-height: 100%;
+                    background: var(--paper);
+                    color: var(--ink);
+                    font-family: "IBM Plex Mono", monospace;
+                  }}
+                  body {{
+                    -webkit-font-smoothing: antialiased;
+                  }}
+                  button {{ font: inherit; color: inherit; }}
+                  button {{ cursor: pointer; }}
+                  .atlas-shell {{
+                    width: min(100%, 1600px);
+                    margin: 0 auto;
+                    padding: 0;
+                  }}
+                  .atlas-frame {{
+                    min-height: 100vh;
+                    background: var(--paper);
+                  }}
+                  .atlas-index {{
+                    position: sticky;
+                    top: 0;
+                    z-index: 2;
+                    display: grid;
+                    grid-template-columns: 74px 300px 1fr 290px;
+                    gap: 18px;
+                    padding: 10px 18px 8px;
+                    border-bottom: 1px solid var(--line-soft);
+                    background: rgba(248, 245, 238, 0.96);
+                    backdrop-filter: blur(10px);
+                  }}
+                  .index-note,
+                  .band-range,
+                  .band-page,
+                  .node-meta,
+                  .system-label {{
+                    margin: 0;
+                    color: var(--ink-faint);
+                    font-size: 0.72rem;
+                    letter-spacing: 0.08em;
+                  }}
+                  .band {{
+                    position: relative;
+                    display: grid;
+                    grid-template-columns: 74px 300px minmax(0, 1fr) 290px;
+                    gap: 18px;
+                    align-items: start;
+                    min-height: 224px;
+                    padding: 14px 18px 26px;
+                    border-top: 1px solid var(--line);
+                  }}
+                  .band:first-child {{
+                    border-top: 0;
+                  }}
+                  .band-summary {{
+                    padding-top: 24px;
+                  }}
+                  .band-title {{
+                    margin: 12px 0 0;
+                    font-family: "Cormorant Garamond", serif;
+                    font-size: clamp(2rem, 2.6vw, 3.25rem);
+                    line-height: 0.88;
+                    letter-spacing: -0.03em;
+                    max-width: 260px;
+                  }}
+                  .band-copy {{
+                    margin: 14px 0 0;
+                    color: var(--ink-soft);
+                    line-height: 1.5;
+                    font-size: 0.82rem;
+                    max-width: 248px;
+                  }}
+                  .band-graph {{
+                    position: relative;
+                    min-height: 180px;
+                    padding-top: 14px;
+                  }}
+                  .band-graph::before {{
+                    content: "";
+                    position: absolute;
+                    left: -18px;
+                    top: 26px;
+                    width: 18px;
+                    height: 1px;
+                    background: var(--line);
+                  }}
+                  .branch-list {{
+                    position: relative;
+                    display: grid;
+                    gap: 8px;
+                    padding-left: 18px;
+                    padding-top: 4px;
+                  }}
+                  .branch-list::before {{
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    top: 16px;
+                    bottom: 20px;
+                    width: 1px;
+                    background: var(--line);
+                  }}
+                  .node {{
+                    position: relative;
+                    width: min(100%, 520px);
+                    padding: 2px 6px 2px 8px;
+                    border: 0;
+                    background: transparent;
+                    text-align: left;
+                    transition: transform 140ms ease, opacity 140ms ease;
+                  }}
+                  .node::before {{
+                    content: "";
+                    position: absolute;
+                    left: -18px;
+                    top: 12px;
+                    width: 18px;
+                    height: 1px;
+                    background: var(--line);
+                  }}
+                  .node:hover,
+                  .node.is-active {{
+                    transform: translateX(3px);
+                  }}
+                  .node-role {{
+                    display: none;
+                  }}
+                  .node-title {{
+                    display: inline;
+                    margin: 0;
+                    font-family: "IBM Plex Mono", monospace;
+                    font-size: 0.82rem;
+                    line-height: 1.2;
+                    letter-spacing: 0;
+                    font-weight: 500;
+                  }}
+                  .node-copy {{
+                    display: none;
+                  }}
+                  .node-tail {{
+                    margin-top: 2px;
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                  }}
+                  .node-thread,
+                  .node-coupling {{
+                    color: var(--ink-faint);
+                    font-size: 0.66rem;
+                    line-height: 1.4;
+                  }}
+                  .system-panel {{
+                    padding-top: 18px;
+                    display: grid;
+                    gap: 12px;
+                  }}
+                  .system-title {{
+                    margin: 0;
+                    font-family: "IBM Plex Mono", monospace;
+                    font-size: 0.82rem;
+                    line-height: 1.2;
+                    font-weight: 500;
+                  }}
+                  .system-copy {{
+                    margin: 6px 0 0;
+                    color: var(--ink-soft);
+                    line-height: 1.45;
+                    font-size: 0.76rem;
+                  }}
+                  .system-grid {{
+                    display: grid;
+                    gap: 10px;
+                  }}
+                  .system-item {{
+                    padding-top: 8px;
+                    border-top: 1px solid var(--line-soft);
+                  }}
+                  .system-item p:last-child {{
+                    margin: 4px 0 0;
+                    color: var(--ink);
+                    line-height: 1.4;
+                    font-size: 0.74rem;
+                  }}
+                  .translation-list {{
+                    margin: 6px 0 0;
+                    padding-left: 16px;
+                    color: var(--ink-soft);
+                    line-height: 1.45;
+                    font-size: 0.74rem;
+                  }}
+                  .translation-list li + li {{
+                    margin-top: 6px;
+                  }}
+                  .system-footer {{
+                    padding-top: 10px;
+                    border-top: 1px solid var(--line-soft);
+                    color: var(--ink-faint);
+                    font-size: 0.7rem;
+                    line-height: 1.45;
+                  }}
+                  @media (max-width: 1180px) {{
+                    .atlas-index,
+                    .band {{
+                      grid-template-columns: 60px 240px minmax(0, 1fr);
+                    }}
+                    .system-panel {{
+                      display: none;
+                    }}
+                  }}
+                  @media (max-width: 840px) {{
+                    .atlas-index {{
+                      display: none;
+                    }}
+                    .band {{
+                      grid-template-columns: 50px 1fr;
+                      gap: 12px;
+                      min-height: 0;
+                      padding: 18px 14px 22px;
+                    }}
+                    .band-summary {{
+                      grid-column: 2;
+                    }}
+                    .band-graph {{
+                      grid-column: 2;
+                    }}
+                    .band-graph::before {{
+                      left: -12px;
+                      width: 12px;
+                    }}
+                    .band-title {{
+                      font-size: 1.8rem;
+                    }}
+                    .branch-list {{
+                      padding-left: 12px;
+                    }}
+                    .node::before {{
+                      left: -12px;
+                      width: 12px;
+                    }}
+                  }}
+                </style>
+              </head>
+              <body>
+                <main class="atlas-shell">
+                  <section class="atlas-frame">
+                    <section class="atlas-index" aria-hidden="true">
+                      <p class="index-note">Axis</p>
+                      <p class="index-note">Conversation orders</p>
+                      <p class="index-note">Branch structures</p>
+                      <p class="index-note">System</p>
+                    </section>
+
+                    <section id="tree-plane" class="tree-plane" aria-live="polite"></section>
+                  </section>
+                </main>
+
+                <script>
+                  const specimen = {payload};
+                  const treePlane = document.getElementById('tree-plane');
+                  let activeNodeButton = null;
+
+                  function setSystem(node, button) {{
+                    if (activeNodeButton) activeNodeButton.classList.remove('is-active');
+                    activeNodeButton = button;
+                    if (activeNodeButton) activeNodeButton.classList.add('is-active');
+                  }}
+
+                  specimen.bands.forEach((band, bandIndex) => {{
+                    const section = document.createElement('section');
+                    section.className = 'band';
+                    section.innerHTML = `
+                      <div class="band-axis">
+                        <p class="band-page">${{band.range}}</p>
+                      </div>
+                      <div class="band-summary">
+                        <div>
+                          <p class="band-range">${{band.range}}</p>
+                          <h2 class="band-title">${{band.title}}</h2>
+                          <p class="band-copy">${{band.summary}}</p>
+                        </div>
+                      </div>
+                      <div class="band-graph">
+                        <div class="branch-list" aria-label="${{band.title}} branch list"></div>
+                      </div>
+                      <aside class="system-panel">
+                        <div>
+                          <p class="system-label">Active branch</p>
+                          <h3 class="system-title">${{band.nodes[0]?.title || ""}}</h3>
+                          <p class="system-copy">${{band.nodes[0]?.summary || ""}}</p>
+                        </div>
+                        <div class="system-grid">
+                          <div class="system-item">
+                            <p class="system-label">Thread</p>
+                            <p>${{band.nodes[0]?.thread || ""}}</p>
+                          </div>
+                          <div class="system-item">
+                            <p class="system-label">Status</p>
+                            <p>${{band.nodes[0]?.status || ""}}</p>
+                          </div>
+                          <div class="system-item">
+                            <p class="system-label">Coupling</p>
+                            <p>${{band.nodes[0]?.coupling || ""}}</p>
+                          </div>
+                        </div>
+                      </aside>
+                    `;
+                    const branchList = section.querySelector('.branch-list');
+                    const bandSystemTitle = section.querySelector('.system-title');
+                    const bandSystemCopy = section.querySelector('.system-copy');
+                    const bandSystemThread = section.querySelectorAll('.system-item p:last-child')[0];
+                    const bandSystemStatus = section.querySelectorAll('.system-item p:last-child')[1];
+                    const bandSystemCoupling = section.querySelectorAll('.system-item p:last-child')[2];
+
+                    band.nodes.forEach((node, nodeIndex) => {{
+                      const button = document.createElement('button');
+                      button.type = 'button';
+                      button.className = 'node';
+                      button.innerHTML = `
+                        <p class="node-meta">${{node.id}} / ${{node.kind}}</p>
+                        <span class="node-role">${{node.role}}</span>
+                        <h3 class="node-title">${{node.title}}</h3>
+                        <div class="node-tail">
+                          <span class="node-thread">${{node.thread}}</span>
+                        </div>
+                      `;
+                      button.addEventListener('click', () => {{
+                        setSystem(node, button);
+                        bandSystemTitle.textContent = node.title;
+                        bandSystemCopy.textContent = node.summary;
+                        bandSystemThread.textContent = node.thread;
+                        bandSystemStatus.textContent = node.status;
+                        bandSystemCoupling.textContent = node.coupling;
+                      }});
+                      branchList.appendChild(button);
+
+                      if (bandIndex === 0 && nodeIndex === 0) {{
+                        setSystem(node, button);
+                      }}
+                    }});
+
+                    treePlane.appendChild(section);
+                  }});
+                </script>
+              </body>
+            </html>
+            """
+        ).strip()
+        + "\n"
+    )
 
 
 def build_miniapp_ui_enhancement_assets() -> dict[str, str]:
@@ -699,12 +2964,38 @@ def make_miniapp_handler(
     api_prefixes: List[str],
 ):
     class InnerWorldMiniappHandler(BaseHTTPRequestHandler):
-        def _send_json(self, payload: dict, status: int = HTTPStatus.OK) -> None:
+        def _send_security_headers(self) -> None:
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+            self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+            self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+            self.send_header("Strict-Transport-Security", "max-age=31536000")
+            if self._is_capture_root_request():
+                self.send_header(
+                    "Content-Security-Policy",
+                    "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; "
+                    "form-action 'self'; object-src 'none'; script-src 'self'; "
+                    "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+                    "font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'",
+                )
+
+        def _send_json(
+            self,
+            payload: dict,
+            status: int = HTTPStatus.OK,
+            headers: dict[str, str] | None = None,
+        ) -> None:
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Cache-Control", "no-store, max-age=0")
             self.send_header("Pragma", "no-cache")
+            self._send_security_headers()
+            if headers:
+                for header_name, header_value in headers.items():
+                    self.send_header(header_name, header_value)
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -715,6 +3006,7 @@ def make_miniapp_handler(
             self.send_header("Content-Type", f"{content_type}; charset=utf-8")
             self.send_header("Cache-Control", "no-store, max-age=0")
             self.send_header("Pragma", "no-cache")
+            self._send_security_headers()
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -726,12 +3018,111 @@ def make_miniapp_handler(
             self.send_header("Content-Type", f"{mime_type or 'application/octet-stream'}; charset=utf-8")
             self.send_header("Cache-Control", "no-store, max-age=0")
             self.send_header("Pragma", "no-cache")
+            self._send_security_headers()
             self.send_header("Content-Length", str(len(content)))
             self.end_headers()
             self.wfile.write(content)
 
         def _not_found(self) -> None:
             self._send_json({"error": "not_found"}, status=HTTPStatus.NOT_FOUND)
+
+        def _mobile_session_cookie_value(self) -> str | None:
+            cookie_header = self.headers.get("Cookie")
+            if not cookie_header:
+                return None
+            cookies = SimpleCookie()
+            try:
+                cookies.load(cookie_header)
+            except Exception:
+                return None
+            morsel = cookies.get(_MOBILE_SESSION_COOKIE_NAME)
+            return morsel.value if morsel else None
+
+        def _mobile_session_authenticated(self) -> bool:
+            password = os.environ.get("INNER_WORLD_MOBILE_PASSWORD")
+            if not password or self._is_capture_root_request():
+                return True
+            return _verify_mobile_session(self._mobile_session_cookie_value(), password)
+
+        def _capture_basic_authenticated(self, expected_password: str) -> bool:
+            authorization = (self.headers.get("Authorization") or "").strip()
+            scheme, separator, encoded = authorization.partition(" ")
+            if not separator or scheme.lower() != "basic" or not encoded:
+                return False
+            try:
+                decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
+            except (binascii.Error, UnicodeDecodeError, ValueError):
+                return False
+            username, separator, supplied_password = decoded.partition(":")
+            if not separator:
+                return False
+            return hmac.compare_digest(username, _configured_capture_username()) and hmac.compare_digest(
+                supplied_password,
+                expected_password,
+            )
+
+        def _require_capture_auth(self) -> bool:
+            if not self._is_capture_root_request():
+                return True
+            expected_password = os.environ.get("INNER_WORLD_CAPTURE_PASSWORD") or ""
+            if not expected_password:
+                self._send_json(
+                    {"error": "capture_auth_not_configured"},
+                    status=HTTPStatus.SERVICE_UNAVAILABLE,
+                )
+                return False
+            if self._capture_basic_authenticated(expected_password):
+                return True
+            self._send_json(
+                {"error": "auth_required"},
+                status=HTTPStatus.UNAUTHORIZED,
+                headers={"WWW-Authenticate": 'Basic realm="Thought Capture", charset="UTF-8"'},
+            )
+            return False
+
+        def _require_mobile_session(self) -> bool:
+            if self._mobile_session_authenticated():
+                return True
+            self._send_json({"error": "auth_required"}, status=HTTPStatus.UNAUTHORIZED)
+            return False
+
+        def _is_mobile_root_request(self) -> bool:
+            configured_host = _configured_mobile_hostname()
+            if not configured_host:
+                return False
+            return _normalize_host_header(self.headers.get("Host")) == configured_host
+
+        def _is_capture_root_request(self) -> bool:
+            configured_host = _configured_capture_hostname()
+            if not configured_host:
+                return False
+            return _normalize_host_header(self.headers.get("Host")) == configured_host
+
+        def _serve_static_dir_asset(self, base_dir: Path, relative: str) -> bool:
+            candidate = _resolve_static_asset(base_dir, relative)
+            if candidate is None:
+                return False
+            if candidate.suffix == ".html":
+                self._send_text(candidate.read_text(encoding="utf-8"), "text/html")
+            else:
+                self._send_file(candidate)
+            return True
+
+        def _serve_mobile_surface_asset(self, relative: str) -> bool:
+            return self._serve_static_dir_asset(_mobile_surface_dir(root), relative)
+
+        def _serve_mobile_surface_request(self, path: str) -> bool:
+            relative = path.strip("/") or "index.html"
+            return self._serve_mobile_surface_asset(relative)
+
+        def _serve_thought_capture_pwa_request(self, path: str) -> bool:
+            base_dir = _thought_capture_pwa_dir(root)
+            relative = path.strip("/") or "index.html"
+            if self._serve_static_dir_asset(base_dir, relative):
+                return True
+            if "." not in Path(relative).name:
+                return self._serve_static_dir_asset(base_dir, "index.html")
+            return False
 
         def log_message(self, format: str, *args) -> None:  # noqa: A003
             return
@@ -740,6 +3131,51 @@ def make_miniapp_handler(
             parsed = urlparse(self.path)
             path = parsed.path
             api_path = _canonical_api_path(path, api_prefixes)
+
+            if not self._require_capture_auth():
+                return
+
+            if self._is_capture_root_request() and path == "/meta":
+                self._send_text(
+                    _self_improvement_console_html(
+                        api_base="/api",
+                        capture_href="/capture",
+                        meta_href="/meta",
+                    ),
+                    "text/html",
+                )
+                return
+
+            if api_path == "/self-improvement/console":
+                self._send_text(
+                    _self_improvement_console_html(
+                        api_base="/api",
+                        capture_href="/capture" if self._is_capture_root_request() else "",
+                        meta_href="/meta" if self._is_capture_root_request() else "",
+                    ),
+                    "text/html",
+                )
+                return
+
+            if self._is_capture_root_request() and not api_path:
+                if self._serve_thought_capture_pwa_request(path):
+                    return
+
+            if self._is_mobile_root_request() and not api_path:
+                if self._serve_mobile_surface_request(path):
+                    return
+
+            if (path == "/mobile" or path.startswith("/mobile/")) and not self._require_mobile_session():
+                return
+
+            if api_path and api_path.startswith("/mobile/") and api_path not in {
+                "/mobile/session",
+                "/mobile/session/logout",
+                "/mobile/capture/session",
+            }:
+                if not self._require_mobile_session():
+                    return
+
             if api_path == "/archive":
                 archive = build_thought_archive(root, domain_overlays=domain_overlays)
                 self._send_json(archive)
@@ -963,6 +3399,17 @@ def make_miniapp_handler(
                     return
                 self._send_json(state)
                 return
+            if api_path == "/mobile/feed":
+                feed = build_mobile_feed(root, limit=limit, domain_overlays=domain_overlays)
+                self._send_json(feed)
+                return
+            if path == "/self-improvement":
+                self._send_text(_self_improvement_console_html(api_base="/api"), "text/html")
+                return
+            if api_path == "/mobile/library":
+                library = build_mobile_library(root)
+                self._send_json(library)
+                return
             if api_path and api_path.startswith("/source/"):
                 source_item_id = api_path.removeprefix("/source/").strip("/")
                 try:
@@ -991,6 +3438,32 @@ def make_miniapp_handler(
                 self._send_json(detail)
                 return
 
+            if path == "/manifest.webmanifest":
+                mobile_manifest = _mobile_surface_dir(root) / "manifest.webmanifest"
+                if self._mobile_session_authenticated() and mobile_manifest.exists():
+                    self._send_file(mobile_manifest)
+                    return
+
+            if path == "/mobile" or path.startswith("/mobile/"):
+                mobile_assets_dir = _mobile_surface_dir(root)
+                relative = path.removeprefix("/mobile").lstrip("/") or "index.html"
+                candidate = mobile_assets_dir / relative
+                if candidate.exists() and candidate.is_file():
+                    if candidate.suffix == ".html":
+                        self._send_text(candidate.read_text(encoding="utf-8"), "text/html")
+                    else:
+                        self._send_file(candidate)
+                    return
+                self._not_found()
+                return
+
+            if path in {_CONVERSATION_ATLAS_ROUTE, _CONVERSATION_ATLAS_ROUTE.removesuffix(".html")}:
+                self._send_text(_conversation_atlas_mockup_html(), "text/html")
+                return
+            if path in {_CONVERSATION_ATLAS_MOBILE_ROUTE, _CONVERSATION_ATLAS_MOBILE_ROUTE.removesuffix(".html")}:
+                self._send_text(_conversation_atlas_mobile_mockup_html(), "text/html")
+                return
+
             relative = path.strip("/") or "index.html"
             enhancement_assets = build_miniapp_ui_enhancement_assets()
             if relative in enhancement_assets:
@@ -1013,10 +3486,235 @@ def make_miniapp_handler(
             parsed = urlparse(self.path)
             path = parsed.path
             api_path = _canonical_api_path(path, api_prefixes)
+
+            if not self._require_capture_auth():
+                return
+
+            if api_path and api_path.startswith("/mobile/") and api_path not in {
+                "/mobile/session",
+                "/mobile/session/logout",
+                "/mobile/capture/session",
+            }:
+                if not self._require_mobile_session():
+                    return
+
+            if api_path == "/mobile/session/logout":
+                self._send_json(
+                    {"authenticated": False},
+                    headers={
+                        "Set-Cookie": (
+                            f"{_MOBILE_SESSION_COOKIE_NAME}=; Path=/; Max-Age=0; "
+                            "HttpOnly; SameSite=Lax"
+                        )
+                    },
+                )
+                return
+
+            if api_path == "/mobile/session":
+                try:
+                    payload = _read_json_body(self)
+                except json.JSONDecodeError:
+                    self._send_json({"error": "invalid_json"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                password = (payload.get("password") or "").strip()
+                expected_password = os.environ.get("INNER_WORLD_MOBILE_PASSWORD") or ""
+                if not expected_password or password != expected_password:
+                    self._send_json({"error": "invalid_password"}, status=HTTPStatus.UNAUTHORIZED)
+                    return
+                self._send_json(
+                    {"authenticated": True},
+                    headers={
+                        "Set-Cookie": (
+                            f"{_MOBILE_SESSION_COOKIE_NAME}={_sign_mobile_session(expected_password)}; "
+                            "Path=/; HttpOnly; SameSite=Lax"
+                        )
+                    },
+                )
+                return
+
             try:
                 payload = _read_json_body(self)
             except json.JSONDecodeError:
                 self._send_json({"error": "invalid_json"}, status=HTTPStatus.BAD_REQUEST)
+                return
+
+            if api_path == "/mobile/capture/session":
+                session_id = (payload.get("session_id") or "").strip() or None
+                manifest = ensure_mobile_capture_session(root, session_id=session_id)
+                self._send_json({"session_id": manifest["session_id"]})
+                return
+
+            if api_path == "/self-improvement/interpret":
+                raw_text = str(payload.get("text") or "").strip()
+                if not raw_text:
+                    self._send_json({"error": "text_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                interpretation = interpret_self_improvement_turn(
+                    raw_text,
+                    requested_mode=str(payload.get("surface_mode") or ""),
+                    requested_meta_state=str(payload.get("meta_state") or ""),
+                )
+                self._send_json(interpretation)
+                return
+
+            if api_path == "/self-improvement/chat":
+                raw_text = str(payload.get("text") or "").strip()
+                session_id = str(payload.get("session_id") or "").strip()
+                turn_id = str(payload.get("turn_id") or "").strip()
+                if not raw_text:
+                    self._send_json({"error": "text_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                response = build_self_improvement_chat_response(
+                    raw_text,
+                    requested_mode=str(payload.get("surface_mode") or ""),
+                    requested_meta_state=str(payload.get("meta_state") or ""),
+                    builder_state=payload.get("builder_state"),
+                    workspace_context=payload.get("workspace_context"),
+                )
+                if response["interpretation"]["should_create_packet"]:
+                    if not session_id or not turn_id:
+                        self._send_json(
+                            {"error": "session_id_and_turn_id_required_for_operate_mode"},
+                            status=HTTPStatus.BAD_REQUEST,
+                        )
+                        return
+                    packet_input = str(payload.get("packet_input") or "").strip() or compose_builder_packet_input(
+                        raw_text,
+                        response.get("builder_state", {}) or {},
+                        response.get("builder_scope", {}) or {},
+                    )
+                    response["packet"] = draft_self_improvement_packet(
+                        packet_input,
+                        session_id,
+                        turn_id,
+                        use_agent=bool(payload.get("use_agent", False)),
+                    )
+                self._send_json(response)
+                return
+
+            if api_path == "/self-improvement/packet":
+                raw_text = str(payload.get("text") or "").strip()
+                session_id = str(payload.get("session_id") or "").strip()
+                turn_id = str(payload.get("turn_id") or "").strip()
+                if not raw_text or not session_id or not turn_id:
+                    self._send_json(
+                        {"error": "text_session_id_and_turn_id_required"},
+                        status=HTTPStatus.BAD_REQUEST,
+                    )
+                    return
+                packet = draft_self_improvement_packet(
+                    raw_text,
+                    session_id,
+                    turn_id,
+                    use_agent=bool(payload.get("use_agent", False)),
+                )
+                self._send_json(packet)
+                return
+
+            if api_path == "/self-improvement/release/candidate":
+                release_id = str(payload.get("release_id") or "").strip() or None
+                manifest = build_release_manifest(root, release_id=release_id)
+                self._send_json(manifest)
+                return
+
+            if api_path == "/self-improvement/release/rollback-plan":
+                current_release_id = str(payload.get("current_release_id") or "").strip()
+                previous_release_id = str(payload.get("previous_release_id") or "").strip()
+                if not current_release_id or not previous_release_id:
+                    self._send_json(
+                        {"error": "current_release_id_and_previous_release_id_required"},
+                        status=HTTPStatus.BAD_REQUEST,
+                    )
+                    return
+                plan = build_rollback_plan(current_release_id, previous_release_id)
+                self._send_json(plan)
+                return
+
+            if api_path == "/mobile/capture":
+                try:
+                    result = append_mobile_capture(
+                        root,
+                        content=payload.get("content", ""),
+                        session_id=payload.get("session_id")
+                        or (payload.get("provenance") or {}).get("session_id"),
+                        provenance=payload.get("provenance") or None,
+                    )
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                self._send_json(result)
+                return
+
+            if api_path == "/mobile/compose":
+                deposit = dict(payload.get("deposit") or {})
+                deposit_body = str(deposit.get("body", "") or payload.get("content", "")).strip()
+                local_deposit_id = str(deposit.get("local_deposit_id", "") or "").strip()
+                session_id = str(payload.get("session_id") or "").strip()
+                intent = str(payload.get("intent", "nudge") or "nudge").strip().lower()
+                composition_phase = str(payload.get("composition_phase", "") or "").strip().lower()
+                if not deposit_body:
+                    self._send_json({"error": "deposit_body_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                if not local_deposit_id:
+                    self._send_json({"error": "local_deposit_id_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                if not session_id:
+                    self._send_json({"error": "session_id_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                if intent not in {"nudge", "shape"}:
+                    self._send_json({"error": "invalid_intent"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                if composition_phase and composition_phase not in {"capture", "develop"}:
+                    self._send_json({"error": "invalid_composition_phase"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                try:
+                    result = compose_mobile_capture_insertion(
+                        root,
+                        deposit_body=deposit_body,
+                        local_deposit_id=local_deposit_id,
+                        session_id=session_id,
+                        provenance=payload.get("provenance") or None,
+                        capture_mode_state=payload.get("capture_mode_state") or None,
+                        intent=intent,  # type: ignore[arg-type]
+                        composition_phase=composition_phase or None,  # type: ignore[arg-type]
+                    )
+                except FileNotFoundError:
+                    self._not_found()
+                    return
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                self._send_json(result)
+                return
+
+            if api_path and api_path.startswith("/mobile/conversations/") and api_path.endswith("/reply"):
+                session_id = api_path[len("/mobile/conversations/") : -len("/reply")].strip("/")
+                try:
+                    result = reply_in_mobile_session(
+                        root,
+                        session_id=session_id,
+                        user_message=payload.get("message", ""),
+                    )
+                except FileNotFoundError:
+                    self._not_found()
+                    return
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                self._send_json(result)
+                return
+
+            if api_path == "/mobile/feedback":
+                insight_id = payload.get("insight_id")
+                feedback_state = payload.get("feedback_state")
+                if not insight_id or not feedback_state:
+                    self._send_json({"error": "insight_id_and_feedback_state_required"}, status=HTTPStatus.BAD_REQUEST)
+                    return
+                if feedback_state == "saved":
+                    result = save_mobile_feed_item(root, insight_id=insight_id)
+                else:
+                    result = record_feedback(root, insight_id, feedback_state)
+                self._send_json(result)
                 return
 
             if api_path == "/world-studio/world":

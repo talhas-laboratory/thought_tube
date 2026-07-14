@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.metaphysical.contracts",
+  "path": "src/conversation_os/metaphysical_kernel_contracts.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Kernel contract validators, loaders, and fixture bundle validation (Gate F0).",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["validate_fixture_bundle", "validate_state_adoption_links", "validate_state"],
+  "contains": ["validate_fixture_bundle", "validate_state_adoption_links"],
+  "depends_on": ["kernel.metaphysical.records"],
+  "feeds_into": ["kernel.metaphysical.migration", "kernel.metaphysical.runtime"],
+  "inputs": ["kernel record dataclasses"],
+  "outputs": ["validation errors", "from_dict loaders"],
+  "state_owned": [],
+  "surfaces_using": [],
+  "test_targets": ["tests/test_metaphysical_kernel_contracts.py"]
+}

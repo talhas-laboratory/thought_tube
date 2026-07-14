@@ -1,0 +1,19 @@
+{
+  "module_id": "kernel.metaphysical.records",
+  "path": "src/conversation_os/metaphysical_kernel.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Universal metaphysical kernel record dataclasses and lifecycle literals (framework v1.1).",
+  "status": "active",
+  "version": "1.1.0",
+  "public_api": ["MODULE_ID", "CONTRACT_VERSION", "KERNEL_RECORD_KINDS", "FRAMEWORK_SECTIONS"],
+  "contains": ["KernelRecordEnvelope", "SourceFragment", "Referent", "Scope", "State", "Claim"],
+  "depends_on": [],
+  "feeds_into": ["kernel.metaphysical.contracts"],
+  "inputs": ["framework v1.1 sections 4-6, 22"],
+  "outputs": ["kernel record dataclasses"],
+  "state_owned": [],
+  "surfaces_using": [],
+  "test_targets": ["tests/test_metaphysical_kernel_contracts.py"],
+  "adjacent_docs": ["docs/workboards/unified-metaphysical-foundation/PHASE-1-IMPLEMENTATION-REVIEW.md"]
+}

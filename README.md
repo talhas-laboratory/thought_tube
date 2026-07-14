@@ -57,6 +57,7 @@ python3 tools/conversation_os.py init
 python3 tools/conversation_os.py session start --title "My session"
 python3 tools/conversation_os.py session append --session-id <session_id> --actor user --kind request --content "..."
 python3 tools/conversation_os.py session checkpoint --session-id <session_id>
+python3 tools/conversation_os.py session transcript --session-id <session_id>
 python3 tools/conversation_os.py session close --session-id <session_id>
 python3 tools/conversation_os.py task-pack build --task-id <task_id> --request "..."
 python3 tools/conversation_os.py repo-overview refresh
@@ -68,8 +69,13 @@ python3 tools/conversation_os.py engineering-guard assess --request "..." --purp
 - `src/conversation_os/`: framework and product modules
 - `tools/`: runnable entrypoints and helper scripts
 - `tests/`: regression coverage for the framework
+- `docs/product-thesis/`: canonical product thesis and architecture docs
 
 Generated runtime state is intentionally ignored and recreated locally when needed.
+
+Key architecture reference:
+
+- [State-Dependent Reasoning Architecture](docs/product-thesis/07-state-dependent-reasoning-architecture.md)
 
 ## Testing
 

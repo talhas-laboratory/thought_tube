@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inner World Meta Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .meta-shell {
+        width: min(1180px, calc(100vw - 24px));
+        margin: 0 auto;
+        padding: 20px 0 48px;
+      }
+
+      .meta-frame-card {
+        display: grid;
+        gap: 18px;
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(16, 16, 18, 0.82), rgba(8, 8, 10, 0.96));
+        box-shadow: var(--shadow);
+      }
+
+      .meta-frame-card h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        letter-spacing: -0.03em;
+      }
+
+      .meta-copy {
+        color: var(--muted-strong);
+        max-width: 760px;
+        line-height: 1.6;
+      }
+
+      .meta-frame {
+        width: 100%;
+        min-height: 1500px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: #f3f1ea;
+      }
+
+      @media (max-width: 760px) {
+        .meta-frame-card {
+          padding: 16px;
+          border-radius: 18px;
+        }
+
+        .meta-frame {
+          min-height: 1800px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <div class="brand-lockup">
+            <div class="brand-mark">IW</div>
+            <div>
+              <p class="eyebrow">product control surface</p>
+              <h1>Inner World</h1>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <nav class="topbar-nav" aria-label="Primary">
+              <a class="topbar-link" href="./index.html">Feed</a>
+              <a class="topbar-link" href="./world-studio.html">World Studio</a>
+              <a class="topbar-link topbar-link--active" href="./self-improvement.html">Meta Console</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <main class="meta-shell">
+        <section class="meta-frame-card">
+          <div>
+            <p class="section-kicker">self-improvement</p>
+            <h2>Discuss a system change, then promote it into governed work.</h2>
+          </div>
+          <p class="meta-copy">
+            This surface keeps the product-editing conversation separate from ordinary note flow. Stay in discuss while shaping intent, then move into operate when the change should emit a packet with tests, release gates, and rollback expectations.
+          </p>
+          <iframe
+            id="meta-console-frame"
+            class="meta-frame"
+            title="Self Improvement Console"
+            loading="eager"
+          ></iframe>
+        </section>
+      </main>
+    </div>
+
+    <script src="./runtime-config.js"></script>
+    <script>
+      const bundleApiBase = "__INNER_WORLD_API_BASE_URL__";
+      const config = window.INNER_WORLD_CONFIG || {};
+      const apiBase = (config.apiBaseUrl || bundleApiBase || "/apps/api/inner-world").replace(/\/$/, "");
+      document.getElementById("meta-console-frame").src = `${apiBase}/self-improvement`;
+    </script>
+  </body>
+</html>

@@ -1,24 +1,39 @@
 {
-  "workspace_id": "unified-framework-synthesis-4f48",
-  "label": "Unified Framework Synthesis",
+  "workspace_id": "unified-framework-synthesis",
+  "label": "Unified Metaphysical Framework Foundation",
   "status": "active",
-  "maturation_stage": "synthesizing",
-  "goal": "Synthesize MTSF, SDS, and ThoughtShape into one framework; design capture surfaces and community pipeline; then build around locked schemas",
-  "purpose": "Cross-agent working space with full analyses, source docs, and continuity for Thought Tube pre-build phase",
-  "domains": ["research", "structure", "product"],
-  "holodeck_workspace_id": "unified-framework-synthesis-4f48",
-  "session_id": "cursor-unified-framework-synthesis-4f48",
-  "task_pack_id": "unified-framework-continuity-4f48",
-  "pr": "https://github.com/talhas-laboratory/thought_tube/pull/7",
+  "maturation_stage": "foundation_schema_lock",
+  "goal": "Translate the canonical version 1.1 metaphysical modeling framework into an executable kernel, governed profile runtime, application SDK, conformance suite, and migration path",
+  "purpose": "Canonical cross-agent authority for the universal metaphysical modeling foundation and all implementation work derived from it",
+  "domains": ["research", "ontology", "epistemics", "architecture", "runtime", "applications"],
+  "canonical_source": "sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "canonical_version": "1.1",
+  "supersession_rule": "Version 1.1 is normative; earlier framework and synthesis documents are migration evidence and lineage references",
+  "holodeck_workspace_id": "unified-framework-synthesis",
+  "session_id": "codex-unified-framework-synthesis",
+  "task_pack_id": "unified-metaphysical-foundation-schema-lock",
+  "current_task_pack_id": "unified-metaphysical-foundation-schema-lock",
+  "current_task_pack": "context/task_packs/unified-metaphysical-foundation-schema-lock.md",
+  "workboard": "docs/workboards/unified-metaphysical-foundation/README.md",
+  "continuity_projection": "docs/workspaces/unified-framework-synthesis/CONTINUITY.md",
+  "sync_contract": "docs/workspaces/unified-framework-synthesis/derived/sync-contract.md",
   "created_at": "2026-07-10",
   "artifacts": {
     "sources": [
+      {
+        "id": "unified-metaphysical-framework-v1.1",
+        "title": "Thought Tube Unified Metaphysical Modeling Framework",
+        "path": "sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+        "kind": "normative_foundation",
+        "status": "canonical",
+        "version": "1.1"
+      },
       {
         "id": "mtsf-framework",
         "title": "MTSF Framework (operational)",
         "path": "docs/frameworks/metaphysical-thought-space/README.md",
         "kind": "framework_source",
-        "status": "operational"
+        "status": "historical_operational_predecessor"
       },
       {
         "id": "sds-v1",
@@ -26,7 +41,7 @@
         "path": "docs/frameworks/system-dynamic-signature/SDS-v1.0-report.md",
         "workspace_copy": "sources/sds-v1.0-report.md",
         "kind": "framework_source",
-        "status": "design_only"
+        "status": "historical_migration_source"
       },
       {
         "id": "thoughtshape-v1",
@@ -34,7 +49,7 @@
         "path": "docs/frameworks/thought-shape/ThoughtShape-framework-v1.md",
         "workspace_copy": "sources/thoughtshape-framework-v1.md",
         "kind": "framework_source",
-        "status": "design_only"
+        "status": "historical_migration_source"
       },
       {
         "id": "three-framework-eval",
@@ -42,7 +57,7 @@
         "path": "docs/frameworks/THREE_FRAMEWORK_COMPARATIVE_EVALUATION.md",
         "workspace_copy": "sources/three-framework-comparative-evaluation.md",
         "kind": "analysis",
-        "status": "canonical"
+        "status": "historical_analysis"
       },
       {
         "id": "unified-synthesis",
@@ -50,7 +65,7 @@
         "path": "docs/plans/2026-07-10-unified-framework-synthesis.md",
         "workspace_copy": "sources/unified-framework-synthesis.md",
         "kind": "synthesis",
-        "status": "canonical_pre_build"
+        "status": "superseded_synthesis"
       },
       {
         "id": "pilot-003",
@@ -79,18 +94,27 @@
     ],
     "continuity": [
       {"id": "transcript", "path": "continuity/thread-transcript.md", "title": "Full Cursor thread transcript"},
-      {"id": "task-pack", "path": "continuity/task-pack.md", "title": "Task pack handoff"}
+      {"id": "task-pack", "path": "continuity/task-pack.md", "title": "Canonical foundation task pack"},
+      {"id": "handoff", "path": "derived/handoff.md", "title": "Foundation handoff"},
+      {"id": "foundation-build-plan", "path": "derived/foundation-build-plan.md", "title": "Foundation build plan"}
     ]
   },
   "locked_decisions": [
-    "One ontology, three views — stack don't compete",
-    "MTSF = store; ThoughtShape = grammar; SDS = overlay on demand",
-    "Synthesize before building surfaces",
-    "Cross-agent continuity via docs/workspaces + docs/continuity"
+    "Version 1.1 is the normative foundation",
+    "One universal kernel, governed profiles, and application projections",
+    "Historical frameworks are migration inputs, not runtime layers",
+    "Unity applies to identity and provenance, not one imposed truth",
+    "State adoption requires explicit StateCommitment",
+    "Runtime packets and application views are projections, not parallel stores",
+    "Foundation conformance gates precede broad surface construction",
+    "The live workspace service is authoritative for coordination state",
+    "Git workspaces are published projections and must be refreshed from live state"
   ],
   "open_next": [
-    "Rearrange decomposed primitives into single unified framework",
-    "Lock schemas: ThoughtObject, ReasoningStep, ReasoningSignature",
-    "Phase 1 capture kernel"
+    "Lock the eight-record MVP plus BranchMembership and StateCommitment schemas",
+    "Lock the three orthogonal lifecycle state machines",
+    "Define ProfileDefinition and profile conformance",
+    "Build historical migration fixtures",
+    "Implement and test the Phase 1 capture, identity, provenance, and branch vertical slice"
   ]
 }

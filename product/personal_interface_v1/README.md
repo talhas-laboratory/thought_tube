@@ -111,7 +111,7 @@ When the host sets `caller_hints.goal = "teach_user"`, the rewrite policy will u
 
 ## Runtime configuration
 
-Create `product/personal_interface_v1/data/runtime.json` with a rewrite backend. Example:
+Create `runtime/product_state/personal_interface_v1/data/runtime.json` with a rewrite backend. Example:
 
 ```json
 {

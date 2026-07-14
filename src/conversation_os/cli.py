@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -44,7 +45,7 @@ from .library_tracker import (
     update_chunk_link,
 )
 from .miniapp import serve_miniapp
-from .models import ConversationEvent, MemoryCard, SessionManifest
+from .models import ConversationEvent, MemoryCard, ReasoningRequest, SessionManifest
 from .chat_backends import diagnose_openclaw_telegram_config, migrate_openclaw_telegram_bindings
 from .openclaw_miniapp import build_openclaw_bundle, install_openclaw_bundle
 from .personal_interface import (
@@ -77,6 +78,8 @@ from .product_inner_world import (
     save_thread,
 )
 from .routing import TaskPackRoutingError, build_task_pack, enrich_task_pack_with_workspace
+from .reasoning_runtime import inspect_reasoning_request, run_reasoning
+from .repo_index import build_runtime_migration_plan, get_repo_index_health, refresh_repo_index, validate_repo_index, watch_repo_index
 from .runtime_pipeline import (
     get_runtime_pipeline_status,
     update_runtime_pipeline_component as update_runtime_pipeline_component_config,
@@ -146,6 +149,19 @@ from .worldbuilding_studio import (
     update_character_feature_object as worldstudio_update_character_feature_object,
     update_character_profile_section as worldstudio_update_character_profile_section,
 )
+from conversation_os.metaphysical_kernel_cli import (
+    foundation_bootstrap,
+    foundation_capture,
+    foundation_conformance,
+    foundation_consumer,
+    foundation_migrate_fixture,
+    foundation_review,
+    foundation_reconcile_ledger,
+    foundation_slice,
+    foundation_status,
+    foundation_test,
+    foundation_validate,
+)
 
 
 MODULE_ID = "assembly.bootstrap.cli"
@@ -157,8 +173,11 @@ PUBLIC_API = (
     "session_start",
     "session_append",
     "session_checkpoint",
+    "session_transcript",
     "session_close",
     "session_import",
+    "reasoning_run",
+    "reasoning_inspect",
     "build_parser",
     "main",
     "guarded_main",
@@ -180,6 +199,38 @@ def _split_many(values: list[str] | None) -> list[str]:
     for value in values or []:
         items.extend(_split_csv(value))
     return items
+
+
+def _unique_preserve_order(values: list[str]) -> list[str]:
+    ordered: list[str] = []
+    for value in values:
+        normalized = value.strip()
+        if normalized and normalized not in ordered:
+            ordered.append(normalized)
+    return ordered
+
+
+def _parse_json_object(value: str | None) -> dict:
+    if not value:
+        return {}
+    parsed = json.loads(value)
+    if not isinstance(parsed, dict):
+        raise ValueError("Expected JSON object for caller hints.")
+    return parsed
+
+
+def _extract_inline_tags(text: str) -> tuple[str, list[str]]:
+    tags: list[str] = []
+
+    def _replace(match: re.Match[str]) -> str:
+        tag = match.group(1).strip().lower()
+        if tag and tag not in tags:
+            tags.append(tag)
+        return " "
+
+    cleaned = re.sub(r"(?<!\w)#([A-Za-z0-9_-]+)", _replace, text)
+    normalized = re.sub(r"\s+", " ", cleaned).strip()
+    return normalized, tags
 
 
 
@@ -255,11 +306,20 @@ def init_repo(root: Path) -> dict:
         root / "memory" / "workspaces",
         root / "context" / "task_packs",
         root / "context" / "workspaces",
+        root / "runtime" / "product_state" / "inner_world_v1" / "data",
+        root / "runtime" / "product_state" / "inner_world_v1" / "runs",
+        root / "runtime" / "product_state" / "personal_interface_v1" / "data",
+        root / "runtime" / "product_state" / "development_layer_v1" / "data",
+        root / "artifacts" / "exports" / "inner_world_v1" / "exports",
+        root / "artifacts" / "exports" / "inner_world_v1" / "portable",
+        root / "artifacts" / "exports" / "inner_world_v1" / "openclaw_bundle",
+        root / "artifacts" / "backups" / "inner_world_v1" / "backups",
         root / "product" / "inner_world_v1" / "data",
         root / "product" / "inner_world_v1" / "config",
         root / "product" / "inner_world_v1" / "exports",
         root / "product" / "personal_interface_v1" / "data",
         root / "product" / "personal_interface_v1" / "data" / "calibration",
+        root / "product" / "development_layer_v1" / "data",
     ]
     for path in paths:
         ensure_dir(path)
@@ -313,6 +373,19 @@ def session_checkpoint(root: Path, args: argparse.Namespace) -> dict:
     manifest.status = "checkpointed"
     update_manifest(root, manifest)
     return {"session_id": args.session_id, "artifact_refs": refs}
+
+
+def session_transcript(root: Path, args: argparse.Namespace) -> dict:
+    refs = materialize_transcript(root, args.session_id)
+    transcript_path = Path(refs["ordered_transcript"])
+    output_path = Path(args.output) if getattr(args, "output", "") else root / "docs" / "transcripts" / f"{args.session_id}.md"
+    ensure_dir(output_path.parent)
+    output_path.write_text(transcript_path.read_text(encoding="utf-8"), encoding="utf-8")
+    return {
+        "session_id": args.session_id,
+        "ordered_transcript": str(transcript_path),
+        "transcript_mirror": str(output_path),
+    }
 
 
 def session_close(root: Path, args: argparse.Namespace) -> dict:
@@ -418,6 +491,42 @@ def session_import(root: Path, args: argparse.Namespace) -> dict:
             task_type=args.task_type or "import_review",
         ),
     )
+
+
+def reasoning_run(root: Path, args: argparse.Namespace) -> dict:
+    raw_text, inline_tags = _extract_inline_tags(args.text)
+    domain_hints = _unique_preserve_order(_split_csv(args.domains) + [tag for tag in inline_tags if tag != "meta"])
+    caller_hints = _parse_json_object(getattr(args, "caller_hints_json", ""))
+
+    constraints = _split_csv(getattr(args, "constraints", ""))
+    if constraints:
+        existing_constraints = list(caller_hints.get("constraints", []) or [])
+        caller_hints["constraints"] = _unique_preserve_order(existing_constraints + constraints)
+    if inline_tags:
+        caller_hints["routing_tags"] = _unique_preserve_order(
+            list(caller_hints.get("routing_tags", []) or []) + inline_tags
+        )
+    if "meta" in inline_tags:
+        domain_hints = _unique_preserve_order(["product"] + domain_hints)
+        caller_hints.setdefault("active_topic", "product")
+        caller_hints.setdefault("object_scope", "same_main")
+        caller_hints.setdefault("workspace_id", "product")
+
+    request = ReasoningRequest(
+        request_id=args.request_id or make_id("reasoning-request"),
+        session_id=args.session_id,
+        surface=args.surface,
+        raw_text=raw_text or args.text,
+        source_refs=_split_csv(args.source_refs),
+        timestamp=utc_now(),
+        domain_hints=domain_hints,
+        caller_hints=caller_hints,
+    )
+    return run_reasoning(root, request)
+
+
+def reasoning_inspect(root: Path, args: argparse.Namespace) -> dict:
+    return inspect_reasoning_request(root, args.request_id)
 
 
 
@@ -540,6 +649,10 @@ def build_parser() -> argparse.ArgumentParser:
     checkpoint = session_sub.add_parser("checkpoint")
     checkpoint.add_argument("--session-id", required=True)
 
+    transcript = session_sub.add_parser("transcript")
+    transcript.add_argument("--session-id", required=True)
+    transcript.add_argument("--output", default="")
+
     close = session_sub.add_parser("close")
     close.add_argument("--session-id", required=True)
     close.add_argument("--task-id")
@@ -557,6 +670,22 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--task-id")
     importer.add_argument("--request")
     importer.add_argument("--task-type")
+
+    reasoning = sub.add_parser("reasoning")
+    reasoning_sub = reasoning.add_subparsers(dest="reasoning_command", required=True)
+
+    reasoning_run_parser = reasoning_sub.add_parser("run")
+    reasoning_run_parser.add_argument("--text", required=True)
+    reasoning_run_parser.add_argument("--session-id", default="")
+    reasoning_run_parser.add_argument("--request-id", default="")
+    reasoning_run_parser.add_argument("--surface", default="chat")
+    reasoning_run_parser.add_argument("--domains", default="")
+    reasoning_run_parser.add_argument("--source-refs", default="")
+    reasoning_run_parser.add_argument("--constraints", default="")
+    reasoning_run_parser.add_argument("--caller-hints-json", default="")
+
+    reasoning_inspect_parser = reasoning_sub.add_parser("inspect")
+    reasoning_inspect_parser.add_argument("--request-id", required=True)
 
     task_pack = sub.add_parser("task-pack")
     task_sub = task_pack.add_subparsers(dest="task_command", required=True)
@@ -620,6 +749,16 @@ def build_parser() -> argparse.ArgumentParser:
     overview_lookup = repo_overview_sub.add_parser("lookup")
     overview_lookup.add_argument("--query", required=True)
     overview_lookup.add_argument("--limit", type=int, default=8)
+
+    repo_index = sub.add_parser("repo-index")
+    repo_index_sub = repo_index.add_subparsers(dest="repo_index_command", required=True)
+    repo_index_sub.add_parser("refresh")
+    repo_index_sub.add_parser("validate")
+    repo_index_sub.add_parser("health")
+    repo_index_sub.add_parser("plan")
+    repo_index_watch = repo_index_sub.add_parser("watch")
+    repo_index_watch.add_argument("--interval", type=float, default=2.0)
+    repo_index_watch.add_argument("--max-iterations", type=int)
 
     engineering_guard = sub.add_parser("engineering-guard")
     engineering_guard_sub = engineering_guard.add_subparsers(dest="guard_command", required=True)
@@ -1406,6 +1545,95 @@ def build_parser() -> argparse.ArgumentParser:
     world_graph.add_argument("--world-id", required=True)
 
     world_studio_sub.add_parser("guide")
+
+    foundation = sub.add_parser("foundation")
+    foundation_sub = foundation.add_subparsers(dest="foundation_command", required=True)
+
+    foundation_sub.add_parser("status")
+    foundation_sub.add_parser("validate")
+    foundation_sub.add_parser("bootstrap")
+
+    foundation_review_parser = foundation_sub.add_parser(
+        "review",
+        help="Run full Phase 1 reviewer checklist (tests, slice, consumers, migration)",
+    )
+    foundation_review_parser.add_argument("--verbose", action="store_true")
+    foundation_review_parser.add_argument(
+        "--in-place",
+        action="store_true",
+        help="Use repo memory/foundation store instead of an ephemeral temp directory",
+    )
+
+    foundation_reconcile_parser = foundation_sub.add_parser(
+        "reconcile-ledger",
+        help="Record Phase 1 verification in live workspace (or emit offline commands)",
+    )
+    foundation_reconcile_parser.add_argument("--agent-id", default="cursor-cloud-agent")
+    foundation_reconcile_parser.add_argument("--surface", default="cursor")
+    foundation_reconcile_parser.add_argument("--session-id", default="session-foundation-reconcile")
+    foundation_reconcile_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Check API reachability and print commands without mutating live workspace",
+    )
+
+    foundation_test_parser = foundation_sub.add_parser("test")
+    foundation_test_parser.add_argument("--module", default="")
+    foundation_test_parser.add_argument("--verbose", action="store_true")
+
+    foundation_capture_parser = foundation_sub.add_parser("capture")
+    foundation_capture_parser.add_argument("--application-id", default="app:foundation")
+    foundation_capture_parser.add_argument("--actor", default="user:foundation")
+    foundation_capture_parser.add_argument("--branch-id", default="branch_main")
+    foundation_capture_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_capture_parser.add_argument("--content-pointer", default="")
+    foundation_capture_parser.add_argument("--integrity-hash", default="sha256:manual")
+    foundation_capture_parser.add_argument("--source-kind", default="user_input")
+    foundation_capture_parser.add_argument("--session-id", default="")
+    foundation_capture_parser.add_argument("--event-id", default="")
+    foundation_capture_parser.add_argument("--kind", default="request")
+    foundation_capture_parser.add_argument("--content", default="")
+
+    foundation_slice_parser = foundation_sub.add_parser("slice")
+    foundation_slice_parser.add_argument("--session-id", default="session-foundation-demo")
+    foundation_slice_parser.add_argument("--event-id", default="event-foundation-demo")
+    foundation_slice_parser.add_argument("--actor", default="user:foundation")
+    foundation_slice_parser.add_argument("--content", required=True)
+    foundation_slice_parser.add_argument("--referent-label", required=True)
+    foundation_slice_parser.add_argument("--claim-predicate", default="relates")
+    foundation_slice_parser.add_argument("--claim-arguments", default="")
+    foundation_slice_parser.add_argument("--branch-id", default="branch_main")
+    foundation_slice_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_slice_parser.add_argument("--adopt-state", action="store_true")
+    foundation_slice_parser.add_argument("--state-value", default="")
+
+    foundation_migrate_parser = foundation_sub.add_parser("migrate-fixture")
+    foundation_migrate_parser.add_argument("--fixture-path", required=True)
+    foundation_migrate_parser.add_argument("--execute", action="store_true")
+
+    foundation_consumer_parser = foundation_sub.add_parser("consumer")
+    foundation_consumer_parser.add_argument(
+        "consumer",
+        choices=["world-studio", "workspace-curator"],
+    )
+    foundation_consumer_parser.add_argument("--actor", default="user:foundation")
+    foundation_consumer_parser.add_argument("--branch-id", default="branch_main")
+    foundation_consumer_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_consumer_parser.add_argument("--content", required=True)
+    foundation_consumer_parser.add_argument("--referent-label", default="Subject")
+    foundation_consumer_parser.add_argument("--world-id", default="world-demo")
+    foundation_consumer_parser.add_argument("--workspace-id", default="unified-framework-synthesis")
+    foundation_consumer_parser.add_argument("--adopt-state", action="store_true")
+
+    foundation_conformance_parser = foundation_sub.add_parser("conformance")
+    foundation_conformance_parser.add_argument("--application-id", default="app:foundation")
+    foundation_conformance_parser.add_argument("--actor", default="user:foundation")
+    foundation_conformance_parser.add_argument("--branch-id", default="branch_main")
+    foundation_conformance_parser.add_argument("--scope-id", default="scope_foundation")
+    foundation_conformance_parser.add_argument("--profile-id", default="profile:field_formation")
+    foundation_conformance_parser.add_argument("--profile-version", default="1.0.0")
+    foundation_conformance_parser.add_argument("--evaluated-record-id", default="bundle")
+
     return parser
 
 
@@ -1423,12 +1651,21 @@ def main(argv: list[str] | None = None) -> int:
             result = session_append(root, args)
         elif args.session_command == "checkpoint":
             result = session_checkpoint(root, args)
+        elif args.session_command == "transcript":
+            result = session_transcript(root, args)
         elif args.session_command == "close":
             result = session_close(root, args)
         elif args.session_command == "import":
             result = session_import(root, args)
         else:
             raise ValueError(args.session_command)
+    elif args.command == "reasoning":
+        if args.reasoning_command == "run":
+            result = reasoning_run(root, args)
+        elif args.reasoning_command == "inspect":
+            result = reasoning_inspect(root, args)
+        else:
+            raise ValueError(args.reasoning_command)
     elif args.command == "task-pack":
         result = build_task_pack(
             root=root,
@@ -1517,6 +1754,19 @@ def main(argv: list[str] | None = None) -> int:
             result = {"results": lookup_codebase(root, args.query, args.limit)}
         else:
             raise ValueError(args.overview_command)
+    elif args.command == "repo-index":
+        if args.repo_index_command == "refresh":
+            result = refresh_repo_index(root)
+        elif args.repo_index_command == "validate":
+            result = validate_repo_index(root)
+        elif args.repo_index_command == "health":
+            result = get_repo_index_health(root)
+        elif args.repo_index_command == "plan":
+            result = build_runtime_migration_plan(root)
+        elif args.repo_index_command == "watch":
+            result = watch_repo_index(root, interval=args.interval, max_iterations=args.max_iterations)
+        else:
+            raise ValueError(args.repo_index_command)
     elif args.command == "engineering-guard":
         if args.guard_command == "assess":
             result = assess_change_request(
@@ -2053,6 +2303,31 @@ def main(argv: list[str] | None = None) -> int:
             result = worldstudio_get_guide(root)
         else:
             raise ValueError(args.world_studio_command)
+    elif args.command == "foundation":
+        if args.foundation_command == "status":
+            result = foundation_status(root)
+        elif args.foundation_command == "validate":
+            result = foundation_validate(root)
+        elif args.foundation_command == "bootstrap":
+            result = foundation_bootstrap(root)
+        elif args.foundation_command == "test":
+            result = foundation_test(root, args)
+        elif args.foundation_command == "capture":
+            result = foundation_capture(root, args)
+        elif args.foundation_command == "slice":
+            result = foundation_slice(root, args)
+        elif args.foundation_command == "migrate-fixture":
+            result = foundation_migrate_fixture(root, args)
+        elif args.foundation_command == "consumer":
+            result = foundation_consumer(root, args)
+        elif args.foundation_command == "conformance":
+            result = foundation_conformance(root, args)
+        elif args.foundation_command == "review":
+            result = foundation_review(root, args)
+        elif args.foundation_command == "reconcile-ledger":
+            result = foundation_reconcile_ledger(root, args)
+        else:
+            raise ValueError(args.foundation_command)
     elif args.command == "personal-interface":
         if args.personal_command == "calibrate-start":
             result = start_calibration_interview(root)
@@ -2097,9 +2372,6 @@ def main(argv: list[str] | None = None) -> int:
 
     sys.stdout.write(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
     return 0
-
-
-import json
 
 
 def guarded_main(argv: list[str] | None = None) -> int:

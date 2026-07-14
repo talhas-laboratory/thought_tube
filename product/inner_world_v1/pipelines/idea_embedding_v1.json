@@ -1,0 +1,13 @@
+{
+  "pipeline_id": "idea_embedding_v1",
+  "description": "Take a live fragment and place it into the most plausible larger idea structure.",
+  "steps": [
+    "classify_fragment_role",
+    "identify_parent_ideas",
+    "activate_dimensions",
+    "generate_candidate_transformations",
+    "score_candidate_transformations",
+    "choose_probe_or_integration",
+    "build_user_response"
+  ]
+}

@@ -421,6 +421,7 @@ If the runtime was interrupted, resume from the last safe stage using the runtim
 ## Related References
 
 - [AGENTS.md](/Users/talhauddin/software/inner_space/AGENTS.md)
+- [Canonical Workspace Access](canonical-workspace-access.md)
 - [GitHub Deployment Guide](github-deployment-guide.md)
 - [Inner World Server Deployment Plan](../plans/2026-04-14-inner-world-server-deployment-plan.md)
 - [Runtime Rebuild Runbook](../plans/2026-04-21-runtime-rebuild-runbook.md)

@@ -1,0 +1,16 @@
+{
+  "behavior_id": "symbolic_interpretation",
+  "priority": 88,
+  "preferred_pipeline": "symbolic_interpretation_v1",
+  "routing_mode": "override",
+  "reasoning_posture": "interpretive",
+  "response_directives": [
+    "map_symbolic_meaning",
+    "name_latent_associations",
+    "preserve_multiplicity"
+  ],
+  "operator_biases": {
+    "prefer_symbolic_reading": true,
+    "avoid_literal_collapse": true
+  }
+}

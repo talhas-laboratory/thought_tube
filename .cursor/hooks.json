@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/bridge_session_start.py"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": ".cursor/hooks/bridge_session_end.py"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/bridge_prepare_turn.py",
+        "matcher": "UserPromptSubmit"
+      }
+    ],
+    "afterAgentResponse": [
+      {
+        "command": ".cursor/hooks/bridge_record_assistant_turn.py"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/bridge_record_assistant_turn.py"
+      }
+    ]
+  }
+}

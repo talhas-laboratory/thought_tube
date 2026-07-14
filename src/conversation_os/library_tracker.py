@@ -13,6 +13,7 @@ from typing import Any, Dict, Iterable, List
 
 from .chat_backends import request_openclaw_reply
 from .models import ChunkDimensionProfile, DimensionRun, DimensionSpec, ModelRoleBinding
+from .runtime_layout import product_runtime_dir
 from .storage import ensure_dir, make_id, read_json, read_jsonl, repo_root_from, utc_now, write_json, write_jsonl
 
 
@@ -178,12 +179,16 @@ def _config_path(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "config" / "library_sources.json"
 
 
+def _data_dir(root: Path) -> Path:
+    return product_runtime_dir(root, "inner_world_v1", "data")
+
+
 def _state_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "library_tracker_state.json"
+    return _data_dir(root) / "library_tracker_state.json"
 
 
 def _governance_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "library_governance.json"
+    return _data_dir(root) / "library_governance.json"
 
 
 def _dimension_registry_path(root: Path) -> Path:
@@ -195,15 +200,15 @@ def _pond_matrix_path(root: Path) -> Path:
 
 
 def _chunk_dimension_profiles_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "dimensions" / "chunk_dimension_profiles.jsonl"
+    return _data_dir(root) / "dimensions" / "chunk_dimension_profiles.jsonl"
 
 
 def _dimension_runs_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "dimensions" / "dimension_runs.json"
+    return _data_dir(root) / "dimensions" / "dimension_runs.json"
 
 
 def _pond_routing_feedback_path(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data" / "pond_routing_feedback.jsonl"
+    return _data_dir(root) / "pond_routing_feedback.jsonl"
 
 
 def _runtime_config_path(root: Path) -> Path:
@@ -3234,7 +3239,7 @@ def govern_library_family(
 
 
 def _runtime_data_dir(root: Path) -> Path:
-    return root / "product" / "inner_world_v1" / "data"
+    return _data_dir(root)
 
 
 def _runtime_exports_dir(root: Path) -> Path:

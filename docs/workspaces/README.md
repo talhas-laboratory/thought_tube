@@ -1,11 +1,24 @@
-# Agent Workspaces (Git-Tracked)
+# Agent Workspaces (Git Projection)
 
-Holodeck-style cross-agent workspaces committed to git so **any agent** (Codex, Cursor, ChatGPT) can read full analyses, source docs, and continuity without local `memory/` state.
+These folders are git-tracked projections for cross-agent continuity. They are readable by any agent, but they are not the authoritative coordination store.
+
+Authority split:
+
+- semantic authority: the canonical framework source in the workspace
+- coordination authority: the live workspace service behind `INNER_WORLD_WORKSPACE_API_BASE`
+- git authority: published continuity, handoff, plans, and source copies
+
+Current canonical workspace:
 
 | Workspace | Purpose |
 |-----------|---------|
-| [unified-framework-synthesis](./unified-framework-synthesis/README.md) | MTSF + SDS + ThoughtShape synthesis, deep analyses, product design thread |
+| [unified-framework-synthesis](./unified-framework-synthesis/README.md) | Canonical v1.1 metaphysical foundation, workboard, and continuity projection |
 
-**Foreign agents:** also read [`docs/cross-agent/README.md`](../cross-agent/README.md).
+Agent boot order:
 
-Local Holodeck machine state (gitignored): `memory/workspaces/{workspace_id}/`
+1. Query the live workspace service first.
+2. Read the canonical framework source.
+3. Read the handoff and build plan.
+4. Use the git projection only as continuity, not as a substitute for live workspace state.
+
+Foreign agents should also read [`docs/cross-agent/README.md`](../cross-agent/README.md).

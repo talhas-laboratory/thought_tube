@@ -1174,7 +1174,14 @@ def _append_work_item_event(
 
 def _reduce_work_items(rows: list[dict]) -> list[dict]:
     items: dict[str, dict] = {}
-    for row in sorted(rows, key=lambda item: (item.get("timestamp", ""), item.get("event_id", ""))):
+    ordered_rows = [
+        row
+        for _index, row in sorted(
+            enumerate(rows),
+            key=lambda entry: (entry[1].get("timestamp", ""), entry[0]),
+        )
+    ]
+    for row in ordered_rows:
         work_item_id = row["work_item_id"]
         payload = row.get("payload", {})
         operation = row.get("operation")
