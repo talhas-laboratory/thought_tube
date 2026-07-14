@@ -1,8 +1,14 @@
 # Handoffs
 
+## 2026-07-14 — Phase 1 merged to `codex/unified-framework-sync`
+
+Phase 1 kernel code and reviewer docs are now on the coordination branch. Remaining close-out: Gap 2 live ledger reconciliation (`foundation reconcile-ledger` from a connected machine), then merge codex → `main`.
+
+---
+
 ## 2026-07-14 — Boot guide synced to `codex/unified-framework-sync`
 
-[`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) and companion reviewer docs are now on the coordination branch, not only on `cursor/metaphysical-kernel-contracts-423a`. Local agents on `main` should `git fetch` and checkout `codex/unified-framework-sync` (or the feature branch) before searching for this file.
+[`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) and companion reviewer docs are on the coordination branch. Local agents on `main` should `git fetch` and checkout `codex/unified-framework-sync`.
 
 ---
 

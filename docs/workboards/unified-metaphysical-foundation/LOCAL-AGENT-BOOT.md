@@ -1,13 +1,12 @@
 # Local Agent Boot — Close Phase 1 Foundation Gaps
 
-> **Visibility:** This file is tracked on `codex/unified-framework-sync` (coordination branch) and on `cursor/metaphysical-kernel-contracts-423a` (implementation branch). If you do not see it, run `git fetch origin` and checkout one of those branches — it is **not** on `main`.
+> **Visibility:** This file lives on `codex/unified-framework-sync` (coordination branch). After Phase 1 merge, kernel code is here too. If missing, run `git fetch origin` and checkout `codex/unified-framework-sync` — it is **not** on `main` until codex merges there.
 
 **Audience:** a fresh local agent with no prior chat context  
-**Mission:** close remaining audit gaps and make PR [#11](https://github.com/talhas-laboratory/thought_tube/pull/11) merge-ready  
-**Branch:** `cursor/metaphysical-kernel-contracts-423a`  
-**Base branch (merge target):** `codex/unified-framework-sync`  
+**Mission:** close remaining Gap 2 (live ledger) and merge `codex/unified-framework-sync` → `main`  
+**Branch:** `codex/unified-framework-sync` (Phase 1 code merged here)  
 **Live workspace id:** `unified-framework-synthesis`  
-**Formal blocker:** `blocker-7f7662afad54`
+**Formal blocker:** `blocker-7f7662afad54` (resolve via live API)
 
 ---
 
@@ -30,7 +29,7 @@ You are finished when **all** of the following are true:
 
 ## 1. Check out the correct branch (terminal, not Cursor UI)
 
-Use the **foundation** branch, not `cursor/primitive-catalogue-doc-423a` (docs-only, different work).
+Use **`codex/unified-framework-sync`** (Phase 1 code merged here), not `cursor/primitive-catalogue-doc-423a` (docs-only, different work).
 
 ```bash
 cd /path/to/thought_tube
@@ -39,12 +38,12 @@ git fetch origin
 # Optional if LFS checkout is noisy or Cursor hit maxBuffer errors:
 export GIT_LFS_SKIP_SMUDGE=1
 
-git checkout -B cursor/metaphysical-kernel-contracts-423a \
-  origin/cursor/metaphysical-kernel-contracts-423a
+git checkout -B codex/unified-framework-sync \
+  origin/codex/unified-framework-sync
 
 git lfs pull   # if you skipped smudge above
 git log --oneline -1
-# expect: 0e85b7e or later on this branch
+# expect: latest commit on codex/unified-framework-sync with Phase 1 kernel code
 ```
 
 If Cursor shows `stdout maxBuffer length exceeded` on checkout, **ignore the UI** and use the terminal commands above.

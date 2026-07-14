@@ -1,0 +1,44 @@
+{
+  "branch_memberships": [
+    {
+      "envelope": {
+        "id": "bm_state_orphan",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_orphan_state",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "st_without_commitment",
+      "branch_id": "branch_a",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_org",
+      "introduced_by": "service:interpretation",
+      "membership_provenance_id": "prov_orphan_state"
+    }
+  ],
+  "states": [
+    {
+      "envelope": {
+        "id": "st_without_commitment",
+        "record_kind": "state",
+        "type_id": "workspace:initiative",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_orphan_state",
+        "maturity_status": "structured",
+        "epistemic_status": "supported",
+        "governance_status": "local"
+      },
+      "subject_refs": ["ref_company_x"],
+      "state_type": "workspace:initiative",
+      "value": "low",
+      "value_type": "ordinal",
+      "valid_scope_id": "scope_org"
+    }
+  ],
+  "state_commitments": []
+}

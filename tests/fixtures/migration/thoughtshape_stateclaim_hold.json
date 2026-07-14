@@ -1,0 +1,34 @@
+{
+  "fixture_id": "migration-thoughtshape-hold-001",
+  "fixture_version": "1.0.0",
+  "source_family": "thoughtshape",
+  "source_vocabulary_version": "thoughtshape-v1",
+  "mapping_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md#appendix-f",
+  "source_records": {
+    "station": "brand_recognition",
+    "dimension": "salience",
+    "facet": "distinctiveness",
+    "hold": {
+      "hold_id": "hold-brand-001",
+      "status": "unresolved",
+      "reason": "insufficient cross-channel evidence"
+    },
+    "state_claim": {
+      "state": "low",
+      "weight": 0.7,
+      "salience": 0.8,
+      "valence": -0.3,
+      "confidence": 0.6,
+      "evidence": ["Users confuse Brand X with competitors in recall tests."]
+    }
+  },
+  "expected_loss_report": [
+    "ThoughtShape Hold preserved as held SourceFragment, not State",
+    "StateClaim migrated as branch-scoped Claim only"
+  ],
+  "expected_record_counts": {
+    "claims": 1,
+    "source_fragments": 1,
+    "states": 0
+  }
+}

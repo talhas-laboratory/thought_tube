@@ -1,0 +1,174 @@
+{
+  "source_fragments": [
+    {
+      "envelope": {
+        "id": "sf_control_loop",
+        "record_kind": "source_fragment",
+        "type_id": "core:source_fragment",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "user:founder",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "raw",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "media_type": "text",
+      "content_pointer": "memory://sessions/demo/control-loop",
+      "author_or_origin": "user:founder",
+      "captured_at": "2026-07-12T00:00:00Z",
+      "integrity_hash": "sha256:loop",
+      "source_kind": "user_input"
+    }
+  ],
+  "provenances": [
+    {
+      "envelope": {
+        "id": "prov_bundle",
+        "record_kind": "provenance",
+        "type_id": "core:provenance",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:capture",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "source_refs": [
+        "sf_control_loop"
+      ]
+    }
+  ],
+  "branch_memberships": [
+    {
+      "envelope": {
+        "id": "bm_claim_1",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "cl_control_inhibits_initiative",
+      "branch_id": "branch_control_failure",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_org",
+      "introduced_by": "service:interpretation",
+      "membership_provenance_id": "prov_bundle"
+    },
+    {
+      "envelope": {
+        "id": "bm_state_1",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:01Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "st_initiative_low",
+      "branch_id": "branch_control_failure",
+      "membership_kind": "derived",
+      "effective_scope_id": "scope_org",
+      "introduced_by": "service:commitment",
+      "membership_provenance_id": "prov_bundle"
+    },
+    {
+      "envelope": {
+        "id": "bm_commitment_1",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:01Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "sc_1",
+      "branch_id": "branch_control_failure",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_org",
+      "introduced_by": "service:commitment",
+      "membership_provenance_id": "prov_bundle"
+    }
+  ],
+  "claims": [
+    {
+      "envelope": {
+        "id": "cl_control_inhibits_initiative",
+        "record_kind": "claim",
+        "type_id": "core:claim",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "differentiating",
+        "epistemic_status": "candidate",
+        "governance_status": "local"
+      },
+      "proposition": {
+        "predicate": "inhibits",
+        "arguments": [
+          "st_control",
+          "st_initiative"
+        ]
+      },
+      "claimant": "service:interpretation",
+      "branch_id": "branch_control_failure",
+      "scope_id": "scope_org",
+      "polarity": "affirmative"
+    }
+  ],
+  "state_commitments": [
+    {
+      "envelope": {
+        "id": "sc_1",
+        "record_kind": "state_commitment",
+        "type_id": "core:state_commitment",
+        "created_at": "2026-07-12T00:00:01Z",
+        "created_by": "user:founder",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "structured",
+        "epistemic_status": "supported",
+        "governance_status": "review_required"
+      },
+      "source_claim_ids": [
+        "cl_unknown"
+      ],
+      "resulting_state_id": "st_initiative_low",
+      "branch_id": "branch_control_failure",
+      "scope_id": "scope_org",
+      "commitment_kind": "user_confirmed",
+      "responsible_actor": "user:founder",
+      "commitment_provenance_id": "prov_bundle",
+      "reversible": true
+    }
+  ],
+  "states": [
+    {
+      "envelope": {
+        "id": "st_initiative_low",
+        "record_kind": "state",
+        "type_id": "workspace:initiative",
+        "created_at": "2026-07-12T00:00:01Z",
+        "created_by": "service:commitment",
+        "provenance_id": "prov_bundle",
+        "maturity_status": "structured",
+        "epistemic_status": "supported",
+        "governance_status": "local"
+      },
+      "subject_refs": [
+        "ref_company_x"
+      ],
+      "state_type": "workspace:initiative",
+      "value": "low",
+      "value_type": "ordinal",
+      "valid_scope_id": "scope_org",
+      "commitment_id": "sc_1"
+    }
+  ]
+}
