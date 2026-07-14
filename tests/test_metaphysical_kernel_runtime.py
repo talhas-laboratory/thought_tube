@@ -10,6 +10,7 @@ from conversation_os.metaphysical_kernel_runtime import (
     FoundationRuntime,
     run_vertical_slice,
 )
+from conversation_os.metaphysical_kernel_contracts import ContractValidationError
 from conversation_os.metaphysical_kernel_store import FoundationStore
 from conversation_os.storage import append_jsonl, read_jsonl, session_events_path
 
@@ -76,6 +77,31 @@ class MetaphysicalKernelRuntimeTestCase(unittest.TestCase):
         self.assertEqual(len(bundle["state_commitments"]), 1)
         self.assertEqual(len(bundle["states"]), 1)
         self.assertEqual(result["validation_errors"], [])
+        self.assertEqual(self.runtime.store.read_events()[-1]["operation"], "append_records")
+
+    def test_invalid_state_adoption_appends_no_events(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        provenance_id = fragment["envelope"]["provenance_id"]
+        self.runtime.ensure_scope("scope_atomic")
+        self.runtime.ensure_branch("branch_atomic")
+        event_count_before = len(self.runtime.store.read_events())
+
+        with self.assertRaises(ContractValidationError):
+            self.runtime.commit_state_from_claims(
+                source_claim_ids=["claim_missing"],
+                branch_id="branch_atomic",
+                scope_id="scope_atomic",
+                subject_refs=["ref_atomic"],
+                state_type="workspace:initiative",
+                value="low",
+                value_type="ordinal",
+                provenance_id=provenance_id,
+            )
+
+        self.assertEqual(len(self.runtime.store.read_events()), event_count_before)
+        bundle = self.runtime.current_bundle()
+        self.assertEqual(bundle["states"], [])
+        self.assertEqual(bundle["state_commitments"], [])
 
     def test_contradictory_branches_remain_isolated(self) -> None:
         fragment = self.runtime.capture_from_conversation_event(self._event())

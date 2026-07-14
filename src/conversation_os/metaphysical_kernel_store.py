@@ -80,6 +80,23 @@ class FoundationStore:
         append_jsonl(self.events_path, event)
         return event
 
+    def append_records(self, records: List[Mapping[str, Any]], *, actor: str) -> Dict[str, Any]:
+        """Append a validated record batch as one durable event.
+
+        Folding only applies the batch after the whole event has been read, so
+        a State adoption never exposes its commitment, State, or memberships
+        independently.
+        """
+        event = {
+            "event_id": make_id("kevt"),
+            "timestamp": utc_now(),
+            "operation": "append_records",
+            "actor": actor,
+            "records": [dict(record) for record in records],
+        }
+        append_jsonl(self.events_path, event)
+        return event
+
     def read_events(self) -> List[Dict[str, Any]]:
         return read_jsonl(self.events_path)
 
@@ -89,23 +106,27 @@ class FoundationStore:
         active: Dict[str, Dict[str, Any]] = {}
         retracted: set[str] = set()
 
+        def add_record(record: Any, record_kind_hint: str = "") -> None:
+            if not isinstance(record, dict):
+                return
+            envelope = record.get("envelope", {})
+            if not isinstance(envelope, dict):
+                return
+            record_id = str(envelope.get("id", ""))
+            record_kind = str(envelope.get("record_kind", record_kind_hint))
+            if not record_id or not record_kind:
+                return
+            active[record_id] = {"record_kind": record_kind, "record": record}
+
         for event in self.read_events():
             operation = str(event.get("operation", ""))
             if operation == "append_record":
-                record = event.get("record")
-                if not isinstance(record, dict):
-                    continue
-                envelope = record.get("envelope", {})
-                if not isinstance(envelope, dict):
-                    continue
-                record_id = str(envelope.get("id", ""))
-                record_kind = str(envelope.get("record_kind", event.get("record_kind", "")))
-                if not record_id or not record_kind:
-                    continue
-                active[record_id] = {
-                    "record_kind": record_kind,
-                    "record": record,
-                }
+                add_record(event.get("record"), str(event.get("record_kind", "")))
+            elif operation == "append_records":
+                records = event.get("records", [])
+                if isinstance(records, list):
+                    for record in records:
+                        add_record(record)
             elif operation == "retract_record":
                 target_id = str(event.get("target_record_id", ""))
                 if target_id:

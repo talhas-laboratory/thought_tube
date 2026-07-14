@@ -18,7 +18,7 @@ from conversation_os.metaphysical_kernel_application_sdk import (
     world_studio_capture_scene,
     workspace_curator_capture_insight,
 )
-from conversation_os.metaphysical_kernel_contracts import validate_fixture_bundle
+from conversation_os.metaphysical_kernel_contracts import ContractValidationError, validate_fixture_bundle
 from conversation_os.metaphysical_kernel_migration import migrate_source_fixture, validate_migration_fixture
 from conversation_os.metaphysical_kernel_profile_registry import (
     FIELD_FORMATION_PROFILE_ID,
@@ -256,8 +256,8 @@ def _git_head(root: Path) -> str:
 
 
 def foundation_reconcile_ledger(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
-    """Record Gap 1 verification in the live workspace or emit offline commands."""
-    head = _git_head(root)
+    """Build reconciliation commands; execute only with explicit intent."""
+    head = ""
     review = foundation_review(root, argparse.Namespace(verbose=False, in_place=False))
     verify_command = "python3 tools/conversation_os.py foundation review"
     evidence = f"branch cursor/metaphysical-kernel-contracts-423a @ {head}; {verify_command}; passed={review['passed']}"
@@ -360,16 +360,20 @@ def foundation_reconcile_ledger(root: Path, args: argparse.Namespace) -> Dict[st
                 ]
             )
 
+    planned = {
+        "mode": "planned",
+        "workspace_id": FOUNDATION_WORKSPACE_ID,
+        "api_reachable": False,
+        "foundation_review_passed": review["passed"],
+        "commands": [" ".join(command) for command in command_template],
+        "documentation": "docs/workboards/unified-metaphysical-foundation/GAP-2-RECONCILIATION.md",
+    }
+    if not getattr(args, "execute", False):
+        return planned
+
     api_base = _workspace_api_base()
     if not api_base:
-        return {
-            "mode": "offline",
-            "workspace_id": FOUNDATION_WORKSPACE_ID,
-            "api_reachable": False,
-            "foundation_review_passed": review["passed"],
-            "commands": [" ".join(command) for command in command_template],
-            "documentation": "docs/workboards/unified-metaphysical-foundation/GAP-2-RECONCILIATION.md",
-        }
+        return {**planned, "mode": "offline"}
 
     import urllib.error
     import urllib.request
@@ -517,6 +521,49 @@ def foundation_review(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
             "validation_errors": slice_result.get("validation_errors", []),
         },
     )
+
+    adoption_slice = run_vertical_slice(
+        review_root,
+        session_event={
+            "event_id": "event-foundation-review-adoption",
+            "session_id": "session-foundation-review",
+            "timestamp": utc_now(),
+            "actor": "agent:reviewer",
+            "kind": "request",
+            "content": "Automated review State adoption.",
+        },
+        referent_label="Review adoption subject",
+        claim_predicate="has_level",
+        claim_arguments=["low"],
+        branch_id="branch_main",
+        scope_id="scope_foundation",
+        adopt_state=True,
+        state_value="low",
+    )
+    record(
+        "state_adoption",
+        not adoption_slice.get("validation_errors")
+        and len(FoundationRuntime(review_root).current_bundle().get("states", [])) == 1,
+        {"validation_errors": adoption_slice.get("validation_errors", [])},
+    )
+
+    runtime = FoundationRuntime(review_root)
+    events_before_rejection = len(runtime.store.read_events())
+    try:
+        runtime.commit_state_from_claims(
+            source_claim_ids=["claim-missing"],
+            branch_id="branch_main",
+            scope_id="scope_foundation",
+            subject_refs=["ref-missing"],
+            state_type="review:state",
+            value="invalid",
+            value_type="text",
+            provenance_id=str(slice_result["source_fragment_id"]),
+        )
+        rejected = False
+    except ContractValidationError:
+        rejected = len(runtime.store.read_events()) == events_before_rejection
+    record("state_adoption_rejected_without_write", rejected, {"event_count": events_before_rejection})
 
     validated = foundation_validate(review_root)
     record(

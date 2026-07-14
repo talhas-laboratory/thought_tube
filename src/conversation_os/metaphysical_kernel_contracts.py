@@ -56,6 +56,9 @@ GOVERNANCE_VALUES = {
     "deprecated",
     "quarantined",
 }
+SOURCE_KIND_VALUES = {"user_input", "document", "observation", "simulation_output", "import"}
+MODAL_SCOPE_VALUES = {"actual", "possible", "fictional", "counterfactual", "desired"}
+BRANCH_KIND_VALUES = {"interpretation", "counterfactual", "agent_belief", "simulation", "main"}
 
 FORBIDDEN_KERNEL_REDEFINITIONS = frozenset(
     {
@@ -145,12 +148,80 @@ def validate_lifecycle_independence(envelope: KernelRecordEnvelope) -> List[str]
     return errors
 
 
-def validate_state_claim_disjoint(record_kind: str) -> List[str]:
-    """State and Claim are disjoint functional roles (§6.1)."""
-    section = FRAMEWORK_SECTIONS["state"]
-    if record_kind == "claim" and record_kind == "state":
-        return [f"[{section}] record cannot be both State and Claim"]
-    return []
+def validate_source_fragment(fragment: SourceFragment) -> List[str]:
+    """Preserved input must remain addressable and integrity-bound (§5.1)."""
+    section = FRAMEWORK_SECTIONS["source_fragment"]
+    errors = validate_envelope(fragment.envelope)
+    if fragment.envelope.record_kind != "source_fragment":
+        errors.append(f"[{section}] envelope.record_kind must be source_fragment")
+    if not fragment.media_type:
+        errors.append(f"[{section}] media_type is required")
+    if not fragment.content_pointer:
+        errors.append(f"[{section}] content_pointer is required")
+    if not fragment.author_or_origin:
+        errors.append(f"[{section}] author_or_origin is required")
+    if not fragment.captured_at:
+        errors.append(f"[{section}] captured_at is required")
+    if not fragment.integrity_hash:
+        errors.append(f"[{section}] integrity_hash is required")
+    if fragment.source_kind not in SOURCE_KIND_VALUES:
+        errors.append(f"[{section}] invalid source_kind")
+    return errors
+
+
+def validate_referent(referent: Referent) -> List[str]:
+    """Referents need stable identity and a human-readable label (§5.2)."""
+    section = FRAMEWORK_SECTIONS["referent"]
+    errors = validate_envelope(referent.envelope)
+    if referent.envelope.record_kind != "referent":
+        errors.append(f"[{section}] envelope.record_kind must be referent")
+    if not referent.canonical_label:
+        errors.append(f"[{section}] canonical_label is required")
+    if not referent.identity_policy_id:
+        errors.append(f"[{section}] identity_policy_id is required")
+    return errors
+
+
+def validate_scope(scope: Scope) -> List[str]:
+    """Scopes must state a boundary rule and supported modality (§5.3)."""
+    section = FRAMEWORK_SECTIONS["scope"]
+    errors = validate_envelope(scope.envelope)
+    if scope.envelope.record_kind != "scope":
+        errors.append(f"[{section}] envelope.record_kind must be scope")
+    if scope.modal_scope not in MODAL_SCOPE_VALUES:
+        errors.append(f"[{section}] invalid modal_scope")
+    return errors
+
+
+def validate_relation_instance(relation: RelationInstance) -> List[str]:
+    """Relations require a type, participants, and an effective scope (§5.6)."""
+    section = FRAMEWORK_SECTIONS["relation_instance"]
+    errors = validate_envelope(relation.envelope)
+    if relation.envelope.record_kind != "relation_instance":
+        errors.append(f"[{section}] envelope.record_kind must be relation_instance")
+    if not relation.type_id:
+        errors.append(f"[{section}] type_id is required")
+    if not relation.participants:
+        errors.append(f"[{section}] participants are required")
+    for participant in relation.participants:
+        if not participant.role or not participant.ref:
+            errors.append(f"[{section}] each participant requires role and ref")
+    if not relation.scope_id:
+        errors.append(f"[{section}] scope_id is required")
+    return errors
+
+
+def validate_model_branch(branch: ModelBranch) -> List[str]:
+    """Model branches must be explicitly typed (§5.11)."""
+    section = FRAMEWORK_SECTIONS["model_branch"]
+    errors = validate_envelope(branch.envelope)
+    if branch.envelope.record_kind != "model_branch":
+        errors.append(f"[{section}] envelope.record_kind must be model_branch")
+    if branch.branch_kind not in BRANCH_KIND_VALUES:
+        errors.append(f"[{section}] invalid branch_kind")
+    if not branch.merge_status:
+        errors.append(f"[{section}] merge_status is required")
+    return errors
 
 
 def validate_claim(claim: Claim, memberships: Sequence[BranchMembership]) -> List[str]:
@@ -171,10 +242,18 @@ def validate_claim(claim: Claim, memberships: Sequence[BranchMembership]) -> Lis
     claim_memberships = [
         membership
         for membership in memberships
-        if membership.record_id == claim.envelope.id and membership.branch_id == claim.branch_id
+        if membership.record_id == claim.envelope.id
     ]
     if not claim_memberships:
         errors.append(f"[{FRAMEWORK_SECTIONS['branch_membership']}] claim requires BranchMembership")
+    elif not any(
+        membership.branch_id == claim.branch_id
+        and membership.effective_scope_id == claim.scope_id
+        for membership in claim_memberships
+    ):
+        errors.append(
+            f"[{FRAMEWORK_SECTIONS['branch_membership']}] claim BranchMembership must match claim scope"
+        )
     return errors
 
 
@@ -574,51 +653,139 @@ def profile_conformance_result_from_dict(payload: Mapping[str, Any]) -> ProfileC
 
 
 def validate_fixture_bundle(bundle: Mapping[str, Any]) -> List[str]:
-    """Validate a coordinated fixture bundle used in tests."""
+    """Validate every implemented record and its cross-record invariants.
+
+    This is the one kernel conformance boundary used by fixtures and runtime
+    preflight. It intentionally validates a bundle as a whole: duplicate IDs
+    and dangling references cannot be detected by isolated record validators.
+    """
     errors: List[str] = []
-    source_fragments = {
-        item.envelope.id: item
-        for item in [source_fragment_from_dict(payload) for payload in bundle.get("source_fragments", [])]
+
+    def parse_collection(key: str, loader: Any) -> list[Any]:
+        payloads = bundle.get(key, [])
+        if not isinstance(payloads, list):
+            errors.append(f"[{FRAMEWORK_SECTIONS['record_envelope']}] {key} must be a list")
+            return []
+        records: list[Any] = []
+        for payload in payloads:
+            try:
+                records.append(loader(payload))
+            except ContractValidationError as exc:
+                section = exc.section or FRAMEWORK_SECTIONS["record_envelope"]
+                errors.append(f"[{section}] {key}: {exc}")
+        return records
+
+    source_fragments = parse_collection("source_fragments", source_fragment_from_dict)
+    referents = parse_collection("referents", referent_from_dict)
+    scopes = parse_collection("scopes", scope_from_dict)
+    relations = parse_collection("relation_instances", relation_instance_from_dict)
+    provenances = parse_collection("provenances", provenance_from_dict)
+    branches = parse_collection("model_branches", model_branch_from_dict)
+    memberships = parse_collection("branch_memberships", branch_membership_from_dict)
+    commitments = parse_collection("state_commitments", state_commitment_from_dict)
+    claims = parse_collection("claims", claim_from_dict)
+    states = parse_collection("states", state_from_dict)
+    profiles = parse_collection("profile_definitions", profile_definition_from_dict)
+    conformance = parse_collection("profile_conformance_results", profile_conformance_result_from_dict)
+
+    collections = {
+        "source_fragment": source_fragments,
+        "referent": referents,
+        "scope": scopes,
+        "relation_instance": relations,
+        "provenance": provenances,
+        "model_branch": branches,
+        "branch_membership": memberships,
+        "state_commitment": commitments,
+        "claim": claims,
+        "state": states,
+        "profile_definition": profiles,
+        "profile_conformance_result": conformance,
     }
-    provenances = [provenance_from_dict(payload) for payload in bundle.get("provenances", [])]
-    memberships = [
-        branch_membership_from_dict(payload) for payload in bundle.get("branch_memberships", [])
-    ]
-    commitments = [
-        state_commitment_from_dict(payload) for payload in bundle.get("state_commitments", [])
-    ]
-    claims = [claim_from_dict(payload) for payload in bundle.get("claims", [])]
-    states = [state_from_dict(payload) for payload in bundle.get("states", [])]
-    profiles = [profile_definition_from_dict(payload) for payload in bundle.get("profile_definitions", [])]
-    conformance = [
-        profile_conformance_result_from_dict(payload)
-        for payload in bundle.get("profile_conformance_results", [])
-    ]
+    all_records = [record for records in collections.values() for record in records]
 
-    for record in source_fragments.values():
-        errors.extend(validate_envelope(record.envelope))
+    records_by_id: dict[str, Any] = {}
+    record_kind_by_id: dict[str, str] = {}
+    for record in all_records:
+        record_id = record.envelope.id
+        record_kind = record.envelope.record_kind
+        if record_id in records_by_id:
+            existing_kind = record_kind_by_id[record_id]
+            if {existing_kind, record_kind} == {"state", "claim"}:
+                errors.append(f"[§6.1] duplicate record id {record_id} violates State–Claim disjointness")
+            else:
+                errors.append(f"[{FRAMEWORK_SECTIONS['record_envelope']}] duplicate record id {record_id}")
+            continue
+        records_by_id[record_id] = record
+        record_kind_by_id[record_id] = record_kind
 
+    for record in source_fragments:
+        errors.extend(validate_source_fragment(record))
+    for record in referents:
+        errors.extend(validate_referent(record))
+    for record in scopes:
+        errors.extend(validate_scope(record))
+    for record in relations:
+        errors.extend(validate_relation_instance(record))
+    for record in branches:
+        errors.extend(validate_model_branch(record))
     for provenance in provenances:
         errors.extend(
-            validate_provenance_closure(provenance, known_source_fragment_ids=set(source_fragments))
+            validate_provenance_closure(
+                provenance,
+                known_source_fragment_ids={record.envelope.id for record in source_fragments},
+            )
         )
-
     for membership in memberships:
         errors.extend(validate_branch_membership(membership))
-
     for commitment in commitments:
         errors.extend(validate_state_commitment(commitment, memberships))
-
     for claim in claims:
         errors.extend(validate_claim(claim, memberships))
-
     for state in states:
         errors.extend(validate_state(state, commitments, memberships, claims))
-
     for profile in profiles:
         errors.extend(validate_profile_definition(profile))
-
     for result in conformance:
         errors.extend(validate_profile_conformance(result))
+
+    provenance_ids = {record.envelope.id for record in provenances}
+    for record in all_records:
+        provenance_id = record.envelope.provenance_id
+        if provenance_id and provenance_id not in provenance_ids:
+            errors.append(
+                f"[{FRAMEWORK_SECTIONS['provenance']}] {record.envelope.record_kind} "
+                f"{record.envelope.id} envelope.provenance_id does not resolve"
+            )
+
+    for membership in memberships:
+        if membership.record_id not in records_by_id:
+            errors.append(
+                f"[{FRAMEWORK_SECTIONS['branch_membership']}] "
+                f"BranchMembership.record_id does not resolve: {membership.record_id}"
+            )
+        if membership.membership_provenance_id not in provenance_ids:
+            errors.append(
+                f"[{FRAMEWORK_SECTIONS['branch_membership']}] "
+                "membership_provenance_id does not resolve to Provenance"
+            )
+
+    claim_ids = {record.envelope.id for record in claims}
+    state_ids = {record.envelope.id for record in states}
+    for commitment in commitments:
+        if commitment.commitment_provenance_id not in provenance_ids:
+            errors.append(
+                f"[{FRAMEWORK_SECTIONS['state_commitment']}] "
+                "commitment_provenance_id does not resolve to Provenance"
+            )
+        if commitment.resulting_state_id not in state_ids:
+            errors.append(
+                f"[{FRAMEWORK_SECTIONS['state_commitment']}] resulting_state_id does not resolve to State"
+            )
+        for claim_id in commitment.source_claim_ids:
+            if claim_id not in claim_ids:
+                errors.append(
+                    f"[{FRAMEWORK_SECTIONS['state_commitment']}] source claim {claim_id} does not exist"
+                )
 
     return errors

@@ -106,6 +106,53 @@ class MetaphysicalKernelContractTestCase(unittest.TestCase):
         errors = validate_fixture_bundle(_load_fixture("invalid_claim_without_membership.json"))
         self.assertTrue(any("BranchMembership" in error for error in errors))
 
+    def test_claim_membership_must_match_claim_scope(self) -> None:
+        bundle = _load_fixture("valid_state_commitment_path.json")
+        bundle["branch_memberships"][0]["effective_scope_id"] = "scope_other"
+
+        errors = validate_fixture_bundle(bundle)
+
+        self.assertTrue(any("claim BranchMembership must match claim scope" in error for error in errors))
+
+    def test_bundle_rejects_duplicate_state_and_claim_identity(self) -> None:
+        bundle = _load_fixture("valid_state_commitment_path.json")
+        duplicate_claim = json.loads(json.dumps(bundle["claims"][0]))
+        duplicate_claim["envelope"]["id"] = bundle["states"][0]["envelope"]["id"]
+        bundle["claims"].append(duplicate_claim)
+
+        errors = validate_fixture_bundle(bundle)
+
+        self.assertTrue(any("duplicate record id" in error and "§6.1" in error for error in errors))
+
+    def test_bundle_validates_previously_skipped_record_kinds(self) -> None:
+        bundle = _load_fixture("valid_minimal_capture.json")
+        bundle.update(
+            {
+                "referents": [{"envelope": {"record_kind": "referent"}}],
+                "scopes": [{"envelope": {"record_kind": "scope"}, "modal_scope": "invalid"}],
+                "relation_instances": [{"envelope": {"record_kind": "relation_instance"}}],
+                "model_branches": [
+                    {"envelope": {"record_kind": "model_branch"}, "branch_kind": "invalid"}
+                ],
+            }
+        )
+        bundle["source_fragments"][0]["content_pointer"] = ""
+
+        errors = validate_fixture_bundle(bundle)
+
+        for section in ("§5.1", "§5.2", "§5.3", "§5.6", "§5.11"):
+            self.assertTrue(any(section in error for error in errors), section)
+
+    def test_bundle_rejects_dangling_envelope_provenance_and_membership_target(self) -> None:
+        bundle = _load_fixture("valid_state_commitment_path.json")
+        bundle["claims"][0]["envelope"]["provenance_id"] = "prov_missing"
+        bundle["branch_memberships"][0]["record_id"] = "record_missing"
+
+        errors = validate_fixture_bundle(bundle)
+
+        self.assertTrue(any("envelope.provenance_id does not resolve" in error for error in errors))
+        self.assertTrue(any("BranchMembership.record_id does not resolve" in error for error in errors))
+
     def test_invalid_state_without_commitment_fixture(self) -> None:
         errors = validate_fixture_bundle(_load_fixture("invalid_state_without_commitment.json"))
         self.assertTrue(any("StateCommitment" in error for error in errors))

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from conversation_os.metaphysical_kernel_cli import (
@@ -36,31 +37,43 @@ class MetaphysicalKernelCliTestCase(unittest.TestCase):
         import argparse
 
         root = Path(__file__).resolve().parents[1]
-        result = foundation_review(
-            root,
-            argparse.Namespace(verbose=False, in_place=False),
-        )
+        with mock.patch(
+            "conversation_os.metaphysical_kernel_cli.foundation_test",
+            return_value={"passed": True, "returncode": 0},
+        ):
+            result = foundation_review(
+                root,
+                argparse.Namespace(verbose=False, in_place=False),
+            )
         self.assertTrue(result["passed"], result["steps"])
         self.assertTrue(result["ephemeral"])
         step_names = [step["step"] for step in result["steps"]]
         self.assertIn("adversarial_state_fixtures", step_names)
 
-    def test_foundation_reconcile_ledger_offline_mode(self) -> None:
+    def test_foundation_reconcile_ledger_is_plan_only_without_execute_intent(self) -> None:
         import argparse
 
         root = Path(__file__).resolve().parents[1]
-        result = foundation_reconcile_ledger(
-            root,
-            argparse.Namespace(
-                agent_id="test-agent",
-                surface="test",
-                session_id="test-session",
-                dry_run=False,
-            ),
-        )
-        self.assertEqual(result["mode"], "offline")
+        with (
+            mock.patch("conversation_os.metaphysical_kernel_cli.foundation_review", return_value={"passed": True}),
+            mock.patch("conversation_os.metaphysical_kernel_cli._workspace_api_base") as api_base,
+            mock.patch("conversation_os.metaphysical_kernel_cli.subprocess.run") as run,
+        ):
+            result = foundation_reconcile_ledger(
+                root,
+                argparse.Namespace(
+                    agent_id="test-agent",
+                    surface="test",
+                    session_id="test-session",
+                    dry_run=False,
+                    execute=False,
+                ),
+            )
+        self.assertEqual(result["mode"], "planned")
         self.assertFalse(result["api_reachable"])
         self.assertGreaterEqual(len(result["commands"]), 1)
+        api_base.assert_not_called()
+        run.assert_not_called()
 
 
 if __name__ == "__main__":

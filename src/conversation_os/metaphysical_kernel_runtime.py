@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set
 
-from conversation_os.metaphysical_kernel_contracts import validate_fixture_bundle
+from conversation_os.metaphysical_kernel_contracts import ContractValidationError, validate_fixture_bundle
 from conversation_os.metaphysical_kernel_store import FoundationStore, RECORD_COLLECTION_KEYS, RECORD_KIND_TO_KEY
 from conversation_os.storage import make_id, utc_now
 
@@ -239,6 +239,7 @@ class FoundationRuntime:
                 epistemic_status="not_applicable",
             ),
             "modal_scope": "actual",
+            "boundary_rule": f"explicit:{scope_id}",
             "domain": domain,
             "task": task,
         }
@@ -298,8 +299,26 @@ class FoundationRuntime:
         provenance_id: str,
         membership_kind: str = "asserted",
     ) -> Dict[str, Any]:
+        record = self._branch_membership_record(
+            record_id=record_id,
+            branch_id=branch_id,
+            scope_id=scope_id,
+            provenance_id=provenance_id,
+            membership_kind=membership_kind,
+        )
+        return self._append_record(record)
+
+    def _branch_membership_record(
+        self,
+        *,
+        record_id: str,
+        branch_id: str,
+        scope_id: str,
+        provenance_id: str,
+        membership_kind: str,
+    ) -> Dict[str, Any]:
         membership_id = make_id("bm")
-        record = {
+        return {
             "envelope": self._base_envelope(
                 membership_id,
                 "branch_membership",
@@ -314,7 +333,6 @@ class FoundationRuntime:
             "introduced_by": self.actor,
             "membership_provenance_id": provenance_id,
         }
-        return self._append_record(record)
 
     def assert_claim(
         self,
@@ -406,22 +424,36 @@ class FoundationRuntime:
             "valid_scope_id": scope_id,
             "commitment_id": commitment_id,
         }
-        self._append_record(commitment)
-        self._append_record(state)
-        self.attach_branch_membership(
+        commitment_membership = self._branch_membership_record(
             record_id=commitment_id,
             branch_id=branch_id,
             scope_id=scope_id,
             provenance_id=provenance_id,
             membership_kind="asserted",
         )
-        self.attach_branch_membership(
+        state_membership = self._branch_membership_record(
             record_id=state_id,
             branch_id=branch_id,
             scope_id=scope_id,
             provenance_id=provenance_id,
             membership_kind="derived",
         )
+
+        proposed_records = [commitment, state, commitment_membership, state_membership]
+        prospective_bundle = self.current_bundle()
+        for record in proposed_records:
+            envelope = record["envelope"]
+            collection = RECORD_KIND_TO_KEY[str(envelope["record_kind"])]
+            prospective_bundle[collection] = list(prospective_bundle.get(collection, [])) + [record]
+        errors = validate_fixture_bundle(prospective_bundle)
+        if errors:
+            raise ContractValidationError(
+                "invalid_state_adoption",
+                "; ".join(errors),
+                "§5.16",
+            )
+
+        self.store.append_records(proposed_records, actor=self.actor)
         return {"state_commitment": commitment, "state": state}
 
     def retract_record(self, record_id: str, *, reason: str = "") -> Dict[str, Any]:

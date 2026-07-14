@@ -1573,6 +1573,11 @@ def build_parser() -> argparse.ArgumentParser:
     foundation_reconcile_parser.add_argument("--surface", default="cursor")
     foundation_reconcile_parser.add_argument("--session-id", default="session-foundation-reconcile")
     foundation_reconcile_parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Authorize connected workspace reads and reconciliation mutations",
+    )
+    foundation_reconcile_parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Check API reachability and print commands without mutating live workspace",
