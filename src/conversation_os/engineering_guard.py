@@ -53,7 +53,10 @@ def _normalized_test_targets_for_source_path(source_path: str) -> set[str]:
     module_relative = source_path[len("src/") :]
     stem = Path(module_relative).stem
     parent = Path(module_relative).parent
-    targets = {str(Path("tests") / parent / f"test_{stem}.py")}
+    targets = {
+        str(Path("tests") / parent / f"test_{stem}.py"),
+        str(Path("tests") / f"test_{stem}.py"),
+    }
     if module_relative.startswith("conversation_os/"):
         targets.add("tests/test_conversation_os.py")
     return targets

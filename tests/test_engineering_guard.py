@@ -9,7 +9,7 @@ from pathlib import Path
 
 from conversation_os.cli import guarded_main, init_repo, main
 from conversation_os.codebase_overview import load_module_manifests, lookup_codebase, refresh_codebase_overview
-from conversation_os.engineering_guard import assess_change_request
+from conversation_os.engineering_guard import _is_allowed_test_companion, assess_change_request
 from conversation_os.storage import read_json
 
 
@@ -163,6 +163,13 @@ class EngineeringGuardTestCase(unittest.TestCase):
         self.assertIn("src/conversation_os/personal_interface_mcp.py", recommended)
         self.assertTrue(assessment["questions_to_answer"])
         self.assertTrue(assessment["minimality_checks"])
+
+    def test_flat_test_file_is_allowed_as_source_companion(self) -> None:
+        source_path = "src/conversation_os/metaphysical_kernel_contracts.py"
+        test_path = "tests/test_metaphysical_kernel_contracts.py"
+
+        self.assertTrue(_is_allowed_test_companion(test_path, [source_path, test_path], []))
+        self.assertFalse(_is_allowed_test_companion("tests/test_metaphysical_kernel_runtime.py", [source_path], []))
 
     def test_cli_repo_overview_and_engineering_guard_commands(self) -> None:
         exit_code, overview = self._run_cli(["repo-overview", "refresh"])
