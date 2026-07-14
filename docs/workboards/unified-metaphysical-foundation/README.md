@@ -13,7 +13,7 @@ Live workspace id: `unified-framework-synthesis`
 
 ## Agent Start Protocol
 
-1. Read `README.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and the latest entries in `UPDATES.jsonl`.
+1. Read `README.md`, `REVIEWER-START.md`, `GAP-REPORT-2026-07-12.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and the latest entries in `UPDATES.jsonl`.
 2. Claim one task by editing its task file and adding an update row.
 3. Work only inside the task scope unless the board owner expands it.
 4. Record decisions before relying on them.

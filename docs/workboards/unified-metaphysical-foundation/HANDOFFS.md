@@ -1,6 +1,22 @@
 # Handoffs
 
-## 2026-07-13 — Gap 1 repair in progress
+## 2026-07-14 — Reviewer documentation refresh
+
+**Agent:** cursor-cloud-agent  
+**Branch:** `cursor/metaphysical-kernel-contracts-423a`
+
+Updated [`REVIEWER-START.md`](./REVIEWER-START.md) with current status, all 10 `foundation review` steps,
+Gap 1 spot-checks, Gap 2 merge gate, manifests path, and 63-test count.
+
+**Reviewer entry point:** [`REVIEWER-START.md`](./REVIEWER-START.md)
+
+```bash
+python3 tools/conversation_os.py foundation review
+```
+
+---
+
+## 2026-07-13 — Gap 1 repair complete
 
 **Agent:** cursor-cloud-agent  
 **Branch:** `cursor/metaphysical-kernel-contracts-423a`  

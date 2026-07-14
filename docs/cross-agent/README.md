@@ -41,7 +41,7 @@ Optional local machine replay (gitignored):
 | Thread | Workspace | Task pack | Transcript |
 |--------|-----------|-----------|------------|
 | **Unified framework synthesis** | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + 8 analyses](../workspaces/unified-framework-synthesis/) |
-| **Phase 1 kernel implementation (review)** | [workboard](../workboards/unified-metaphysical-foundation/REVIEWER-START.md) | PR [#11](https://github.com/talhas-laboratory/thought_tube/pull/11) | `cursor/metaphysical-kernel-contracts-423a` |
+| **Phase 1 kernel implementation (review)** | [REVIEWER-START](../workboards/unified-metaphysical-foundation/REVIEWER-START.md) | PR [#11](https://github.com/talhas-laboratory/thought_tube/pull/11) | `cursor/metaphysical-kernel-contracts-423a` |
 | MTSF activation | — | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](../continuity/cursor-mtsf-activation-thread-2026-07-07.md) |
 
 ## Capture a new Cursor thread

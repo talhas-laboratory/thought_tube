@@ -26,7 +26,9 @@ Framework v1.1 (paper)
 
 **Test status:** 63/63 passing (`foundation test` runs 58 kernel tests; add `tests.test_metaphysical_kernel_cli` for 63 total)
 
-**Workboard:** TASK-001 through TASK-005 are in `review`.
+**Audit:** See [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md). Gap 1 repaired on branch; Gap 2 (live ledger) open until [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) completes.
+
+**Workboard:** TASK-001 through TASK-005 are `blocked` pending live ledger reconciliation (formal blocker `blocker-7f7662afad54`).
 
 ---
 
@@ -217,10 +219,13 @@ From workspace v1.1 cutover and implementation:
 Run in order:
 
 ```bash
-# 0. One-shot automated review (preferred)
+# 0. One-shot automated review (preferred — includes adversarial state fixtures)
 python3 tools/conversation_os.py foundation review
 
-# 1. Full test suite
+# 1. CLI handler tests (not in foundation test)
+PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
+
+# 2. Full kernel test suite (verbose)
 python3 tools/conversation_os.py foundation test --verbose
 
 # 2. Empty store status
@@ -243,9 +248,13 @@ python3 tools/conversation_os.py foundation conformance
 # 5. Migration fixture
 python3 tools/conversation_os.py foundation migrate-fixture \
   --fixture-path tests/fixtures/migration/sds_signal_dilution.json
+
+# 6. Live workspace reconciliation (connected surface only — required before merge)
+python3 tools/conversation_os.py foundation reconcile-ledger --dry-run
+python3 tools/conversation_os.py foundation reconcile-ledger
 ```
 
-**Expected:** all tests pass; `foundation validate` returns `"valid": true` after slice/consumers; migration fixture `"valid": true`.
+**Expected:** `foundation review` → `"passed": true` (all 10 steps); adversarial state fixtures rejected; after reconcile-ledger → live tasks move to `review` and blocker `blocker-7f7662afad54` resolved.
 
 ---
 
@@ -256,8 +265,9 @@ python3 tools/conversation_os.py foundation migrate-fixture \
 | Shape / Conversation / Pattern profiles | Not registered; `derive_shape` abstains |
 | `field`, `hold`, `formation` profile record instances | Projections only in SDK; not persisted as kernel records |
 | CLI `session_append --foundation-capture` | Not wired; use `foundation capture` or SDK |
-| Module manifests for new kernel files | Not added; repo-wide manifest gap on branch |
-| Live workspace API | Unreachable from cloud agent; git projection used |
+| Kernel module manifests | Tracked in `manifests/`; copy to `context/substrate/modules/` locally |
+| Repo-wide module manifests | Not recovered; engineering guard may report `needs_index` |
+| Live workspace ledger | Must be reconciled via `foundation reconcile-ledger` before merge |
 | Round-trip inverse migration loaders | Not implemented |
 | Production auth | SDK uses `ApplicationContext.authorized` flag only |
 
@@ -265,11 +275,12 @@ python3 tools/conversation_os.py foundation migrate-fixture \
 
 ## 7. Review questions (suggested)
 
-1. Do contract field names and lifecycle literals match v1.1 §4–6, §22 exactly enough for Phase 2?
-2. Are migration loss reports complete for deferred profile concepts?
-3. Does bounded view isolation correctly prevent cross-branch leakage in realistic bundles?
-4. Is `profile:field_formation` v1.0.0 sufficient as first normative profile, or should Field and Formation split?
-5. Should `session_append` auto-capture to foundation be opt-in in a follow-up PR?
+1. Does `validate_state_adoption_links` fully enforce §5.16 / §6.11 (re-run adversarial fixtures)?
+2. Do contract field names and lifecycle literals match v1.1 §4–6, §22 exactly enough for Phase 2?
+3. Are migration loss reports complete for deferred profile concepts?
+4. Does bounded view isolation correctly prevent cross-branch leakage in realistic bundles?
+5. Is live workspace ledger reconciled (`blocker-7f7662afad54` resolved)?
+6. Is `profile:field_formation` v1.0.0 sufficient as first normative profile, or should Field and Formation split?
 
 ---
 
@@ -294,11 +305,15 @@ tests/
   test_metaphysical_kernel_runtime.py
   test_metaphysical_kernel_profile_registry.py
   test_metaphysical_kernel_application_sdk.py
-  fixtures/metaphysical_kernel/
+  fixtures/metaphysical_kernel/   # valid + invalid + Gap 1 adversarial
   fixtures/migration/
 
 docs/workboards/unified-metaphysical-foundation/
-  tasks/TASK-001 … TASK-005    # per-task packets + verification evidence
+  REVIEWER-START.md              # start here
+  GAP-REPORT-2026-07-12.md
+  GAP-2-RECONCILIATION.md
+  manifests/                     # tracked kernel module manifests
+  tasks/TASK-001 … TASK-005
   TASKS.md
   TOOLS.md
   PHASE-1-IMPLEMENTATION-REVIEW.md   # this file
@@ -309,11 +324,11 @@ docs/workboards/unified-metaphysical-foundation/
 
 ## 9. Suggested next work after merge
 
-1. Merge PR #11 into `codex/unified-framework-sync`.
+1. Merge PR #11 into `codex/unified-framework-sync` (only after Gap 2 reconciliation).
 2. Opt-in `session_append` → foundation capture flag.
 3. Register Shape profile; implement `derive_shape` beyond abstain.
-4. Wire World Studio / workspace services to `FoundationApplicationSdk` at application boundaries (not kernel).
-5. Add module manifests for kernel modules when repo manifest tranche is ready.
+4. Wire World Studio / workspace services to `FoundationApplicationSdk` at application boundaries.
+5. Continue repo-wide module manifest recovery.
 
 ---
 
@@ -322,6 +337,8 @@ docs/workboards/unified-metaphysical-foundation/
 | Need | Location |
 |------|----------|
 | Reviewer fast path | [`REVIEWER-START.md`](./REVIEWER-START.md) |
+| Audit / gaps | [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md) |
+| Live ledger reconciliation | [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) |
 | CLI tools | [`TOOLS.md`](./TOOLS.md) |
 | Per-task acceptance | [`tasks/`](./tasks/) |
 | Build sequencing | [`../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md`](../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md) |

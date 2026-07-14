@@ -119,12 +119,14 @@ python3 tools/conversation_os.py engineering-guard assess \
   --proposed-paths "src/conversation_os/metaphysical_kernel_....py"
 ```
 
-Note: guard may report `needs_index` due to repo-wide missing module manifests on this branch; kernel tests are the authoritative verification for Phase 1.
+Note: install kernel manifests from `docs/workboards/unified-metaphysical-foundation/manifests/` into `context/substrate/modules/` before `repo-overview refresh`. Kernel tests and `foundation review` are the authoritative Phase 1 gates.
 
 ## Review reading order
 
-1. [`REVIEWER-START.md`](./REVIEWER-START.md) — one-command verify + reading order
-2. `PHASE-1-IMPLEMENTATION-REVIEW.md` (this workboard) — architecture + task map
-2. `tasks/TASK-001` … `tasks/TASK-005` — per-task acceptance + verification
-3. `docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md` — normative sequencing
-4. Framework v1.1 sections 4–6, 8A, 20, 22, Appendix F
+1. [`REVIEWER-START.md`](./REVIEWER-START.md) — status, one-command verify, merge gates
+2. [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md) — audit findings
+3. [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) — live workspace ledger
+4. [`PHASE-1-IMPLEMENTATION-REVIEW.md`](./PHASE-1-IMPLEMENTATION-REVIEW.md) — architecture + task map
+5. [`tasks/TASK-001`](./tasks/TASK-001-lock-kernel-contracts-and-lifecycles.md) … [`TASK-005`](./tasks/TASK-005-prove-application-sdk-with-two-consumers.md)
+6. [`../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md`](../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md)
+7. Framework v1.1 sections 4–6, 8A, 20, 22, Appendix F

@@ -57,15 +57,15 @@ Generated context pack: `context/task_packs/unified-metaphysical-foundation-sche
 - `python3 tools/conversation_os.py repo-overview refresh` — 0 errors
 - `python3 tools/conversation_os.py repo-overview validate` — 0 errors; 1 repo-wide warning (129 modules without manifests on this branch, pre-existing)
 - Implementation: `src/conversation_os/metaphysical_kernel.py`, `src/conversation_os/metaphysical_kernel_contracts.py`
-- Fixtures: `tests/fixtures/metaphysical_kernel/*.json` (2 valid, 3 invalid adversarial cases)
+- Fixtures: `tests/fixtures/metaphysical_kernel/*.json` (2 valid, 7 invalid including Gap 1 adversarial cases)
 
 ## Updates
 
 - Created: `2026-07-12T14:18:38.450683+00:00`
 - Readiness completed: canonical source, scope, failure modes, acceptance criteria, and test strategy recorded.
 - Implementation completed (2026-07-12): kernel record dataclasses, contract validators, fixtures, and 12 invariant tests.
-- Blocked pending Gap 1 repair per .
-- Blocked by audit: `blocker-7f7662afad54` records a reproduced cross-branch StateCommitment/State/BranchMembership validation gap in the unmerged Phase 1 branch. See `GAP-REPORT-2026-07-12.md`.
+- Gap 1 repaired (2026-07-13): `validate_state_adoption_links` + four adversarial fixtures; see `REVIEWER-START.md` §4.
+- Blocked by audit: `blocker-7f7662afad54` until live ledger reconciled per `GAP-2-RECONCILIATION.md`.
 
 ## Handoff Notes
 

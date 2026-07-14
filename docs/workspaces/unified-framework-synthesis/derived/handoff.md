@@ -58,6 +58,8 @@ Phase 1 foundation code is implemented on branch `cursor/metaphysical-kernel-con
 
 Verify with: `python3 tools/conversation_os.py foundation review`
 
+Reviewer docs: `docs/workboards/unified-metaphysical-foundation/REVIEWER-START.md`
+
 ## Next actions
 
 1. Review and merge PR #11 into `codex/unified-framework-sync`.
