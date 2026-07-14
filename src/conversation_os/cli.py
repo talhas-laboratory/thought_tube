@@ -157,6 +157,7 @@ from conversation_os.metaphysical_kernel_cli import (
     foundation_migrate_fixture,
     foundation_review,
     foundation_reconcile_ledger,
+    foundation_sync_projections,
     foundation_slice,
     foundation_status,
     foundation_test,
@@ -1577,6 +1578,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Check API reachability and print commands without mutating live workspace",
     )
 
+    foundation_sync_parser = foundation_sub.add_parser(
+        "sync-projections",
+        help="Publish git workboard and continuity projections from live workspace state",
+    )
+    foundation_sync_parser.add_argument("--agent-id", default="projection-sync")
+    foundation_sync_parser.add_argument("--surface", default="cursor")
+    foundation_sync_parser.add_argument("--session-id", default="projection-sync")
+    foundation_sync_parser.add_argument("--dry-run", action="store_true")
+    foundation_sync_parser.add_argument("--check", action="store_true")
+    foundation_sync_parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Use the local workspace store instead of the live API",
+    )
+
     foundation_test_parser = foundation_sub.add_parser("test")
     foundation_test_parser.add_argument("--module", default="")
     foundation_test_parser.add_argument("--verbose", action="store_true")
@@ -2326,6 +2342,8 @@ def main(argv: list[str] | None = None) -> int:
             result = foundation_review(root, args)
         elif args.foundation_command == "reconcile-ledger":
             result = foundation_reconcile_ledger(root, args)
+        elif args.foundation_command == "sync-projections":
+            result = foundation_sync_projections(root, args)
         else:
             raise ValueError(args.foundation_command)
     elif args.command == "personal-interface":

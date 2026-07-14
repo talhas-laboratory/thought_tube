@@ -1,20 +1,20 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 81b8c5f54641428a4a88a2ef7a6077fd08cccbfce1b1f9da860796af29fc7dba -->
+<!-- canonical_revision: a5911c137208b06dcdc16c6deeec44399d2cf013baad12b295140f95960bc5b7 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-12T21:00:44+00:00 -->
+<!-- generated_at: 2026-07-14T15:12:12+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
 ## Resume
 
-Resolve blocker: P1: State adoption validation accepts a State whose BranchMembership conflicts with its StateCommitment branch and scope.
+Select a task to receive a recommended next action.
 
 ## Focus task
 
-- id: `TASK-001-lock-kernel-contracts-and-lifecycles`
-- status: `blocked`
-- title: Lock kernel contracts and lifecycles
+- id: ``
+- status: ``
+- title: 
 
 ## Recent runs
 
@@ -26,4 +26,8 @@ Resolve blocker: P1: State adoption validation accepts a State whose BranchMembe
 
 ## Verification
 
-- none
+- foundation_phase1_review
+- foundation_phase1_review
+- foundation_phase1_review
+- foundation_phase1_review
+- foundation_phase1_review

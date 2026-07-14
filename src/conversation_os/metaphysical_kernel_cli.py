@@ -337,6 +337,23 @@ def foundation_reconcile_ledger(root: Path, args: argparse.Namespace) -> Dict[st
                     "--agent-id",
                     args.agent_id,
                     "--task-status",
+                    "in-progress",
+                    "--reasoning",
+                    "Blocker resolved; resuming Phase 1 close-out.",
+                ]
+            )
+            command_template.append(
+                [
+                    "python3",
+                    "tools/workspace_coordination.py",
+                    "update-task",
+                    "--workspace-id",
+                    FOUNDATION_WORKSPACE_ID,
+                    "--task-id",
+                    task_id,
+                    "--agent-id",
+                    args.agent_id,
+                    "--task-status",
                     "review",
                     "--reasoning",
                     "Phase 1 implementation verified; pending merge approval.",
@@ -396,6 +413,19 @@ def foundation_reconcile_ledger(root: Path, args: argparse.Namespace) -> Dict[st
         if completed.returncode != 0:
             passed = False
 
+    projection_sync: Dict[str, Any] | None = None
+    if passed and review["passed"]:
+        projection_sync = foundation_sync_projections(
+            root,
+            argparse.Namespace(
+                agent_id=args.agent_id,
+                surface=args.surface,
+                session_id=args.session_id,
+                dry_run=False,
+                offline=False,
+            ),
+        )
+
     return {
         "mode": "connected",
         "workspace_id": FOUNDATION_WORKSPACE_ID,
@@ -403,7 +433,29 @@ def foundation_reconcile_ledger(root: Path, args: argparse.Namespace) -> Dict[st
         "foundation_review_passed": review["passed"],
         "passed": passed and review["passed"],
         "results": results,
+        "projection_sync": projection_sync,
     }
+
+
+def foundation_sync_projections(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
+    """Publish git projections from live workspace coordination state."""
+    from conversation_os.workspace_projection_sync import check_workspace_projections, sync_workspace_projections
+
+    api_base = "" if getattr(args, "offline", False) else _workspace_api_base()
+    common = {
+        "api_base": api_base,
+        "agent_id": getattr(args, "agent_id", "projection-sync"),
+        "surface": getattr(args, "surface", "cursor"),
+        "session_id": getattr(args, "session_id", "projection-sync"),
+    }
+    if getattr(args, "check", False):
+        return check_workspace_projections(root, FOUNDATION_WORKSPACE_ID, **common)
+    return sync_workspace_projections(
+        root,
+        FOUNDATION_WORKSPACE_ID,
+        dry_run=getattr(args, "dry_run", False),
+        **common,
+    )
 
 
 def foundation_review(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
@@ -629,6 +681,7 @@ __all__ = [
     "foundation_conformance",
     "foundation_review",
     "foundation_reconcile_ledger",
+    "foundation_sync_projections",
     "MIGRATION_FIXTURE_PATHS",
     "ADVERSARIAL_STATE_FIXTURE_PATHS",
     "FOUNDATION_TASK_IDS",

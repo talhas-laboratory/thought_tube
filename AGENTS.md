@@ -157,6 +157,28 @@ If another agent should continue the work, build a task pack first and hand them
 
 That handoff is the canonical continuity surface for this repo.
 
+## Workspace coordination
+
+When using the live workspace feature (any `workspace_id`):
+
+**Read [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md) first.**
+
+Summary:
+
+1. **Live API** is coordination truth (task status, blockers, verification). **Git** is code truth. Workboard markdown is a **published mirror**.
+2. **Boot:** `git pull` → query live API → `workspace_projection_sync.py check`
+3. **After every live mutation:** `workspace_projection_sync.py publish` → commit → push
+4. **Never** hand-edit `Status:` in `tasks/*.md` — sync from live instead
+5. **Never** `git add -A` without checking staged file count (avoid mass-staging `runtime/`, `node_modules`)
+
+```bash
+source ~/.config/inner-space-workspace.env 2>/dev/null || true
+python3 tools/workspace_coordination.py context --workspace-id <workspace-id> \
+  --agent-id <agent> --surface <surface> --session-id <session>
+python3 tools/workspace_projection_sync.py publish --workspace-id <workspace-id>
+python3 tools/workspace_projection_sync.py check --workspace-id <workspace-id>
+```
+
 ## Cursor Cloud specific instructions
 
 Pure-Python project (`requires-python >=3.11`, single runtime dependency `mcp`). There is no lint tooling configured and no JS/build step. The startup update script provisions a `.venv` with `mcp` and `pytest`; activate it before doing anything: `. .venv/bin/activate`.

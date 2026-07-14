@@ -7,10 +7,19 @@ Foreign coding agents (Codex, ChatGPT, Claude, local agents) can use this repo a
 Read in this order:
 
 1. [`AGENTS.md`](../../AGENTS.md) — required discipline and core commands
-2. [`context/substrate/AGENT_OPERATING_BRIEF.md`](../../context/substrate/AGENT_OPERATING_BRIEF.md) — repo orientation
-3. **[`docs/workspaces/unified-framework-synthesis/README.md`](../workspaces/unified-framework-synthesis/README.md)** — **full framework workspace** (sources, analyses, continuity)
-4. [`docs/continuity/INDEX.md`](../continuity/INDEX.md) — registry of captured Cursor threads
-5. **Your thread's task pack** — `docs/task_packs/{task-id}.md`
+2. **[`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../workspaces/WORKSPACE-AGENT-PROTOCOL.md)** — **mandatory workspace rules** (live API vs git projections)
+3. [`context/substrate/AGENT_OPERATING_BRIEF.md`](../../context/substrate/AGENT_OPERATING_BRIEF.md) — repo orientation
+4. **[`docs/workspaces/unified-framework-synthesis/README.md`](../workspaces/unified-framework-synthesis/README.md)** — **full framework workspace** (sources, analyses, continuity)
+5. [`docs/continuity/INDEX.md`](../continuity/INDEX.md) — registry of captured Cursor threads
+6. **Your thread's task pack** — `docs/task_packs/{task-id}.md`
+
+Before trusting task status in markdown:
+
+```bash
+git pull origin main
+source ~/.config/inner-space-workspace.env 2>/dev/null || true
+python3 tools/workspace_projection_sync.py check --workspace-id <workspace-id>
+```
 
 Then orient on code:
 
@@ -110,8 +119,8 @@ python3 tools/conversation_os.py session import \
 | Intent | Read | Then |
 |--------|------|------|
 | **Continue design** | Transcript + synthesis docs | Propose schema/plan changes only |
-| **Implement code** | Task pack + `AGENT_OPERATING_BRIEF` | `engineering-guard` → smallest edit |
-| **Review PR** | Task pack + transcript decision register | Compare against agreed next actions |
+| **Implement code** | Task pack + `AGENT_OPERATING_BRIEF` | `engineering-guard` → smallest edit → live verify → `sync-projections` → push |
+| **Review PR** | Live workspace + fresh git projections + diff | Compare against live verification evidence |
 | **Plan next phase** | `docs/plans/` synthesis docs | Update task pack, not parallel ontology |
 
 ## What task packs are (and are not)

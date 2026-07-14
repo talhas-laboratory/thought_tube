@@ -9,18 +9,19 @@ Created: `2026-07-12T14:18:38.440398+00:00`
 Canonical workspace: [`docs/workspaces/unified-framework-synthesis/README.md`](../../workspaces/unified-framework-synthesis/README.md)  
 Normative framework: [`Thought Tube Unified Metaphysical Modeling Framework v1.1`](../../workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)  
 Foundation build plan: [`derived/foundation-build-plan.md`](../../workspaces/unified-framework-synthesis/derived/foundation-build-plan.md)
-Live workspace id: `unified-framework-synthesis`
+Live workspace id: `unified-framework-synthesis`  
+**Universal workspace rules:** [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md)
 
 ## Agent Start Protocol
 
-0. **Fresh local agent:** read [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) first. Ensure you are on `main` at commit `0080fa7` or later (`git fetch origin && git pull origin main`).
-1. Read `README.md`, `REVIEWER-START.md`, `GAP-REPORT-2026-07-12.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and the latest entries in `UPDATES.jsonl`.
-2. Claim one task by editing its task file and adding an update row.
-3. Work only inside the task scope unless the board owner expands it.
-4. Record decisions before relying on them.
-5. Attach verification evidence before moving a task to `review` or `done`.
-6. Cite the governing framework sections and invariants in every implementation task.
-7. Record coordination changes in the live workspace service before treating the board as current.
+0. **Fresh local agent:** read [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) first. Run `git fetch origin && git pull origin main` before searching for any board doc.
+1. Query live workspace (`workspace_coordination.py context`) and run `workspace_projection_sync.py check`.
+2. Read `README.md`, `REVIEWER-START.md`, `GAP-REPORT-2026-07-12.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and latest `UPDATES.jsonl`.
+3. Claim one task via the **live workspace API**; do not hand-edit `Status:` in task files.
+4. Work only inside the task scope unless the board owner expands it.
+5. Record decisions and verification in the live workspace service.
+6. After live mutations, run `workspace_projection_sync.py publish` before handoff or commit.
+7. Cite governing framework sections and invariants in every implementation task.
 
 ## Board Shape
 

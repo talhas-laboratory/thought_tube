@@ -17,10 +17,19 @@ All earlier framework documents remain preserved as intellectual lineage, compar
 
 ## Quick start (foreign agent)
 
+**Protocol:** [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../WORKSPACE-AGENT-PROTOCOL.md)
+
 ```bash
+# 0. Repo + projection freshness
+git fetch origin && git checkout main && git pull origin main
+source ~/.config/inner-space-workspace.env 2>/dev/null || true
+
 # 1. Live workspace first
-python3 tools/workspace_coordination.py status --workspace-id unified-framework-synthesis
-python3 tools/workspace_coordination.py context --workspace-id unified-framework-synthesis --agent-id <agent> --surface <surface> --session-id <session>
+python3 tools/workspace_coordination.py context \
+  --workspace-id unified-framework-synthesis \
+  --agent-id <agent> --surface <surface> --session-id <session>
+
+python3 tools/workspace_projection_sync.py check --workspace-id unified-framework-synthesis
 
 # 2. Canonical framework source
 cat docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md
@@ -29,7 +38,7 @@ cat docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-met
 cat docs/workspaces/unified-framework-synthesis/derived/handoff.md
 cat docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md
 
-# 4. Published continuity projection
+# 4. Published continuity projection (after sync)
 cat docs/workspaces/unified-framework-synthesis/CONTINUITY.md
 
 # 5. Focused task pack

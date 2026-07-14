@@ -15,6 +15,7 @@ sys.path.insert(0, str(SRC))
 
 from conversation_os.storage import repo_root_from
 from conversation_os.workspace_atlas import materialize_workspace_atlas
+from conversation_os.workspace_projection_sync import check_workspace_projections, sync_workspace_projections
 from conversation_os.workspace_client import WorkspaceClient, WorkspaceClientError
 from conversation_os.workspace_context_packet import assemble_workspace_context_packet
 from conversation_os.workspace_runs import begin_workspace_run, end_workspace_run, heartbeat_workspace_run, list_workspace_runs
@@ -53,7 +54,7 @@ def _default_workspace_api_base() -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workspace coordination helper.")
-    parser.add_argument("command", choices=("status", "tasks", "context", "prepare", "progress", "runs", "begin-run", "heartbeat-run", "end-run", "reasoning", "record-reasoning", "create-task", "update-task", "claim", "handoff", "decision", "verify", "blocker", "resolve-blocker", "complete", "gate", "atlas"))
+    parser.add_argument("command", choices=("status", "tasks", "context", "prepare", "progress", "runs", "begin-run", "heartbeat-run", "end-run", "reasoning", "record-reasoning", "create-task", "update-task", "claim", "handoff", "decision", "verify", "blocker", "resolve-blocker", "complete", "gate", "atlas", "sync-projections"))
     parser.add_argument("--root", default="", help="Repo root. Defaults to current repo.")
     parser.add_argument(
         "--mode",
@@ -99,6 +100,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--notes", default="")
     parser.add_argument("--command-or-protocol", default="")
     parser.add_argument("--git-changes-path", default="")
+    parser.add_argument("--dry-run", action="store_true", help="For sync-projections: compute changes without writing.")
+    parser.add_argument("--check", action="store_true", help="For sync-projections: verify projections are fresh.")
     parser.add_argument(
         "--workspace-api-base",
         default="",
@@ -125,6 +128,23 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("connected mode requires --workspace-api-base or INNER_WORLD_WORKSPACE_API_BASE")
         if args.command == "atlas":
             parser.error("atlas materialization is offline-only until the canonical service exposes an atlas endpoint")
+        if args.command == "sync-projections":
+            fn = check_workspace_projections if args.check else sync_workspace_projections
+            try:
+                kwargs = {
+                    "api_base": args.workspace_api_base,
+                    "agent_id": args.agent_id,
+                    "surface": args.surface,
+                    "session_id": args.session_id,
+                }
+                if not args.check:
+                    kwargs["dry_run"] = args.dry_run
+                result = fn(root, args.workspace_id, **kwargs)
+                print(json.dumps(result, indent=2))
+            except Exception as exc:
+                print(f"workspace projection sync error: {exc}", file=sys.stderr)
+                return 2
+            return 1 if args.check and not result.get("fresh") else 0
     elif args.workspace_api_base:
         parser.error("offline mode cannot use --workspace-api-base")
 
@@ -354,6 +374,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "gate":
         print(json.dumps(evaluate_workspace_release_gate(root, args.workspace_id), indent=2))
         return 0
+
+    if args.command == "sync-projections":
+        fn = check_workspace_projections if args.check else sync_workspace_projections
+        kwargs = {
+            "api_base": "",
+            "agent_id": args.agent_id,
+            "surface": args.surface,
+            "session_id": args.session_id,
+        }
+        if not args.check:
+            kwargs["dry_run"] = args.dry_run
+        result = fn(root, args.workspace_id, **kwargs)
+        print(json.dumps(result, indent=2))
+        return 1 if args.check and not result.get("fresh") else 0
 
     if args.command == "atlas":
         git_change_report = {}

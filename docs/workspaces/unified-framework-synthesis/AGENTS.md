@@ -2,21 +2,24 @@
 
 This workspace is the canonical design authority for the metaphysical modeling foundation.
 
+**Universal protocol:** [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../WORKSPACE-AGENT-PROTOCOL.md)
+
 Authority split:
 
 - semantic truth: the version 1.1 framework paper
 - coordination truth: the live workspace service for `unified-framework-synthesis`
-- git truth: published continuity, handoff, task-pack, and workboard projections
+- git truth: published continuity, handoff, task-pack, and workboard projections (mirrors only)
 
 ## Start here
 
 Read in this order:
 
 1. `README.md`
-2. `sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`
-3. `derived/handoff.md`
-4. `derived/foundation-build-plan.md`
-5. `continuity/task-pack.md`
+2. [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../WORKSPACE-AGENT-PROTOCOL.md)
+3. `sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`
+4. `derived/handoff.md`
+5. `derived/foundation-build-plan.md`
+6. `continuity/task-pack.md`
 
 ## Canonical precedence
 
@@ -38,7 +41,7 @@ Do not delete or rewrite historical sources to make them appear consistent. Pres
 - Run the repo overview and engineering guard before implementation.
 - Build a task pack before handing focused implementation to another agent.
 - Query the live workspace before starting task-bound work.
-- Refresh `CONTINUITY.md` after live workspace mutations.
+- After live workspace mutations, run `python3 tools/workspace_projection_sync.py publish --workspace-id unified-framework-synthesis` (or `foundation sync-projections`).
 - If the canonical framework version or workspace goal changes materially, create a successor workspace id instead of mutating an old live identity.
 
 ## Current boundary

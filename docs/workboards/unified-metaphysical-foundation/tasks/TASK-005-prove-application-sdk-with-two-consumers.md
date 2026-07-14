@@ -1,6 +1,6 @@
 # TASK-005-prove-application-sdk-with-two-consumers: Prove application SDK with two consumers
 
-Status: blocked
+Status: review
 Owner: cursor-cloud-agent
 Current gate: implementation
 

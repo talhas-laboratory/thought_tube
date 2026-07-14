@@ -1,6 +1,6 @@
 # TASK-001-lock-kernel-contracts-and-lifecycles: Lock kernel contracts and lifecycles
 
-Status: blocked
+Status: review
 Owner: cursor-cloud-agent
 Current gate: implementation
 

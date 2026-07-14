@@ -1,6 +1,6 @@
 # TASK-004-build-profile-registry-and-conformance: Build profile registry and conformance
 
-Status: blocked
+Status: review
 Owner: cursor-cloud-agent
 Current gate: implementation
 

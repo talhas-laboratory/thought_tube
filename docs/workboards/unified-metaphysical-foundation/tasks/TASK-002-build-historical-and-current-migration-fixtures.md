@@ -1,6 +1,6 @@
 # TASK-002-build-historical-and-current-migration-fixtures: Build historical and current migration fixtures
 
-Status: blocked
+Status: review
 Owner: cursor-cloud-agent
 Current gate: implementation
 

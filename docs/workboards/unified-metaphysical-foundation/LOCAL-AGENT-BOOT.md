@@ -21,7 +21,7 @@ You are finished when **all** of the following are true:
 | 3 | Gap 2 (live ledger) reconciled | `foundation reconcile-ledger` succeeds in `connected` mode **or** manual commands in GAP-2 doc executed |
 | 4 | Live blocker resolved | `blocker-7f7662afad54` resolved in live workspace |
 | 5 | Live tasks match git | TASK-001–005 at `review` (or `done` after human merge approval) with verification evidence recorded |
-| 6 | Continuity refreshed | `docs/workspaces/unified-framework-synthesis/CONTINUITY.md` republished from live service after mutations |
+| 6 | Continuity refreshed | `docs/workspaces/unified-framework-synthesis/CONTINUITY.md` republished via `foundation sync-projections` (or `workspace_projection_sync.py publish`) after mutations |
 
 **Do not merge** until rows 1–5 pass. Row 6 should follow every live coordination mutation.
 
@@ -54,7 +54,7 @@ If Cursor shows `stdout maxBuffer length exceeded` on checkout, **ignore the UI*
 | **Audit repair packet** | `GAP-REPORT-2026-07-12.md` | same |
 | **What to do next** | This file + `GAP-2-RECONCILIATION.md` | `TASKS.md`, `UPDATES.jsonl` |
 
-**Rule:** Query the live workspace **before** mutating task state. After mutations, refresh continuity from the live service. Git workboard files are projections — the audit explicitly blocked merge when git said `review` but live said `backlog`.
+**Rule:** Query the live workspace **before** mutating task state. After mutations, run projection sync — see [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md). Git workboard files are projections; the audit explicitly blocked merge when git said `review` but live said `backlog`.
 
 ---
 
@@ -97,9 +97,18 @@ python3 tools/workspace_coordination.py context \
 
 python3 tools/workspace_coordination.py tasks \
   --workspace-id unified-framework-synthesis
+
+# Verify git projections match live before trusting markdown status
+python3 tools/workspace_projection_sync.py check --workspace-id unified-framework-synthesis
 ```
 
 If context/tasks commands fail, run `bash tools/setup_cursor_tailnet.sh` then retry. **Stop and fix connectivity before claiming task state is current.**
+
+After any live mutation in this session:
+
+```bash
+python3 tools/conversation_os.py foundation sync-projections
+```
 
 ---
 
