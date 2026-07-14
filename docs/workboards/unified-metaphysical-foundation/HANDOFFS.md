@@ -4,6 +4,8 @@
 
 Phase 1 kernel code and reviewer docs are now on the coordination branch. Gap 2 live ledger reconciliation is complete: the live workspace has verification evidence for TASK-001 through TASK-005, all five tasks are `review`, and no blocker remains. Remaining close-out is branch review and the merge decision.
 
+**2026-07-14 integrity review:** Do not mark the tasks `done` yet. The repair sequence for State/Claim identity, branch/scope adoption, complete bundle validation, fail-closed writes, safe CLI tests, and separate vendor hygiene is recorded in [`artifacts/phase-1-integrity-repair-plan-2026-07-14.md`](./artifacts/phase-1-integrity-repair-plan-2026-07-14.md).
+
 ---
 
 ## 2026-07-14 — Boot guide synced to `codex/unified-framework-sync`

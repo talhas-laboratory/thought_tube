@@ -23,7 +23,9 @@
 
 **Authority split:** The live workspace service (`INNER_WORLD_WORKSPACE_API_BASE`) is coordination truth. Git workboard files are projections. Do not treat git task status alone as merge approval.
 
-**Merge gate:** `foundation review` passes **and** live workspace ledger is reconciled per [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md).
+**Merge gate:** `foundation review` passes, the live workspace ledger is reconciled per [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md), and the P1 repair work packages A–C below are independently verified.
+
+**Integrity repair plan:** [`artifacts/phase-1-integrity-repair-plan-2026-07-14.md`](./artifacts/phase-1-integrity-repair-plan-2026-07-14.md) defines the required P1 repairs before tasks can move from `review` to `done`.
 
 ---
 
