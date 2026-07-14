@@ -1,0 +1,31 @@
+{
+  "module_id": "tooling.bootstrap.conversation_os_entry",
+  "path": "tools/conversation_os.py",
+  "layer": "tooling",
+  "owner": "Thin executable entrypoint for the Conversation OS CLI.",
+  "purpose": "Provide the top-level executable wrapper that resolves the repo source path and hands off to `guarded_main`.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "source path bootstrap",
+    "CLI handoff"
+  ],
+  "depends_on": [
+    "assembly.bootstrap.cli"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "shell arguments"
+  ],
+  "outputs": [
+    "CLI exit status"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_engineering_guard.py"
+  ]
+}

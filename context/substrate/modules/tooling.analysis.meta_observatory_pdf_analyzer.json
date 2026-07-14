@@ -1,0 +1,32 @@
+{
+  "module_id": "tooling.analysis.meta_observatory_pdf_analyzer",
+  "path": "tools/meta_observatory_pdf_analyzer.py",
+  "layer": "tooling",
+  "owner": "Standalone PDF analysis utility for extracting and framing research signals from exported documents.",
+  "purpose": "Analyze PDF-derived text against a frame library so research material can be grouped into meaningful conceptual buckets.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "frame library",
+    "UI noise filtering",
+    "pattern counting",
+    "PDF-derived text analysis"
+  ],
+  "depends_on": [
+    "external:pdf_text_extraction"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "PDF-derived text"
+  ],
+  "outputs": [
+    "analysis summaries",
+    "frame hits"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

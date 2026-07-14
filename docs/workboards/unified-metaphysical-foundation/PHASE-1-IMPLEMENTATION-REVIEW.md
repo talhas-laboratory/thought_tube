@@ -264,8 +264,8 @@ python3 tools/workspace_coordination.py tasks --workspace-id unified-framework-s
 | Shape / Conversation / Pattern profiles | Not registered; `derive_shape` abstains |
 | `field`, `hold`, `formation` profile record instances | Projections only in SDK; not persisted as kernel records |
 | CLI `session_append --foundation-capture` | Not wired; use `foundation capture` or SDK |
-| Kernel module manifests | Tracked in `manifests/`; copy to `context/substrate/modules/` locally |
-| Repo-wide module manifests | Not recovered; engineering guard may report `needs_index` |
+| Kernel module manifests | Tracked in the canonical `context/substrate/modules/` registry |
+| Repo-wide module manifests | Recovered and versioned; engineering guard can require a complete atlas |
 | Live workspace ledger | Reconciled; all five tasks are `review` and no blocker is open |
 | Round-trip inverse migration loaders | Not implemented |
 | Production auth | SDK uses `ApplicationContext.authorized` flag only |

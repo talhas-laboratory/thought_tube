@@ -1,0 +1,34 @@
+{
+  "module_id": "tooling.worldbuilding.run_semantic_credit_sweep",
+  "path": "tools/run_semantic_credit_sweep.py",
+  "layer": "tooling",
+  "owner": "Experimental semantic scene and image sweep runner for Worldbuilding Studio outputs.",
+  "purpose": "Execute a set of worldbuilding scene experiments against external generation services and record the resulting outputs.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "experiment specs",
+    "scene selection",
+    "generation submission",
+    "result download and packaging"
+  ],
+  "depends_on": [
+    "surface.worldbuilding.worldbuilding_studio"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "world id",
+    "scene specs",
+    "generation service credentials"
+  ],
+  "outputs": [
+    "experiment artifacts",
+    "downloaded media"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "worldbuilding_studio"
+  ],
+  "test_targets": []
+}

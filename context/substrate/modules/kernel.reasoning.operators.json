@@ -1,0 +1,62 @@
+{
+  "module_id": "kernel.reasoning.operators",
+  "path": "src/conversation_os/operators.py",
+  "layer": "kernel",
+  "owner": "Reusable reasoning operators for decomposition, connection finding, tension detection, and review gating.",
+  "purpose": "Provide the operator registry and rule sets that power the packet-level pipeline steps used by decomposition and surfacing flows.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "DIMENSION_RULES",
+    "PATTERN_RULES",
+    "TENSION_RULES",
+    "POLARITY_RULES",
+    "GENERIC_PHRASES",
+    "normalize_capture",
+    "infer_capture_context",
+    "clarify_core_meaning",
+    "separate_layers",
+    "detect_shared_primitive",
+    "build_why_it_matters",
+    "clarify_connection_context",
+    "detect_connection_primitive",
+    "detect_connection_tension",
+    "build_connection_why_it_matters",
+    "build_connection_candidate",
+    "fidelity_check",
+    "genericity_filter",
+    "confidence_calibration",
+    "relevance_check",
+    "review_gate",
+    "OPERATOR_REGISTRY"
+  ],
+  "contains": [
+    "dimension rule sets",
+    "pattern rule sets",
+    "connection operators",
+    "surfacing judgment operators",
+    "operator registry"
+  ],
+  "depends_on": [
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "assembly.runtime.pipelines",
+    "assembly.runtime.pipeline_runner"
+  ],
+  "inputs": [
+    "pipeline packets",
+    "operator context"
+  ],
+  "outputs": [
+    "operator patches",
+    "review and connection candidate fields"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

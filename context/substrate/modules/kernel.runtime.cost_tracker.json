@@ -1,0 +1,53 @@
+{
+  "module_id": "kernel.runtime.cost_tracker",
+  "path": "src/conversation_os/cost_tracker.py",
+  "layer": "kernel",
+  "owner": "LLM-equivalent and actual cost configuration, recording, and summary.",
+  "purpose": "Track estimated and actual model usage costs across runtime components and persist cost event history.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "ensure_cost_tracker_bootstrap",
+    "load_cost_config",
+    "estimate_token_count",
+    "record_actual_cost",
+    "record_equivalent_cost",
+    "list_cost_events",
+    "get_cost_summary"
+  ],
+  "contains": [
+    "cost config bootstrap",
+    "token estimation",
+    "cost event persistence",
+    "cost summary aggregation"
+  ],
+  "depends_on": [
+    "kernel.foundation.models",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.runtime.chat_backends",
+    "assembly.runtime.pipeline_runner",
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "cost config",
+    "tokenizable payloads",
+    "runtime component metadata"
+  ],
+  "outputs": [
+    "cost event rows",
+    "cost summaries"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/config/llm_costs.json",
+    "product/inner_world_v1/data/llm_cost_events.jsonl"
+  ],
+  "surfaces_using": [
+    "inner_world_v1",
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

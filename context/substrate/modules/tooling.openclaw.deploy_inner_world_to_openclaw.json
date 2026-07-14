@@ -1,0 +1,38 @@
+{
+  "module_id": "tooling.openclaw.deploy_inner_world_to_openclaw",
+  "path": "tools/deploy_inner_world_to_openclaw.py",
+  "layer": "tooling",
+  "owner": "Repo and bundle deployment tool for the OpenClaw-hosted Inner World environment.",
+  "purpose": "Sync the repo, product assets, and OpenClaw bundle to the remote host while refreshing generated agent docs before deployment.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "run",
+    "build_bundle"
+  ],
+  "contains": [
+    "remote sync item definition",
+    "bundle build",
+    "rsync and remote patch orchestration",
+    "service and tunnel setup helpers"
+  ],
+  "depends_on": [
+    "surface.inner_world.openclaw_miniapp",
+    "builder.codebase.codebase_overview"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "remote host configuration",
+    "repo contents",
+    "bundle config"
+  ],
+  "outputs": [
+    "deployed repo state",
+    "deployed bundle"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

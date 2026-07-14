@@ -1,0 +1,56 @@
+{
+  "module_id": "kernel.foundation.storage",
+  "path": "src/conversation_os/storage.py",
+  "layer": "kernel",
+  "owner": "Repo-local file, directory, and JSON/JSONL storage primitives used across the Conversation OS.",
+  "purpose": "Provide low-level path resolution and durable file helpers for sessions, cards, task packs, workspaces, and generated artifacts.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "utc_now",
+    "repo_root_from",
+    "ensure_dir",
+    "read_json",
+    "write_json",
+    "append_jsonl",
+    "read_jsonl",
+    "write_jsonl",
+    "write_markdown"
+  ],
+  "contains": [
+    "timestamp helpers",
+    "repo root resolution",
+    "filesystem directory creation",
+    "JSON and JSONL persistence",
+    "workspace path helpers"
+  ],
+  "depends_on": [],
+  "feeds_into": [
+    "kernel.foundation.models",
+    "kernel.synthesis.conversation_synthesis",
+    "surface.inner_world.product_inner_world",
+    "surface.personal.personal_interface",
+    "builder.codebase.codebase_overview"
+  ],
+  "inputs": [
+    "repo root path",
+    "filesystem paths",
+    "JSON payloads",
+    "JSONL row payloads"
+  ],
+  "outputs": [
+    "created directories",
+    "written JSON files",
+    "written JSONL files",
+    "resolved workspace paths"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1",
+    "personal_interface_v1",
+    "worldbuilding_studio"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

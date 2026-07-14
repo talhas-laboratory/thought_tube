@@ -1,0 +1,24 @@
+{
+  "module_id": "baseline.tools.invoke-inner-world-telegram-fix",
+  "path": "tools/invoke_inner_world_telegram_fix.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/invoke_inner_world_telegram_fix.py`.",
+  "purpose": "Provide the currently implemented behavior in `tools/invoke_inner_world_telegram_fix.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "build_parser",
+    "main"
+  ],
+  "contains": [
+    "build_parser",
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

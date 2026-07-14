@@ -1,0 +1,32 @@
+{
+  "module_id": "baseline.conversation-os.bridge-session-context",
+  "path": "src/conversation_os/bridge_session_context.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/bridge_session_context.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/bridge_session_context.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "tracking_config",
+    "resolve_context_retrieval_mode",
+    "should_skip_agent_classify",
+    "build_dynamic_session_context",
+    "build_element_scoped_session_context",
+    "session_rows_for_bundle"
+  ],
+  "contains": [
+    "tracking_config",
+    "resolve_context_retrieval_mode",
+    "should_skip_agent_classify",
+    "build_dynamic_session_context",
+    "build_element_scoped_session_context",
+    "session_rows_for_bundle"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

@@ -1,0 +1,67 @@
+{
+  "module_id": "kernel.knowledge.knowledge_layer",
+  "path": "src/conversation_os/knowledge_layer.py",
+  "layer": "kernel",
+  "owner": "Knowledge graph, context links, semantic capsules, and retrieval bundle assembly.",
+  "purpose": "Build and govern the durable knowledge-layer artifacts used for retrieval, linking, and semantic context assembly.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_knowledge_nodes",
+    "load_knowledge_edges",
+    "load_context_links",
+    "load_semantic_capsules",
+    "load_link_governance",
+    "govern_context_link",
+    "add_alias_resolution",
+    "build_retrieval_bundle",
+    "build_knowledge_layer",
+    "select_candidate_pairs"
+  ],
+  "contains": [
+    "knowledge node and edge loading",
+    "context link governance",
+    "semantic capsule assembly",
+    "retrieval bundle construction"
+  ],
+  "depends_on": [
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.analysis.context_bubbles",
+    "kernel.analysis.conversation_threads",
+    "kernel.meta.meta_layer",
+    "kernel.foundation.models",
+    "kernel.foundation.storage",
+    "kernel.analysis.thread_abstractions",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "concept graph state",
+    "context bubbles",
+    "conversation threads",
+    "meta layer records",
+    "source registry rows"
+  ],
+  "outputs": [
+    "knowledge node rows",
+    "knowledge edge rows",
+    "context link rows",
+    "semantic capsule rows",
+    "retrieval bundles"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/knowledge_nodes.jsonl",
+    "product/inner_world_v1/data/knowledge_edges.jsonl",
+    "product/inner_world_v1/data/context_links.jsonl",
+    "product/inner_world_v1/data/semantic_capsules.jsonl",
+    "product/inner_world_v1/data/link_governance.json"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

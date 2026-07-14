@@ -1,0 +1,28 @@
+{
+  "module_id": "baseline.conversation-os.self-improvement",
+  "path": "src/conversation_os/self_improvement.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/self_improvement.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/self_improvement.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "default_packet_for_feedback",
+    "interpret_self_improvement_turn",
+    "build_self_improvement_chat_response",
+    "validate_system_improvement_packet"
+  ],
+  "contains": [
+    "default_packet_for_feedback",
+    "interpret_self_improvement_turn",
+    "build_self_improvement_chat_response",
+    "validate_system_improvement_packet"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

@@ -1,0 +1,48 @@
+{
+  "module_id": "kernel.analysis.conversation_deltas",
+  "path": "src/conversation_os/conversation_deltas.py",
+  "layer": "kernel",
+  "owner": "Conversation preference, correction, and expectation delta extraction from chunked conversation material.",
+  "purpose": "Derive inspectable delta records and user expectation records from conversational inputs for later thread, meta, and interface shaping.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_conversation_deltas",
+    "load_user_expectations",
+    "build_conversation_deltas"
+  ],
+  "contains": [
+    "delta file routing",
+    "user expectation extraction",
+    "instruction marker analysis",
+    "correction and validation signal extraction"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "kernel.analysis.conversation_threads",
+    "kernel.analysis.thread_abstractions",
+    "kernel.meta.meta_layer",
+    "assembly.runtime.runtime_pipeline"
+  ],
+  "inputs": [
+    "chunk index rows"
+  ],
+  "outputs": [
+    "conversation delta rows",
+    "user expectation rows"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/conversation_deltas.jsonl",
+    "product/inner_world_v1/data/user_expectations.jsonl"
+  ],
+  "surfaces_using": [
+    "inner_world_v1",
+    "personal_interface_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

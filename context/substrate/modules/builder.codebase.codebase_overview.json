@@ -1,0 +1,58 @@
+{
+  "module_id": "builder.codebase.codebase_overview",
+  "path": "src/conversation_os/codebase_overview.py",
+  "layer": "builder-support",
+  "owner": "Generated codebase inventory, module-manifest registry, and lookup surface for agent orientation.",
+  "purpose": "Scan tracked repo files, merge in module manifest metadata, and emit the generated overview and registry surfaces used by agents and tooling.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_module_manifests",
+    "build_codebase_map",
+    "render_codebase_overview",
+    "render_agent_operating_brief",
+    "refresh_codebase_overview",
+    "load_codebase_map",
+    "lookup_codebase"
+  ],
+  "contains": [
+    "tracked file scanning",
+    "Python AST summary extraction",
+    "module manifest loading and validation",
+    "generated overview rendering",
+    "generated registry writing",
+    "lookup scoring"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "assembly.bootstrap.cli",
+    "builder.guard.engineering_guard"
+  ],
+  "inputs": [
+    "tracked repo files",
+    "module manifest JSON files"
+  ],
+  "outputs": [
+    "context/substrate/CODEBASE_OVERVIEW.md",
+    "context/substrate/AGENT_OPERATING_BRIEF.md",
+    "context/substrate/codebase_map.json",
+    "context/substrate/registry/module_registry.json",
+    "context/substrate/registry/module_browse_map.json"
+  ],
+  "state_owned": [
+    "context/substrate/CODEBASE_OVERVIEW.md",
+    "context/substrate/AGENT_OPERATING_BRIEF.md",
+    "context/substrate/codebase_map.json",
+    "context/substrate/registry"
+  ],
+  "surfaces_using": [
+    "operator_cli",
+    "engineering_guard"
+  ],
+  "test_targets": [
+    "tests/test_engineering_guard.py",
+    "tests/test_conversation_os.py"
+  ]
+}

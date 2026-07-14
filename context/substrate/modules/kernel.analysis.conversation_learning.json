@@ -1,0 +1,41 @@
+{
+  "module_id": "kernel.analysis.conversation_learning",
+  "path": "src/conversation_os/conversation_learning.py",
+  "layer": "kernel",
+  "owner": "Transcript parsing and conversational question/turn analysis for adaptive surface behaviors.",
+  "purpose": "Extract structured conversational learning signals from transcripts and classify question forms for downstream personalization and analysis.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "parse_conversation_transcript",
+    "classify_user_question",
+    "analyze_conversation_turns"
+  ],
+  "contains": [
+    "transcript parsing",
+    "role normalization",
+    "question classification",
+    "turn-level learning analysis"
+  ],
+  "depends_on": [],
+  "feeds_into": [
+    "surface.personal.personal_interface"
+  ],
+  "inputs": [
+    "transcript text",
+    "conversation turn lists"
+  ],
+  "outputs": [
+    "parsed turns",
+    "question classifications",
+    "learning signal summaries"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "personal_interface_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py",
+    "tests/test_personal_interface.py"
+  ]
+}

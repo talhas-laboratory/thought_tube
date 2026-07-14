@@ -1,0 +1,53 @@
+{
+  "module_id": "kernel.analysis.session_analysis",
+  "path": "src/conversation_os/analysis.py",
+  "layer": "kernel",
+  "owner": "Session transcript materialization, card extraction, and index refresh over captured conversation sessions.",
+  "purpose": "Turn raw session events into transcripts, analysis artifacts, memory cards, and refreshed indexes for durable conversation substrate state.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "materialize_transcript",
+    "analyze_session",
+    "materialize_cards",
+    "refresh_indexes",
+    "update_manifest"
+  ],
+  "contains": [
+    "transcript materialization",
+    "conversation turn analysis",
+    "memory card materialization",
+    "session manifest updates",
+    "index refresh"
+  ],
+  "depends_on": [
+    "kernel.analysis.conversation_learning",
+    "kernel.foundation.models",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.routing.task_pack_routing",
+    "assembly.bootstrap.cli"
+  ],
+  "inputs": [
+    "session event logs",
+    "session manifests"
+  ],
+  "outputs": [
+    "session transcripts",
+    "analysis artifacts",
+    "memory cards",
+    "refreshed indexes"
+  ],
+  "state_owned": [
+    "memory/sessions",
+    "memory/cards",
+    "memory/indexes"
+  ],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

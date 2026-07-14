@@ -1,0 +1,24 @@
+{
+  "module_id": "baseline.conversation-os.workspace-recovery",
+  "path": "src/conversation_os/workspace_recovery.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/workspace_recovery.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/workspace_recovery.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "backup_workspace_database",
+    "restore_workspace_database"
+  ],
+  "contains": [
+    "backup_workspace_database",
+    "restore_workspace_database"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

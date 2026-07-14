@@ -1,0 +1,34 @@
+{
+  "module_id": "tooling.openclaw.tunnel_inner_world_openclaw",
+  "path": "tools/tunnel_inner_world_openclaw.py",
+  "layer": "tooling",
+  "owner": "SSH tunnel helper for accessing the remote Inner World OpenClaw app locally.",
+  "purpose": "Open an SSH port-forward from the local machine to the remote OpenClaw-hosted Inner World app.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_parser",
+    "main"
+  ],
+  "contains": [
+    "argument parsing",
+    "ssh tunnel launch"
+  ],
+  "depends_on": [
+    "external:ssh"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "remote host",
+    "local port",
+    "remote port"
+  ],
+  "outputs": [
+    "running SSH tunnel"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

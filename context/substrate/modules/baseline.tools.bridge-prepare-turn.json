@@ -1,0 +1,22 @@
+{
+  "module_id": "baseline.tools.bridge-prepare-turn",
+  "path": "tools/bridge_prepare_turn.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/bridge_prepare_turn.py`.",
+  "purpose": "Provide the currently implemented behavior in `tools/bridge_prepare_turn.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "main"
+  ],
+  "contains": [
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

@@ -1,0 +1,37 @@
+{
+  "module_id": "surface.worldbuilding.worldbuilding_studio_mcp",
+  "path": "src/conversation_os/worldbuilding_studio_mcp.py",
+  "layer": "surface",
+  "owner": "MCP server adapter for the Worldbuilding Studio surface.",
+  "purpose": "Expose Worldbuilding Studio operations through an MCP server boundary for tool-based orchestration.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_worldbuilding_studio_mcp_server"
+  ],
+  "contains": [
+    "MCP server construction",
+    "vendor path setup",
+    "fallback server behavior",
+    "error payload translation"
+  ],
+  "depends_on": [
+    "surface.worldbuilding.worldbuilding_studio",
+    "external:mcp"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "Worldbuilding Studio operations"
+  ],
+  "outputs": [
+    "MCP server instance"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "worldbuilding_studio"
+  ],
+  "test_targets": [
+    "tests/test_worldbuilding_studio.py",
+    "tests/test_conversation_os.py"
+  ]
+}

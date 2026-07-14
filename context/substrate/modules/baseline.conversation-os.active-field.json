@@ -1,0 +1,22 @@
+{
+  "module_id": "baseline.conversation-os.active-field",
+  "path": "src/conversation_os/active_field.py",
+  "layer": "kernel",
+  "owner": "Baseline ownership record for `src/conversation_os/active_field.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/active_field.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "build_active_field"
+  ],
+  "contains": [
+    "build_active_field"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

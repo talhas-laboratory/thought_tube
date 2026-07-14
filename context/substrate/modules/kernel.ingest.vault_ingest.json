@@ -1,0 +1,68 @@
+{
+  "module_id": "kernel.ingest.vault_ingest",
+  "path": "src/conversation_os/vault_ingest.py",
+  "layer": "kernel",
+  "owner": "Raw text and source ingestion into source registry and chunk index records.",
+  "purpose": "Convert source content into normalized source-registry and chunk-index records with stable source-family and sensitivity metadata.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "tokenize",
+    "shorten",
+    "infer_speaker_role",
+    "speaker_role_weight",
+    "chunk_source_text",
+    "load_source_registry",
+    "load_chunk_index",
+    "write_vault_files",
+    "infer_source_family",
+    "infer_sensitivity_tier",
+    "ingest_text_content",
+    "ingest_text_items_batch",
+    "ingest_source_file",
+    "remove_source_by_ref",
+    "bootstrap_legacy_source_items"
+  ],
+  "contains": [
+    "tokenization helpers",
+    "source registry loading",
+    "chunk index loading",
+    "content ingestion",
+    "source family inference",
+    "sensitivity inference"
+  ],
+  "depends_on": [
+    "kernel.foundation.models",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.analysis.analysis_units",
+    "kernel.analysis.conversation_deltas",
+    "kernel.analysis.conversation_threads",
+    "kernel.analysis.context_bubbles",
+    "kernel.analysis.thread_abstractions",
+    "kernel.surface.thread_context",
+    "tooling.openclaw.build_unified_server_vault"
+  ],
+  "inputs": [
+    "source text",
+    "source files",
+    "batched text items"
+  ],
+  "outputs": [
+    "source registry rows",
+    "chunk index rows"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/source_registry.jsonl",
+    "product/inner_world_v1/data/chunk_index.jsonl"
+  ],
+  "surfaces_using": [
+    "inner_world_v1",
+    "personal_interface_v1",
+    "worldbuilding_studio"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "module_id": "kernel.analysis.thread_abstractions",
+  "path": "src/conversation_os/thread_abstractions.py",
+  "layer": "kernel",
+  "owner": "Project-lens abstractions and abstraction links over conversation threads.",
+  "purpose": "Collapse raw conversation threads into reusable thread abstractions organized through project lenses and abstraction links.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_project_lenses",
+    "load_thread_abstractions",
+    "load_thread_abstraction_links",
+    "build_thread_abstractions"
+  ],
+  "contains": [
+    "project lens defaults",
+    "abstraction file routing",
+    "thread abstraction generation",
+    "abstraction link generation"
+  ],
+  "depends_on": [
+    "kernel.analysis.conversation_deltas",
+    "kernel.analysis.conversation_threads",
+    "kernel.meta.meta_layer",
+    "kernel.foundation.models",
+    "kernel.foundation.storage",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "kernel.analysis.context_bubbles",
+    "kernel.knowledge.knowledge_layer"
+  ],
+  "inputs": [
+    "conversation threads",
+    "user expectations",
+    "meta layer records"
+  ],
+  "outputs": [
+    "thread abstraction rows",
+    "thread abstraction link rows"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/config/project_lenses.json",
+    "product/inner_world_v1/data/thread_abstractions.jsonl",
+    "product/inner_world_v1/data/thread_abstraction_links.jsonl"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "module_id": "baseline.conversation-os.product-thoughtboard",
+  "path": "src/conversation_os/product_thoughtboard.py",
+  "layer": "surface",
+  "owner": "Baseline ownership record for `src/conversation_os/product_thoughtboard.py`.",
+  "purpose": "Thoughtboard Surface Adapter.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "load_surface_recipe",
+    "ensure_thoughtboard_runtime",
+    "save_thoughtboard_card",
+    "load_thoughtboard_cards",
+    "delete_thoughtboard_card",
+    "ingest_pasted_conversation",
+    "build_thoughtboard_feed"
+  ],
+  "contains": [
+    "load_surface_recipe",
+    "ensure_thoughtboard_runtime",
+    "save_thoughtboard_card",
+    "load_thoughtboard_cards",
+    "delete_thoughtboard_card",
+    "ingest_pasted_conversation",
+    "build_thoughtboard_feed"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

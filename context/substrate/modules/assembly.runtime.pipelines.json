@@ -1,0 +1,44 @@
+{
+  "module_id": "assembly.runtime.pipelines",
+  "path": "src/conversation_os/pipelines.py",
+  "layer": "assembly",
+  "owner": "Default pipeline specifications and pipeline spec loading.",
+  "purpose": "Define the canonical decomposition, cross-pollination, and thought-surfacing pipeline specs used by the packet runner.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "DEFAULT_PIPELINES",
+    "pipeline_dir",
+    "ensure_pipeline_specs",
+    "load_pipeline_spec"
+  ],
+  "contains": [
+    "default pipeline definitions",
+    "pipeline spec file routing",
+    "pipeline spec bootstrap",
+    "pipeline spec loading"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "assembly.runtime.pipeline_runner",
+    "assembly.runtime.runtime_pipeline"
+  ],
+  "inputs": [
+    "pipeline ids"
+  ],
+  "outputs": [
+    "pipeline spec JSON files",
+    "loaded pipeline specs"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/pipelines"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "module_id": "assembly.development.development_router",
+  "path": "src/conversation_os/development_router.py",
+  "layer": "assembly",
+  "owner": "Manifest-aware routing of development ideas into existing owners, variants, new modules, or recipe-level changes.",
+  "purpose": "Turn enriched development ideas into deterministic route decisions by combining surface hints, atlas lookup, and explicit route heuristics.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "rank_module_targets",
+    "route_development_idea"
+  ],
+  "contains": [
+    "surface hint normalization",
+    "atlas query generation",
+    "module target ranking",
+    "route kind classification"
+  ],
+  "depends_on": [
+    "assembly.development.development_intake",
+    "builder.codebase.codebase_overview"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "development idea records",
+    "raw idea ids",
+    "module atlas lookup results"
+  ],
+  "outputs": [
+    "candidate module targets",
+    "route decisions",
+    "routing rationales"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "development_layer_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "module_id": "baseline.tools.run-telegram-meta-agent",
+  "path": "tools/run_telegram_meta_agent.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/run_telegram_meta_agent.py`.",
+  "purpose": "Provide the currently implemented behavior in `tools/run_telegram_meta_agent.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "main"
+  ],
+  "contains": [
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

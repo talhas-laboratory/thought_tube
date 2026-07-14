@@ -1,0 +1,37 @@
+{
+  "module_id": "kernel.reasoning.judgment",
+  "path": "src/conversation_os/judgment.py",
+  "layer": "kernel",
+  "owner": "Final approval and grounded/speculative classification over surfaced thought packets.",
+  "purpose": "Convert evaluation reports into explicit review and grounding judgments used by the Inner World promotion path.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "classify_run"
+  ],
+  "contains": [
+    "confidence extraction",
+    "relevance extraction",
+    "fidelity status interpretation",
+    "approval gating"
+  ],
+  "depends_on": [],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "surfaced thought packet",
+    "evaluation reports"
+  ],
+  "outputs": [
+    "grounded/speculative classification",
+    "approval state"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -210,8 +210,6 @@ Tracked source: [`manifests/`](./manifests/) (8 kernel modules).
 Install locally for repo overview:
 
 ```bash
-mkdir -p context/substrate/modules
-cp docs/workboards/unified-metaphysical-foundation/manifests/*.json context/substrate/modules/
 python3 tools/conversation_os.py repo-overview refresh
 ```
 

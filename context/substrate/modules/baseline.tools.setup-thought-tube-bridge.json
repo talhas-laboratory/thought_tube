@@ -1,0 +1,22 @@
+{
+  "module_id": "baseline.tools.setup-thought-tube-bridge",
+  "path": "tools/setup_thought_tube_bridge.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/setup_thought_tube_bridge.py`.",
+  "purpose": "Provide the currently implemented behavior in `tools/setup_thought_tube_bridge.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "main"
+  ],
+  "contains": [
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

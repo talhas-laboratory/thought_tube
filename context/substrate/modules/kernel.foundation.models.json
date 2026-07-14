@@ -1,0 +1,58 @@
+{
+  "module_id": "kernel.foundation.models",
+  "path": "src/conversation_os/models.py",
+  "layer": "kernel",
+  "owner": "Canonical shared dataclasses and typed record shapes for the Conversation OS runtime and surfaces.",
+  "purpose": "Define the durable typed objects passed between ingest, synthesis, governance, routing, and surface layers.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "ConversationEvent",
+    "SessionManifest",
+    "TaskContextPack",
+    "DevelopmentIdeaRecord",
+    "DevelopmentProposal",
+    "MemoryCard",
+    "InsightCandidate",
+    "SurfacedInsight",
+    "ThoughtPacket",
+    "ConceptNode",
+    "ConceptEdge",
+    "SynthesisPacket",
+    "DimensionSpec",
+    "ModelRoleBinding",
+    "ChunkDimensionProfile"
+  ],
+  "contains": [
+    "session and event records",
+    "development proposal records",
+    "memory and insight records",
+    "thread and abstraction records",
+    "knowledge and context bubble records",
+    "thought and synthesis records",
+    "dimension and model-role records"
+  ],
+  "depends_on": [],
+  "feeds_into": [
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.library.library_tracker",
+    "kernel.meta.meta_layer",
+    "surface.inner_world.product_inner_world",
+    "surface.personal.personal_interface"
+  ],
+  "inputs": [
+    "Python runtime values"
+  ],
+  "outputs": [
+    "typed dataclass records"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1",
+    "personal_interface_v1",
+    "worldbuilding_studio"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

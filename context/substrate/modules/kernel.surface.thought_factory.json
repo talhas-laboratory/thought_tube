@@ -1,0 +1,52 @@
+{
+  "module_id": "kernel.surface.thought_factory",
+  "path": "src/conversation_os/thought_factory.py",
+  "layer": "kernel",
+  "owner": "Thought packet construction and feed/archive row shaping from synthesized substrate material.",
+  "purpose": "Build durable thought packets and the row-level structures consumed by feed and archive surfaces.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "thought_packets_path",
+    "load_thought_packets",
+    "build_thought_packets",
+    "build_feed_rows",
+    "build_archive_rows"
+  ],
+  "contains": [
+    "thought packet persistence",
+    "thought assist cache",
+    "feed row shaping",
+    "archive row shaping"
+  ],
+  "depends_on": [
+    "kernel.foundation.models",
+    "kernel.foundation.storage",
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.surface.long_form"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world",
+    "surface.inner_world.miniapp"
+  ],
+  "inputs": [
+    "synthesis packets",
+    "source chunks",
+    "long-form surface context"
+  ],
+  "outputs": [
+    "thought packets",
+    "feed rows",
+    "archive rows"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/thought_packets.json",
+    "product/inner_world_v1/runtime/thought_assist_cache.json"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

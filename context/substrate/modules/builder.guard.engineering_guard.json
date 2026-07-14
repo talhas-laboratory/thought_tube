@@ -1,0 +1,42 @@
+{
+  "module_id": "builder.guard.engineering_guard",
+  "path": "src/conversation_os/engineering_guard.py",
+  "layer": "builder-support",
+  "owner": "Pre-implementation scope and ownership guard for repo changes.",
+  "purpose": "Assess requested changes against repo ownership, purpose clarity, and minimal edit-surface expectations before implementation work begins.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "VAGUE_PURPOSE_PHRASES",
+    "OWNER_EXTRACTION_MARKERS",
+    "assess_change_request"
+  ],
+  "contains": [
+    "purpose heuristics",
+    "path normalization",
+    "owner-surface targeting",
+    "scope warnings and blocking issue generation"
+  ],
+  "depends_on": [
+    "builder.codebase.codebase_overview"
+  ],
+  "feeds_into": [
+    "assembly.bootstrap.cli"
+  ],
+  "inputs": [
+    "requested change description",
+    "purpose statement",
+    "proposed paths"
+  ],
+  "outputs": [
+    "guard assessment payload"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_engineering_guard.py",
+    "tests/test_conversation_os.py"
+  ]
+}

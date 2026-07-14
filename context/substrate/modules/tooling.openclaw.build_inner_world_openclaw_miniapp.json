@@ -1,0 +1,36 @@
+{
+  "module_id": "tooling.openclaw.build_inner_world_openclaw_miniapp",
+  "path": "tools/build_inner_world_openclaw_miniapp.py",
+  "layer": "tooling",
+  "owner": "CLI helper for building or installing the Inner World OpenClaw miniapp bundle.",
+  "purpose": "Provide a command-line wrapper that builds or installs the OpenClaw miniapp bundle and injects enhanced UI assets.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_parser"
+  ],
+  "contains": [
+    "argument parsing",
+    "bundle asset enhancement",
+    "bundle build/install dispatch"
+  ],
+  "depends_on": [
+    "surface.inner_world.miniapp",
+    "surface.inner_world.openclaw_miniapp"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "app id",
+    "api base url",
+    "output or install path"
+  ],
+  "outputs": [
+    "bundle payload JSON",
+    "enhanced app bundle"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

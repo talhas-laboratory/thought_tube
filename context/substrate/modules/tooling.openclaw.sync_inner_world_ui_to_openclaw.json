@@ -1,0 +1,35 @@
+{
+  "module_id": "tooling.openclaw.sync_inner_world_ui_to_openclaw",
+  "path": "tools/sync_inner_world_ui_to_openclaw.py",
+  "layer": "tooling",
+  "owner": "UI-only sync and watch loop for the Inner World OpenClaw app bundle.",
+  "purpose": "Build a temporary enhanced app bundle, push it to the remote OpenClaw apps root, and optionally keep syncing on local file changes.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "run"
+  ],
+  "contains": [
+    "bundle enhancement",
+    "remote rsync push",
+    "watch-loop snapshotting"
+  ],
+  "depends_on": [
+    "surface.inner_world.miniapp",
+    "surface.inner_world.openclaw_miniapp"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "remote host config",
+    "app id",
+    "api base url"
+  ],
+  "outputs": [
+    "remote updated app bundle"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

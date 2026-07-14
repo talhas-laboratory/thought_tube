@@ -1,0 +1,27 @@
+{
+  "module_id": "tooling.runtime.run_inner_world_miniapp",
+  "path": "tools/run_inner_world_miniapp.py",
+  "layer": "tooling",
+  "owner": "Thin local launcher for the Inner World miniapp server.",
+  "purpose": "Start the Inner World miniapp locally with the standard domain overlays and refresh behavior.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "source path bootstrap",
+    "miniapp launch"
+  ],
+  "depends_on": [
+    "surface.inner_world.miniapp"
+  ],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [
+    "local miniapp server"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": []
+}

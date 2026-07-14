@@ -1,0 +1,48 @@
+{
+  "module_id": "kernel.routing.task_pack_routing",
+  "path": "src/conversation_os/routing.py",
+  "layer": "kernel",
+  "owner": "Task-pack selection, routing, and workspace enrichment for agent handoff and focused execution.",
+  "purpose": "Build task packs from repo state, cards, sessions, concepts, and workspace context so agents receive bounded handoff bundles.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_task_pack",
+    "enrich_task_pack_with_workspace"
+  ],
+  "contains": [
+    "keyword routing",
+    "session ranking",
+    "card ranking",
+    "task pack assembly",
+    "workspace enrichment"
+  ],
+  "depends_on": [
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.foundation.models",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "assembly.bootstrap.cli"
+  ],
+  "inputs": [
+    "request text",
+    "session manifests",
+    "memory cards",
+    "plans",
+    "workspace context"
+  ],
+  "outputs": [
+    "task pack JSON",
+    "task pack markdown"
+  ],
+  "state_owned": [
+    "context/task_packs"
+  ],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

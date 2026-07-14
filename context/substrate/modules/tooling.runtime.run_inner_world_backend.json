@@ -1,0 +1,40 @@
+{
+  "module_id": "tooling.runtime.run_inner_world_backend",
+  "path": "tools/run_inner_world_backend.py",
+  "layer": "tooling",
+  "owner": "Local backend and GPT bridge runtime for the Inner World app.",
+  "purpose": "Run the threaded backend server that serves the miniapp, GPT bridge operations, artifact access, and selected Holodeck endpoints.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "HTTP server runtime",
+    "artifact search and serving",
+    "GPT bridge request handling",
+    "miniapp serving"
+  ],
+  "depends_on": [
+    "assembly.bootstrap.cli",
+    "builder.holodeck.holodeck",
+    "surface.inner_world.miniapp"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "HTTP requests",
+    "repo search roots",
+    "uploaded files"
+  ],
+  "outputs": [
+    "HTTP responses",
+    "artifact payloads",
+    "bridge actions"
+  ],
+  "state_owned": [
+    "mobile_artifacts"
+  ],
+  "surfaces_using": [
+    "gpt_bridge",
+    "inner_world_v1"
+  ],
+  "test_targets": []
+}

@@ -1,0 +1,42 @@
+{
+  "module_id": "kernel.surface.thread_context",
+  "path": "src/conversation_os/thread_context.py",
+  "layer": "kernel",
+  "owner": "Bounded thread packet assembly for thought-thread chat and contextual surface prompts.",
+  "purpose": "Build an inspectable thread packet from thought, source, and meta records so thread chat stays grounded in bounded evidence.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_thread_packet"
+  ],
+  "contains": [
+    "thought lookup",
+    "source snippet assembly",
+    "meta-link extraction",
+    "thread prompt shaping"
+  ],
+  "depends_on": [
+    "kernel.meta.meta_layer",
+    "kernel.surface.thought_factory",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "thought ids",
+    "thought packet rows",
+    "meta layer records",
+    "chunk index rows"
+  ],
+  "outputs": [
+    "thread packet payloads"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

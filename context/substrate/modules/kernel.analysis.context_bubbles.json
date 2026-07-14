@@ -1,0 +1,64 @@
+{
+  "module_id": "kernel.analysis.context_bubbles",
+  "path": "src/conversation_os/context_bubbles.py",
+  "layer": "kernel",
+  "owner": "Context-bubble construction, membership, and transition state over synthesized and abstracted material.",
+  "purpose": "Organize thought and abstraction material into larger coherent context bubbles with memberships, edges, transitions, and progress tracking.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_context_bubbles",
+    "load_bubble_memberships",
+    "load_bubble_edges",
+    "load_bubble_transitions",
+    "load_context_bubble_progress",
+    "build_context_bubbles",
+    "list_context_bubbles",
+    "get_context_bubble"
+  ],
+  "contains": [
+    "bubble file routing",
+    "bubble seed selection",
+    "membership generation",
+    "bubble edge and transition generation",
+    "progress tracking"
+  ],
+  "depends_on": [
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.library.library_tracker",
+    "kernel.meta.meta_layer",
+    "kernel.foundation.models",
+    "kernel.analysis.thread_abstractions",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "kernel.knowledge.knowledge_layer",
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "concept nodes",
+    "meta layer records",
+    "thread abstractions",
+    "chunk index rows"
+  ],
+  "outputs": [
+    "context bubble rows",
+    "bubble membership rows",
+    "bubble edge rows",
+    "bubble transition rows",
+    "bubble progress state"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/context_bubbles.jsonl",
+    "product/inner_world_v1/data/context_bubble_memberships.jsonl",
+    "product/inner_world_v1/data/context_bubble_edges.jsonl",
+    "product/inner_world_v1/data/context_bubble_transitions.jsonl",
+    "product/inner_world_v1/runtime/context_bubbles_progress.json"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

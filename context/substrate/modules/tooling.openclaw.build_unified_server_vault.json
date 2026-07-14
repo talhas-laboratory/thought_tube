@@ -1,0 +1,37 @@
+{
+  "module_id": "tooling.openclaw.build_unified_server_vault",
+  "path": "tools/build_unified_server_vault.py",
+  "layer": "tooling",
+  "owner": "Remote corpus ingestion and export tooling for assembling a unified server-side Inner World vault.",
+  "purpose": "Ingest remote corpora into the local vault, generate Inner World surface outputs, and materialize a unified server vault package.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "main"
+  ],
+  "contains": [
+    "remote corpus definition",
+    "rsync and subprocess orchestration",
+    "vault ingestion loop",
+    "batch/export packaging"
+  ],
+  "depends_on": [
+    "surface.inner_world.product_inner_world",
+    "kernel.foundation.storage",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "remote corpus content",
+    "source family definitions"
+  ],
+  "outputs": [
+    "unified vault artifacts",
+    "surface exports"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

@@ -1,0 +1,36 @@
+{
+  "module_id": "tooling.worldbuilding.build_world_studio_master_library",
+  "path": "tools/build_world_studio_master_library.py",
+  "layer": "tooling",
+  "owner": "Portable master-library pack generator for the Worldbuilding Studio system and experiment knowledge.",
+  "purpose": "Assemble a disconnected master library artifact containing selected world, experiment, guide, and implementation materials for handoff or archive.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "portable output layout",
+    "selected packet and experiment copying",
+    "guide aggregation",
+    "zip packaging"
+  ],
+  "depends_on": [
+    "surface.worldbuilding.worldbuilding_studio"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "worldbuilding studio data",
+    "source files",
+    "guide files"
+  ],
+  "outputs": [
+    "portable master library folder",
+    "portable master library zip"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/portable/world-studio-master-library"
+  ],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": []
+}

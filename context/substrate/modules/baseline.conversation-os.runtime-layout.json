@@ -1,0 +1,30 @@
+{
+  "module_id": "baseline.conversation-os.runtime-layout",
+  "path": "src/conversation_os/runtime_layout.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/runtime_layout.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/runtime_layout.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "product_source_dir",
+    "product_config_dir",
+    "product_runtime_dir",
+    "ensure_product_runtime_dir",
+    "product_artifact_dir"
+  ],
+  "contains": [
+    "product_source_dir",
+    "product_config_dir",
+    "product_runtime_dir",
+    "ensure_product_runtime_dir",
+    "product_artifact_dir"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

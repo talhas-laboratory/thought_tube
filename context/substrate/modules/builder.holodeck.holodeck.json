@@ -1,0 +1,90 @@
+{
+  "module_id": "builder.holodeck.holodeck",
+  "path": "src/conversation_os/holodeck.py",
+  "layer": "builder-support",
+  "owner": "Workspace-scoped build orchestration, continuity logging, and verification workflow for longer-running engineering efforts.",
+  "purpose": "Provide the Holodeck control surface for creating, tracking, contextualizing, testing, and advancing development workspaces.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "holodeck_create",
+    "holodeck_event",
+    "holodeck_log_context",
+    "holodeck_log_command",
+    "holodeck_ingest_artifact",
+    "holodeck_link_session",
+    "holodeck_update",
+    "holodeck_advance_stage",
+    "holodeck_add_work_item",
+    "holodeck_update_work_item",
+    "holodeck_add_test",
+    "holodeck_record_test_run",
+    "holodeck_start_run",
+    "holodeck_finish_run",
+    "holodeck_add_context",
+    "holodeck_update_context",
+    "holodeck_add_constraint",
+    "holodeck_update_constraint",
+    "holodeck_add_integration_target",
+    "holodeck_update_integration_target",
+    "holodeck_add_knowledge",
+    "holodeck_update_knowledge",
+    "holodeck_promote",
+    "holodeck_update_promotion",
+    "holodeck_apply_promotion",
+    "holodeck_artifacts",
+    "holodeck_contextualize",
+    "holodeck_list",
+    "holodeck_pause",
+    "holodeck_block",
+    "holodeck_close",
+    "holodeck_reopen",
+    "holodeck_archive",
+    "holodeck_materialize",
+    "holodeck_status",
+    "holodeck_check",
+    "holodeck_task_pack"
+  ],
+  "contains": [
+    "workspace manifests and events",
+    "run tracking",
+    "constraint and test management",
+    "contextualization support",
+    "promotion and artifact linking"
+  ],
+  "depends_on": [
+    "kernel.analysis.session_analysis",
+    "kernel.meta.meta_layer",
+    "kernel.foundation.models",
+    "kernel.routing.task_pack_routing",
+    "kernel.foundation.storage",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "assembly.bootstrap.cli",
+    "tooling.runtime.run_inner_world_backend"
+  ],
+  "inputs": [
+    "workspace ids",
+    "session refs",
+    "artifact refs",
+    "work item and test records"
+  ],
+  "outputs": [
+    "workspace manifests",
+    "workspace event logs",
+    "task packs",
+    "workspace materializations"
+  ],
+  "state_owned": [
+    "memory/workspaces",
+    "context/workspaces"
+  ],
+  "surfaces_using": [
+    "operator_cli",
+    "gpt_bridge"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "module_id": "assembly.development.development_intake",
+  "path": "src/conversation_os/development_intake.py",
+  "layer": "assembly",
+  "owner": "Durable intake of raw development ideas into structured records with translation and synthesis context.",
+  "purpose": "Record raw ideas as stable development-layer artifacts and enrich them with technical framing and reusable development signals before routing.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "record_development_idea",
+    "get_development_idea",
+    "list_development_ideas",
+    "translate_development_idea",
+    "build_development_proposal",
+    "get_development_proposal",
+    "list_development_proposals",
+    "approve_development_proposal",
+    "build_proposal_task_pack"
+  ],
+  "contains": [
+    "development idea persistence",
+    "development proposal persistence",
+    "proposal approval records",
+    "proposal-backed task pack generation",
+    "idea translation orchestration",
+    "development signal enrichment",
+    "intent kind inference"
+  ],
+  "depends_on": [
+    "kernel.foundation.models",
+    "kernel.foundation.storage",
+    "kernel.routing.task_pack_routing",
+    "kernel.synthesis.conversation_synthesis",
+    "surface.personal.personal_interface"
+  ],
+  "feeds_into": [
+    "assembly.development.development_router",
+    "kernel.routing.task_pack_routing"
+  ],
+  "inputs": [
+    "raw ideas",
+    "desired effects",
+    "surface hints",
+    "source references"
+  ],
+  "outputs": [
+    "development idea records",
+    "development proposal records",
+    "proposal review records",
+    "task packs",
+    "technical framing payloads",
+    "development signal payloads"
+  ],
+  "state_owned": [
+    "product/development_layer_v1/data/ideas.jsonl",
+    "product/development_layer_v1/data/proposals.jsonl",
+    "product/development_layer_v1/data/proposal_reviews.jsonl"
+  ],
+  "surfaces_using": [
+    "development_layer_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

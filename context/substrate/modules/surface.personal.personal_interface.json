@@ -1,0 +1,58 @@
+{
+  "module_id": "surface.personal.personal_interface",
+  "path": "src/conversation_os/personal_interface.py",
+  "layer": "surface",
+  "owner": "Personal Interface calibration, profile, learning, and rewrite surface.",
+  "purpose": "Provide the calibration, communication-profile, and rewrite behaviors for the Personal Interface assembled surface.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "ensure_surface_recipe",
+    "load_surface_recipe",
+    "build_personal_interface_profile",
+    "translate_idea_to_technical_framing",
+    "start_calibration_interview",
+    "answer_calibration_question",
+    "get_profile_snapshot",
+    "rewrite_outgoing_message",
+    "rewrite_conversation_turn"
+  ],
+  "contains": [
+    "surface recipe loading",
+    "calibration workflow",
+    "profile persistence",
+    "communication mode detection",
+    "rewrite behavior"
+  ],
+  "depends_on": [
+    "kernel.foundation.models",
+    "kernel.foundation.storage",
+    "kernel.analysis.conversation_learning",
+    "external:surface_recipe.personal_interface_v1"
+  ],
+  "feeds_into": [
+    "surface.personal.personal_interface_mcp"
+  ],
+  "inputs": [
+    "conversation examples",
+    "calibration answers",
+    "rewrite requests",
+    "surface recipe"
+  ],
+  "outputs": [
+    "personal profile records",
+    "rewrite outputs",
+    "calibration session state"
+  ],
+  "state_owned": [
+    "product/personal_interface_v1/config/surface_recipe.v1.json",
+    "product/personal_interface_v1/data"
+  ],
+  "surfaces_using": [
+    "personal_interface_v1"
+  ],
+  "test_targets": [
+    "tests/test_personal_interface.py",
+    "tests/test_conversation_os.py"
+  ]
+}

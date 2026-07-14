@@ -1,0 +1,53 @@
+{
+  "module_id": "assembly.runtime.runtime_pipeline",
+  "path": "src/conversation_os/runtime_pipeline.py",
+  "layer": "assembly",
+  "owner": "Runtime pipeline configuration, status, and orchestrated execution order for derived rebuild components.",
+  "purpose": "Control which rebuild components run, in what order, and with what execution status in the shared runtime pipeline.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "DEFAULT_RUNTIME_PIPELINE",
+    "ensure_runtime_pipeline_config",
+    "load_runtime_pipeline_config",
+    "update_runtime_pipeline_component",
+    "get_runtime_pipeline_status",
+    "write_runtime_pipeline_last_run",
+    "execute_runtime_pipeline"
+  ],
+  "contains": [
+    "runtime pipeline default config",
+    "lock management",
+    "component status tracking",
+    "execution orchestration"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage",
+    "kernel.analysis.analysis_units",
+    "kernel.analysis.conversation_deltas"
+  ],
+  "feeds_into": [
+    "kernel.library.library_tracker",
+    "surface.inner_world.product_inner_world",
+    "assembly.bootstrap.cli"
+  ],
+  "inputs": [
+    "pipeline config",
+    "component execution definitions"
+  ],
+  "outputs": [
+    "runtime pipeline status",
+    "last-run records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/runtime/runtime_pipeline.json",
+    "product/inner_world_v1/runtime/runtime_pipeline_last_run.json"
+  ],
+  "surfaces_using": [
+    "inner_world_v1",
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

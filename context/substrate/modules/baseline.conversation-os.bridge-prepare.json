@@ -1,0 +1,40 @@
+{
+  "module_id": "baseline.conversation-os.bridge-prepare",
+  "path": "src/conversation_os/bridge_prepare.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/bridge_prepare.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/bridge_prepare.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "build_reasoning_request_payload",
+    "summarize_classify_preview",
+    "bridge_runtime_dir",
+    "thought_tube_dir",
+    "resolve_session_id",
+    "load_bridge_session",
+    "save_bridge_session",
+    "render_steering_markdown",
+    "write_latest_steering_file",
+    "prepare_turn"
+  ],
+  "contains": [
+    "build_reasoning_request_payload",
+    "summarize_classify_preview",
+    "bridge_runtime_dir",
+    "thought_tube_dir",
+    "resolve_session_id",
+    "load_bridge_session",
+    "save_bridge_session",
+    "render_steering_markdown",
+    "write_latest_steering_file",
+    "prepare_turn"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

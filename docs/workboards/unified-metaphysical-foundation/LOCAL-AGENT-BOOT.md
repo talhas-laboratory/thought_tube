@@ -167,8 +167,6 @@ Full manual command list: [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md)
 | Your todo | Install locally if running engineering guard / repo overview |
 
 ```bash
-mkdir -p context/substrate/modules
-cp docs/workboards/unified-metaphysical-foundation/manifests/*.json context/substrate/modules/
 python3 tools/conversation_os.py repo-overview refresh
 ```
 
@@ -197,9 +195,7 @@ PYTHONPATH=src python3 -m unittest tests.test_metaphysical_kernel_cli -v
 python3 tools/workspace_coordination.py tasks --workspace-id unified-framework-synthesis
 # expect: TASK-001..005 → review; blocker resolved
 
-# ── 5. Optional manifests (Gap 3) ────────────────────────
-mkdir -p context/substrate/modules
-cp docs/workboards/unified-metaphysical-foundation/manifests/*.json context/substrate/modules/
+# ── 5. Module-manifest registry (Git-tracked) ─────────────
 python3 tools/conversation_os.py repo-overview refresh
 ```
 

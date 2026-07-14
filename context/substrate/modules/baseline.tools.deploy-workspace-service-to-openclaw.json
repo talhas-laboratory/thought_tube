@@ -1,0 +1,36 @@
+{
+  "module_id": "baseline.tools.deploy-workspace-service-to-openclaw",
+  "path": "tools/deploy_workspace_service_to_openclaw.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/deploy_workspace_service_to_openclaw.py`.",
+  "purpose": "Provide the currently implemented behavior in `tools/deploy_workspace_service_to_openclaw.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "workspace_sync_paths",
+    "render_unit",
+    "render_meta_env",
+    "run",
+    "source_revision",
+    "deploy",
+    "build_parser",
+    "main"
+  ],
+  "contains": [
+    "workspace_sync_paths",
+    "render_unit",
+    "render_meta_env",
+    "run",
+    "source_revision",
+    "deploy",
+    "build_parser",
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

@@ -1,0 +1,46 @@
+{
+  "module_id": "surface.inner_world.openclaw_miniapp",
+  "path": "src/conversation_os/openclaw_miniapp.py",
+  "layer": "surface",
+  "owner": "OpenClaw-targeted bundle build and install surface for the Inner World miniapp.",
+  "purpose": "Package the Inner World browser surface into an OpenClaw-compatible app bundle and install it into a target apps root.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "default_bundle_dir",
+    "build_openclaw_bundle",
+    "install_openclaw_bundle"
+  ],
+  "contains": [
+    "bundle directory resolution",
+    "runtime config injection",
+    "bundle build",
+    "bundle install"
+  ],
+  "depends_on": [
+    "surface.inner_world.miniapp"
+  ],
+  "feeds_into": [
+    "tooling.openclaw.build_inner_world_openclaw_miniapp",
+    "tooling.openclaw.deploy_inner_world_to_openclaw",
+    "tooling.openclaw.sync_inner_world_ui_to_openclaw"
+  ],
+  "inputs": [
+    "api base url",
+    "target apps root",
+    "miniapp source assets"
+  ],
+  "outputs": [
+    "openclaw bundle directory",
+    "installed app bundle"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/openclaw_bundle"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

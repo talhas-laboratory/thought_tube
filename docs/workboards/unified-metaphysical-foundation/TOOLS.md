@@ -119,7 +119,7 @@ python3 tools/conversation_os.py engineering-guard assess \
   --proposed-paths "src/conversation_os/metaphysical_kernel_....py"
 ```
 
-Note: install kernel manifests from `docs/workboards/unified-metaphysical-foundation/manifests/` into `context/substrate/modules/` before `repo-overview refresh`. Kernel tests and `foundation review` are the authoritative Phase 1 gates.
+Note: the complete module-manifest registry is Git-tracked under `context/substrate/modules/`. Refresh it with `repo-overview refresh`; kernel tests and `foundation review` are the authoritative Phase 1 gates.
 
 ## Review reading order
 

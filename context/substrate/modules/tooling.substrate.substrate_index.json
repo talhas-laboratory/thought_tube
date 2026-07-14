@@ -1,0 +1,56 @@
+{
+  "module_id": "tooling.substrate.substrate_index",
+  "path": "tools/substrate_index.py",
+  "layer": "tooling",
+  "owner": "Generated browse-index builder and watcher for the substrate algorithm library.",
+  "purpose": "Load substrate algorithm manifests and specs, generate browse indexes and registries, and refresh them in watch mode when source files change.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "utc_now",
+    "read_json",
+    "read_preview",
+    "family_summary",
+    "load_algorithms",
+    "write_text",
+    "render_agent_index",
+    "render_family_index",
+    "render_registry",
+    "render_browse_map",
+    "refresh",
+    "fingerprint",
+    "watch",
+    "build_parser"
+  ],
+  "contains": [
+    "algorithm manifest loading",
+    "preview extraction",
+    "family index rendering",
+    "registry generation",
+    "watch mode refresh"
+  ],
+  "depends_on": [
+    "external:context.subtrate_families"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "context/substrate/families manifests and specs"
+  ],
+  "outputs": [
+    "context/substrate/AGENT_INDEX.md",
+    "context/substrate/registry.json",
+    "context/substrate/browse_map.json",
+    "family index files"
+  ],
+  "state_owned": [
+    "context/substrate/AGENT_INDEX.md",
+    "context/substrate/registry.json",
+    "context/substrate/browse_map.json",
+    "context/substrate/families/*/INDEX.md"
+  ],
+  "surfaces_using": [
+    "operator_cli",
+    "agent_index"
+  ],
+  "test_targets": []
+}

@@ -1,0 +1,41 @@
+{
+  "module_id": "surface.inner_world.miniapp",
+  "path": "src/conversation_os/miniapp.py",
+  "layer": "surface",
+  "owner": "Browser-facing HTTP and UI serving layer for the Inner World reference surface.",
+  "purpose": "Expose the Inner World browser surface through a local HTTP handler and UI asset injection path.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_miniapp_ui_enhancement_assets",
+    "inject_miniapp_ui_enhancement",
+    "make_miniapp_handler",
+    "serve_miniapp"
+  ],
+  "contains": [
+    "HTTP request handling",
+    "browser API routing",
+    "UI enhancement asset generation",
+    "surface serving"
+  ],
+  "depends_on": [
+    "surface.inner_world.product_inner_world",
+    "external:http.server"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "HTTP requests",
+    "Inner World surface adapter responses"
+  ],
+  "outputs": [
+    "HTTP responses",
+    "served browser assets"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

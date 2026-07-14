@@ -1,0 +1,49 @@
+{
+  "module_id": "assembly.bootstrap.cli",
+  "path": "src/conversation_os/cli.py",
+  "layer": "assembly",
+  "owner": "Command-line bootstrap and operator command routing for the Conversation OS.",
+  "purpose": "Expose the repo's command surface for sessions, routing, repo overview, guard checks, and product operations.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "init_repo",
+    "session_start",
+    "session_append",
+    "session_checkpoint",
+    "session_close",
+    "session_import",
+    "build_parser",
+    "main",
+    "guarded_main"
+  ],
+  "contains": [
+    "argument parser construction",
+    "command dispatch",
+    "repo overview command surface",
+    "engineering guard command surface",
+    "session and task pack command surface"
+  ],
+  "depends_on": [
+    "builder.codebase.codebase_overview",
+    "kernel.library.library_tracker",
+    "surface.inner_world.product_inner_world"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "CLI arguments",
+    "repo filesystem state"
+  ],
+  "outputs": [
+    "command JSON payloads",
+    "repo bootstrap side effects"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "operator_cli"
+  ],
+  "test_targets": [
+    "tests/test_engineering_guard.py",
+    "tests/test_conversation_os.py"
+  ]
+}

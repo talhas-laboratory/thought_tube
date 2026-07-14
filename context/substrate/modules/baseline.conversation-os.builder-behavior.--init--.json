@@ -1,0 +1,18 @@
+{
+  "module_id": "baseline.conversation-os.builder-behavior.--init--",
+  "path": "src/conversation_os/builder_behavior/__init__.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/builder_behavior/__init__.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/builder_behavior/__init__.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [],
+  "contains": [],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

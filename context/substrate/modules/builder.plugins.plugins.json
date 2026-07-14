@@ -1,0 +1,39 @@
+{
+  "module_id": "builder.plugins.plugins",
+  "path": "src/conversation_os/plugins.py",
+  "layer": "builder-support",
+  "owner": "Plugin discovery and loading for domain overlays and extensibility.",
+  "purpose": "Load plugin descriptors from the repo plugin directory so runtime layers can apply domain overlays without hard-coding them.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_plugin",
+    "load_plugins"
+  ],
+  "contains": [
+    "single plugin loading",
+    "plugin directory enumeration"
+  ],
+  "depends_on": [],
+  "feeds_into": [
+    "kernel.meta.meta_layer",
+    "kernel.library.library_tracker",
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "plugin ids",
+    "plugin.json files"
+  ],
+  "outputs": [
+    "plugin descriptors"
+  ],
+  "state_owned": [
+    "plugins"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

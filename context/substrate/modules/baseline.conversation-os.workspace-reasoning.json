@@ -1,0 +1,24 @@
+{
+  "module_id": "baseline.conversation-os.workspace-reasoning",
+  "path": "src/conversation_os/workspace_reasoning.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/workspace_reasoning.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/workspace_reasoning.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "list_workspace_reasoning",
+    "record_workspace_reasoning"
+  ],
+  "contains": [
+    "list_workspace_reasoning",
+    "record_workspace_reasoning"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

@@ -1,0 +1,92 @@
+{
+  "module_id": "surface.worldbuilding.worldbuilding_studio",
+  "path": "src/conversation_os/worldbuilding_studio.py",
+  "layer": "surface",
+  "owner": "Worldbuilding Studio product surface for world creation, canon generation, scene compilation, and execution-backed media workflows.",
+  "purpose": "Provide the full worldbuilding surface, including evidence ingestion, canon formation, scene compilation, motion planning, execution tracking, and visual generation support.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "WORLD_STUDIO_VERSION",
+    "WORLD_STUDIO_OPERATOR_MANUSCRIPT_VERSION",
+    "create_world",
+    "create_demo_world",
+    "list_worlds",
+    "get_world",
+    "ingest_evidence",
+    "inspect_world_evidence",
+    "ingest_visual_reference",
+    "inspect_visual_world",
+    "compile_visual_context",
+    "create_motion_object",
+    "bind_motion_object",
+    "inspect_motion_system",
+    "compile_motion_plan",
+    "create_character_feature_object",
+    "create_character_profile",
+    "inspect_character_system",
+    "update_character_profile_section",
+    "update_character_feature_object",
+    "next_worldbuilding_question",
+    "generate_canon",
+    "compile_scene_from_canon",
+    "start_population_session",
+    "answer_population_question",
+    "get_population_session",
+    "inspect_world_knowledge",
+    "project_world_graph",
+    "get_world_studio_guide",
+    "compile_scene",
+    "run_demo",
+    "get_packet_bundle",
+    "list_execution_runs",
+    "get_execution_run",
+    "execute_higgsfield_packet",
+    "record_generation_asset",
+    "evaluate_output"
+  ],
+  "contains": [
+    "world and evidence records",
+    "canon generation",
+    "scene compilation",
+    "visual and motion systems",
+    "execution runs and asset recording",
+    "population session workflow"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage",
+    "external:higgsfield",
+    "external:openrouter"
+  ],
+  "feeds_into": [
+    "surface.worldbuilding.worldbuilding_studio_mcp",
+    "tooling.worldbuilding.run_semantic_credit_sweep",
+    "tooling.worldbuilding.run_three_state_showcase",
+    "tooling.worldbuilding.build_world_studio_master_library",
+    "tooling.worldbuilding.build_world_studio_portable_pack"
+  ],
+  "inputs": [
+    "world evidence",
+    "visual references",
+    "scene text",
+    "packet ids",
+    "execution requests"
+  ],
+  "outputs": [
+    "world records",
+    "canon records",
+    "scene payloads",
+    "execution runs",
+    "generation assets"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/worldbuilding_studio"
+  ],
+  "surfaces_using": [
+    "worldbuilding_studio"
+  ],
+  "test_targets": [
+    "tests/test_worldbuilding_studio.py",
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "module_id": "kernel.analysis.conversation_threads",
+  "path": "src/conversation_os/conversation_threads.py",
+  "layer": "kernel",
+  "owner": "Conversation thread grouping and thread-link extraction over conversational chunk material.",
+  "purpose": "Build stable conversation thread and thread-link records from delta-enriched conversational chunks.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_conversation_threads",
+    "load_thread_links",
+    "build_conversation_threads"
+  ],
+  "contains": [
+    "thread file routing",
+    "topic signature extraction",
+    "thread score calculation",
+    "thread link generation"
+  ],
+  "depends_on": [
+    "kernel.analysis.conversation_deltas",
+    "kernel.foundation.storage",
+    "kernel.ingest.vault_ingest"
+  ],
+  "feeds_into": [
+    "kernel.analysis.thread_abstractions",
+    "kernel.knowledge.knowledge_layer"
+  ],
+  "inputs": [
+    "chunk index rows",
+    "conversation deltas"
+  ],
+  "outputs": [
+    "conversation thread rows",
+    "thread link rows"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/conversation_threads.jsonl",
+    "product/inner_world_v1/data/conversation_thread_links.jsonl"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

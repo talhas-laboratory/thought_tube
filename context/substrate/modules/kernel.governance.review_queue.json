@@ -1,0 +1,45 @@
+{
+  "module_id": "kernel.governance.review_queue",
+  "path": "src/conversation_os/review_queue.py",
+  "layer": "kernel",
+  "owner": "Review queue and promotion packet persistence for surfaced thought governance.",
+  "purpose": "Persist the queue of items requiring review and the promotion packets associated with surfaced thought candidates.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "review_queue_path",
+    "promotion_packets_path",
+    "load_review_queue",
+    "load_promotion_packets",
+    "write_review_state"
+  ],
+  "contains": [
+    "review queue file routing",
+    "promotion packet file routing",
+    "review state writes"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "review rows",
+    "promotion rows"
+  ],
+  "outputs": [
+    "review queue rows",
+    "promotion packet rows"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/review_queue.jsonl",
+    "product/inner_world_v1/data/promotion_packets.jsonl"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

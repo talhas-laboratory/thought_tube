@@ -1,0 +1,30 @@
+{
+  "module_id": "baseline.conversation-os.release-management",
+  "path": "src/conversation_os/release_management.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/release_management.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/release_management.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "build_release_manifest",
+    "validate_release_manifest",
+    "write_release_manifest",
+    "evaluate_release_gates",
+    "build_rollback_plan"
+  ],
+  "contains": [
+    "build_release_manifest",
+    "validate_release_manifest",
+    "write_release_manifest",
+    "evaluate_release_gates",
+    "build_rollback_plan"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

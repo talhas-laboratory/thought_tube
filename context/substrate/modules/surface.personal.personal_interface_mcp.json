@@ -1,0 +1,37 @@
+{
+  "module_id": "surface.personal.personal_interface_mcp",
+  "path": "src/conversation_os/personal_interface_mcp.py",
+  "layer": "surface",
+  "owner": "MCP server adapter for the Personal Interface surface.",
+  "purpose": "Expose Personal Interface calibration and rewrite behaviors through an MCP server boundary.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "build_personal_interface_mcp_server"
+  ],
+  "contains": [
+    "MCP server construction",
+    "tool registration",
+    "error payload normalization",
+    "vendor path setup"
+  ],
+  "depends_on": [
+    "surface.personal.personal_interface",
+    "external:mcp"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "Personal Interface operations"
+  ],
+  "outputs": [
+    "MCP server instance"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "personal_interface_v1"
+  ],
+  "test_targets": [
+    "tests/test_personal_interface.py",
+    "tests/test_conversation_os.py"
+  ]
+}

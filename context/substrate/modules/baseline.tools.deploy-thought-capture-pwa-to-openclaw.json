@@ -1,0 +1,42 @@
+{
+  "module_id": "baseline.tools.deploy-thought-capture-pwa-to-openclaw",
+  "path": "tools/deploy_thought_capture_pwa_to_openclaw.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/deploy_thought_capture_pwa_to_openclaw.py`.",
+  "purpose": "Provide the currently implemented behavior in `tools/deploy_thought_capture_pwa_to_openclaw.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "build_pwa",
+    "rsync_capture_bundle",
+    "read_remote_env_var",
+    "write_inner_world_env",
+    "merge_inner_world_env",
+    "patch_service_env_file",
+    "provision_bridge_agent",
+    "verify",
+    "assert_release_gate",
+    "build_parser",
+    "main"
+  ],
+  "contains": [
+    "build_pwa",
+    "rsync_capture_bundle",
+    "read_remote_env_var",
+    "write_inner_world_env",
+    "merge_inner_world_env",
+    "patch_service_env_file",
+    "provision_bridge_agent",
+    "verify",
+    "assert_release_gate",
+    "build_parser",
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

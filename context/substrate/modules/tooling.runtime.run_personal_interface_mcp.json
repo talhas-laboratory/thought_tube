@@ -1,0 +1,29 @@
+{
+  "module_id": "tooling.runtime.run_personal_interface_mcp",
+  "path": "tools/run_personal_interface_mcp.py",
+  "layer": "tooling",
+  "owner": "Local runtime launcher for the Personal Interface MCP server.",
+  "purpose": "Bootstrap the repo and vendor paths, then run the Personal Interface MCP server over stdio.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "repo path bootstrap",
+    "vendor path bootstrap",
+    "async MCP server run"
+  ],
+  "depends_on": [
+    "surface.personal.personal_interface_mcp",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [
+    "running MCP server"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "personal_interface_v1"
+  ],
+  "test_targets": []
+}

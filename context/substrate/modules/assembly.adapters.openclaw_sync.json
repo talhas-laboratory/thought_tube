@@ -1,0 +1,34 @@
+{
+  "module_id": "assembly.adapters.openclaw_sync",
+  "path": "src/conversation_os/services/openclaw_sync.py",
+  "layer": "assembly",
+  "owner": "OpenClaw vault sync entrypoint over the conversation ingestion adapter.",
+  "purpose": "Provide a thin sync function that imports OpenClaw conversation directories into the local Conversation OS vault.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "sync_openclaw_vault"
+  ],
+  "contains": [
+    "adapter handoff"
+  ],
+  "depends_on": [
+    "assembly.adapters.openclaw_conversations"
+  ],
+  "feeds_into": [
+    "tooling.runtime.run_inner_world_backend"
+  ],
+  "inputs": [
+    "OpenClaw source directory"
+  ],
+  "outputs": [
+    "sync result payload"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "gpt_bridge"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "module_id": "tooling.worldbuilding.run_three_state_showcase",
+  "path": "tools/run_three_state_showcase.py",
+  "layer": "tooling",
+  "owner": "CLI trigger for the Worldbuilding Studio three-state showcase orchestration.",
+  "purpose": "Run the three-state showcase flow for a fixed world id and print the result payload.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "main"
+  ],
+  "contains": [
+    "repo root resolution",
+    "showcase orchestration handoff"
+  ],
+  "depends_on": [
+    "surface.worldbuilding.worldbuilding_studio"
+  ],
+  "feeds_into": [],
+  "inputs": [
+    "world id"
+  ],
+  "outputs": [
+    "showcase result payload"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "worldbuilding_studio"
+  ],
+  "test_targets": []
+}

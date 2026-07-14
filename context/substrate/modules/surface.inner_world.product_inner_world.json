@@ -1,0 +1,66 @@
+{
+  "module_id": "surface.inner_world.product_inner_world",
+  "path": "src/conversation_os/product_inner_world.py",
+  "layer": "surface",
+  "owner": "Inner World reference surface adapter and compatibility layer.",
+  "purpose": "Assemble the Inner World product experience on top of kernel and assembly modules while preserving browser-facing compatibility wrappers where needed.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "ensure_surface_recipe",
+    "load_surface_recipe",
+    "generate_daily_batch",
+    "build_thought_feed",
+    "build_archive",
+    "export_state",
+    "get_retrieval_bundle",
+    "get_linking_overview"
+  ],
+  "contains": [
+    "surface recipe loading",
+    "thought feed assembly",
+    "daily batch generation",
+    "archive assembly",
+    "surface compatibility wrappers"
+  ],
+  "depends_on": [
+    "kernel.library.library_tracker",
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.meta.meta_layer",
+    "kernel.surface.thought_factory",
+    "assembly.runtime.runtime_pipeline",
+    "external:surface_recipe.inner_world_v1"
+  ],
+  "feeds_into": [
+    "surface.inner_world.miniapp",
+    "tooling.openclaw.build_unified_server_vault"
+  ],
+  "inputs": [
+    "library tracker state",
+    "thought packets",
+    "review state",
+    "surface recipe"
+  ],
+  "outputs": [
+    "daily batch payloads",
+    "feed rows",
+    "archive rows",
+    "surface exports"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data",
+    "product/inner_world_v1/exports",
+    "product/inner_world_v1/config/surface_recipe.v1.json"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "compatibility_wrappers": [
+    "miniapp governance adapter functions",
+    "tool-side export and batch wrappers"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py",
+    "tests/test_long_form.py"
+  ]
+}

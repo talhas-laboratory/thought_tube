@@ -1,0 +1,50 @@
+{
+  "module_id": "kernel.meta.meta_layer",
+  "path": "src/conversation_os/meta_layer.py",
+  "layer": "kernel",
+  "owner": "Durable extracted meta records derived from analysis units and conversation deltas.",
+  "purpose": "Project unit-level and conversation-level material into durable meta-layer records used by synthesis, knowledge, and surface packet building.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "meta_layer_dir",
+    "load_meta_records",
+    "extract_meta_layer"
+  ],
+  "contains": [
+    "meta layer file routing",
+    "record loading",
+    "theme extraction",
+    "direction extraction",
+    "guardrail extraction"
+  ],
+  "depends_on": [
+    "kernel.foundation.models",
+    "kernel.analysis.analysis_units",
+    "kernel.analysis.conversation_deltas",
+    "kernel.meta.meta_objects"
+  ],
+  "feeds_into": [
+    "kernel.synthesis.conversation_synthesis",
+    "kernel.library.library_tracker",
+    "kernel.surface.thread_context",
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "analysis units",
+    "conversation deltas",
+    "meta object vocabulary"
+  ],
+  "outputs": [
+    "meta layer records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/meta_layer"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_conversation_os.py"
+  ]
+}

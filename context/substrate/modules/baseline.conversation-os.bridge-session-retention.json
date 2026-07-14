@@ -1,0 +1,34 @@
+{
+  "module_id": "baseline.conversation-os.bridge-session-retention",
+  "path": "src/conversation_os/bridge_session_retention.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/bridge_session_retention.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/bridge_session_retention.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "retention_config",
+    "slim_control_packet",
+    "truncate_turn_text",
+    "trim_turn_ledger",
+    "compact_session_trace",
+    "compact_session_events",
+    "enforce_session_retention"
+  ],
+  "contains": [
+    "retention_config",
+    "slim_control_packet",
+    "truncate_turn_text",
+    "trim_turn_ledger",
+    "compact_session_trace",
+    "compact_session_events",
+    "enforce_session_retention"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}

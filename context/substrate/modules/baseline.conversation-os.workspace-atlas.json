@@ -1,0 +1,26 @@
+{
+  "module_id": "baseline.conversation-os.workspace-atlas",
+  "path": "src/conversation_os/workspace_atlas.py",
+  "layer": "assembly",
+  "owner": "Baseline ownership record for `src/conversation_os/workspace_atlas.py`.",
+  "purpose": "Provide the currently implemented behavior in `src/conversation_os/workspace_atlas.py`.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "workspace_atlas_paths",
+    "build_workspace_atlas",
+    "materialize_workspace_atlas"
+  ],
+  "contains": [
+    "workspace_atlas_paths",
+    "build_workspace_atlas",
+    "materialize_workspace_atlas"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry restored during workspace recovery. Refine ownership and relationship metadata before expanding this module."
+}
