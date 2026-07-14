@@ -48,13 +48,26 @@ MTSF, SDS, ThoughtShape, and earlier synthesis documents remain preserved as pro
 - Run `engineering-guard assess` before code
 - Task packs are curated — use transcript + analyses for full depth
 
+## Agent review (2026-07-12)
+
+Phase 1 foundation code is implemented on branch `cursor/metaphysical-kernel-contracts-423a` (PR #11). Review starts at:
+
+- `docs/workboards/unified-metaphysical-foundation/REVIEWER-START.md`
+- `docs/workboards/unified-metaphysical-foundation/PHASE-1-IMPLEMENTATION-REVIEW.md`
+- `docs/workboards/unified-metaphysical-foundation/TOOLS.md`
+
+Verify with: `python3 tools/conversation_os.py foundation review`
+
+**Local agent close-out:** [`docs/workboards/unified-metaphysical-foundation/LOCAL-AGENT-BOOT.md`](../../workboards/unified-metaphysical-foundation/LOCAL-AGENT-BOOT.md)
+
+Reviewer docs: `docs/workboards/unified-metaphysical-foundation/REVIEWER-START.md`
+
 ## Next actions
 
-1. Lock schemas for `SourceFragment`, `Referent`, `Scope`, `State`, `Claim`, `RelationInstance`, `Provenance`, `ModelBranch`, `BranchMembership`, and `StateCommitment`.
-2. Lock maturity, epistemic, and governance lifecycle state machines.
-3. Define `ProfileDefinition`, dependency validation, and profile conformance results.
-4. Create migration fixtures mapping current records and historical framework concepts into the canonical model.
-5. Implement the Phase 1 vertical slice and adversarial invariant tests.
+1. Review and merge PR #11 into `codex/unified-framework-sync`.
+2. Opt-in foundation capture from `session_append` if desired.
+3. Register additional profiles (Shape, Conversation) after merge.
+4. Wire application projections (World Studio, workspace curator) to `FoundationApplicationSdk`.
 
 The generated handoff pack is `context/task_packs/unified-metaphysical-foundation-schema-lock.{json,md}`. Use it together with the workspace task pack; the workspace copy carries the canonical scope and constraints, while the generated pack carries current session and repository context.
 

@@ -13,7 +13,8 @@ Live workspace id: `unified-framework-synthesis`
 
 ## Agent Start Protocol
 
-1. Read `README.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and the latest entries in `UPDATES.jsonl`.
+0. **Fresh local agent closing gaps:** read [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) first, then checkout `cursor/metaphysical-kernel-contracts-423a` for implementation.
+1. Read `README.md`, `REVIEWER-START.md`, `GAP-REPORT-2026-07-12.md`, `TASKS.md`, `GATES.md`, `DECISIONS.md`, and the latest entries in `UPDATES.jsonl`.
 2. Claim one task by editing its task file and adding an update row.
 3. Work only inside the task scope unless the board owner expands it.
 4. Record decisions before relying on them.
@@ -23,8 +24,13 @@ Live workspace id: `unified-framework-synthesis`
 
 ## Board Shape
 
+- `LOCAL-AGENT-BOOT.md`: **start here for a fresh local agent** (find workspace, gaps, close-out checklist)
 - `TASKS.md`: board index and task status
 - `GAP-REPORT-2026-07-12.md`: blocking audit findings and worker repair sequence
+- `GAP-2-RECONCILIATION.md`: live workspace ledger reconciliation commands
+- `PHASE-1-IMPLEMENTATION-REVIEW.md`: architecture, invariants, checklist
+- `REVIEWER-START.md`: fast path for reviewers (`foundation review` + reading order)
+- `TOOLS.md`: CLI and verification commands (`conversation_os.py foundation …`)
 - `lanes/`: Asana/Jira-style task lanes
 - `tasks/`: one durable task packet per work item
 - `GATES.md`: mandatory requirements and verification gates

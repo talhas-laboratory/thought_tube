@@ -1,15 +1,52 @@
 # Handoffs
 
-Record agent-to-agent transfer notes here.
+## 2026-07-14 — Boot guide synced to `codex/unified-framework-sync`
 
-## 2026-07-12 — Phase 1 audit repair handoff
+[`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) and companion reviewer docs are now on the coordination branch, not only on `cursor/metaphysical-kernel-contracts-423a`. Local agents on `main` should `git fetch` and checkout `codex/unified-framework-sync` (or the feature branch) before searching for this file.
 
-- Source branch: `cursor/metaphysical-kernel-contracts-423a` at `5e5502f69d`.
-- Start with [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md).
-- The branch is a strong Phase 1 implementation, but it is not canonical or
-  merge-ready: StateCommitment/State/BranchMembership cross-link validation is
-  missing and live coordination state has not been reconciled.
-- Required outcome: repair the P1 invariant, prove it with adversarial tests,
-  then update the live workspace ledger and continuity projection before merge.
-- The normal task-pack generator is blocked by the missing-manifest index;
-  `GAP-REPORT-2026-07-12.md` is the bounded fallback packet until that gate is repaired.
+---
+
+## 2026-07-14 — Local agent boot guide
+
+Added [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md) — single entry for a fresh local agent to find workspace context, gap todos, and close-out checklist.
+
+---
+
+## 2026-07-14 — Reviewer documentation refresh
+
+**Agent:** cursor-cloud-agent  
+**Branch:** `cursor/metaphysical-kernel-contracts-423a`
+
+Updated [`REVIEWER-START.md`](./REVIEWER-START.md) with current status, all 10 `foundation review` steps,
+Gap 1 spot-checks, Gap 2 merge gate, manifests path, and 63-test count.
+
+**Reviewer entry point:** [`REVIEWER-START.md`](./REVIEWER-START.md)
+
+```bash
+python3 tools/conversation_os.py foundation review
+```
+
+---
+
+## 2026-07-13 — Gap 1 repair complete
+
+**Agent:** cursor-cloud-agent  
+**Branch:** `cursor/metaphysical-kernel-contracts-423a`  
+**PR:** [#11](https://github.com/talhas-laboratory/thought_tube/pull/11)
+
+Repairing P1 Gap 1 from [`GAP-REPORT-2026-07-12.md`](./GAP-REPORT-2026-07-12.md) — **done on branch**.
+
+Gap 2 live ledger: use [`GAP-2-RECONCILIATION.md`](./GAP-2-RECONCILIATION.md) or
+`python3 tools/conversation_os.py foundation reconcile-ledger` from a connected surface.
+
+### Prior handoffs
+
+- **2026-07-12 audit repair** — audit blocked tasks; live ledger reconciliation still required.
+- **2026-07-12 Phase 1 implementation** — see [`REVIEWER-START.md`](./REVIEWER-START.md) and
+  [`PHASE-1-IMPLEMENTATION-REVIEW.md`](./PHASE-1-IMPLEMENTATION-REVIEW.md).
+
+### Fast verification
+
+```bash
+python3 tools/conversation_os.py foundation review
+```
