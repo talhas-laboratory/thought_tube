@@ -7,6 +7,7 @@ Git-tracked working spaces for long design threads. These are continuity project
 
 | Workspace ID | Status | Entry | Manifest |
 |--------------|--------|-------|----------|
+| `holodeck-productization` | Active — local-first product discovery | [`holodeck-productization/README.md`](./holodeck-productization/README.md) | [`manifest.json`](./holodeck-productization/manifest.json) |
 | `unified-framework-synthesis` | Active — canonical foundation and schema lock | [`unified-framework-synthesis/README.md`](./unified-framework-synthesis/README.md) | [`manifest.json`](./unified-framework-synthesis/manifest.json) |
 | `metaphysical-kernel-ontology` | Active — kernel contract lock | [`metaphysical-kernel-ontology/README.md`](./metaphysical-kernel-ontology/README.md) | [`manifest.json`](./metaphysical-kernel-ontology/manifest.json) |
 | `metaphysical-branch-reasoning` | Active — branch semantic authority | [`metaphysical-branch-reasoning/README.md`](./metaphysical-branch-reasoning/README.md) | [`manifest.json`](./metaphysical-branch-reasoning/manifest.json) |
