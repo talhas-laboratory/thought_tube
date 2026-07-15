@@ -1,0 +1,70 @@
+{
+  "schema": "vocab_preservation_outcome_table_v1.0.0",
+  "framework_section": "§6.10, §27.15",
+  "contract_version": "1.0.0",
+  "description": "Raw expression and provenance preservation through mapping and lookup operations.",
+  "cases": [
+    {
+      "case_id": "pres-001",
+      "description": "Raw phrase with punctuation preserved verbatim after mapping",
+      "raw_expression": {
+        "id": "raw_001",
+        "text": "the process is 'heavy' (?)!",
+        "source_fragment_id": "sf_user_phrase_001"
+      },
+      "mapping": {
+        "mapping_kind": "analogous",
+        "target_type": "workspace:computational_load"
+      },
+      "expected": {
+        "retrieved_raw_text": "the process is 'heavy' (?)!",
+        "source_fragment_id_preserved": true,
+        "canonical_substitution_only_in_view": true
+      }
+    },
+    {
+      "case_id": "pres-002",
+      "description": "Legacy label alias remains retrievable",
+      "raw_expression": {
+        "id": "raw_legacy_001",
+        "text": "CTL-loss",
+        "alias_of": "workspace:control_loss"
+      },
+      "expected": {
+        "retrieved_raw_text": "CTL-loss",
+        "alias_link_preserved": true
+      }
+    },
+    {
+      "case_id": "pres-003",
+      "description": "Scope and confidence survive mapping read",
+      "mapping": {
+        "source_type_or_expression": "workspace:local_term",
+        "target_type": "shared:canonical_term",
+        "mapping_kind": "narrower",
+        "scope_id": "scope_project_x",
+        "confidence": 0.75,
+        "provenance_id": "prov_map_001"
+      },
+      "expected": {
+        "scope_id_preserved": "scope_project_x",
+        "confidence_preserved": 0.75,
+        "provenance_id_preserved": "prov_map_001"
+      }
+    },
+    {
+      "case_id": "pres-004",
+      "description": "Lookup returns source term and mapping metadata, not substituted label only",
+      "lookup_request": {
+        "expression": "raw:heavy",
+        "scope_id": "scope_glossary",
+        "branch_context": "branch_vocab_a"
+      },
+      "expected": {
+        "returns_source_expression": true,
+        "returns_mapping_metadata": true,
+        "substitutes_canonical_only": false
+      }
+    }
+  ]
+}

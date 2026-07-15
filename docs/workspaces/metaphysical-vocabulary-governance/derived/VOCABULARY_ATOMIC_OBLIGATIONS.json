@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "task_id": "VOCAB-001-atomic-obligation-and-governance-lock",
+  "workspace_id": "metaphysical-vocabulary-governance",
+  "canonical_source": "../../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "public_contract_version": "1.0.0",
+  "planned_owner_module": "src/conversation_os/metaphysical_vocabulary_governance.py",
+  "planned_module_id": "vocabulary.metaphysical.governance",
+  "kernel_dependency": {
+    "contract_version": "1.1.0",
+    "release_git_revision": "4830b81fc6d2d78ea96743adad49bb254e98c7de"
+  },
+  "branch_dependency": {
+    "contract_version": "1.0.0",
+    "release_git_revision": "e3784b72f7f51bea8f62a6637419634d6e096fe8"
+  },
+  "framework_sections": ["§8", "§6.10", "§22", "§27.15"],
+  "vocabulary_levels": [
+    {"level": 1, "name": "kernel", "owner": "metaphysical-kernel-ontology", "promotion_required": false},
+    {"level": 2, "name": "governed_shared", "owner": "metaphysical-vocabulary-governance", "promotion_required": true},
+    {"level": 3, "name": "workspace", "owner": "workspace_steward", "promotion_required": false},
+    {"level": 4, "name": "model_local", "owner": "branch_or_model_steward", "promotion_required": false},
+    {"level": 5, "name": "raw_expression", "owner": "capture_provenance", "promotion_required": false}
+  ],
+  "mapping_kinds": [
+    "equivalent",
+    "narrower",
+    "broader",
+    "overlaps",
+    "analogous"
+  ],
+  "public_record_kinds": [
+    "vocabulary_entry",
+    "raw_expression",
+    "term_mapping",
+    "promotion_record",
+    "deprecation_record",
+    "type_extension",
+    "evolution_migration_report"
+  ],
+  "core_invariants": [
+    "mapping_is_record_not_rewrite",
+    "mapping_not_identity_without_confirmation",
+    "promotion_optional",
+    "extension_cannot_redefine_kernel",
+    "branch_local_mapping_not_global_by_default",
+    "governance_separate_from_epistemic_status",
+    "evolution_versions_prior_definitions",
+    "raw_expression_preserved_verbatim"
+  ],
+  "forbidden_interpretations": [
+    "analogous_as_identity",
+    "overlaps_as_equivalence",
+    "forced_normalization",
+    "branch_local_to_global_coercion",
+    "kernel_claim_redefinition",
+    "kernel_state_redefinition",
+    "silent_canonical_substitution"
+  ],
+  "deferred_phase1": [
+    {
+      "item": "TypeDefinition as first-class kernel record",
+      "reason": "Kernel defers; vocabulary owns governed type_id semantics until extension"
+    },
+    {
+      "item": "Automated promotion scoring",
+      "reason": "Promotion rubric is explicit; steward review required in Phase 1"
+    },
+    {
+      "item": "Cross-workspace namespace federation",
+      "reason": "Workspace scope only in Phase 1 contract"
+    }
+  ],
+  "fixture_tables": [
+    {
+      "operation": "TermMapping",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/mapping_outcome_table.json",
+      "case_count": 6
+    },
+    {
+      "operation": "PromotionRecord",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/promotion_outcome_table.json",
+      "case_count": 5
+    },
+    {
+      "operation": "TypeExtension",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/extension_safety_outcome_table.json",
+      "case_count": 4
+    },
+    {
+      "operation": "Preservation",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/preservation_outcome_table.json",
+      "case_count": 4
+    },
+    {
+      "operation": "VocabularyLevel",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/level_classification_outcome_table.json",
+      "case_count": 5
+    }
+  ]
+}

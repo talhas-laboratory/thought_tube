@@ -1,0 +1,64 @@
+{
+  "schema": "vocab_extension_safety_outcome_table_v1.0.0",
+  "framework_section": "§8.5",
+  "contract_version": "1.0.0",
+  "description": "Type extension safety. Workspace extensions specialize kernel; they must not redefine kernel semantics.",
+  "cases": [
+    {
+      "case_id": "ext-001",
+      "description": "Valid workspace State specialization",
+      "extension": {
+        "id": "workspace:trust_state",
+        "parent_types": ["core:state_type"],
+        "namespace_level": "workspace",
+        "constraints": ["ordinal_value_domain"],
+        "redefines_kernel_kind": false
+      },
+      "expected": {
+        "validation_result": "valid",
+        "specializes_kernel": true
+      }
+    },
+    {
+      "case_id": "ext-002",
+      "description": "Attempt to redefine Claim as State — rejected",
+      "extension": {
+        "id": "workspace:claim_as_state",
+        "parent_types": ["core:claim"],
+        "proposed_semantics": "Claim means the same as State",
+        "redefines_kernel_kind": true
+      },
+      "expected": {
+        "validation_result": "invalid",
+        "error_code": "kernel_redefinition_forbidden"
+      }
+    },
+    {
+      "case_id": "ext-003",
+      "description": "Attempt to redefine SourceFragment envelope — rejected",
+      "extension": {
+        "id": "workspace:custom_source",
+        "target_kernel_kind": "source_fragment",
+        "proposed_semantics": "SourceFragment is always a Claim",
+        "redefines_kernel_kind": true
+      },
+      "expected": {
+        "validation_result": "invalid",
+        "error_code": "kernel_redefinition_forbidden"
+      }
+    },
+    {
+      "case_id": "ext-004",
+      "description": "Disjoint type constraint violation — rejected",
+      "extension": {
+        "id": "workspace:hybrid_claim_state",
+        "parent_types": ["core:claim", "core:state_type"],
+        "constraints": ["disjoint_parents_violated"]
+      },
+      "expected": {
+        "validation_result": "invalid",
+        "error_code": "disjoint_type_violation"
+      }
+    }
+  ]
+}
