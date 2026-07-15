@@ -1,6 +1,6 @@
-# Branch Runtime Operations — BRANCH-002
+# Branch Runtime Operations — BRANCH-003
 
-**Task:** `BRANCH-002-support-and-inheritance-semantics`  
+**Task:** `BRANCH-003-merge-and-inference-policy`  
 **Owner module:** `src/conversation_os/metaphysical_branch_reasoning.py`  
 **Contract:** [`BRANCH_PUBLIC_CONTRACT_LOCK.md`](./BRANCH_PUBLIC_CONTRACT_LOCK.md) v1.0.0  
 **Kernel consumed:** `1.1.0`
@@ -11,8 +11,11 @@
 |---|---|---|
 | InheritanceQuery | §7.2 | `resolve_inheritance` |
 | SupportAssessment | §7.3 | `assess_support` |
+| ConflictRecord | §7.4 | `classify_conflict` |
+| MergeAssessment | §7.5 | `assess_merge` |
+| InferenceContext / InferenceResult | §7.6 | `run_inference` |
 
-Conflict, merge, and inference operations remain contract-locked for BRANCH-003+.
+BranchEnsemble (§7.7) remains contract-locked for BRANCH-005+.
 
 ## Verification
 
@@ -21,4 +24,16 @@ pytest -q tests/test_metaphysical_branch_reasoning.py
 pytest -q tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_runtime.py
 ```
 
-Table fixtures: `tests/fixtures/metaphysical_branch/inheritance_outcome_table.json`, `support_outcome_table.json`.
+Table fixtures:
+
+- `tests/fixtures/metaphysical_branch/inheritance_outcome_table.json`
+- `tests/fixtures/metaphysical_branch/support_outcome_table.json`
+- `tests/fixtures/metaphysical_branch/conflict_outcome_table.json`
+- `tests/fixtures/metaphysical_branch/merge_outcome_table.json`
+- `tests/fixtures/metaphysical_branch/inference_outcome_table.json`
+
+## Phase 1 limits
+
+- Merge assessment reports conflicts; it does not resolve them or select winners.
+- Inference always emits `candidate` epistemic status; non-candidate `output_status` raises `InvalidInferenceOutputStatusError`.
+- `both` handling is explicit via `contradiction_policy` (`preserve`, `branch`, `clarify`, `abstain`).
