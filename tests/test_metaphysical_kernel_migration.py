@@ -13,6 +13,7 @@ from conversation_os.metaphysical_kernel_migration import (
     validate_migration_fixture,
     validate_migration_result,
     _analogy_identity_violations,
+    _referent_collapse_violations,
     _states_without_commitment,
 )
 
@@ -20,6 +21,7 @@ from conversation_os.metaphysical_kernel_migration import (
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "migration"
 VALID_FIXTURES = [
     "mtsf_minimal_assertion.json",
+    "mtsf_uncertain_identity.json",
     "thoughtshape_stateclaim_hold.json",
     "sds_signal_dilution.json",
     "conversation_os_minimal_session.json",
@@ -128,6 +130,34 @@ class MetaphysicalKernelMigrationTestCase(unittest.TestCase):
                 result = migrate_source_fixture(_load_fixture(name))
                 self.assertTrue(result.reversible)
                 self.assertTrue(result.loss_report or result.mapping_rules)
+
+    def test_mtsf_uncertain_identity_preserves_two_referents(self) -> None:
+        result = migrate_source_fixture(_load_fixture("mtsf_uncertain_identity.json"))
+        referent_ids = [item["envelope"]["id"] for item in result.kernel_bundle["referents"]]
+        self.assertEqual(len(referent_ids), 2)
+        self.assertEqual(len(set(referent_ids)), 2)
+        relations = result.kernel_bundle["relation_instances"]
+        self.assertEqual(len(relations), 1)
+        self.assertEqual(relations[0]["type_id"], "kernel:identity:possibly_same_as")
+        identity_rules = [r for r in result.mapping_rules if r.source_type == "IdentityUncertainty"]
+        self.assertEqual(len(identity_rules), 1)
+        self.assertIn("§5.13", identity_rules[0].semantic_loss_warnings[0])
+
+    def test_referent_collapse_violation_is_detected(self) -> None:
+        rules = [
+            MappingRule("mtsf", "IdeaEntity", "entity-a", "referent", "ref_shared", 1.0),
+            MappingRule("mtsf", "IdeaEntity", "entity-b", "referent", "ref_shared", 1.0),
+        ]
+        violations = _referent_collapse_violations(rules)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("collapsed", violations[0])
+
+    def test_mtsf_uncertain_identity_rejects_unknown_relation_kind(self) -> None:
+        fixture = _load_fixture("mtsf_uncertain_identity.json")
+        fixture["source_records"]["identity_uncertainty"]["relation"] = "equivalent_to"
+
+        with self.assertRaisesRegex(ValueError, "unsupported identity relation"):
+            migrate_source_fixture(fixture)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # KERNEL-002-migration-and-persistence-fixtures: Build kernel migration and persistence fixtures
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

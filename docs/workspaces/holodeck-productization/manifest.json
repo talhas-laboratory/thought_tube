@@ -1,0 +1,42 @@
+{
+  "workspace_id": "holodeck-productization",
+  "label": "Holodeck Productization — Local-First",
+  "status": "active",
+  "maturation_stage": "contextualizing",
+  "goal": "Turn the repository's workspace and Holodeck capability into a local-first, self-hosted product that can safely coordinate autonomous development in arbitrary repositories.",
+  "purpose": "Discover and define the smallest reusable product boundary, validate it against a real external repository, and prepare an evidence-backed implementation plan.",
+  "success_condition": "A validated v1 product contract, installation path, safety model, pilot evidence, and sequenced implementation plan exist without committing to hosted multi-tenant operation.",
+  "artifact_roots": [
+    "src/conversation_os/",
+    "tools/",
+    "ops/",
+    "docs/",
+    "pyproject.toml",
+    "README.md"
+  ],
+  "objectives": [
+    "Define the generic runtime boundary and separate it from Inner World-specific adapters.",
+    "Specify a zero-to-working local installation experience for an arbitrary repository.",
+    "Validate the lifecycle on a non-Inner-Space pilot repository.",
+    "Define the safety, approval, evidence, and recovery guarantees required for bounded autonomy."
+  ],
+  "scope_out": [
+    "Hosted multi-tenant SaaS in v1.",
+    "Unattended production deployment or credential mutation.",
+    "Replacing existing Inner World product behavior before a migration plan is approved.",
+    "Any claim that autonomous development can resolve ambiguous product decisions without escalation."
+  ],
+  "domains": [
+    "developer_tooling",
+    "agent_coordination",
+    "repository_integration",
+    "safety_governance",
+    "product_design"
+  ],
+  "workboard": "docs/workboards/holodeck-productization/README.md",
+  "continuity_projection": "docs/workspaces/holodeck-productization/CONTINUITY.md",
+  "semantic_authority": "docs/workspaces/holodeck-productization/README.md",
+  "linked_session_ids": [
+    "session-98e7a4ce8d95"
+  ]
+}

@@ -1,6 +1,6 @@
 # KERNEL-004-kernel-conformance-suite: Verify kernel conformance suite
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 
