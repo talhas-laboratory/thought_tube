@@ -75,6 +75,29 @@ class MetaphysicalBranchReasoningTestCase(unittest.TestCase):
         )
         self.assertEqual(result.support_value, "unresolved")
 
+    def test_inherited_support_excludes_sibling_branch_evidence(self) -> None:
+        result = assess_support(
+            branch_id="branch_a",
+            scope_id="scope_org",
+            claim_proposition={"predicate": "p", "arguments": ["x"]},
+            evidence_claims=[
+                {
+                    "id": "cl_sibling",
+                    "branch_id": "branch_b",
+                    "scope_id": "scope_org",
+                    "polarity": "affirmative",
+                    "proposition": {"predicate": "p", "arguments": ["x"]},
+                }
+            ],
+            include_inherited=True,
+            branch_ancestry=[
+                {"branch_id": "branch_main", "parent_branch_id": ""},
+                {"branch_id": "branch_a", "parent_branch_id": "branch_main"},
+                {"branch_id": "branch_b", "parent_branch_id": "branch_main"},
+            ],
+        )
+        self.assertEqual(result.support_value, "unresolved")
+
 
 if __name__ == "__main__":
     unittest.main()

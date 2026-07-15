@@ -116,15 +116,6 @@ def _ancestor_chain(
     return chain
 
 
-def _branch_ids_in_tree(branch_ancestry: Sequence[Mapping[str, Any]]) -> Set[str]:
-    ids: Set[str] = set()
-    for row in branch_ancestry:
-        branch_id = str(row.get("branch_id", ""))
-        if branch_id:
-            ids.add(branch_id)
-    return ids
-
-
 def _propositions_match(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
     return (
         str(left.get("predicate", "")) == str(right.get("predicate", ""))
@@ -235,8 +226,7 @@ def assess_support(
     if include_inherited:
         if not branch_ancestry:
             raise BranchNotFoundError("branch_ancestry required when include_inherited is true")
-            allowed_branches.update(_ancestor_chain(branch_id, branch_ancestry))
-        allowed_branches |= _branch_ids_in_tree(branch_ancestry)
+        allowed_branches.update(_ancestor_chain(branch_id, branch_ancestry))
 
     affirmative: List[str] = []
     negative: List[str] = []
