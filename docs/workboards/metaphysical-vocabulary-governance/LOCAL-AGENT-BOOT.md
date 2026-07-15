@@ -8,3 +8,5 @@ python3 tools/workspace_projection_sync.py check --workspace-id metaphysical-voc
 ```
 
 Then read workspace `README.md`, `derived/AGENT_BUILD_GUIDE.md`, `derived/VOCABULARY_OBLIGATION_REGISTER.md`, `derived/TASK_EXECUTION_MAP.md`, both dependency contracts, `GATES.md`, and live task context. VOCAB-001 must preserve raw language and branch context; do not add normalization behavior before the contract is locked.
+
+**Coordination outage (2026-07-15):** if `/health` or `context` fails, read [`derived/BLOCK-REPORT-2026-07-15.md`](../../workspaces/metaphysical-vocabulary-governance/derived/BLOCK-REPORT-2026-07-15.md) and [`UMF-COORDINATION-RECONCILIATION-2026-07-15.md`](../unified-metaphysical-foundation/UMF-COORDINATION-RECONCILIATION-2026-07-15.md) before trusting `TASKS.md` status.
