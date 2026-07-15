@@ -8,3 +8,5 @@ python3 tools/workspace_projection_sync.py check --workspace-id metaphysical-bra
 ```
 
 Then read workspace `README.md`, `derived/AGENT_BUILD_GUIDE.md`, `derived/BRANCH_OBLIGATION_REGISTER.md`, `derived/TASK_EXECUTION_MAP.md`, the Kernel dependency contract, `GATES.md`, and live task context. BRANCH-001 is specification work; do not create a runtime owner before the contract and engineering guard are ready.
+
+**Coordination outage (2026-07-15):** if `/health` or `context` fails, read [`derived/BLOCK-REPORT-2026-07-15.md`](../../workspaces/metaphysical-branch-reasoning/derived/BLOCK-REPORT-2026-07-15.md) and [`UMF-COORDINATION-RECONCILIATION-2026-07-15.md`](../unified-metaphysical-foundation/UMF-COORDINATION-RECONCILIATION-2026-07-15.md) before trusting `TASKS.md` status.

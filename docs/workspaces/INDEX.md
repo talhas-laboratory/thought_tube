@@ -41,3 +41,4 @@ cat docs/workspaces/unified-framework-synthesis/CONTINUITY.md
 | Framework sources | [`docs/frameworks/`](../frameworks/) |
 | Canonical framework | [`unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`](./unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) |
 | Foundation build plan | [`unified-framework-synthesis/derived/foundation-build-plan.md`](./unified-framework-synthesis/derived/foundation-build-plan.md) |
+| **UMF coordination block report (2026-07-15)** | [`unified-framework-synthesis/derived/BLOCK-REPORT-2026-07-15-umf-coordination-outage.md`](./unified-framework-synthesis/derived/BLOCK-REPORT-2026-07-15-umf-coordination-outage.md) |
