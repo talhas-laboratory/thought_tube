@@ -1,7 +1,7 @@
 # Kernel Conformance Coverage — KERNEL-004
 
-**Task:** `KERNEL-004-kernel-conformance-suite`  
-**Machine index:** [`KERNEL_CONFORMANCE_COVERAGE.json`](./KERNEL_CONFORMANCE_COVERAGE.json)  
+**Task:** `KERNEL-004-kernel-conformance-suite`
+**Machine index:** [`KERNEL_CONFORMANCE_COVERAGE.json`](./KERNEL_CONFORMANCE_COVERAGE.json)
 **Obligation matrix:** [`KERNEL_ATOMIC_OBLIGATIONS.json`](./KERNEL_ATOMIC_OBLIGATIONS.json)
 
 ## Suite modules
@@ -37,8 +37,8 @@
 
 ## Residual risks (explicit)
 
-1. **Lifecycle transitions** — owned by KERNEL-005 dependency contract  
-2. **Staleness propagation** — owned by KERNEL-005 dependency contract  
+1. **Lifecycle transitions** — owned by KERNEL-005 dependency contract
+2. **Staleness propagation** — owned by KERNEL-005 dependency contract
 
 ## Verification ladder
 

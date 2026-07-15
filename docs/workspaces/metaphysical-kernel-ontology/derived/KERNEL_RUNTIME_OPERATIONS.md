@@ -1,7 +1,7 @@
 # Kernel Runtime Operations — KERNEL-003
 
-**Task:** `KERNEL-003-minimal-kernel-runtime-operations`  
-**Owner module:** `src/conversation_os/metaphysical_kernel_runtime.py`  
+**Task:** `KERNEL-003-minimal-kernel-runtime-operations`
+**Owner module:** `src/conversation_os/metaphysical_kernel_runtime.py`
 **SDK surface:** `FoundationApplicationSdk.record_identity_uncertainty`
 
 ## New public operations
