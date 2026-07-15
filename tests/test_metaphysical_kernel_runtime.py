@@ -363,6 +363,23 @@ class MetaphysicalKernelRuntimeTestCase(unittest.TestCase):
 
         self.assertEqual(len(self.runtime.store.read_events()), event_count_before)
 
+    def test_assert_relation_instance_rejects_incomplete_participant(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        prov_id = fragment["envelope"]["provenance_id"]
+        scope_id = "scope_invalid_participant"
+        self.runtime.ensure_scope(scope_id)
+        event_count_before = len(self.runtime.store.read_events())
+
+        with self.assertRaisesRegex(ContractValidationError, "requires non-empty role and ref"):
+            self.runtime.assert_relation_instance(
+                type_id="kernel:test:links",
+                participants=[{"role": "subject", "ref": ""}],
+                scope_id=scope_id,
+                provenance_id=prov_id,
+            )
+
+        self.assertEqual(len(self.runtime.store.read_events()), event_count_before)
+
     def test_record_identity_uncertainty_preserves_two_referents(self) -> None:
         fragment = self.runtime.capture_from_conversation_event(self._event())
         prov_id = fragment["envelope"]["provenance_id"]
@@ -403,6 +420,35 @@ class MetaphysicalKernelRuntimeTestCase(unittest.TestCase):
                 scope_id=scope_id,
                 provenance_id=prov_id,
                 relation_kind="same_as",
+            )
+
+        self.assertEqual(len(self.runtime.store.read_events()), event_count_before)
+        self.assertEqual(self.runtime.current_bundle()["relation_instances"], [])
+
+    def test_identity_uncertainty_rejects_unknown_kind_and_invalid_confidence(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        prov_id = fragment["envelope"]["provenance_id"]
+        scope_id = "scope_identity_validation"
+        self.runtime.ensure_scope(scope_id)
+        left = self.runtime.resolve_referent("Validation left")
+        right = self.runtime.resolve_referent("Validation right")
+        common = {
+            "left_referent_id": left["envelope"]["id"],
+            "right_referent_id": right["envelope"]["id"],
+            "scope_id": scope_id,
+            "provenance_id": prov_id,
+        }
+        event_count_before = len(self.runtime.store.read_events())
+
+        with self.assertRaisesRegex(ContractValidationError, "unsupported identity relation"):
+            self.runtime.record_identity_uncertainty(
+                **common,
+                relation_kind="equivalent_to",
+            )
+        with self.assertRaisesRegex(ContractValidationError, "between 0 and 1"):
+            self.runtime.record_identity_uncertainty(
+                **common,
+                confidence=1.5,
             )
 
         self.assertEqual(len(self.runtime.store.read_events()), event_count_before)

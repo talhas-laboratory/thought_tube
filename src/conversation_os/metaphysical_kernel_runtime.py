@@ -504,10 +504,18 @@ class FoundationRuntime:
     ) -> Dict[str, Any]:
         """Append a validated RelationInstance (§5.6). Fails closed before persistence."""
         relation_id = make_id("rel")
+        if not participants or any(
+            not str(item.get("role", "")).strip() or not str(item.get("ref", "")).strip()
+            for item in participants
+        ):
+            raise ContractValidationError(
+                "invalid_relation_participant",
+                "every relation participant requires non-empty role and ref",
+                FRAMEWORK_SECTIONS["relation"],
+            )
         normalized_participants = [
             {"role": str(item["role"]), "ref": str(item["ref"])}
             for item in participants
-            if str(item.get("role", "")).strip() and str(item.get("ref", "")).strip()
         ]
         record = {
             "envelope": self._base_envelope(
@@ -570,7 +578,25 @@ class FoundationRuntime:
                 FRAMEWORK_SECTIONS["identity_uncertainty"],
             )
         if kind not in {"possibly_same_as", "distinct_from"}:
-            kind = "possibly_same_as"
+            raise ContractValidationError(
+                "unsupported_identity_relation",
+                f"unsupported identity relation: {kind}",
+                FRAMEWORK_SECTIONS["identity_uncertainty"],
+            )
+        try:
+            normalized_confidence = float(confidence)
+        except (TypeError, ValueError) as exc:
+            raise ContractValidationError(
+                "invalid_identity_confidence",
+                "identity confidence must be a number between 0 and 1",
+                FRAMEWORK_SECTIONS["identity_uncertainty"],
+            ) from exc
+        if not 0.0 <= normalized_confidence <= 1.0:
+            raise ContractValidationError(
+                "invalid_identity_confidence",
+                "identity confidence must be between 0 and 1",
+                FRAMEWORK_SECTIONS["identity_uncertainty"],
+            )
         return self.assert_relation_instance(
             type_id=f"kernel:identity:{kind}",
             participants=[
@@ -579,7 +605,7 @@ class FoundationRuntime:
             ],
             scope_id=scope_id,
             provenance_id=provenance_id,
-            qualifiers={"confidence": confidence, "rationale": rationale},
+            qualifiers={"confidence": normalized_confidence, "rationale": rationale},
             epistemic_status="unresolved",
             governance_status="review_required",
         )
