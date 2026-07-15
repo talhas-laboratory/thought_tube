@@ -1,0 +1,38 @@
+{
+  "schema": "vocab_level_classification_outcome_table_v1.0.0",
+  "framework_section": "§8.1",
+  "contract_version": "1.0.0",
+  "description": "Five vocabulary levels with explicit scope and promotion authority.",
+  "cases": [
+    {
+      "case_id": "level-001",
+      "description": "Kernel type — only kernel program may change",
+      "term": {"type_id": "core:claim", "namespace_level": "kernel"},
+      "expected": {"level": 1, "name": "kernel", "promotion_authority": "metaphysical-kernel-ontology"}
+    },
+    {
+      "case_id": "level-002",
+      "description": "Governed shared term requires steward",
+      "term": {"type_id": "shared:meaning_deficit", "namespace_level": "governed_shared", "steward": "steward:ontology_team"},
+      "expected": {"level": 2, "name": "governed_shared", "promotion_required": true}
+    },
+    {
+      "case_id": "level-003",
+      "description": "Workspace term scoped to project",
+      "term": {"type_id": "workspace:trust_metric", "namespace_level": "workspace", "scope_id": "scope_project_x"},
+      "expected": {"level": 3, "name": "workspace", "default_exposure": "scope_local"}
+    },
+    {
+      "case_id": "level-004",
+      "description": "Model-local term bound to branch",
+      "term": {"type_id": "model_local:agent_belief_x", "namespace_level": "model_local", "branch_context": "branch_hyp_a"},
+      "expected": {"level": 4, "name": "model_local", "global_exposure": false}
+    },
+    {
+      "case_id": "level-005",
+      "description": "Raw expression before normalization",
+      "term": {"id": "raw_001", "text": "feels empty inside", "namespace_level": "raw_expression"},
+      "expected": {"level": 5, "name": "raw_expression", "forced_normalization": false}
+    }
+  ]
+}

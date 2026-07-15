@@ -1,0 +1,90 @@
+{
+  "schema": "vocab_contract_fixtures_index_v1.0.0",
+  "contract_version": "1.0.0",
+  "vocab_contract_version": "1.0.0",
+  "kernel_contract_version": "1.1.0",
+  "branch_contract_version": "1.0.0",
+  "framework_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "framework_sections": ["§8", "§6.10", "§22", "§27.15"],
+  "generated_by_task": "VOCAB-001-atomic-obligation-and-governance-lock",
+  "description": "Master index of VOCAB-001 contract fixtures. Tests in VOCAB-002+ must validate all cases in all tables.",
+  "fixture_tables": [
+    {
+      "operation": "TermMapping",
+      "section": "§8.3",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/mapping_outcome_table.json",
+      "case_count": 6,
+      "required_invariants": [
+        "Mapping is a record, not a rewrite.",
+        "analogous and overlaps do not imply identity.",
+        "identity_confirmation required for equivalent-as-identity."
+      ]
+    },
+    {
+      "operation": "PromotionRecord",
+      "section": "§8.2",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/promotion_outcome_table.json",
+      "case_count": 5,
+      "required_invariants": [
+        "Promotion is optional.",
+        "Declined promotion leaves local term usable.",
+        "Governance approval separate from epistemic status."
+      ]
+    },
+    {
+      "operation": "TypeExtension",
+      "section": "§8.5",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/extension_safety_outcome_table.json",
+      "case_count": 4,
+      "required_invariants": [
+        "Extensions specialize kernel; never redefine Claim, State, SourceFragment."
+      ]
+    },
+    {
+      "operation": "Preservation",
+      "section": "§6.10, §27.15",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/preservation_outcome_table.json",
+      "case_count": 4,
+      "required_invariants": [
+        "Raw expression preserved verbatim.",
+        "Lookup returns source + mapping metadata."
+      ]
+    },
+    {
+      "operation": "VocabularyLevel",
+      "section": "§8.1",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/level_classification_outcome_table.json",
+      "case_count": 5,
+      "required_invariants": [
+        "Five levels explicit; not a quality ranking."
+      ]
+    }
+  ],
+  "acceptance_tests_required": [
+    {
+      "test_id": "VOCAB-ACC-001",
+      "description": "analogous mapping does not behave as identity (map-001)",
+      "fixture_ref": "mapping_outcome_table.json#map-001"
+    },
+    {
+      "test_id": "VOCAB-ACC-002",
+      "description": "branch-local mappings separated (map-004)",
+      "fixture_ref": "mapping_outcome_table.json#map-004"
+    },
+    {
+      "test_id": "VOCAB-ACC-003",
+      "description": "declined promotion leaves local term usable (promo-002)",
+      "fixture_ref": "promotion_outcome_table.json#promo-002"
+    },
+    {
+      "test_id": "VOCAB-ACC-004",
+      "description": "kernel redefinition rejected (ext-002)",
+      "fixture_ref": "extension_safety_outcome_table.json#ext-002"
+    },
+    {
+      "test_id": "VOCAB-ACC-005",
+      "description": "raw expression preserved (pres-001)",
+      "fixture_ref": "preservation_outcome_table.json#pres-001"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "schema": "vocab_mapping_outcome_table_v1.0.0",
+  "framework_section": "§8.3",
+  "contract_version": "1.0.0",
+  "description": "Table-driven fixtures for TermMapping behavior. Mapping kinds have distinct consequences; none implies identity unless explicitly confirmed.",
+  "cases": [
+    {
+      "case_id": "map-001",
+      "description": "analogous mapping — consumer must not treat as equivalence",
+      "mapping": {
+        "id": "map_analogous_001",
+        "source_type_or_expression": "workspace:spiritual_emptiness",
+        "target_type": "shared:meaning_deficit",
+        "mapping_kind": "analogous",
+        "scope_id": "scope_clinical",
+        "confidence": 0.6,
+        "branch_context": "branch_main"
+      },
+      "expected": {
+        "implies_identity": false,
+        "allows_canonical_substitution": false,
+        "preserves_source_expression": true
+      }
+    },
+    {
+      "case_id": "map-002",
+      "description": "equivalent mapping without identity_confirmation — still not identity",
+      "mapping": {
+        "id": "map_equiv_001",
+        "source_type_or_expression": "workspace:trust_state",
+        "target_type": "shared:trust_state",
+        "mapping_kind": "equivalent",
+        "scope_id": "scope_org",
+        "confidence": 0.9,
+        "branch_context": "branch_main"
+      },
+      "expected": {
+        "implies_identity": false,
+        "identity_confirmation_required": true,
+        "preserves_source_expression": true
+      }
+    },
+    {
+      "case_id": "map-003",
+      "description": "equivalent with explicit identity_confirmation — identity allowed",
+      "mapping": {
+        "id": "map_equiv_confirmed_001",
+        "source_type_or_expression": "workspace:org_unit_a",
+        "target_type": "shared:organization",
+        "mapping_kind": "equivalent",
+        "scope_id": "scope_org",
+        "confidence": 0.95,
+        "identity_confirmation": "governed_decision:idem_001",
+        "branch_context": "branch_main"
+      },
+      "expected": {
+        "implies_identity": true,
+        "preserves_source_expression": true
+      }
+    },
+    {
+      "case_id": "map-004",
+      "description": "branch-local mappings for same phrase remain separated",
+      "mapping_a": {
+        "id": "map_branch_a",
+        "source_type_or_expression": "raw:heavy",
+        "target_type": "workspace:computational_load",
+        "mapping_kind": "narrower",
+        "scope_id": "scope_glossary",
+        "branch_context": "branch_vocab_a"
+      },
+      "mapping_b": {
+        "id": "map_branch_b",
+        "source_type_or_expression": "raw:heavy",
+        "target_type": "workspace:physical_mass",
+        "mapping_kind": "narrower",
+        "scope_id": "scope_glossary",
+        "branch_context": "branch_vocab_b"
+      },
+      "expected": {
+        "exposed_as_global": false,
+        "distinct_target_types": true,
+        "preserves_source_expression": true
+      }
+    },
+    {
+      "case_id": "map-005",
+      "description": "overlaps does not imply equivalence",
+      "mapping": {
+        "id": "map_overlap_001",
+        "source_type_or_expression": "workspace:stress",
+        "target_type": "shared:pressure",
+        "mapping_kind": "overlaps",
+        "scope_id": "scope_psych",
+        "confidence": 0.7
+      },
+      "expected": {
+        "implies_identity": false,
+        "implies_equivalence": false,
+        "preserves_source_expression": true
+      }
+    },
+    {
+      "case_id": "map-006",
+      "description": "ambiguous mapping abstains from canonical substitution",
+      "mapping": {
+        "id": "map_ambig_001",
+        "source_type_or_expression": "raw:process is heavy",
+        "target_type": null,
+        "mapping_kind": "analogous",
+        "scope_id": "scope_org",
+        "confidence": 0.3,
+        "context_notes": "heavy may mean computational or physical"
+      },
+      "expected": {
+        "abstention_required": true,
+        "preserves_source_expression": true,
+        "allows_canonical_substitution": false
+      }
+    }
+  ]
+}

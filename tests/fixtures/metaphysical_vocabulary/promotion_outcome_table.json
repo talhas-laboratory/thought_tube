@@ -1,0 +1,102 @@
+{
+  "schema": "vocab_promotion_outcome_table_v1.0.0",
+  "framework_section": "§8.2",
+  "contract_version": "1.0.0",
+  "description": "Promotion rubric outcomes. Promotion is optional; declined promotion leaves local term usable.",
+  "promotion_rubric_criteria": [
+    "stable_usage",
+    "clear_definition",
+    "distinct_identity",
+    "demonstrated_reuse",
+    "compatibility_with_existing_terms",
+    "assigned_steward",
+    "review_outcome"
+  ],
+  "cases": [
+    {
+      "case_id": "promo-001",
+      "description": "All rubric criteria met — promotion approved to governed shared",
+      "proposal": {
+        "source_level": "workspace",
+        "source_term": "workspace:meaning_deficit",
+        "target_level": "governed_shared",
+        "target_term": "shared:meaning_deficit",
+        "stable_usage": true,
+        "clear_definition": true,
+        "distinct_identity": true,
+        "demonstrated_reuse": true,
+        "compatibility": true,
+        "steward": "steward:ontology_team",
+        "review_outcome": "approved"
+      },
+      "expected": {
+        "promotion_status": "approved",
+        "source_term_still_addressable": true,
+        "prior_level_retained_in_provenance": true
+      }
+    },
+    {
+      "case_id": "promo-002",
+      "description": "Promotion declined — local term remains usable",
+      "proposal": {
+        "source_level": "model_local",
+        "source_term": "model_local:agent_belief_x",
+        "target_level": "governed_shared",
+        "stable_usage": false,
+        "clear_definition": true,
+        "distinct_identity": true,
+        "demonstrated_reuse": false,
+        "compatibility": true,
+        "steward": "steward:branch_owner",
+        "review_outcome": "declined",
+        "decline_reason": "insufficient_reuse_evidence"
+      },
+      "expected": {
+        "promotion_status": "declined",
+        "local_term_usable": true,
+        "not_invalidated": true
+      }
+    },
+    {
+      "case_id": "promo-003",
+      "description": "Branch-local term cannot be coerced to global without governed promotion",
+      "proposal": {
+        "source_level": "model_local",
+        "source_term": "model_local:branch_only_label",
+        "target_level": "governed_shared",
+        "branch_context": "branch_hyp_a",
+        "review_outcome": "declined",
+        "decline_reason": "branch_local_coercion_forbidden"
+      },
+      "expected": {
+        "promotion_status": "declined",
+        "exposed_as_global": false
+      }
+    },
+    {
+      "case_id": "promo-004",
+      "description": "Governance approved but epistemic status may remain unresolved",
+      "proposal": {
+        "source_term": "workspace:trust_metric",
+        "review_outcome": "approved",
+        "governance_status": "approved_for_scope",
+        "epistemic_status": "candidate"
+      },
+      "expected": {
+        "promotion_status": "approved",
+        "governance_status": "approved_for_scope",
+        "epistemic_status_unchanged": "candidate"
+      },
+      "invariant_note": "§22: governance approval does not imply epistemic resolution"
+    },
+    {
+      "case_id": "promo-005",
+      "description": "Promotion optional — system usable without global approval",
+      "proposal": null,
+      "expected": {
+        "promotion_required": false,
+        "local_vocabulary_usable": true
+      }
+    }
+  ]
+}
