@@ -1,8 +1,8 @@
 # Kernel Release Dependency Contract — G5
 
-**Task:** `KERNEL-005-release-kernel-dependency-contract`  
-**Provider:** `metaphysical-kernel-ontology`  
-**Contract version:** `1.1.0`  
+**Task:** `KERNEL-005-release-kernel-dependency-contract`
+**Provider:** `metaphysical-kernel-ontology`
+**Contract version:** `1.1.0`
 **Machine packet:** [`KERNEL_RELEASE_DEPENDENCY_CONTRACT.json`](./KERNEL_RELEASE_DEPENDENCY_CONTRACT.json)
 
 This document is the **consumable G5 release** for the Phase 1 metaphysical kernel. Branch, Vocabulary, and profile programs may pass integration gates against the version and SHA named here.

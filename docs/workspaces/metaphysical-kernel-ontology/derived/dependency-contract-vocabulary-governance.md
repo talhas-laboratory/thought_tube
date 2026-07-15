@@ -1,9 +1,9 @@
 # Dependency Contract: Kernel Ontology → Vocabulary Governance
 
-**Provider:** `metaphysical-kernel-ontology`  
-**Consumer:** `metaphysical-vocabulary-governance`  
-**Status:** **Released** — Kernel G5 (`KERNEL-005`)  
-**Provider contract version:** `1.1.0`  
+**Provider:** `metaphysical-kernel-ontology`
+**Consumer:** `metaphysical-vocabulary-governance`
+**Status:** **Released** — Kernel G5 (`KERNEL-005`)
+**Provider contract version:** `1.1.0`
 **Release packet:** [`KERNEL_RELEASE_DEPENDENCY_CONTRACT.json`](../../metaphysical-kernel-ontology/derived/KERNEL_RELEASE_DEPENDENCY_CONTRACT.json)
 
 ## Provider supplies

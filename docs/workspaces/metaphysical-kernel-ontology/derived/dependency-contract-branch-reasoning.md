@@ -1,9 +1,9 @@
 # Dependency Contract: Kernel Ontology → Branch Reasoning
 
-**Provider:** `metaphysical-kernel-ontology`  
-**Consumer:** `metaphysical-branch-reasoning`  
-**Status:** **Released** — Kernel G5 (`KERNEL-005`)  
-**Provider contract version:** `1.1.0`  
+**Provider:** `metaphysical-kernel-ontology`
+**Consumer:** `metaphysical-branch-reasoning`
+**Status:** **Released** — Kernel G5 (`KERNEL-005`)
+**Provider contract version:** `1.1.0`
 **Release packet:** [`KERNEL_RELEASE_DEPENDENCY_CONTRACT.json`](../../metaphysical-kernel-ontology/derived/KERNEL_RELEASE_DEPENDENCY_CONTRACT.json)
 
 ## Provider supplies

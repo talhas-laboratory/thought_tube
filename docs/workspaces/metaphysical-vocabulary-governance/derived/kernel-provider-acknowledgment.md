@@ -1,9 +1,9 @@
 # Kernel Provider Acknowledgment — Vocabulary Governance
 
-**Consumer workspace:** `metaphysical-vocabulary-governance`  
-**Provider workspace:** `metaphysical-kernel-ontology`  
-**Acknowledged contract version:** `1.1.0`  
-**Release task:** `KERNEL-005-release-kernel-dependency-contract`  
+**Consumer workspace:** `metaphysical-vocabulary-governance`
+**Provider workspace:** `metaphysical-kernel-ontology`
+**Acknowledged contract version:** `1.1.0`
+**Release task:** `KERNEL-005-release-kernel-dependency-contract`
 **Release git revision:** `512236d4b089d0a4d04821cca3d068a2d0a539f4`
 
 ## Confirmed for VOCAB program use
