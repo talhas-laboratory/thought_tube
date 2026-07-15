@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: metaphysical-kernel-ontology -->
-<!-- canonical_revision: ea31872471310b2a0507ac216f2249df89973e8b2048f921523b6c2fde289779 -->
+<!-- canonical_revision: 146b70a4b3ae7fd6ed5338cc76b70d17abf79800cacb5de80518fdd083394f72 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-15T16:44:01+00:00 -->
+<!-- generated_at: 2026-07-15T16:52:44+00:00 -->
 
 # Workspace continuity: metaphysical-kernel-ontology
 
@@ -27,11 +27,10 @@ Select a task to receive a recommended next action.
 ## Verification
 
 - merge-evidence
-- foundation-review
-- consumer-smoke
-- kernel-release-ladder
-- foundation-review
-- kernel-conformance-suite
+- merge-evidence
+- merge-evidence
+- merge-evidence
+- merge-evidence
 - foundation-review
 - consumer-smoke
 - kernel-release-ladder
@@ -39,7 +38,3 @@ Select a task to receive a recommended next action.
 - kernel-conformance-suite
 - foundation-review
 - kernel-runtime-tests
-- migrate-fixture-uncertain-identity
-- foundation-review
-- kernel-migration-tests
-- kernel-atomic-obligations
