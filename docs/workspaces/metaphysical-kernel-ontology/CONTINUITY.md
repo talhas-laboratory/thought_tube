@@ -33,6 +33,9 @@ Select a task to receive a recommended next action.
 - foundation-review
 - kernel-conformance-suite
 - foundation-review
+- consumer-smoke
+- kernel-release-ladder
+- foundation-review
 - kernel-conformance-suite
 - foundation-review
 - kernel-runtime-tests

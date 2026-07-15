@@ -105,4 +105,4 @@ PYTHONPATH=src python3 -m unittest tests.test_kernel_atomic_obligations tests.te
 
 ## Downstream dependency statement
 
-Branch and Vocabulary programs may draft against this lock. They **cannot** pass G5 integration until KERNEL-005 publishes merge SHA evidence. Until then, consume `CONTRACT_VERSION=1.1.0` and [`KERNEL_ATOMIC_OBLIGATIONS.json`](./KERNEL_ATOMIC_OBLIGATIONS.json) as the semantic boundary.
+Branch and Vocabulary programs may integrate against **KERNEL-005** release packet [`KERNEL_RELEASE_DEPENDENCY_CONTRACT.json`](./KERNEL_RELEASE_DEPENDENCY_CONTRACT.json) at `CONTRACT_VERSION=1.1.0`. Until merge, consume [`KERNEL_ATOMIC_OBLIGATIONS.json`](./KERNEL_ATOMIC_OBLIGATIONS.json) as the semantic boundary.
