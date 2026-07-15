@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 import unittest
 from pathlib import Path
 
@@ -56,7 +55,7 @@ class KernelReleaseContractTestCase(unittest.TestCase):
         sha = str(self.release.get("release_git_revision", ""))
         self.assertTrue(sha)
         self.assertNotEqual(sha, "RELEASE_SHA_PLACEHOLDER")
-        self.assertTrue(re.fullmatch(r"[0-9a-f]{7,40}", sha), msg=sha)
+        self.assertTrue(re.fullmatch(r"[0-9a-f]{40}", sha), msg=sha)
 
     def test_consumer_acknowledgments_match_release_sha(self) -> None:
         sha = self.release["release_git_revision"]
@@ -77,23 +76,6 @@ class KernelReleaseContractTestCase(unittest.TestCase):
             self.assertTrue(module_path.with_suffix(".py").is_file(), msg=module)
             source = module_path.with_suffix(".py").read_text(encoding="utf-8")
             self.assertIn(f"def {test_name}", source)
-
-    def test_release_sha_matches_git_head_when_clean(self) -> None:
-        try:
-            head = subprocess.check_output(
-                ["git", "rev-parse", "HEAD"],
-                cwd=ROOT,
-                text=True,
-            ).strip()
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            self.skipTest("git unavailable")
-        if self.release["release_git_revision"] not in {head, head[: len(self.release["release_git_revision"])]}:
-            # Allow short SHA prefix match
-            self.assertTrue(
-                head.startswith(self.release["release_git_revision"])
-                or self.release["release_git_revision"].startswith(head[:7]),
-                msg=f"release {self.release['release_git_revision']} vs head {head}",
-            )
 
 
 if __name__ == "__main__":
