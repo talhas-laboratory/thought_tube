@@ -3,6 +3,7 @@
 Git-tracked working spaces for long design threads. These are continuity projections backed by a live workspace service for coordination state.
 
 **Mandatory protocol:** [`WORKSPACE-AGENT-PROTOCOL.md`](./WORKSPACE-AGENT-PROTOCOL.md)  
+**Workspace OS dashboard:** [`WORKSPACE-OS.md`](./WORKSPACE-OS.md) · [UI](../product/inner_world_v1/miniapp/workspace-os.html)  
 **Foreign agents:** [`docs/cross-agent/README.md`](../cross-agent/README.md)
 
 | Workspace ID | Status | Entry | Manifest |
@@ -41,3 +42,4 @@ cat docs/workspaces/unified-framework-synthesis/CONTINUITY.md
 | Framework sources | [`docs/frameworks/`](../frameworks/) |
 | Canonical framework | [`unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`](./unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) |
 | Foundation build plan | [`unified-framework-synthesis/derived/foundation-build-plan.md`](./unified-framework-synthesis/derived/foundation-build-plan.md) |
+| **Workspace OS dashboard (UI)** | [`product/inner_world_v1/miniapp/workspace-os.html`](../product/inner_world_v1/miniapp/workspace-os.html) |

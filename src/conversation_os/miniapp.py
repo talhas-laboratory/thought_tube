@@ -88,6 +88,13 @@ from .worldbuilding_studio import (
     update_character_feature_object as worldstudio_update_character_feature_object,
     update_character_profile_section as worldstudio_update_character_profile_section,
 )
+from .workspace_os_api import (
+    workspace_os_dashboard_payload,
+    workspace_os_live_catalog,
+    workspace_os_live_context,
+    workspace_os_live_gate,
+    workspace_os_live_health,
+)
 
 
 MODULE_ID = "surface.inner_world.miniapp"
@@ -3187,6 +3194,23 @@ def make_miniapp_handler(
             if api_path in {"/state", "/runtime-overview"}:
                 state = get_runtime_overview(root)
                 self._send_json(state)
+                return
+            if api_path == "/workspace-os/dashboard":
+                self._send_json(workspace_os_dashboard_payload(root))
+                return
+            if api_path == "/workspace-os/live/health":
+                self._send_json(workspace_os_live_health())
+                return
+            if api_path == "/workspace-os/live/catalog":
+                self._send_json(workspace_os_live_catalog())
+                return
+            if api_path and api_path.startswith("/workspace-os/live/context/"):
+                workspace_id = api_path.removeprefix("/workspace-os/live/context/").strip("/")
+                self._send_json(workspace_os_live_context(workspace_id))
+                return
+            if api_path and api_path.startswith("/workspace-os/live/gate/"):
+                workspace_id = api_path.removeprefix("/workspace-os/live/gate/").strip("/")
+                self._send_json(workspace_os_live_gate(workspace_id))
                 return
             if api_path == "/world-studio/worlds":
                 self._send_json(worldstudio_list_worlds(root))
