@@ -1,8 +1,8 @@
 # Kernel Public Contract Lock — v1.1.0
 
-**Task:** `KERNEL-001-atomic-obligation-and-contract-lock`  
-**Workspace:** `metaphysical-kernel-ontology`  
-**Authority:** [Framework v1.1](../../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)  
+**Task:** `KERNEL-001-atomic-obligation-and-contract-lock`
+**Workspace:** `metaphysical-kernel-ontology`
+**Authority:** [Framework v1.1](../../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)
 **Atomic matrix:** [`KERNEL_ATOMIC_OBLIGATIONS.json`](./KERNEL_ATOMIC_OBLIGATIONS.json)
 
 This document locks the **public kernel contract boundary** after KERNEL-001. Downstream programs (Branch, Vocabulary, Formation, Shape, …) may depend on the version, record kinds, invariants, and explicit deferrals named here. They must not embed private kernel semantics.
