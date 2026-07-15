@@ -1,6 +1,6 @@
 # BRANCH-002-support-and-inheritance-semantics: Implement support and inheritance semantics
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 
