@@ -218,6 +218,8 @@ ADVERSARIAL_STATE_FIXTURE_PATHS = [
     "tests/fixtures/metaphysical_kernel/invalid_state_scope_membership_mismatch.json",
     "tests/fixtures/metaphysical_kernel/invalid_state_missing_commitment_link.json",
     "tests/fixtures/metaphysical_kernel/invalid_state_unknown_source_claim.json",
+    "tests/fixtures/metaphysical_kernel/invalid_provenance_no_source.json",
+    "tests/fixtures/metaphysical_kernel/invalid_lifecycle_axis_collapse.json",
 ]
 
 FOUNDATION_TASK_IDS = [
