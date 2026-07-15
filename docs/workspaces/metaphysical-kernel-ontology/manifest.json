@@ -1,0 +1,19 @@
+{
+  "workspace_id": "metaphysical-kernel-ontology",
+  "label": "Metaphysical Kernel Ontology",
+  "status": "active",
+  "maturation_stage": "contract_lock",
+  "parent_workspace_id": "unified-framework-synthesis",
+  "program_task_id": "UMF-PROGRAM-KERNEL",
+  "goal": "Complete the universal kernel ontology, lifecycle and profile-conformance contracts required by framework v1.1.",
+  "canonical_source": "../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "canonical_version": "1.1",
+  "framework_sections": ["4", "5", "6", "21", "22", "23", "24", "25", "29"],
+  "dependency_workspace_ids": ["unified-framework-synthesis"],
+  "workboard": "docs/workboards/metaphysical-kernel-ontology/README.md",
+  "continuity_projection": "docs/workspaces/metaphysical-kernel-ontology/CONTINUITY.md",
+  "sync_contract": "docs/workspaces/metaphysical-kernel-ontology/derived/sync-contract.md",
+  "artifact_roots": ["docs/workspaces/metaphysical-kernel-ontology/derived", "docs/workboards/metaphysical-kernel-ontology/artifacts"],
+  "ownership_rules": ["Own universal kernel concepts and record envelope changes.", "Do not add product-specific fields.", "Profile programs may extend but may not redefine kernel semantics."],
+  "created_at": "2026-07-15"
+}

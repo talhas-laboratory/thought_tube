@@ -51,6 +51,16 @@ Sync contract: [`derived/sync-contract.md`](./derived/sync-contract.md)
 
 Execution board: [`docs/workboards/unified-metaphysical-foundation/`](../../workboards/unified-metaphysical-foundation/README.md)
 
+## Program hierarchy
+
+This workspace is the parent program. The first active child workspaces are:
+
+- [`metaphysical-kernel-ontology`](../metaphysical-kernel-ontology/README.md)
+- [`metaphysical-branch-reasoning`](../metaphysical-branch-reasoning/README.md)
+- [`metaphysical-vocabulary-governance`](../metaphysical-vocabulary-governance/README.md)
+
+The full program catalog and deferred children are declared in [`manifest.json`](./manifest.json) and governed by the [program workspace hierarchy plan](./derived/program-workspace-hierarchy-plan.md).
+
 ---
 
 ## Normative foundation

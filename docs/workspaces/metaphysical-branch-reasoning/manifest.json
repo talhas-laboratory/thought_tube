@@ -1,0 +1,19 @@
+{
+  "workspace_id": "metaphysical-branch-reasoning",
+  "label": "Metaphysical Branch Reasoning",
+  "status": "active",
+  "maturation_stage": "semantic_authority",
+  "parent_workspace_id": "unified-framework-synthesis",
+  "program_task_id": "UMF-PROGRAM-BRANCH",
+  "goal": "Implement branch inheritance, contradiction preservation, support semantics, merge behavior, and inference policy without collapsing distinct perspectives.",
+  "canonical_source": "../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "canonical_version": "1.1",
+  "framework_sections": ["7", "20", "27.2", "27.16"],
+  "dependency_workspace_ids": ["metaphysical-kernel-ontology"],
+  "workboard": "docs/workboards/metaphysical-branch-reasoning/README.md",
+  "continuity_projection": "docs/workspaces/metaphysical-branch-reasoning/CONTINUITY.md",
+  "sync_contract": "docs/workspaces/metaphysical-branch-reasoning/derived/sync-contract.md",
+  "artifact_roots": ["docs/workspaces/metaphysical-branch-reasoning/derived", "docs/workboards/metaphysical-branch-reasoning/artifacts"],
+  "ownership_rules": ["Own branch and contradiction semantics.", "Do not redefine kernel identity, provenance, or state semantics.", "Consumers use public branch contracts rather than private branch logic."],
+  "created_at": "2026-07-15"
+}

@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 61a4821558a0c4547e8c14a8543835176696877e380490e0c05dc2ac24afbc6f -->
+<!-- canonical_revision: 06609405ad50a43cf2e6681e959bb16ade4c038ef298f3b065d13d39864c1739 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-14T15:37:10+00:00 -->
+<!-- generated_at: 2026-07-15T06:23:25+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 

@@ -43,6 +43,7 @@ def render_workspace_continuity_markdown(export: dict[str, Any]) -> str:
     focus = dict(export.get("focus", {}) or {})
     task = dict(focus.get("task", {}) or {})
     task_id = str(task.get("task_id") or task.get("work_item_id") or "")
+    task_title = str(task.get("title", "") or "")
     lines = [
         "<!-- generated: workspace continuity export; canonical store remains authoritative -->",
         f"<!-- workspace_id: {export.get('workspace_id', '')} -->",
@@ -60,7 +61,7 @@ def render_workspace_continuity_markdown(export: dict[str, Any]) -> str:
         "",
         f"- id: `{task_id}`",
         f"- status: `{task.get('status', '')}`",
-        f"- title: {task.get('title', '')}",
+        f"- title: {task_title}" if task_title else "- title: _none_",
     ]
     for heading, rows in (("Recent runs", export.get("runs", {}).get("recent", [])), ("Reasoning", export.get("reasoning", [])), ("Verification", export.get("tests", []))):
         lines.extend(["", f"## {heading}", ""])

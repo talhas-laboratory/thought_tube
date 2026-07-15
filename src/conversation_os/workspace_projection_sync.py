@@ -135,6 +135,40 @@ def _patch_task_packet(text: str, *, status: str, owner: str) -> str:
     return updated
 
 
+def _render_task_packet(task: dict[str, Any]) -> str:
+    """Render the minimum resumable packet for a live task lacking a Git projection.
+
+    Status and owner remain a projection of the live workspace. The packet gives
+    a future agent a stable place to add scope, verification, and handoff detail
+    without inventing a second coordination record.
+    """
+    task_id = task["task_id"]
+    title = task["title"]
+    return "\n".join(
+        [
+            f"# {task_id}: {title}",
+            "",
+            f"Status: {task['status']}",
+            f"Owner: {task['owner']}",
+            f"Current gate: {task['gate']}",
+            "",
+            "## Scope",
+            "",
+            "Live task created before its Git task packet was materialized.",
+            "Refine scope, constraints, verification, and handoff notes here; update coordination state through the live workspace API.",
+            "",
+            "## Verification Evidence",
+            "",
+            "- Not recorded in this projection yet.",
+            "",
+            "## Handoff Notes",
+            "",
+            "- Read the live workspace context before claiming this task.",
+            "",
+        ]
+    )
+
+
 def _render_tasks_index(tasks: list[dict[str, Any]], *, blockers: list[dict[str, Any]]) -> str:
     lines = [
         "# Tasks",
@@ -186,8 +220,8 @@ def _render_tasks_summary(tasks: list[dict[str, Any]], blockers: list[dict[str, 
 
 def _sync_lane_entries(lanes_dir: Path, tasks: list[dict[str, Any]], tasks_dir: Path) -> list[str]:
     changed: list[str] = []
-    if not lanes_dir.exists():
-        return changed
+    for status in ("backlog", "ready", "in-progress", "verification", "review", "blocked", "done", "cancelled"):
+        (lanes_dir / status).mkdir(parents=True, exist_ok=True)
     for task in tasks:
         task_id = task["task_id"]
         status = task["status"]
@@ -278,6 +312,9 @@ def sync_workspace_projections(
     for task in tasks:
         task_path = paths["tasks_dir"] / f"{task['task_id']}.md"
         if not task_path.is_file():
+            task_file_changes.append(_relative(root, task_path))
+            if not dry_run:
+                task_path.write_text(_render_task_packet(task), encoding="utf-8")
             continue
         current = task_path.read_text(encoding="utf-8")
         updated = _patch_task_packet(current, status=task["status"], owner=task["owner"])

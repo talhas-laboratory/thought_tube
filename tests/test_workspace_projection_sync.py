@@ -11,6 +11,7 @@ from conversation_os.workspace_projection_sync import (
     resolve_projection_paths,
     sync_workspace_projections,
 )
+from conversation_os.workspace_continuity import render_workspace_continuity_markdown
 
 
 def _write_workspace_manifest(root: Path, workspace_id: str, payload: dict) -> None:
@@ -177,3 +178,24 @@ def test_check_workspace_projections_reports_fresh_after_publish(tmp_path: Path)
     result = check_workspace_projections(tmp_path, "unified-framework-synthesis", api_base="")
     assert result["fresh"] is True
     assert result["changed"] == []
+
+
+def test_sync_workspace_projections_materializes_missing_task_packet(tmp_path: Path) -> None:
+    _seed_workspace(tmp_path)
+    manifest = load_repo_workspace_manifest(tmp_path, "unified-framework-synthesis")
+    paths = resolve_projection_paths(tmp_path, manifest)
+    task_path = paths["tasks_dir"] / "TASK-001-lock-kernel-contracts-and-lifecycles.md"
+    task_path.unlink()
+
+    sync_workspace_projections(tmp_path, "unified-framework-synthesis", api_base="")
+
+    task_text = task_path.read_text(encoding="utf-8")
+    assert "Status: review" in task_text
+    assert "Live task created before its Git task packet was materialized." in task_text
+    assert paths["lanes_dir"].joinpath("review", task_path.name).is_file()
+
+
+def test_workspace_continuity_uses_placeholder_for_empty_focus_title() -> None:
+    rendered = render_workspace_continuity_markdown({"workspace_id": "example", "focus": {"task": {}}})
+    assert "- title: _none_" in rendered
+    assert "- title: \n" not in rendered

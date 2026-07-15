@@ -8,6 +8,9 @@ Git-tracked working spaces for long design threads. These are continuity project
 | Workspace ID | Status | Entry | Manifest |
 |--------------|--------|-------|----------|
 | `unified-framework-synthesis` | Active — canonical foundation and schema lock | [`unified-framework-synthesis/README.md`](./unified-framework-synthesis/README.md) | [`manifest.json`](./unified-framework-synthesis/manifest.json) |
+| `metaphysical-kernel-ontology` | Active — kernel contract lock | [`metaphysical-kernel-ontology/README.md`](./metaphysical-kernel-ontology/README.md) | [`manifest.json`](./metaphysical-kernel-ontology/manifest.json) |
+| `metaphysical-branch-reasoning` | Active — branch semantic authority | [`metaphysical-branch-reasoning/README.md`](./metaphysical-branch-reasoning/README.md) | [`manifest.json`](./metaphysical-branch-reasoning/manifest.json) |
+| `metaphysical-vocabulary-governance` | Active — vocabulary semantic authority | [`metaphysical-vocabulary-governance/README.md`](./metaphysical-vocabulary-governance/README.md) | [`manifest.json`](./metaphysical-vocabulary-governance/manifest.json) |
 
 ## Boot sequence
 

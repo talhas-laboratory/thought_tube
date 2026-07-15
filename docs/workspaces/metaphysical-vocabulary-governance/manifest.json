@@ -1,0 +1,19 @@
+{
+  "workspace_id": "metaphysical-vocabulary-governance",
+  "label": "Metaphysical Vocabulary Governance",
+  "status": "active",
+  "maturation_stage": "semantic_authority",
+  "parent_workspace_id": "unified-framework-synthesis",
+  "program_task_id": "UMF-PROGRAM-VOCABULARY",
+  "goal": "Implement layered vocabulary, promotion, mapping, type constraints, and ontology evolution without destructive normalization.",
+  "canonical_source": "../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "canonical_version": "1.1",
+  "framework_sections": ["8", "22", "27.15"],
+  "dependency_workspace_ids": ["metaphysical-kernel-ontology", "metaphysical-branch-reasoning"],
+  "workboard": "docs/workboards/metaphysical-vocabulary-governance/README.md",
+  "continuity_projection": "docs/workspaces/metaphysical-vocabulary-governance/CONTINUITY.md",
+  "sync_contract": "docs/workspaces/metaphysical-vocabulary-governance/derived/sync-contract.md",
+  "artifact_roots": ["docs/workspaces/metaphysical-vocabulary-governance/derived", "docs/workboards/metaphysical-vocabulary-governance/artifacts"],
+  "ownership_rules": ["Own canonical vocabulary promotion and mapping rules.", "Mappings preserve source terms and provenance.", "Domain profiles may not bypass governance or silently collapse terms."],
+  "created_at": "2026-07-15"
+}
