@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: holodeck-productization -->
-<!-- canonical_revision: 2276294c25bdc84a663813188533d7e388ac6f9e9c98cd5604496e37248778aa -->
+<!-- canonical_revision: 868899a6f542a216f8242cdf7191149819ccf298fd92a5c56ad95208e140c112 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-15T12:24:11+00:00 -->
+<!-- generated_at: 2026-07-15T12:41:24+00:00 -->
 
 # Workspace continuity: holodeck-productization
 
@@ -18,7 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
-- none
+- Portable alpha deployed and task advanced to review; next action is review of the v1 boundary before onboarding and safety-contract work.
 
 ## Reasoning
 
@@ -26,4 +26,4 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
-- none
+- reference Compose deployment
