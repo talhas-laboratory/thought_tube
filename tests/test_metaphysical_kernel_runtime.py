@@ -345,6 +345,97 @@ class MetaphysicalKernelRuntimeTestCase(unittest.TestCase):
         self.assertEqual(len(folded["source_fragments"]), 1)
         self.assertEqual(folded["source_fragments"][0]["envelope"]["id"], "sf_durable")
 
+    def test_assert_relation_instance_validates_before_append(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        prov_id = fragment["envelope"]["provenance_id"]
+        scope_id = "scope_relation"
+        self.runtime.ensure_scope(scope_id)
+        referent = self.runtime.resolve_referent("Relation subject")
+        event_count_before = len(self.runtime.store.read_events())
+
+        with self.assertRaises(ContractValidationError):
+            self.runtime.assert_relation_instance(
+                type_id="kernel:test:links",
+                participants=[{"role": "subject", "ref": referent["envelope"]["id"]}],
+                scope_id="",
+                provenance_id=prov_id,
+            )
+
+        self.assertEqual(len(self.runtime.store.read_events()), event_count_before)
+
+    def test_record_identity_uncertainty_preserves_two_referents(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        prov_id = fragment["envelope"]["provenance_id"]
+        scope_id = "scope_identity"
+        self.runtime.ensure_scope(scope_id)
+        left = self.runtime.resolve_referent("Acme Corp")
+        right = self.runtime.resolve_referent("Acme Holdings")
+
+        relation = self.runtime.record_identity_uncertainty(
+            left_referent_id=left["envelope"]["id"],
+            right_referent_id=right["envelope"]["id"],
+            scope_id=scope_id,
+            provenance_id=prov_id,
+            confidence=0.55,
+            rationale="Possible corporate rebrand",
+        )
+
+        bundle = self.runtime.current_bundle()
+        self.assertEqual(len(bundle["referents"]), 2)
+        self.assertEqual(len(bundle["relation_instances"]), 1)
+        self.assertEqual(relation["type_id"], "kernel:identity:possibly_same_as")
+        self.assertEqual(relation["envelope"]["epistemic_status"], "unresolved")
+        self.assertEqual(self.runtime.validate_current_bundle(), [])
+
+    def test_same_as_identity_merge_rejected_at_runtime(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        prov_id = fragment["envelope"]["provenance_id"]
+        scope_id = "scope_same_as"
+        self.runtime.ensure_scope(scope_id)
+        left = self.runtime.resolve_referent("Entity A")
+        right = self.runtime.resolve_referent("Entity B")
+        event_count_before = len(self.runtime.store.read_events())
+
+        with self.assertRaises(ContractValidationError):
+            self.runtime.record_identity_uncertainty(
+                left_referent_id=left["envelope"]["id"],
+                right_referent_id=right["envelope"]["id"],
+                scope_id=scope_id,
+                provenance_id=prov_id,
+                relation_kind="same_as",
+            )
+
+        self.assertEqual(len(self.runtime.store.read_events()), event_count_before)
+        self.assertEqual(self.runtime.current_bundle()["relation_instances"], [])
+
+    def test_identity_uncertainty_visible_in_bounded_view(self) -> None:
+        fragment = self.runtime.capture_from_conversation_event(self._event())
+        prov_id = fragment["envelope"]["provenance_id"]
+        scope_id = "scope_identity_view"
+        branch_id = "branch_main"
+        self.runtime.ensure_scope(scope_id)
+        self.runtime.ensure_branch(branch_id)
+        left = self.runtime.resolve_referent("View left")
+        right = self.runtime.resolve_referent("View right")
+        relation = self.runtime.record_identity_uncertainty(
+            left_referent_id=left["envelope"]["id"],
+            right_referent_id=right["envelope"]["id"],
+            scope_id=scope_id,
+            provenance_id=prov_id,
+        )
+
+        view = self.runtime.query_bounded_view(
+            BoundedViewQuery(
+                branch_id=branch_id,
+                scope_id=scope_id,
+                root_record_ids=[relation["envelope"]["id"]],
+                max_depth=2,
+            )
+        )
+        node_ids = {node.record_id for node in view.nodes}
+        self.assertIn(left["envelope"]["id"], node_ids)
+        self.assertIn(right["envelope"]["id"], node_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

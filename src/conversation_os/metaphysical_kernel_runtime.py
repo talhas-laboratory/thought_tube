@@ -18,6 +18,8 @@ FRAMEWORK_SECTIONS = {
     "capture": "§21.1",
     "branch": "§21.3",
     "assert": "§21.6",
+    "relation": "§5.6",
+    "identity_uncertainty": "§5.13",
 }
 
 
@@ -487,6 +489,100 @@ class FoundationRuntime:
         )
         revised["supersedes"] = superseded_claim_id
         return revised
+
+    def assert_relation_instance(
+        self,
+        *,
+        type_id: str,
+        participants: List[Mapping[str, str]],
+        scope_id: str,
+        provenance_id: str,
+        qualifiers: Optional[Mapping[str, Any]] = None,
+        epistemic_status: str = "candidate",
+        governance_status: str = "local",
+        maturity_status: str = "differentiating",
+    ) -> Dict[str, Any]:
+        """Append a validated RelationInstance (§5.6). Fails closed before persistence."""
+        relation_id = make_id("rel")
+        normalized_participants = [
+            {"role": str(item["role"]), "ref": str(item["ref"])}
+            for item in participants
+            if str(item.get("role", "")).strip() and str(item.get("ref", "")).strip()
+        ]
+        record = {
+            "envelope": self._base_envelope(
+                relation_id,
+                "relation_instance",
+                type_id,
+                provenance_id=provenance_id,
+                maturity_status=maturity_status,
+                epistemic_status=epistemic_status,
+                governance_status=governance_status,
+            ),
+            "type_id": type_id,
+            "participants": normalized_participants,
+            "scope_id": scope_id,
+            "qualifiers": dict(qualifiers or {}),
+        }
+        prospective_bundle = self.current_bundle()
+        prospective_bundle["relation_instances"] = list(prospective_bundle.get("relation_instances", [])) + [record]
+        errors = validate_fixture_bundle(prospective_bundle)
+        if errors:
+            raise ContractValidationError(
+                "invalid_relation_instance",
+                "; ".join(errors),
+                FRAMEWORK_SECTIONS["relation"],
+            )
+        return self._append_record(record)
+
+    def record_identity_uncertainty(
+        self,
+        *,
+        left_referent_id: str,
+        right_referent_id: str,
+        scope_id: str,
+        provenance_id: str,
+        relation_kind: str = "possibly_same_as",
+        confidence: float = 0.5,
+        rationale: str = "",
+    ) -> Dict[str, Any]:
+        """Conservative identity path (§5.13): relation only, never Referent merge."""
+        if left_referent_id == right_referent_id:
+            raise ContractValidationError(
+                "identity_collapse",
+                "left and right referent must differ",
+                FRAMEWORK_SECTIONS["identity_uncertainty"],
+            )
+        for referent_id in (left_referent_id, right_referent_id):
+            existing = self.store.get_record(referent_id)
+            envelope = existing.get("envelope", {}) if existing else {}
+            if not existing or str(envelope.get("record_kind", "")) != "referent":
+                raise ContractValidationError(
+                    "missing_referent",
+                    f"referent not found: {referent_id}",
+                    "§5.2",
+                )
+        kind = str(relation_kind or "possibly_same_as").strip()
+        if kind == "same_as":
+            raise ContractValidationError(
+                "forced_identity_merge",
+                "same_as requires explicit confirmation; use possibly_same_as until confirmed",
+                FRAMEWORK_SECTIONS["identity_uncertainty"],
+            )
+        if kind not in {"possibly_same_as", "distinct_from"}:
+            kind = "possibly_same_as"
+        return self.assert_relation_instance(
+            type_id=f"kernel:identity:{kind}",
+            participants=[
+                {"role": "left", "ref": left_referent_id},
+                {"role": "right", "ref": right_referent_id},
+            ],
+            scope_id=scope_id,
+            provenance_id=provenance_id,
+            qualifiers={"confidence": confidence, "rationale": rationale},
+            epistemic_status="unresolved",
+            governance_status="review_required",
+        )
 
     def current_bundle(self) -> Dict[str, Any]:
         folded = self.store.fold()
