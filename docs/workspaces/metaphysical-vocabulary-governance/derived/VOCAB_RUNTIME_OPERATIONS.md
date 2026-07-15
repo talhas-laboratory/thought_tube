@@ -1,8 +1,9 @@
-# Vocabulary Runtime Operations — VOCAB-003
+# Vocabulary Runtime Operations — VOCAB-004
 
-**Task:** `VOCAB-003-promotion-and-evolution-workflow`  
+**Task:** `VOCAB-004-vocabulary-conformance-suite` (conformance evidence)  
 **Owner module:** `src/conversation_os/metaphysical_vocabulary_governance.py`  
 **Contract:** [`VOCAB_PUBLIC_CONTRACT_LOCK.md`](./VOCAB_PUBLIC_CONTRACT_LOCK.md) v1.0.0  
+**Conformance:** [`VOCAB_CONFORMANCE_COVERAGE.md`](./VOCAB_CONFORMANCE_COVERAGE.md)  
 **Kernel consumed:** `1.1.0`  
 **Branch consumed:** `1.0.0`
 
@@ -29,11 +30,12 @@
 
 ```bash
 pytest -q tests/test_metaphysical_vocabulary_governance.py
+pytest -q tests/test_metaphysical_vocabulary_conformance.py
 pytest -q tests/test_vocab_contract_fixtures.py
 pytest -q tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_profile_registry.py
 ```
 
-Table fixtures include `evolution_outcome_table.json` (VOCAB-003).
+Table fixtures include `evolution_outcome_table.json` (VOCAB-003) and `adversarial_suite.json` (VOCAB-004).
 
 ## Phase 1 limits
 

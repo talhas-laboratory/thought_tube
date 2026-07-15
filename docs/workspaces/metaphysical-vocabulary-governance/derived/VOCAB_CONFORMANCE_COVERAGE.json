@@ -1,0 +1,63 @@
+{
+  "schema": "vocab_conformance_coverage_v1.0.0",
+  "contract_version": "1.0.0",
+  "generated_by_task": "VOCAB-004-vocabulary-conformance-suite",
+  "owner_module": "src/conversation_os/metaphysical_vocabulary_governance.py",
+  "test_command": "pytest -q tests/test_metaphysical_vocabulary_governance.py tests/test_metaphysical_vocabulary_conformance.py tests/test_vocab_contract_fixtures.py tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_profile_registry.py tests/test_metaphysical_branch_consumer_smoke.py",
+  "last_verified": "2026-07-15",
+  "result_summary": "45 passed, 50 subtests passed (2026-07-15)",
+  "fixture_tables": [
+    "tests/fixtures/metaphysical_vocabulary/mapping_outcome_table.json",
+    "tests/fixtures/metaphysical_vocabulary/promotion_outcome_table.json",
+    "tests/fixtures/metaphysical_vocabulary/extension_safety_outcome_table.json",
+    "tests/fixtures/metaphysical_vocabulary/preservation_outcome_table.json",
+    "tests/fixtures/metaphysical_vocabulary/level_classification_outcome_table.json",
+    "tests/fixtures/metaphysical_vocabulary/evolution_outcome_table.json",
+    "tests/fixtures/metaphysical_vocabulary/adversarial_suite.json"
+  ],
+  "acceptance_coverage": [
+    {"id": "VOCAB-ACC-001", "case_ref": "map-001", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "VOCAB-ACC-002", "case_ref": "map-004", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "VOCAB-ACC-003", "case_ref": "promo-002", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "VOCAB-ACC-004", "case_ref": "ext-002", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "VOCAB-ACC-005", "case_ref": "pres-001", "covered_by": "test_required_acceptance_scenarios"}
+  ],
+  "adversarial_categories": [
+    "analogy_not_equivalence",
+    "branch_mapping_separation",
+    "declined_promotion_local_usable",
+    "kernel_redefinition_forbidden",
+    "deprecation_and_stale_dependents",
+    "raw_expression_verbatim",
+    "overlap_not_equivalence",
+    "destructive_edit_forbidden",
+    "lookup_preserves_source",
+    "governance_not_epistemic"
+  ],
+  "guide_scenarios_covered": [
+    "analogy_only_mapping_not_equivalence",
+    "branch_phrase_divergence",
+    "declined_promotion_local_usable",
+    "kernel_redefinition_rejected",
+    "deprecation_migration_and_stale_dependents",
+    "punctuation_raw_expression_preserved"
+  ],
+  "residual_limits": [
+    {
+      "risk_id": "VOCAB-R-001",
+      "description": "Namespace prefix conventions may need parent harmonization."
+    },
+    {
+      "risk_id": "VOCAB-R-002",
+      "description": "Abstention confidence threshold is caller-configurable; default 0.5."
+    },
+    {
+      "risk_id": "VOCAB-R-003",
+      "description": "Stale dependent refresh is reported but not executed automatically."
+    },
+    {
+      "risk_id": "VOCAB-R-006",
+      "description": "Profile/application rendering smoke is indirect via branch consumer test only."
+    }
+  ]
+}

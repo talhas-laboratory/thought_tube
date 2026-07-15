@@ -45,6 +45,7 @@
   "surfaces_using": [],
   "test_targets": [
     "tests/test_metaphysical_vocabulary_governance.py",
+    "tests/test_metaphysical_vocabulary_conformance.py",
     "tests/test_vocab_contract_fixtures.py"
   ],
   "adjacent_docs": [
