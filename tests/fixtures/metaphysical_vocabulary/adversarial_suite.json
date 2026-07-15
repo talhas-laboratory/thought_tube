@@ -1,0 +1,217 @@
+{
+  "schema": "vocab_adversarial_suite_v1.0.0",
+  "contract_version": "1.0.0",
+  "generated_by_task": "VOCAB-004-vocabulary-conformance-suite",
+  "description": "Minimized adversarial regressions for analogy misuse, branch separation, promotion decline, kernel redefinition, evolution impact, and raw preservation.",
+  "cases": [
+    {
+      "case_id": "adv-analogy-001",
+      "category": "analogy_not_equivalence",
+      "acceptance_ref": "VOCAB-ACC-001",
+      "operation": "assess_mapping",
+      "inputs": {
+        "mapping": {
+          "id": "map_adv_analogy",
+          "source_type_or_expression": "workspace:spiritual_emptiness",
+          "target_type": "shared:meaning_deficit",
+          "mapping_kind": "analogous",
+          "scope_id": "scope_clinical",
+          "confidence": 0.55
+        }
+      },
+      "expected": {
+        "implies_identity": false,
+        "allows_canonical_substitution": false,
+        "implies_equivalence": false
+      }
+    },
+    {
+      "case_id": "adv-branch-001",
+      "category": "branch_mapping_separation",
+      "acceptance_ref": "VOCAB-ACC-002",
+      "operation": "assess_branch_mapping_separation",
+      "inputs": {
+        "mapping_a": {
+          "id": "map_adv_a",
+          "source_type_or_expression": "raw:heavy",
+          "target_type": "workspace:computational_load",
+          "mapping_kind": "narrower",
+          "scope_id": "scope_glossary",
+          "branch_context": "branch_vocab_a"
+        },
+        "mapping_b": {
+          "id": "map_adv_b",
+          "source_type_or_expression": "raw:heavy",
+          "target_type": "workspace:physical_mass",
+          "mapping_kind": "narrower",
+          "scope_id": "scope_glossary",
+          "branch_context": "branch_vocab_b"
+        }
+      },
+      "expected": {
+        "exposed_as_global": false,
+        "distinct_target_types": true
+      }
+    },
+    {
+      "case_id": "adv-promo-001",
+      "category": "declined_promotion_local_usable",
+      "acceptance_ref": "VOCAB-ACC-003",
+      "operation": "review_promotion",
+      "inputs": {
+        "proposal": {
+          "source_level": "model_local",
+          "source_term": "model_local:agent_belief_x",
+          "target_level": "governed_shared",
+          "stable_usage": false,
+          "clear_definition": true,
+          "distinct_identity": true,
+          "demonstrated_reuse": false,
+          "compatibility": true,
+          "steward": "steward:branch_owner",
+          "review_outcome": "declined"
+        }
+      },
+      "expected": {
+        "promotion_status": "declined",
+        "local_term_usable": true,
+        "not_invalidated": true
+      }
+    },
+    {
+      "case_id": "adv-kernel-001",
+      "category": "kernel_redefinition_forbidden",
+      "acceptance_ref": "VOCAB-ACC-004",
+      "operation": "validate_type_extension",
+      "inputs": {
+        "extension": {
+          "id": "workspace:claim_as_state",
+          "parent_types": ["core:claim"],
+          "redefines_kernel_kind": true
+        }
+      },
+      "expected": {
+        "validation_result": "invalid",
+        "error_code": "kernel_redefinition_forbidden"
+      }
+    },
+    {
+      "case_id": "adv-evolution-001",
+      "category": "deprecation_and_stale_dependents",
+      "operation": "publish_evolution_report",
+      "inputs": {
+        "report": {
+          "prior_definition": "workspace:legacy_metric@v1",
+          "new_definition": "workspace:trust_metric@v2",
+          "compatibility_class": "breaking",
+          "affected_records": ["entry_legacy_001"],
+          "migration_plan": "explicit alias through term_mapping",
+          "reversible": true,
+          "semantic_loss_warnings": ["definition_narrowed"],
+          "stale_dependents": ["compiled_shape_009"],
+          "steward": "steward:ontology_team",
+          "review_decision": "approved_with_warnings"
+        }
+      },
+      "expected": {
+        "validation_result": "valid",
+        "prior_definition_addressable": true,
+        "stale_dependents_listed": true,
+        "semantic_loss_warnings_nonempty": true
+      }
+    },
+    {
+      "case_id": "adv-preserve-001",
+      "category": "raw_expression_verbatim",
+      "acceptance_ref": "VOCAB-ACC-005",
+      "operation": "capture_raw_expression",
+      "inputs": {
+        "expression_id": "raw_adv_punct",
+        "text": "the process is 'heavy' (?)!",
+        "source_fragment_id": "sf_adv_001"
+      },
+      "expected": {
+        "retrieved_raw_text": "the process is 'heavy' (?)!"
+      }
+    },
+    {
+      "case_id": "adv-overlap-001",
+      "category": "overlap_not_equivalence",
+      "operation": "assess_mapping",
+      "inputs": {
+        "mapping": {
+          "id": "map_adv_overlap",
+          "source_type_or_expression": "workspace:stress",
+          "target_type": "shared:pressure",
+          "mapping_kind": "overlaps",
+          "scope_id": "scope_psych",
+          "confidence": 0.65
+        }
+      },
+      "expected": {
+        "implies_identity": false,
+        "implies_equivalence": false,
+        "allows_canonical_substitution": false
+      }
+    },
+    {
+      "case_id": "adv-destructive-001",
+      "category": "destructive_edit_forbidden",
+      "operation": "publish_evolution_report",
+      "inputs": {
+        "report": {
+          "prior_definition": "shared:term@v1",
+          "new_definition": "shared:term@v1",
+          "destructive_in_place": true
+        }
+      },
+      "expected": {
+        "validation_result": "invalid",
+        "error_code": "destructive_edit_forbidden"
+      }
+    },
+    {
+      "case_id": "adv-lookup-001",
+      "category": "lookup_preserves_source",
+      "operation": "lookup_with_mapping",
+      "inputs": {
+        "expression": "raw:heavy",
+        "scope_id": "scope_glossary",
+        "branch_context": "branch_vocab_a",
+        "mappings": [
+          {
+            "id": "map_lookup_a",
+            "source_type_or_expression": "raw:heavy",
+            "target_type": "workspace:computational_load",
+            "mapping_kind": "narrower",
+            "scope_id": "scope_glossary",
+            "confidence": 0.85,
+            "branch_context": "branch_vocab_a"
+          }
+        ]
+      },
+      "expected": {
+        "returns_source_expression": true,
+        "returns_mapping_metadata": true,
+        "substitutes_canonical_only": false
+      }
+    },
+    {
+      "case_id": "adv-governance-001",
+      "category": "governance_not_epistemic",
+      "operation": "review_promotion",
+      "inputs": {
+        "proposal": {
+          "source_term": "workspace:trust_metric",
+          "review_outcome": "approved",
+          "governance_status": "approved_for_scope",
+          "epistemic_status": "candidate"
+        }
+      },
+      "expected": {
+        "promotion_status": "approved",
+        "epistemic_status_unchanged": "candidate"
+      }
+    }
+  ]
+}
