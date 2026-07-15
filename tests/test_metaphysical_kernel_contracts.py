@@ -161,6 +161,14 @@ class MetaphysicalKernelContractTestCase(unittest.TestCase):
         errors = validate_fixture_bundle(_load_fixture("invalid_profile_redefines_kernel.json"))
         self.assertTrue(any("redefines kernel semantics" in error for error in errors))
 
+    def test_invalid_provenance_no_source_fixture(self) -> None:
+        errors = validate_fixture_bundle(_load_fixture("invalid_provenance_no_source.json"))
+        self.assertTrue(any("lacks terminating SourceFragment" in error for error in errors))
+
+    def test_invalid_lifecycle_axis_collapse_fixture(self) -> None:
+        errors = validate_fixture_bundle(_load_fixture("invalid_lifecycle_axis_collapse.json"))
+        self.assertTrue(any("§22.1" in error for error in errors))
+
     def test_lifecycle_axes_must_remain_orthogonal(self) -> None:
         envelope = KernelRecordEnvelope(
             id="env_bad",

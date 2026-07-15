@@ -1,0 +1,83 @@
+{
+  "source_fragments": [
+    {
+      "envelope": {
+        "id": "sf_lifecycle",
+        "record_kind": "source_fragment",
+        "type_id": "core:source_fragment",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "user:test",
+        "provenance_id": "prov_lifecycle",
+        "maturity_status": "raw",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "media_type": "text",
+      "content_pointer": "memory://sessions/demo/lifecycle",
+      "author_or_origin": "user:test",
+      "captured_at": "2026-07-12T00:00:00Z",
+      "integrity_hash": "sha256:lifecycle",
+      "source_kind": "user_input"
+    }
+  ],
+  "provenances": [
+    {
+      "envelope": {
+        "id": "prov_lifecycle",
+        "record_kind": "provenance",
+        "type_id": "core:provenance",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:capture",
+        "provenance_id": "prov_lifecycle",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "source_refs": ["sf_lifecycle"]
+    }
+  ],
+  "claims": [
+    {
+      "envelope": {
+        "id": "cl_collapsed_axes",
+        "record_kind": "claim",
+        "type_id": "core:claim",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_lifecycle",
+        "maturity_status": "candidate",
+        "epistemic_status": "candidate",
+        "governance_status": "local"
+      },
+      "proposition": {
+        "predicate": "collapsed",
+        "arguments": ["axes"]
+      },
+      "claimant": "service:interpretation",
+      "branch_id": "branch_a",
+      "scope_id": "scope_a",
+      "polarity": "affirmative"
+    }
+  ],
+  "branch_memberships": [
+    {
+      "envelope": {
+        "id": "bm_lifecycle",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_lifecycle",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "cl_collapsed_axes",
+      "branch_id": "branch_a",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_a",
+      "introduced_by": "service:branch",
+      "membership_provenance_id": "prov_lifecycle"
+    }
+  ]
+}
