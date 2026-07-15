@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workspace OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./workspace-os.css" />
+  </head>
+  <body>
+    <div class="app-shell workspace-os-shell">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <div class="brand-lockup">
+            <div class="brand-mark">WS</div>
+            <div>
+              <p class="eyebrow">conversation os</p>
+              <h1>Workspace OS</h1>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <nav class="topbar-nav" aria-label="Primary">
+              <a class="topbar-link" href="./index.html">Feed</a>
+              <a class="topbar-link" href="./world-studio.html">World Studio</a>
+              <a class="topbar-link" href="./self-improvement.html">Meta Console</a>
+              <a class="topbar-link topbar-link--active" href="./workspace-os.html">Workspace OS</a>
+            </nav>
+            <button id="refresh-dashboard" class="refresh-button" type="button">Sync</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="workspace-os-main">
+        <section class="workspace-os-statusbar">
+          <div id="sync-status" class="workspace-os-sync-status">Loading…</div>
+          <div id="repo-meta" class="workspace-os-repo-meta"></div>
+        </section>
+
+        <div class="workspace-os-grid">
+          <aside class="workspace-os-panel workspace-os-tree" aria-label="Workspaces">
+            <div class="panel-head">
+              <p class="section-kicker">workspaces</p>
+              <h2>Program tree</h2>
+            </div>
+            <div id="workspace-tree" class="workspace-tree"></div>
+          </aside>
+
+          <section class="workspace-os-panel workspace-os-board" aria-label="Task board">
+            <div class="panel-head panel-head--split">
+              <div>
+                <p class="section-kicker" id="selected-workspace-kicker">select a workspace</p>
+                <h2 id="selected-workspace-title">Task lanes</h2>
+              </div>
+              <div id="workspace-stats" class="workspace-stats"></div>
+            </div>
+            <div id="task-board" class="task-board"></div>
+          </section>
+
+          <aside class="workspace-os-panel workspace-os-detail" aria-label="Workspace detail">
+            <div class="panel-head">
+              <p class="section-kicker">detail</p>
+              <h2>Release &amp; links</h2>
+            </div>
+            <div id="workspace-detail" class="workspace-detail"></div>
+            <div id="live-detail" class="workspace-live-detail"></div>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <script src="./runtime-config.js"></script>
+    <script src="./workspace-os.js" defer></script>
+  </body>
+</html>

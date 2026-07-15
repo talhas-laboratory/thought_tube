@@ -88,8 +88,6 @@ from .worldbuilding_studio import (
     update_character_feature_object as worldstudio_update_character_feature_object,
     update_character_profile_section as worldstudio_update_character_profile_section,
 )
-
-
 MODULE_ID = "surface.inner_world.miniapp"
 CONTRACT_VERSION = "1.0"
 PUBLIC_API = (
@@ -3099,11 +3097,21 @@ def make_miniapp_handler(
             return _normalize_host_header(self.headers.get("Host")) == configured_host
 
         def _serve_static_dir_asset(self, base_dir: Path, relative: str) -> bool:
+            if relative.strip("/") == "workspace-os.html":
+                return False
             candidate = _resolve_static_asset(base_dir, relative)
             if candidate is None:
                 return False
             if candidate.suffix == ".html":
-                self._send_text(candidate.read_text(encoding="utf-8"), "text/html")
+                content = candidate.read_text(encoding="utf-8")
+                content = content.replace(
+                    '<a class="topbar-link" href="./workspace-os.html">Workspace OS</a>',
+                    "",
+                ).replace(
+                    '<a class="studio-text-button" href="./workspace-os.html">Workspace OS</a>',
+                    "",
+                )
+                self._send_text(content, "text/html")
             else:
                 self._send_file(candidate)
             return True

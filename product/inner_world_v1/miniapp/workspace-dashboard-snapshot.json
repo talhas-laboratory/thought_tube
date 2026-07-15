@@ -1,0 +1,442 @@
+{
+  "schema": "workspace_dashboard_snapshot_v1",
+  "generated_at": "2026-07-15T18:29:04+00:00",
+  "repository_revision": "55430a43aea85debea7274c61361a016db2b8b2e",
+  "source": "git_projections",
+  "workspace_count": 5,
+  "workspaces": {
+    "holodeck-productization": {
+      "workspace_id": "holodeck-productization",
+      "label": "Holodeck Productization — Local-First",
+      "status": "active",
+      "maturation_stage": "contextualizing",
+      "parent_workspace_id": "",
+      "program_task_id": "",
+      "goal": "Turn the repository's workspace and Holodeck capability into a local-first, self-hosted product that can safely coordinate autonomous development in arbitrary repositories.",
+      "workboard_path": "docs/workboards/holodeck-productization/TASKS.md",
+      "continuity_path": "docs/workspaces/holodeck-productization/CONTINUITY.md",
+      "continuity_meta": {
+        "generated": "workspace continuity export; canonical store remains authoritative",
+        "workspace_id": "holodeck-productization",
+        "canonical_revision": "ee5a1390910a98e2a04250d9e0137d4c356410a79ca83df61c2d891d6fd41d1a",
+        "repository_source_revision": "162184b8b04fce8cf6dbd46ef78969ebf8b2410d",
+        "generated_at": "2026-07-15T12:47:26+00:00"
+      },
+      "tasks_summary": "Live workspace task statuses: `HDP-001`=review, `HDP-002`=review, `HDP-003`=backlog. No open blockers in the live workspace. Git projections were refreshed from live coordination state.",
+      "tasks": [
+        {
+          "task_id": "HDP-001",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Define the reusable Workspace Runtime boundary",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "HDP-002",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Design arbitrary-repository onboarding and safety contract",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "HDP-003",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Run a non-Inner-Space pilot and define v1 evidence",
+          "gate": "not_required"
+        }
+      ],
+      "status_counts": {
+        "review": 2,
+        "backlog": 1
+      },
+      "release": {},
+      "readme_path": "docs/workspaces/holodeck-productization/README.md"
+    },
+    "metaphysical-branch-reasoning": {
+      "workspace_id": "metaphysical-branch-reasoning",
+      "label": "Metaphysical Branch Reasoning",
+      "status": "active",
+      "maturation_stage": "semantic_authority",
+      "parent_workspace_id": "unified-framework-synthesis",
+      "program_task_id": "UMF-PROGRAM-BRANCH",
+      "goal": "Implement branch inheritance, contradiction preservation, support semantics, merge behavior, and inference policy without collapsing distinct perspectives.",
+      "workboard_path": "docs/workboards/metaphysical-branch-reasoning/TASKS.md",
+      "continuity_path": "docs/workspaces/metaphysical-branch-reasoning/CONTINUITY.md",
+      "continuity_meta": {
+        "generated": "workspace continuity export; canonical store remains authoritative",
+        "workspace_id": "metaphysical-branch-reasoning",
+        "canonical_revision": "1c7f2ee8b85cd72a84b814bf61d5dfcce3155079292ff10554f7f6c5f51ebf5d",
+        "repository_source_revision": "162184b8b04fce8cf6dbd46ef78969ebf8b2410d",
+        "generated_at": "2026-07-15T18:13:48+00:00"
+      },
+      "tasks_summary": "Live workspace tasks are synchronized at `done`. No open blockers in the live workspace. Git projections were refreshed from live coordination state.",
+      "tasks": [
+        {
+          "task_id": "BRANCH-001-atomic-obligation-and-interface-lock",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Refine branch obligations and lock interfaces",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "BRANCH-002-support-and-inheritance-semantics",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Implement support and inheritance semantics",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "BRANCH-003-merge-and-inference-policy",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Implement merge and inference policy",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "BRANCH-004-adversarial-branch-conformance",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Verify branch conformance",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "BRANCH-005-release-branch-dependency-contract",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Release branch dependency contract",
+          "gate": "not_required"
+        }
+      ],
+      "status_counts": {
+        "done": 5
+      },
+      "release": {
+        "path": "/workspace/docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_RELEASE_DEPENDENCY_CONTRACT.json",
+        "provider_contract_version": "1.0.0",
+        "release_git_revision": "e3784b72f7f51bea8f62a6637419634d6e096fe8"
+      },
+      "readme_path": "docs/workspaces/metaphysical-branch-reasoning/README.md"
+    },
+    "metaphysical-kernel-ontology": {
+      "workspace_id": "metaphysical-kernel-ontology",
+      "label": "Metaphysical Kernel Ontology",
+      "status": "active",
+      "maturation_stage": "contract_lock",
+      "parent_workspace_id": "unified-framework-synthesis",
+      "program_task_id": "UMF-PROGRAM-KERNEL",
+      "goal": "Complete the universal kernel ontology, lifecycle and profile-conformance contracts required by framework v1.1.",
+      "workboard_path": "docs/workboards/metaphysical-kernel-ontology/TASKS.md",
+      "continuity_path": "docs/workspaces/metaphysical-kernel-ontology/CONTINUITY.md",
+      "continuity_meta": {
+        "generated": "workspace continuity export; canonical store remains authoritative",
+        "workspace_id": "metaphysical-kernel-ontology",
+        "canonical_revision": "146b70a4b3ae7fd6ed5338cc76b70d17abf79800cacb5de80518fdd083394f72",
+        "repository_source_revision": "162184b8b04fce8cf6dbd46ef78969ebf8b2410d",
+        "generated_at": "2026-07-15T16:52:44+00:00"
+      },
+      "tasks_summary": "Live workspace tasks are synchronized at `done`. No open blockers in the live workspace. Git projections were refreshed from live coordination state.",
+      "tasks": [
+        {
+          "task_id": "KERNEL-001-atomic-obligation-and-contract-lock",
+          "status": "done",
+          "owner": "cursor:cloud-umf",
+          "title": "Refine kernel obligations and lock contracts",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "KERNEL-002-migration-and-persistence-fixtures",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Build kernel migration and persistence fixtures",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "KERNEL-003-minimal-kernel-runtime-operations",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Implement minimal kernel runtime operations",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "KERNEL-004-kernel-conformance-suite",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Verify kernel conformance suite",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "KERNEL-005-release-kernel-dependency-contract",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Release kernel dependency contract",
+          "gate": "not_required"
+        }
+      ],
+      "status_counts": {
+        "done": 5
+      },
+      "release": {
+        "path": "/workspace/docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_RELEASE_DEPENDENCY_CONTRACT.json",
+        "provider_contract_version": "1.1.0",
+        "release_git_revision": "512236d4b089d0a4d04821cca3d068a2d0a539f4"
+      },
+      "readme_path": "docs/workspaces/metaphysical-kernel-ontology/README.md"
+    },
+    "metaphysical-vocabulary-governance": {
+      "workspace_id": "metaphysical-vocabulary-governance",
+      "label": "Metaphysical Vocabulary Governance",
+      "status": "active",
+      "maturation_stage": "semantic_authority",
+      "parent_workspace_id": "unified-framework-synthesis",
+      "program_task_id": "UMF-PROGRAM-VOCABULARY",
+      "goal": "Implement layered vocabulary, promotion, mapping, type constraints, and ontology evolution without destructive normalization.",
+      "workboard_path": "docs/workboards/metaphysical-vocabulary-governance/TASKS.md",
+      "continuity_path": "docs/workspaces/metaphysical-vocabulary-governance/CONTINUITY.md",
+      "continuity_meta": {
+        "generated": "workspace continuity export; canonical store remains authoritative",
+        "workspace_id": "metaphysical-vocabulary-governance",
+        "canonical_revision": "9c6b63d9d3982da4ed1fbfc50c78958d923617a70aab43b2232d0d17ac4ca4b0",
+        "repository_source_revision": "162184b8b04fce8cf6dbd46ef78969ebf8b2410d",
+        "generated_at": "2026-07-15T18:14:02+00:00"
+      },
+      "tasks_summary": "Live workspace tasks are synchronized at `done`. No open blockers in the live workspace. Git projections were refreshed from live coordination state.",
+      "tasks": [
+        {
+          "task_id": "VOCAB-001-atomic-obligation-and-governance-lock",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Refine vocabulary obligations and governance lock",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "VOCAB-002-type-registry-and-nondestructive-mapping",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Implement type registry and non-destructive mapping",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "VOCAB-003-promotion-and-evolution-workflow",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Implement promotion and ontology evolution workflow",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "VOCAB-004-vocabulary-conformance-suite",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Verify vocabulary conformance",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "VOCAB-005-release-vocabulary-dependency-contract",
+          "status": "done",
+          "owner": "unassigned",
+          "title": "Release vocabulary dependency contract",
+          "gate": "not_required"
+        }
+      ],
+      "status_counts": {
+        "done": 5
+      },
+      "release": {
+        "path": "/workspace/docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_RELEASE_DEPENDENCY_CONTRACT.json",
+        "provider_contract_version": "1.0.0",
+        "release_git_revision": "22fa9ebe69ec0115bf6b0d0247b704638bba2add"
+      },
+      "readme_path": "docs/workspaces/metaphysical-vocabulary-governance/README.md"
+    },
+    "unified-framework-synthesis": {
+      "workspace_id": "unified-framework-synthesis",
+      "label": "Unified Metaphysical Framework Foundation",
+      "status": "active",
+      "maturation_stage": "foundation_schema_lock",
+      "parent_workspace_id": "",
+      "program_task_id": "",
+      "goal": "Translate the canonical version 1.1 metaphysical modeling framework into an executable kernel, governed profile runtime, application SDK, conformance suite, and migration path",
+      "workboard_path": "docs/workboards/unified-metaphysical-foundation/TASKS.md",
+      "continuity_path": "docs/workspaces/unified-framework-synthesis/CONTINUITY.md",
+      "continuity_meta": {
+        "generated": "workspace continuity export; canonical store remains authoritative",
+        "workspace_id": "unified-framework-synthesis",
+        "canonical_revision": "06609405ad50a43cf2e6681e959bb16ade4c038ef298f3b065d13d39864c1739",
+        "repository_source_revision": "162184b8b04fce8cf6dbd46ef78969ebf8b2410d",
+        "generated_at": "2026-07-15T06:23:25+00:00"
+      },
+      "tasks_summary": "Live workspace task statuses: `TASK-001-lock-kernel-contracts-and-lifecycles`=review, `TASK-002-build-historical-and-current-migration-fixtures`=review, `TASK-003-implement-phase-1-foundation-vertical-slice`=review, `TASK-004-build-profile-registry-and-conformance`=review, `TASK-005-prove-application-sdk-with-two-consumers`=review, `UMF-PROGRAM-BRANCH`=ready, `UMF-PROGRAM-CONVERSATION`=backlog, `UMF-PROGRAM-EXECUTION`=backlog, `UMF-PROGRAM-KERNEL`=ready, `UMF-PROGRAM-PATTERN`=backlog, `UMF-PROGRAM-SHAPE`=backlog, `UMF-PROGRAM-SURFACES`=backlog, `UMF-PROGRAM-TRANSFORMATION`=backlog, `UMF-PROGRAM-VOCABULARY`=ready. No open blockers in the live workspace. Git projections were refreshed from live coordination state.",
+      "tasks": [
+        {
+          "task_id": "TASK-001-lock-kernel-contracts-and-lifecycles",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Lock kernel contracts and lifecycles",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "TASK-002-build-historical-and-current-migration-fixtures",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Build historical and current migration fixtures",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "TASK-003-implement-phase-1-foundation-vertical-slice",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Implement Phase 1 foundation vertical slice",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "TASK-004-build-profile-registry-and-conformance",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Build profile registry and conformance",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "TASK-005-prove-application-sdk-with-two-consumers",
+          "status": "review",
+          "owner": "unassigned",
+          "title": "Prove application SDK with two consumers",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-BRANCH",
+          "status": "ready",
+          "owner": "unassigned",
+          "title": "Deliver branch reasoning program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-CONVERSATION",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Deliver conversation and formation program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-EXECUTION",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Deliver agent grounding and execution program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-KERNEL",
+          "status": "ready",
+          "owner": "unassigned",
+          "title": "Deliver kernel ontology program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-PATTERN",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Deliver valence, scale, and pattern program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-SHAPE",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Deliver semantic addressing and shape program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-SURFACES",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Deliver product surfaces program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-TRANSFORMATION",
+          "status": "backlog",
+          "owner": "unassigned",
+          "title": "Deliver transformation dynamics program",
+          "gate": "not_required"
+        },
+        {
+          "task_id": "UMF-PROGRAM-VOCABULARY",
+          "status": "ready",
+          "owner": "unassigned",
+          "title": "Deliver vocabulary governance program",
+          "gate": "not_required"
+        }
+      ],
+      "status_counts": {
+        "review": 5,
+        "ready": 3,
+        "backlog": 6
+      },
+      "release": {},
+      "readme_path": "docs/workspaces/unified-framework-synthesis/README.md"
+    }
+  },
+  "hierarchy_links": [
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-kernel-ontology",
+      "program_task_id": "UMF-PROGRAM-KERNEL",
+      "status": "active"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-branch-reasoning",
+      "program_task_id": "UMF-PROGRAM-BRANCH",
+      "status": "active"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-vocabulary-governance",
+      "program_task_id": "UMF-PROGRAM-VOCABULARY",
+      "status": "active"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-conversation-formation",
+      "program_task_id": "UMF-PROGRAM-CONVERSATION",
+      "status": "planned"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-shape-addressing",
+      "program_task_id": "UMF-PROGRAM-SHAPE",
+      "status": "planned"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-transformation-dynamics",
+      "program_task_id": "UMF-PROGRAM-TRANSFORMATION",
+      "status": "planned"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-valence-scale-pattern",
+      "program_task_id": "UMF-PROGRAM-PATTERN",
+      "status": "planned"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-agent-execution",
+      "program_task_id": "UMF-PROGRAM-EXECUTION",
+      "status": "planned"
+    },
+    {
+      "parent": "unified-framework-synthesis",
+      "child": "metaphysical-product-surfaces",
+      "program_task_id": "UMF-PROGRAM-SURFACES",
+      "status": "planned"
+    }
+  ],
+  "lane_order": [
+    "backlog",
+    "ready",
+    "in-progress",
+    "review",
+    "blocked",
+    "done"
+  ]
+}
