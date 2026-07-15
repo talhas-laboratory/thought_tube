@@ -152,6 +152,13 @@ class MetaphysicalKernelMigrationTestCase(unittest.TestCase):
         self.assertEqual(len(violations), 1)
         self.assertIn("collapsed", violations[0])
 
+    def test_mtsf_uncertain_identity_rejects_unknown_relation_kind(self) -> None:
+        fixture = _load_fixture("mtsf_uncertain_identity.json")
+        fixture["source_records"]["identity_uncertainty"]["relation"] = "equivalent_to"
+
+        with self.assertRaisesRegex(ValueError, "unsupported identity relation"):
+            migrate_source_fixture(fixture)
+
 
 if __name__ == "__main__":
     unittest.main()
