@@ -208,6 +208,35 @@ class FoundationApplicationSdk:
             provenance_id=provenance_id,
         )
 
+    def record_identity_uncertainty(
+        self,
+        *,
+        left_referent_id: str,
+        right_referent_id: str,
+        provenance_id: str,
+        relation_kind: str = "possibly_same_as",
+        confidence: float = 0.5,
+        rationale: str = "",
+    ) -> SdkMutationResult:
+        operation = "record_identity_uncertainty"
+        denied = self._authorize(operation) or self._consume_budget(operation)
+        if denied:
+            return denied
+        relation = self.runtime.record_identity_uncertainty(
+            left_referent_id=left_referent_id,
+            right_referent_id=right_referent_id,
+            scope_id=self.context.scope_id,
+            provenance_id=provenance_id,
+            relation_kind=relation_kind,
+            confidence=confidence,
+            rationale=rationale,
+        )
+        return self._result(
+            operation,
+            record_ids={"relation_instance_id": relation["envelope"]["id"]},
+            provenance_id=provenance_id,
+        )
+
     def assert_claim(
         self,
         *,

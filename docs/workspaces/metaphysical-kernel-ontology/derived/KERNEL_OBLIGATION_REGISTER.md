@@ -1,6 +1,8 @@
 # Kernel Ontology — Obligation Register
 
-This is the executable reading map for KERNEL-001. Refine each row into atomic records in the parent coverage registry before G1. “Existing” means a Phase 1 owner exists, not that the full paper obligation is closed.
+This is the executable reading map for KERNEL-001. Refine each row into atomic records in the parent coverage registry before G1.
+
+**KERNEL-001 output:** the machine-readable matrix lives in [`KERNEL_ATOMIC_OBLIGATIONS.json`](./KERNEL_ATOMIC_OBLIGATIONS.json) and the locked public boundary in [`KERNEL_PUBLIC_CONTRACT_LOCK.md`](./KERNEL_PUBLIC_CONTRACT_LOCK.md). “Existing” means a Phase 1 owner exists, not that the full paper obligation is closed.
 
 | Area | Normative obligation | Existing evidence | Required next evidence |
 |---|---|---|---|

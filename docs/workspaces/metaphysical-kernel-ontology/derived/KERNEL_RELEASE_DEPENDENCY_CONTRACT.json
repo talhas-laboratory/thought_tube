@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0",
+  "task_id": "KERNEL-005-release-kernel-dependency-contract",
+  "workspace_id": "metaphysical-kernel-ontology",
+  "gate": "G5",
+  "provider_contract_version": "1.1.0",
+  "framework_version": "1.1",
+  "compatibility_class": "additive_within_1.1.x",
+  "release_git_revision": "512236d4b089d0a4d04821cca3d068a2d0a539f4",
+  "released_at": "2026-07-15",
+  "authority_artifacts": [
+    "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_PUBLIC_CONTRACT_LOCK.md",
+    "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_ATOMIC_OBLIGATIONS.json",
+    "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_CONFORMANCE_COVERAGE.json",
+    "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_MIGRATION_FIXTURE_CATALOG.md",
+    "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_RUNTIME_OPERATIONS.md"
+  ],
+  "supported_record_kinds": [
+    "source_fragment",
+    "referent",
+    "scope",
+    "state",
+    "claim",
+    "relation_instance",
+    "provenance",
+    "model_branch",
+    "branch_membership",
+    "state_commitment",
+    "profile_definition",
+    "profile_conformance_result"
+  ],
+  "supported_runtime_operations": [
+    "capture_source_fragment",
+    "capture_from_conversation_event",
+    "ensure_scope",
+    "ensure_branch",
+    "resolve_referent",
+    "assert_claim",
+    "revise_claim",
+    "retract_record",
+    "commit_state_from_claims",
+    "attach_branch_membership",
+    "assert_relation_instance",
+    "record_identity_uncertainty",
+    "query_bounded_view",
+    "trace_provenance",
+    "validate_current_bundle"
+  ],
+  "supported_sdk_operations": [
+    "capture_source",
+    "capture_source_from_event",
+    "create_branch",
+    "attach_branch_membership",
+    "assert_claim",
+    "commit_state",
+    "hold_field",
+    "derive_formation",
+    "derive_shape",
+    "record_identity_uncertainty",
+    "build_bounded_view",
+    "trace_provenance",
+    "register_profile",
+    "validate_profile",
+    "bind_application_profile"
+  ],
+  "supported_migration_families": [
+    "mtsf",
+    "thoughtshape",
+    "sds",
+    "conversation_os"
+  ],
+  "core_invariants": [
+    "claim_is_not_state",
+    "no_universal_envelope_branch_id",
+    "provenance_closure",
+    "profiles_cannot_redefine_kernel",
+    "single_append_only_logical_store",
+    "no_product_fields_in_universal_kernel"
+  ],
+  "forbidden_interpretations": [
+    "claim_is_state",
+    "state_is_claim",
+    "universal_branch_id",
+    "single_status_field",
+    "product_specific_kernel_fields",
+    "parallel_canonical_store"
+  ],
+  "breaking_change_policy": "Breaking semantic or schema changes require CONTRACT_VERSION minor/major bump and parent unified-framework-synthesis decision record.",
+  "migration_policy": "Historical frameworks map through metaphysical_kernel_migration.py only; preserve source IDs, provenance, branch membership, and explicit semantic-loss warnings.",
+  "failure_and_absence_behavior": {
+    "invalid_bundle": "validate_fixture_bundle returns errors; runtime mutations fail closed before append",
+    "state_adoption_without_commitment": "ContractValidationError; no store events appended",
+    "identity_merge_without_confirmation": "same_as rejected; use possibly_same_as relation",
+    "missing_provenance": "validator rejects dangling provenance_id and non-terminating provenance chains",
+    "deferred_concepts": "Occurrence, Perspective, Evidence, TypeDefinition records must not be assumed"
+  },
+  "known_phase1_limits": [
+    {
+      "obligation_id": "KERNEL-22-LIFECYCLE-TRANSITIONS",
+      "summary": "Lifecycle literal validation only; governed transition API not published"
+    },
+    {
+      "obligation_id": "KERNEL-5.16-STALENESS-PROPAGATION",
+      "summary": "Commitment links validate; dependent-record staleness signals not published"
+    }
+  ],
+  "verification_ladder": {
+    "commands": [
+      "python3 tools/conversation_os.py foundation review",
+      "pytest -q tests/test_kernel_release_contract.py tests/test_kernel_conformance_suite.py tests/test_kernel_atomic_obligations.py tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_migration.py tests/test_metaphysical_kernel_runtime.py tests/test_metaphysical_kernel_profile_registry.py tests/test_metaphysical_kernel_application_sdk.py"
+    ],
+    "expected_result": "all_pass"
+  },
+  "consumer_smoke_proofs": [
+    {
+      "consumer_workspace": "metaphysical-product-surfaces",
+      "application_id": "app:world_studio",
+      "test": "tests.test_metaphysical_kernel_application_sdk::test_world_studio_consumer_uses_shared_kernel_without_private_ontology",
+      "proves": "Shared store + SDK capture/claim/formation without parallel ontology"
+    },
+    {
+      "consumer_workspace": "metaphysical-product-surfaces",
+      "application_id": "app:workspace_curator",
+      "test": "tests.test_metaphysical_kernel_application_sdk::test_workspace_curator_consumer_can_commit_state",
+      "proves": "State adoption through StateCommitment on shared kernel"
+    }
+  ],
+  "downstream_consumer_contracts": [
+    {
+      "consumer_workspace": "metaphysical-branch-reasoning",
+      "contract_path": "docs/workspaces/metaphysical-kernel-ontology/derived/dependency-contract-branch-reasoning.md",
+      "consumer_ack_path": "docs/workspaces/metaphysical-branch-reasoning/derived/kernel-provider-acknowledgment.md"
+    },
+    {
+      "consumer_workspace": "metaphysical-vocabulary-governance",
+      "contract_path": "docs/workspaces/metaphysical-kernel-ontology/derived/dependency-contract-vocabulary-governance.md",
+      "consumer_ack_path": "docs/workspaces/metaphysical-vocabulary-governance/derived/kernel-provider-acknowledgment.md"
+    }
+  ]
+}
