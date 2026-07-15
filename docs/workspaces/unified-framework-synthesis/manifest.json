@@ -96,7 +96,8 @@
       {"id": "transcript", "path": "continuity/thread-transcript.md", "title": "Full Cursor thread transcript"},
       {"id": "task-pack", "path": "continuity/task-pack.md", "title": "Canonical foundation task pack"},
       {"id": "handoff", "path": "derived/handoff.md", "title": "Foundation handoff"},
-      {"id": "foundation-build-plan", "path": "derived/foundation-build-plan.md", "title": "Foundation build plan"}
+      {"id": "foundation-build-plan", "path": "derived/foundation-build-plan.md", "title": "Foundation build plan"},
+      {"id": "program-workspace-hierarchy", "path": "derived/program-workspace-hierarchy-plan.md", "title": "Program workspace hierarchy plan"}
     ]
   },
   "locked_decisions": [

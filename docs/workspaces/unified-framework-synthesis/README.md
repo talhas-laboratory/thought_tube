@@ -37,6 +37,7 @@ cat docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-met
 # 3. Handoff and build plan
 cat docs/workspaces/unified-framework-synthesis/derived/handoff.md
 cat docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md
+cat docs/workspaces/unified-framework-synthesis/derived/program-workspace-hierarchy-plan.md
 
 # 4. Published continuity projection (after sync)
 cat docs/workspaces/unified-framework-synthesis/CONTINUITY.md
@@ -58,6 +59,7 @@ Execution board: [`docs/workboards/unified-metaphysical-foundation/`](../../work
 |---|---|---|
 | [`sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`](./sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) | **Canonical** | Kernel, profiles, applications, invariants, lifecycles, architecture, build order, tests, and migration |
 | [`derived/foundation-build-plan.md`](./derived/foundation-build-plan.md) | Active execution bridge | Converts the normative paper into bounded implementation work |
+| [`derived/program-workspace-hierarchy-plan.md`](./derived/program-workspace-hierarchy-plan.md) | Proposed program operating model | Defines the parent workspace, nine child programs, workboards, dependencies, gates, rollup, and rollout |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources
