@@ -1,0 +1,44 @@
+{
+  "module_id": "vocabulary.metaphysical.governance",
+  "path": "src/conversation_os/metaphysical_vocabulary_governance.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Vocabulary registry, non-destructive mapping, and type extension safety (framework v1.1 §8).",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "VOCAB_CONTRACT_VERSION",
+    "KERNEL_CONTRACT_VERSION",
+    "BRANCH_CONTRACT_VERSION",
+    "classify_vocabulary_level",
+    "capture_raw_expression",
+    "register_vocabulary_entry",
+    "create_term_mapping",
+    "assess_mapping",
+    "assess_branch_mapping_separation",
+    "validate_type_extension",
+    "lookup_with_mapping"
+  ],
+  "contains": [
+    "VocabularyEntry",
+    "RawExpression",
+    "TermMapping",
+    "MappingAssessmentResult",
+    "TypeExtensionValidationResult",
+    "LookupResult"
+  ],
+  "depends_on": ["kernel.metaphysical.records", "branch.metaphysical.reasoning"],
+  "feeds_into": [],
+  "inputs": ["framework v1.1 section 8", "VOCAB_PUBLIC_CONTRACT_LOCK.md"],
+  "outputs": ["vocabulary governance operations"],
+  "state_owned": [],
+  "surfaces_using": [],
+  "test_targets": [
+    "tests/test_metaphysical_vocabulary_governance.py",
+    "tests/test_vocab_contract_fixtures.py"
+  ],
+  "adjacent_docs": [
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_PUBLIC_CONTRACT_LOCK.md"
+  ]
+}
