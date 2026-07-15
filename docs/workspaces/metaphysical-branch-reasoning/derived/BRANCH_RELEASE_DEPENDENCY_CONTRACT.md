@@ -14,7 +14,7 @@ This document is the **consumable G5 release** for Phase 1 branch reasoning. Voc
 | `provider_contract_version` | `1.0.0` |
 | `kernel_contract_version_consumed` | `1.1.0` |
 | `compatibility_class` | Additive within `1.0.x` |
-| `release_git_revision` | `fb6d32fadff4d949fe8b53cffb0ab1b7e70a5970` |
+| `release_git_revision` | `e3784b72f7f51bea8f62a6637419634d6e096fe8` |
 | Conformance evidence | [`BRANCH_CONFORMANCE_COVERAGE.json`](./BRANCH_CONFORMANCE_COVERAGE.json) |
 
 ## What consumers may depend on

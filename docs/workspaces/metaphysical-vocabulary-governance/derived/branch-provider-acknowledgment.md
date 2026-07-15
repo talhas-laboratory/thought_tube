@@ -4,7 +4,7 @@
 **Provider workspace:** `metaphysical-branch-reasoning`  
 **Acknowledged contract version:** `1.0.0`  
 **Release task:** `BRANCH-005-release-branch-dependency-contract`  
-**Release git revision:** `fb6d32fadff4d949fe8b53cffb0ab1b7e70a5970`
+**Release git revision:** `e3784b72f7f51bea8f62a6637419634d6e096fe8`
 
 ## Confirmed for VOCAB program use
 
