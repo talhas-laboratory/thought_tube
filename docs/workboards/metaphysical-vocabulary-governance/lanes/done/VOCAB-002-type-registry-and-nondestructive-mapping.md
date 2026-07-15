@@ -1,6 +1,6 @@
 # VOCAB-002-type-registry-and-nondestructive-mapping: Implement type registry and non-destructive mapping
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

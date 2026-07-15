@@ -1,6 +1,6 @@
 # BRANCH-003-merge-and-inference-policy: Implement merge and inference policy
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

@@ -1,6 +1,6 @@
 # BRANCH-004-adversarial-branch-conformance: Verify branch conformance
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

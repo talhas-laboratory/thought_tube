@@ -1,6 +1,6 @@
 # VOCAB-001-atomic-obligation-and-governance-lock: Refine vocabulary obligations and governance lock
 
-Status: ready
+Status: done
 Owner: unassigned
 Current gate: not_required
 

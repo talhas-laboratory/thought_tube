@@ -1,6 +1,6 @@
 # VOCAB-003-promotion-and-evolution-workflow: Implement promotion and ontology evolution workflow
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

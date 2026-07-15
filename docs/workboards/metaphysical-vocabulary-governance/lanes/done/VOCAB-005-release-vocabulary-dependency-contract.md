@@ -1,6 +1,6 @@
 # VOCAB-005-release-vocabulary-dependency-contract: Release vocabulary dependency contract
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

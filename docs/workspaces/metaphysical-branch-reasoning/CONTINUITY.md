@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: metaphysical-branch-reasoning -->
-<!-- canonical_revision: 274a0533c5990e3ecb6f443b683d6570661fb71360f71cbeb95345f0519c4b9d -->
+<!-- canonical_revision: 1c7f2ee8b85cd72a84b814bf61d5dfcce3155079292ff10554f7f6c5f51ebf5d -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-15T09:39:59+00:00 -->
+<!-- generated_at: 2026-07-15T18:13:48+00:00 -->
 
 # Workspace continuity: metaphysical-branch-reasoning
 
@@ -26,6 +26,10 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- merge-evidence
+- merge-evidence
+- merge-evidence
+- merge-evidence
 - kernel-regression
 - branch-reasoning-table-tests
 - kernel-regression

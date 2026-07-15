@@ -1,6 +1,6 @@
 # VOCAB-004-vocabulary-conformance-suite: Verify vocabulary conformance
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

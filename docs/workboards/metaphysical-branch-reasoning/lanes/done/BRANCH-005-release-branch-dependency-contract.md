@@ -1,6 +1,6 @@
 # BRANCH-005-release-branch-dependency-contract: Release branch dependency contract
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 
