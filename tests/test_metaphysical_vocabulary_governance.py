@@ -1,4 +1,4 @@
-"""VOCAB-002 table-driven semantics tests."""
+"""VOCAB-002/003 table-driven semantics tests."""
 
 from __future__ import annotations
 
@@ -9,10 +9,15 @@ from pathlib import Path
 from conversation_os.metaphysical_vocabulary_governance import (
     assess_branch_mapping_separation,
     assess_mapping,
+    assess_promotion_policy,
     capture_raw_expression,
     classify_vocabulary_level,
     create_term_mapping,
     lookup_with_mapping,
+    publish_evolution_report,
+    record_deprecation,
+    record_evolution_reversal,
+    review_promotion,
     validate_type_extension,
 )
 
@@ -140,6 +145,78 @@ class MetaphysicalVocabularyGovernanceTestCase(unittest.TestCase):
                     self.assertIsNotNone(lookup.mapping)
                     self.assertFalse(expected["substitutes_canonical_only"])
                     self.assertEqual(lookup.source_expression, case["lookup_request"]["expression"])
+
+    def test_promotion_outcome_table(self) -> None:
+        table = _load("promotion_outcome_table.json")
+        for case in table["cases"]:
+            with self.subTest(case_id=case["case_id"]):
+                expected = case["expected"]
+                if case.get("proposal") is None:
+                    policy = assess_promotion_policy()
+                    self.assertEqual(policy.promotion_required, expected["promotion_required"])
+                    self.assertEqual(policy.local_vocabulary_usable, expected["local_vocabulary_usable"])
+                    continue
+
+                result = review_promotion(case["proposal"])
+                self.assertEqual(result.promotion_status, expected["promotion_status"])
+                if "source_term_still_addressable" in expected:
+                    self.assertEqual(result.source_term_still_addressable, expected["source_term_still_addressable"])
+                if "prior_level_retained_in_provenance" in expected:
+                    self.assertEqual(
+                        result.prior_level_retained_in_provenance,
+                        expected["prior_level_retained_in_provenance"],
+                    )
+                if "local_term_usable" in expected:
+                    self.assertEqual(result.local_term_usable, expected["local_term_usable"])
+                if "not_invalidated" in expected:
+                    self.assertEqual(result.not_invalidated, expected["not_invalidated"])
+                if "exposed_as_global" in expected:
+                    self.assertEqual(result.exposed_as_global, expected["exposed_as_global"])
+                if "governance_status" in expected:
+                    self.assertEqual(result.governance_status, expected["governance_status"])
+                if "epistemic_status_unchanged" in expected:
+                    self.assertEqual(result.epistemic_status_unchanged, expected["epistemic_status_unchanged"])
+
+    def test_evolution_outcome_table(self) -> None:
+        table = _load("evolution_outcome_table.json")
+        for case in table["cases"]:
+            with self.subTest(case_id=case["case_id"]):
+                expected = case["expected"]
+
+                if "report" in case:
+                    result = publish_evolution_report(case["report"])
+                    if "validation_result" in expected:
+                        self.assertEqual(result.validation_result, expected["validation_result"])
+                    if "error_code" in expected:
+                        self.assertEqual(result.error_code, expected["error_code"])
+                    if "prior_definition_addressable" in expected:
+                        self.assertEqual(result.prior_definition_addressable, expected["prior_definition_addressable"])
+                    if "stale_dependents_listed" in expected:
+                        self.assertEqual(result.stale_dependents_listed, expected["stale_dependents_listed"])
+                    if "reversible" in expected:
+                        self.assertEqual(result.reversible, expected["reversible"])
+                    if "semantic_loss_warnings_nonempty" in expected:
+                        self.assertEqual(
+                            result.semantic_loss_warnings_nonempty,
+                            expected["semantic_loss_warnings_nonempty"],
+                        )
+
+                if "deprecation" in case:
+                    record = record_deprecation(case["deprecation"])
+                    if expected.get("deprecated_term_preserved"):
+                        self.assertEqual(record.deprecated_term, case["deprecation"]["deprecated_term"])
+                    if expected.get("migration_explicit"):
+                        self.assertTrue(record.migration_plan)
+                    if "reversible" in expected:
+                        self.assertEqual(record.reversible, expected["reversible"])
+
+                if "reversal" in case:
+                    result = record_evolution_reversal(case["reversal"])
+                    self.assertEqual(result.reversal_recorded, expected["reversal_recorded"])
+                    self.assertEqual(
+                        result.restored_definition_addressable,
+                        expected["restored_definition_addressable"],
+                    )
 
 
 if __name__ == "__main__":

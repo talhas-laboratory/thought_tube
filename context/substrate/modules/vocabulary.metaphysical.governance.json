@@ -18,7 +18,13 @@
     "assess_mapping",
     "assess_branch_mapping_separation",
     "validate_type_extension",
-    "lookup_with_mapping"
+    "lookup_with_mapping",
+    "propose_promotion",
+    "review_promotion",
+    "assess_promotion_policy",
+    "record_deprecation",
+    "publish_evolution_report",
+    "record_evolution_reversal"
   ],
   "contains": [
     "VocabularyEntry",
@@ -26,7 +32,10 @@
     "TermMapping",
     "MappingAssessmentResult",
     "TypeExtensionValidationResult",
-    "LookupResult"
+    "LookupResult",
+    "PromotionRecord",
+    "DeprecationRecord",
+    "EvolutionMigrationReport"
   ],
   "depends_on": ["kernel.metaphysical.records", "branch.metaphysical.reasoning"],
   "feeds_into": [],

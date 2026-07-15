@@ -58,6 +58,17 @@
       "required_invariants": [
         "Five levels explicit; not a quality ranking."
       ]
+    },
+    {
+      "operation": "EvolutionMigrationReport",
+      "section": "§8.6",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/evolution_outcome_table.json",
+      "case_count": 5,
+      "required_invariants": [
+        "Prior definitions remain addressable.",
+        "Destructive in-place edits forbidden.",
+        "Stale dependents listed on evolution."
+      ]
     }
   ],
   "acceptance_tests_required": [
