@@ -1,0 +1,162 @@
+{
+  "schema": "branch_merge_outcome_table_v1.0.0",
+  "framework_section": "§7.5",
+  "contract_version": "1.0.0",
+  "description": "Table-driven fixtures for MergeAssessment. Merge must never silently choose a winner. Conflicting claims remain unresolved in the output.",
+  "cases": [
+    {
+      "case_id": "merge-001",
+      "description": "Two branches share the same records and have no conflicts — compatible",
+      "branch_a_id": "branch_a",
+      "branch_b_id": "branch_b",
+      "records_a": [
+        {"id": "cl_shared_001", "record_kind": "claim"},
+        {"id": "sf_neutral_001", "record_kind": "source_fragment"}
+      ],
+      "records_b": [
+        {"id": "cl_shared_001", "record_kind": "claim"},
+        {"id": "sf_neutral_001", "record_kind": "source_fragment"}
+      ],
+      "expected": {
+        "shared_record_ids": ["cl_shared_001", "sf_neutral_001"],
+        "compatible_additions": [],
+        "conflicts": [],
+        "divergent_assumptions": [],
+        "scope_differences": [],
+        "unresolved_identity_mappings": [],
+        "merge_verdict": "compatible"
+      }
+    },
+    {
+      "case_id": "merge-002",
+      "description": "Branch B has a compatible additional claim not in A — partially_compatible with a compatible addition",
+      "branch_a_id": "branch_a",
+      "branch_b_id": "branch_b",
+      "records_a": [
+        {"id": "cl_shared_001", "record_kind": "claim"}
+      ],
+      "records_b": [
+        {"id": "cl_shared_001", "record_kind": "claim"},
+        {"id": "cl_addition_001", "record_kind": "claim"}
+      ],
+      "expected": {
+        "shared_record_ids": ["cl_shared_001"],
+        "compatible_additions": ["cl_addition_001"],
+        "conflicts": [],
+        "divergent_assumptions": [],
+        "scope_differences": [],
+        "unresolved_identity_mappings": [],
+        "merge_verdict": "compatible"
+      }
+    },
+    {
+      "case_id": "merge-003",
+      "description": "Two conflicting claims remain unresolved after merge — no winner selected",
+      "branch_a_id": "branch_a",
+      "branch_b_id": "branch_b",
+      "records_a": [
+        {
+          "id": "cl_aff_001",
+          "record_kind": "claim",
+          "proposition": {"predicate": "causes", "arguments": ["x", "y"]},
+          "polarity": "affirmative",
+          "scope_id": "scope_org"
+        }
+      ],
+      "records_b": [
+        {
+          "id": "cl_neg_001",
+          "record_kind": "claim",
+          "proposition": {"predicate": "causes", "arguments": ["x", "y"]},
+          "polarity": "negative",
+          "scope_id": "scope_org"
+        }
+      ],
+      "expected": {
+        "shared_record_ids": [],
+        "compatible_additions": [],
+        "conflicts": [
+          {
+            "claim_a_id": "cl_aff_001",
+            "claim_b_id": "cl_neg_001",
+            "conflict_kind": "logical_contradiction"
+          }
+        ],
+        "divergent_assumptions": [],
+        "scope_differences": [],
+        "unresolved_identity_mappings": [],
+        "merge_verdict": "incompatible"
+      },
+      "invariant_note": "Both conflicting claims remain present; the merge assessment does NOT choose a winner."
+    },
+    {
+      "case_id": "merge-004",
+      "description": "Branches have divergent assumptions — listed without resolution",
+      "branch_a_id": "branch_hyp_a",
+      "branch_b_id": "branch_hyp_b",
+      "records_a": [
+        {"id": "cl_shared_001", "record_kind": "claim"}
+      ],
+      "records_b": [
+        {"id": "cl_shared_001", "record_kind": "claim"}
+      ],
+      "branch_a_assumptions": ["assumption:closed_world", "assumption:single_agent"],
+      "branch_b_assumptions": ["assumption:open_world"],
+      "expected": {
+        "shared_record_ids": ["cl_shared_001"],
+        "compatible_additions": [],
+        "conflicts": [],
+        "divergent_assumptions": ["assumption:closed_world", "assumption:single_agent", "assumption:open_world"],
+        "scope_differences": [],
+        "unresolved_identity_mappings": [],
+        "merge_verdict": "partially_compatible"
+      }
+    },
+    {
+      "case_id": "merge-005",
+      "description": "Branches use different scope IDs — scope_differences listed",
+      "branch_a_id": "branch_a",
+      "branch_b_id": "branch_b",
+      "records_a": [
+        {"id": "cl_scope_a_001", "record_kind": "claim", "scope_id": "scope_local"}
+      ],
+      "records_b": [
+        {"id": "cl_scope_b_001", "record_kind": "claim", "scope_id": "scope_global"}
+      ],
+      "expected": {
+        "shared_record_ids": [],
+        "compatible_additions": [],
+        "conflicts": [],
+        "divergent_assumptions": [],
+        "scope_differences": ["scope_local", "scope_global"],
+        "unresolved_identity_mappings": [],
+        "merge_verdict": "partially_compatible"
+      },
+      "invariant_note": "Scope differences are not logical contradictions; they are listed for resolution."
+    },
+    {
+      "case_id": "merge-006",
+      "description": "Branch-neutral sources shared across both branches — appear in shared_record_ids",
+      "branch_a_id": "branch_a",
+      "branch_b_id": "branch_b",
+      "records_a": [
+        {"id": "sf_neutral_001", "record_kind": "source_fragment"},
+        {"id": "cl_a_interp_001", "record_kind": "claim"}
+      ],
+      "records_b": [
+        {"id": "sf_neutral_001", "record_kind": "source_fragment"},
+        {"id": "cl_b_interp_001", "record_kind": "claim"}
+      ],
+      "expected": {
+        "shared_record_ids": ["sf_neutral_001"],
+        "compatible_additions": ["cl_a_interp_001", "cl_b_interp_001"],
+        "conflicts": [],
+        "divergent_assumptions": [],
+        "scope_differences": [],
+        "unresolved_identity_mappings": [],
+        "merge_verdict": "compatible"
+      },
+      "invariant_note": "Source reuse per §27.16: same source identity, distinct branch-local interpretations."
+    }
+  ]
+}

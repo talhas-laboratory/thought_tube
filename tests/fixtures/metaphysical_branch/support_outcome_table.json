@@ -1,0 +1,166 @@
+{
+  "schema": "branch_support_outcome_table_v1.0.0",
+  "framework_section": "§7.3",
+  "contract_version": "1.0.0",
+  "description": "Table-driven fixtures for SupportAssessment four-valued outcomes. Negation is always explicit (polarity field). Claims from other scopes do not count.",
+  "cases": [
+    {
+      "case_id": "support-001",
+      "description": "One affirmative claim in scope — supported_only",
+      "branch_id": "branch_main",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": false,
+      "evidence_claims": [
+        {
+          "id": "cl_aff_001",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+        }
+      ],
+      "expected": {
+        "support_value": "supported_only",
+        "affirmative_claim_ids": ["cl_aff_001"],
+        "negative_claim_ids": []
+      }
+    },
+    {
+      "case_id": "support-002",
+      "description": "One negative claim in scope and no affirmative — opposed_only",
+      "branch_id": "branch_main",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": false,
+      "evidence_claims": [
+        {
+          "id": "cl_neg_001",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "negative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+        }
+      ],
+      "expected": {
+        "support_value": "opposed_only",
+        "affirmative_claim_ids": [],
+        "negative_claim_ids": ["cl_neg_001"]
+      }
+    },
+    {
+      "case_id": "support-003",
+      "description": "Both affirmative and negative claims in same scope — both (no explosion)",
+      "branch_id": "branch_main",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": false,
+      "evidence_claims": [
+        {
+          "id": "cl_aff_002",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+        },
+        {
+          "id": "cl_neg_002",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "negative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+        }
+      ],
+      "expected": {
+        "support_value": "both",
+        "affirmative_claim_ids": ["cl_aff_002"],
+        "negative_claim_ids": ["cl_neg_002"]
+      },
+      "invariant_note": "both must never be collapsed or resolved implicitly; no explosion of unrelated claims."
+    },
+    {
+      "case_id": "support-004",
+      "description": "No claims in scope — unresolved",
+      "branch_id": "branch_main",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": false,
+      "evidence_claims": [],
+      "expected": {
+        "support_value": "unresolved",
+        "affirmative_claim_ids": [],
+        "negative_claim_ids": []
+      }
+    },
+    {
+      "case_id": "support-005",
+      "description": "Claim in different scope does NOT count — still unresolved for the queried scope",
+      "branch_id": "branch_main",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": false,
+      "evidence_claims": [
+        {
+          "id": "cl_wrong_scope_001",
+          "branch_id": "branch_main",
+          "scope_id": "scope_global",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+        }
+      ],
+      "expected": {
+        "support_value": "unresolved",
+        "affirmative_claim_ids": [],
+        "negative_claim_ids": []
+      },
+      "invariant_note": "Scope matching is required; scope_global claim does not satisfy scope_org query."
+    },
+    {
+      "case_id": "support-006",
+      "description": "Retracted claim in branch is excluded — unresolved",
+      "branch_id": "branch_child_b",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": false,
+      "evidence_claims": [
+        {
+          "id": "cl_retracted_001",
+          "branch_id": "branch_child_b",
+          "scope_id": "scope_org",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+          "membership_kind": "retracted"
+        }
+      ],
+      "expected": {
+        "support_value": "unresolved",
+        "affirmative_claim_ids": [],
+        "negative_claim_ids": []
+      },
+      "invariant_note": "Retracted claims are excluded from support assessment."
+    },
+    {
+      "case_id": "support-007",
+      "description": "Inheritance: child branch with include_inherited=true picks up parent's affirmative claim",
+      "branch_id": "branch_child_a",
+      "scope_id": "scope_org",
+      "claim_proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+      "include_inherited": true,
+      "evidence_claims": [
+        {
+          "id": "cl_parent_aff_001",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]},
+          "membership_kind": "asserted"
+        }
+      ],
+      "expected": {
+        "support_value": "supported_only",
+        "affirmative_claim_ids": ["cl_parent_aff_001"],
+        "negative_claim_ids": []
+      }
+    }
+  ]
+}

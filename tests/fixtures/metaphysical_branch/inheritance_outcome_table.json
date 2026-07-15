@@ -1,0 +1,200 @@
+{
+  "schema": "branch_inheritance_outcome_table_v1.0.0",
+  "framework_section": "§7.2",
+  "contract_version": "1.0.0",
+  "description": "Table-driven fixtures for InheritanceQuery outcomes. Each row specifies a branch ancestry, a set of BranchMembership entries, and the expected InheritanceOutcome.",
+  "cases": [
+    {
+      "case_id": "inherit-001",
+      "description": "Child branch inherits a claim from parent — no local override",
+      "record_id": "cl_shared_001",
+      "record_kind": "claim",
+      "child_branch_id": "branch_child_a",
+      "branch_ancestry": [
+        {"branch_id": "branch_child_a", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [
+        {
+          "record_id": "cl_shared_001",
+          "branch_id": "branch_main",
+          "membership_kind": "asserted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "service:interpretation",
+          "membership_provenance_id": "prov_mem_001"
+        }
+      ],
+      "expected": {
+        "visibility": "inherited",
+        "effective_membership_kind": "asserted",
+        "resolved_in_branch_id": "branch_main"
+      }
+    },
+    {
+      "case_id": "inherit-002",
+      "description": "Child branch locally asserts a new claim — not present in parent",
+      "record_id": "cl_local_001",
+      "record_kind": "claim",
+      "child_branch_id": "branch_child_a",
+      "branch_ancestry": [
+        {"branch_id": "branch_child_a", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [
+        {
+          "record_id": "cl_local_001",
+          "branch_id": "branch_child_a",
+          "membership_kind": "asserted",
+          "effective_scope_id": "scope_local",
+          "introduced_by": "service:child_interpretation",
+          "membership_provenance_id": "prov_mem_002"
+        }
+      ],
+      "expected": {
+        "visibility": "asserted",
+        "effective_membership_kind": "asserted",
+        "resolved_in_branch_id": "branch_child_a"
+      }
+    },
+    {
+      "case_id": "inherit-003",
+      "description": "Child branch retracts a parent claim — parent remains unchanged",
+      "record_id": "cl_shared_002",
+      "record_kind": "claim",
+      "child_branch_id": "branch_child_b",
+      "branch_ancestry": [
+        {"branch_id": "branch_child_b", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [
+        {
+          "record_id": "cl_shared_002",
+          "branch_id": "branch_main",
+          "membership_kind": "asserted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "service:interpretation",
+          "membership_provenance_id": "prov_mem_003"
+        },
+        {
+          "record_id": "cl_shared_002",
+          "branch_id": "branch_child_b",
+          "membership_kind": "retracted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "user:analyst",
+          "membership_provenance_id": "prov_mem_004"
+        }
+      ],
+      "expected": {
+        "visibility": "retracted",
+        "effective_membership_kind": "retracted",
+        "resolved_in_branch_id": "branch_child_b"
+      },
+      "invariant_note": "Parent membership is unchanged; retraction is local to branch_child_b only."
+    },
+    {
+      "case_id": "inherit-004",
+      "description": "Child branch replaces a parent claim — child entry supersedes",
+      "record_id": "cl_shared_003",
+      "record_kind": "claim",
+      "child_branch_id": "branch_child_c",
+      "branch_ancestry": [
+        {"branch_id": "branch_child_c", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [
+        {
+          "record_id": "cl_shared_003",
+          "branch_id": "branch_main",
+          "membership_kind": "asserted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "service:interpretation",
+          "membership_provenance_id": "prov_mem_005"
+        },
+        {
+          "record_id": "cl_shared_003",
+          "branch_id": "branch_child_c",
+          "membership_kind": "asserted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "service:revision",
+          "membership_provenance_id": "prov_mem_006"
+        }
+      ],
+      "expected": {
+        "visibility": "replaced",
+        "effective_membership_kind": "asserted",
+        "resolved_in_branch_id": "branch_child_c"
+      }
+    },
+    {
+      "case_id": "inherit-005",
+      "description": "Record is not a member of the branch or any ancestor — absent",
+      "record_id": "cl_unknown_001",
+      "record_kind": "claim",
+      "child_branch_id": "branch_child_a",
+      "branch_ancestry": [
+        {"branch_id": "branch_child_a", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [],
+      "expected": {
+        "visibility": "absent",
+        "effective_membership_kind": null,
+        "resolved_in_branch_id": null
+      }
+    },
+    {
+      "case_id": "inherit-006",
+      "description": "Branch-neutral source fragment readable in any branch without membership check",
+      "record_id": "sf_neutral_001",
+      "record_kind": "source_fragment",
+      "child_branch_id": "branch_child_a",
+      "branch_ancestry": [
+        {"branch_id": "branch_child_a", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [],
+      "expected": {
+        "visibility": "inherited",
+        "effective_membership_kind": null,
+        "resolved_in_branch_id": null,
+        "note": "Branch-neutral kinds do not require BranchMembership; visible in any branch per §27.16"
+      }
+    },
+    {
+      "case_id": "inherit-007",
+      "description": "Child retracts; parent ancestor still has the record. Retraction shadows all ancestors.",
+      "record_id": "cl_deep_001",
+      "record_kind": "claim",
+      "child_branch_id": "branch_grandchild",
+      "branch_ancestry": [
+        {"branch_id": "branch_grandchild", "parent_branch_id": "branch_child_a"},
+        {"branch_id": "branch_child_a", "parent_branch_id": "branch_main"},
+        {"branch_id": "branch_main", "parent_branch_id": ""}
+      ],
+      "membership_entries": [
+        {
+          "record_id": "cl_deep_001",
+          "branch_id": "branch_main",
+          "membership_kind": "asserted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "service:interpretation",
+          "membership_provenance_id": "prov_mem_007"
+        },
+        {
+          "record_id": "cl_deep_001",
+          "branch_id": "branch_grandchild",
+          "membership_kind": "retracted",
+          "effective_scope_id": "scope_org",
+          "introduced_by": "user:analyst",
+          "membership_provenance_id": "prov_mem_008"
+        }
+      ],
+      "expected": {
+        "visibility": "retracted",
+        "effective_membership_kind": "retracted",
+        "resolved_in_branch_id": "branch_grandchild"
+      },
+      "invariant_note": "Grandchild retraction shadows the grandparent assertion even though branch_child_a has no entry."
+    }
+  ]
+}

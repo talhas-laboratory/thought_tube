@@ -1,0 +1,167 @@
+{
+  "schema": "branch_conflict_outcome_table_v1.0.0",
+  "framework_section": "§7.4",
+  "contract_version": "1.0.0",
+  "description": "Table-driven fixtures for ConflictRecord classification. Not every apparent contradiction is a logical contradiction. Negation must be explicit.",
+  "cases": [
+    {
+      "case_id": "conflict-001",
+      "description": "Direct logical contradiction: same scope, same proposition, opposite polarity",
+      "claim_a": {
+        "id": "cl_logical_pos",
+        "branch_id": "branch_main",
+        "scope_id": "scope_org",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+      },
+      "claim_b": {
+        "id": "cl_logical_neg",
+        "branch_id": "branch_main",
+        "scope_id": "scope_org",
+        "polarity": "negative",
+        "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+      },
+      "expected": {
+        "conflict_kind": "logical_contradiction",
+        "is_logical_contradiction": true
+      }
+    },
+    {
+      "case_id": "conflict-002",
+      "description": "Same claim in different scopes — scope_difference, NOT logical contradiction",
+      "claim_a": {
+        "id": "cl_scope_a",
+        "branch_id": "branch_main",
+        "scope_id": "scope_local",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "causes", "arguments": ["pressure", "compliance"]}
+      },
+      "claim_b": {
+        "id": "cl_scope_b",
+        "branch_id": "branch_main",
+        "scope_id": "scope_global",
+        "polarity": "negative",
+        "proposition": {"predicate": "causes", "arguments": ["pressure", "compliance"]}
+      },
+      "expected": {
+        "conflict_kind": "scope_difference",
+        "is_logical_contradiction": false
+      },
+      "invariant_note": "Different scopes never yield logical_contradiction by default."
+    },
+    {
+      "case_id": "conflict-003",
+      "description": "Two perspectives on same event — perspective_divergence, not logical contradiction",
+      "claim_a": {
+        "id": "cl_perspective_a",
+        "branch_id": "branch_agent_a",
+        "scope_id": "scope_org",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "is", "arguments": ["policy_x", "effective"]},
+        "claimant": "agent:leader"
+      },
+      "claim_b": {
+        "id": "cl_perspective_b",
+        "branch_id": "branch_agent_b",
+        "scope_id": "scope_org",
+        "polarity": "negative",
+        "proposition": {"predicate": "is", "arguments": ["policy_x", "effective"]},
+        "claimant": "agent:worker"
+      },
+      "expected": {
+        "conflict_kind": "perspective_divergence",
+        "is_logical_contradiction": false
+      },
+      "invariant_note": "Different claimants/perspectives are preserved as divergence."
+    },
+    {
+      "case_id": "conflict-004",
+      "description": "Claim true at T1, different claim true at T2 — temporal_change, not logical contradiction",
+      "claim_a": {
+        "id": "cl_temporal_a",
+        "branch_id": "branch_main",
+        "scope_id": "scope_2010",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "has_population", "arguments": ["city_x", "1000000"]}
+      },
+      "claim_b": {
+        "id": "cl_temporal_b",
+        "branch_id": "branch_main",
+        "scope_id": "scope_2020",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "has_population", "arguments": ["city_x", "1200000"]}
+      },
+      "expected": {
+        "conflict_kind": "temporal_change",
+        "is_logical_contradiction": false
+      }
+    },
+    {
+      "case_id": "conflict-005",
+      "description": "Incompatible measurements of same property — measurement_incompatible",
+      "claim_a": {
+        "id": "cl_measure_a",
+        "branch_id": "branch_main",
+        "scope_id": "scope_lab",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "temperature_celsius", "arguments": ["sample_001", "100"]}
+      },
+      "claim_b": {
+        "id": "cl_measure_b",
+        "branch_id": "branch_main",
+        "scope_id": "scope_lab",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "temperature_celsius", "arguments": ["sample_001", "98"]}
+      },
+      "expected": {
+        "conflict_kind": "measurement_incompatible",
+        "is_logical_contradiction": false
+      }
+    },
+    {
+      "case_id": "conflict-006",
+      "description": "Apparent conflict due to term ambiguity — semantic_ambiguity",
+      "claim_a": {
+        "id": "cl_ambig_a",
+        "branch_id": "branch_main",
+        "scope_id": "scope_org",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "is", "arguments": ["process_a", "heavy"]}
+      },
+      "claim_b": {
+        "id": "cl_ambig_b",
+        "branch_id": "branch_main",
+        "scope_id": "scope_org",
+        "polarity": "negative",
+        "proposition": {"predicate": "is", "arguments": ["process_a", "heavy"]}
+      },
+      "context_notes": "One claimant uses 'heavy' to mean computationally intensive; the other means physically heavy.",
+      "expected": {
+        "conflict_kind": "semantic_ambiguity",
+        "is_logical_contradiction": false
+      }
+    },
+    {
+      "case_id": "conflict-007",
+      "description": "Two competing causal hypotheses for the same phenomenon — causal_competing",
+      "claim_a": {
+        "id": "cl_causal_a",
+        "branch_id": "branch_hyp_a",
+        "scope_id": "scope_experiment",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "explains", "arguments": ["hypothesis_a", "observation_x"]}
+      },
+      "claim_b": {
+        "id": "cl_causal_b",
+        "branch_id": "branch_hyp_b",
+        "scope_id": "scope_experiment",
+        "polarity": "affirmative",
+        "proposition": {"predicate": "explains", "arguments": ["hypothesis_b", "observation_x"]}
+      },
+      "expected": {
+        "conflict_kind": "causal_competing",
+        "is_logical_contradiction": false
+      }
+    }
+  ]
+}
