@@ -399,6 +399,8 @@ def migrate_mtsf(
                 "Identity link requests same_as but migration preserves separate Referents until explicit confirmation"
             )
             relation_kind = "possibly_same_as"
+        elif relation_kind not in {"possibly_same_as", "distinct_from"}:
+            raise ValueError(f"unsupported identity relation: {relation_kind}")
         relation_id = f"rel_{fixture_id}_identity"
         bundle["relation_instances"].append(
             {
