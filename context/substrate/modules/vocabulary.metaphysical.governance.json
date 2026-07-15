@@ -46,9 +46,12 @@
   "test_targets": [
     "tests/test_metaphysical_vocabulary_governance.py",
     "tests/test_metaphysical_vocabulary_conformance.py",
-    "tests/test_vocab_contract_fixtures.py"
+    "tests/test_vocab_contract_fixtures.py",
+    "tests/test_vocab_release_contract.py",
+    "tests/test_vocab_consumer_smoke.py"
   ],
   "adjacent_docs": [
-    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_PUBLIC_CONTRACT_LOCK.md"
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_PUBLIC_CONTRACT_LOCK.md",
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_RELEASE_DEPENDENCY_CONTRACT.json"
   ]
 }

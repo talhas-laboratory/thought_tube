@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "task_id": "VOCAB-005-release-vocabulary-dependency-contract",
+  "workspace_id": "metaphysical-vocabulary-governance",
+  "gate": "G5",
+  "provider_contract_version": "1.0.0",
+  "kernel_contract_version_consumed": "1.1.0",
+  "kernel_release_git_revision_consumed": "4830b81fc6d2d78ea96743adad49bb254e98c7de",
+  "branch_contract_version_consumed": "1.0.0",
+  "branch_release_git_revision_consumed": "e3784b72f7f51bea8f62a6637419634d6e096fe8",
+  "framework_version": "1.1",
+  "compatibility_class": "additive_within_1.0.x",
+  "release_git_revision": "22fa9ebe69ec0115bf6b0d0247b704638bba2add",
+  "released_at": "2026-07-15",
+  "authority_artifacts": [
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_PUBLIC_CONTRACT_LOCK.md",
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCABULARY_OBLIGATION_REGISTER.md",
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCABULARY_ATOMIC_OBLIGATIONS.json",
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_CONFORMANCE_COVERAGE.json",
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCAB_RUNTIME_OPERATIONS.md",
+    "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCABULARY_TEST_AND_RELEASE_GUIDE.md"
+  ],
+  "owner_module": "src/conversation_os/metaphysical_vocabulary_governance.py",
+  "supported_runtime_operations": [
+    "classify_vocabulary_level",
+    "capture_raw_expression",
+    "register_vocabulary_entry",
+    "create_term_mapping",
+    "assess_mapping",
+    "assess_branch_mapping_separation",
+    "validate_type_extension",
+    "lookup_with_mapping",
+    "propose_promotion",
+    "review_promotion",
+    "assess_promotion_policy",
+    "record_deprecation",
+    "publish_evolution_report",
+    "record_evolution_reversal"
+  ],
+  "unsupported_phase1_operations": [
+    "forced_canonical_normalization",
+    "automatic_promotion_scoring",
+    "cross_workspace_namespace_federation",
+    "automatic_stale_dependent_refresh",
+    "type_definition_kernel_record"
+  ],
+  "mapping_kinds": [
+    "equivalent",
+    "narrower",
+    "broader",
+    "overlaps",
+    "analogous"
+  ],
+  "core_invariants": [
+    "mapping_is_record_not_rewrite",
+    "mapping_not_identity_without_confirmation",
+    "promotion_optional",
+    "extension_cannot_redefine_kernel",
+    "branch_local_mapping_not_global_by_default",
+    "governance_separate_from_epistemic_status",
+    "evolution_versions_prior_definitions",
+    "raw_expression_preserved_verbatim"
+  ],
+  "forbidden_interpretations": [
+    "analogous_as_identity",
+    "overlaps_as_equivalence",
+    "forced_normalization",
+    "branch_local_to_global_coercion",
+    "kernel_claim_redefinition",
+    "kernel_state_redefinition",
+    "silent_canonical_substitution",
+    "governance_approval_as_epistemic_promotion"
+  ],
+  "breaking_change_policy": "Breaking semantic changes require VOCAB_CONTRACT_VERSION minor/major bump and parent unified-framework-synthesis decision record.",
+  "migration_policy": "Additive fixture tables and operations only within 1.0.x; consumers pin provider_contract_version and release_git_revision. Deprecation records list stale dependents; migration is explicit and reversible.",
+  "failure_and_absence_behavior": {
+    "analogous_or_overlaps_mapping": "implies_identity false; abstention may be required below confidence threshold",
+    "equivalent_without_confirmation": "implies_identity false until identity_confirmation present",
+    "declined_promotion": "local_term_usable true; promotion_status declined",
+    "kernel_redefinition_extension": "validation_result rejected",
+    "destructive_in_place_edit": "evolution report lists semantic_loss_warning; reversal record required",
+    "missing_mapping": "lookup returns canonical_view_label null; source_expression preserved"
+  },
+  "known_phase1_limits": [
+    {
+      "risk_id": "VOCAB-R-001",
+      "summary": "Namespace prefix conventions may need parent harmonization"
+    },
+    {
+      "risk_id": "VOCAB-R-002",
+      "summary": "Abstention confidence threshold is caller-configurable; default 0.5"
+    },
+    {
+      "risk_id": "VOCAB-R-003",
+      "summary": "Stale dependent refresh is reported but not executed automatically"
+    },
+    {
+      "risk_id": "VOCAB-R-006",
+      "summary": "Profile/application rendering smoke is indirect via vocabulary consumer test"
+    }
+  ],
+  "verification_ladder": {
+    "commands": [
+      "pytest -q tests/test_metaphysical_vocabulary_governance.py tests/test_metaphysical_vocabulary_conformance.py tests/test_vocab_contract_fixtures.py tests/test_vocab_release_contract.py tests/test_vocab_consumer_smoke.py tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_profile_registry.py tests/test_metaphysical_branch_consumer_smoke.py"
+    ],
+    "expected_result": "all_pass"
+  },
+  "consumer_smoke_proofs": [
+    {
+      "consumer_workspace": "metaphysical-kernel-application-sdk",
+      "test": "tests.test_vocab_consumer_smoke::test_application_consumer_renders_mapping_without_mutation",
+      "proves": "Application lookup renders canonical view without mutating raw expression or mapping record"
+    }
+  ],
+  "upstream_provider_acknowledgments": [
+    {
+      "provider_workspace": "metaphysical-kernel-ontology",
+      "contract_version": "1.1.0",
+      "release_git_revision": "afd185809db92de70f5498750bd6fbaf05803b4c",
+      "ack_path": "docs/workspaces/metaphysical-vocabulary-governance/derived/VOCABULARY_ATOMIC_OBLIGATIONS.json"
+    },
+    {
+      "provider_workspace": "metaphysical-branch-reasoning",
+      "contract_version": "1.0.0",
+      "release_git_revision": "afd185809db92de70f5498750bd6fbaf05803b4c",
+      "ack_path": "docs/workspaces/metaphysical-vocabulary-governance/derived/branch-provider-acknowledgment.md"
+    }
+  ],
+  "future_consumer_programs": [
+    "metaphysical-conversation-formation",
+    "metaphysical-shape-pattern",
+    "metaphysical-agent-programs"
+  ],
+  "examples": {
+    "mapping": "create_term_mapping({...}); assess_mapping(mapping)",
+    "lookup": "lookup_with_mapping(expression='raw:heavy (computational)', scope_id='scope_glossary', mappings=[...], raw_expressions=[...])",
+    "promotion": "review_promotion(proposal)",
+    "extension": "validate_type_extension(extension)",
+    "evolution": "publish_evolution_report(report)"
+  }
+}

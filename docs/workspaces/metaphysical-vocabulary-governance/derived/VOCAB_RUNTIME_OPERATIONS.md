@@ -1,8 +1,9 @@
-# Vocabulary Runtime Operations — VOCAB-004
+# Vocabulary Runtime Operations — VOCAB-005
 
-**Task:** `VOCAB-004-vocabulary-conformance-suite` (conformance evidence)  
+**Task:** `VOCAB-005-release-vocabulary-dependency-contract` (G5 release)  
 **Owner module:** `src/conversation_os/metaphysical_vocabulary_governance.py`  
 **Contract:** [`VOCAB_PUBLIC_CONTRACT_LOCK.md`](./VOCAB_PUBLIC_CONTRACT_LOCK.md) v1.0.0  
+**Release:** [`VOCAB_RELEASE_DEPENDENCY_CONTRACT.md`](./VOCAB_RELEASE_DEPENDENCY_CONTRACT.md)  
 **Conformance:** [`VOCAB_CONFORMANCE_COVERAGE.md`](./VOCAB_CONFORMANCE_COVERAGE.md)  
 **Kernel consumed:** `1.1.0`  
 **Branch consumed:** `1.0.0`
@@ -31,6 +32,7 @@
 ```bash
 pytest -q tests/test_metaphysical_vocabulary_governance.py
 pytest -q tests/test_metaphysical_vocabulary_conformance.py
+pytest -q tests/test_vocab_release_contract.py tests/test_vocab_consumer_smoke.py
 pytest -q tests/test_vocab_contract_fixtures.py
 pytest -q tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_profile_registry.py
 ```
