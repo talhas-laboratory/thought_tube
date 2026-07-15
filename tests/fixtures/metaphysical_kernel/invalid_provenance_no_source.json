@@ -1,0 +1,64 @@
+{
+  "source_fragments": [],
+  "provenances": [
+    {
+      "envelope": {
+        "id": "prov_orphan",
+        "record_kind": "provenance",
+        "type_id": "core:provenance",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:capture",
+        "provenance_id": "prov_orphan",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "source_refs": ["sf_missing"],
+      "derivation_steps": [{"step": "capture"}]
+    }
+  ],
+  "claims": [
+    {
+      "envelope": {
+        "id": "cl_orphan_prov",
+        "record_kind": "claim",
+        "type_id": "core:claim",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_orphan",
+        "maturity_status": "differentiating",
+        "epistemic_status": "candidate",
+        "governance_status": "local"
+      },
+      "proposition": {
+        "predicate": "observed",
+        "arguments": ["signal"]
+      },
+      "claimant": "service:interpretation",
+      "branch_id": "branch_a",
+      "scope_id": "scope_a",
+      "polarity": "affirmative"
+    }
+  ],
+  "branch_memberships": [
+    {
+      "envelope": {
+        "id": "bm_orphan",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_orphan",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "cl_orphan_prov",
+      "branch_id": "branch_a",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_a",
+      "introduced_by": "service:branch",
+      "membership_provenance_id": "prov_orphan"
+    }
+  ]
+}

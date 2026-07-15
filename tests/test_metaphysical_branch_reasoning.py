@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from conversation_os.metaphysical_branch_reasoning import (
+    InvalidContradictionPolicyError,
     InvalidInferenceOutputStatusError,
     assess_merge,
     assess_support,
@@ -194,6 +195,58 @@ class MetaphysicalBranchReasoningTestCase(unittest.TestCase):
                     assert clarification is not None
                     if expected["clarification_request"].get("unresolved_claim_ids_nonempty"):
                         self.assertTrue(clarification.unresolved_claim_ids)
+
+    def test_inference_rejects_unknown_contradiction_policy(self) -> None:
+        with self.assertRaises(InvalidContradictionPolicyError):
+            run_inference(
+                inference_context={
+                    "branches": ["branch_main"],
+                    "scope_id": "scope_org",
+                    "contradiction_policy": "select_best",
+                    "output_status": "candidate",
+                    "inference_kind": "structural",
+                    "max_depth": 1,
+                },
+                input_claims=DEFAULT_BOTH_CLAIMS,
+            )
+
+    def test_later_contradictory_proposition_applies_clarify_policy(self) -> None:
+        result = run_inference(
+            inference_context={
+                "branches": ["branch_main"],
+                "scope_id": "scope_org",
+                "contradiction_policy": "clarify",
+                "output_status": "candidate",
+                "inference_kind": "structural",
+                "max_depth": 1,
+            },
+            input_claims=[
+                {"id": "cl_single", "scope_id": "scope_org", "polarity": "affirmative", "proposition": {"predicate": "p", "arguments": ["x"]}},
+                *DEFAULT_BOTH_CLAIMS,
+            ],
+        )
+        self.assertEqual(result.output_claims, [])
+        self.assertIsNotNone(result.clarification_request)
+
+    def test_preserve_policy_keeps_unrelated_candidates_with_both(self) -> None:
+        result = run_inference(
+            inference_context={
+                "branches": ["branch_main"],
+                "scope_id": "scope_org",
+                "contradiction_policy": "preserve",
+                "output_status": "candidate",
+                "inference_kind": "structural",
+                "max_depth": 1,
+            },
+            input_claims=[
+                *DEFAULT_BOTH_CLAIMS,
+                {"id": "cl_other", "scope_id": "scope_org", "polarity": "affirmative", "proposition": {"predicate": "q", "arguments": ["y"]}},
+            ],
+        )
+        self.assertEqual(
+            sorted(claim.source_claim_ids[0] for claim in result.output_claims),
+            ["cl_aff_001", "cl_neg_001", "cl_other"],
+        )
 
 
 if __name__ == "__main__":

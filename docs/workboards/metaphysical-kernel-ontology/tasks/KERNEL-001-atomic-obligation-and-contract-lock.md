@@ -1,7 +1,7 @@
 # KERNEL-001-atomic-obligation-and-contract-lock: Refine kernel obligations and lock contracts
 
-Status: ready
-Owner: unassigned
+Status: done
+Owner: cursor:cloud-umf
 Current gate: not_required
 
 ## Scope

@@ -1,0 +1,129 @@
+{
+  "_conformance_gap": {
+    "obligation_id": "KERNEL-22-LIFECYCLE-TRANSITIONS",
+    "scenario": "claim epistemic_status moves retracted to supported without governed transition operation",
+    "phase1_expectation": "literal_values_validate_transition_policy_absent",
+    "residual_owner": "KERNEL-005 dependency contract or future runtime transition API"
+  },
+  "source_fragments": [
+    {
+      "envelope": {
+        "id": "sf_transition",
+        "record_kind": "source_fragment",
+        "type_id": "core:source_fragment",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "user:test",
+        "provenance_id": "prov_transition",
+        "maturity_status": "raw",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "media_type": "text",
+      "content_pointer": "memory://sessions/demo/transition",
+      "author_or_origin": "user:test",
+      "captured_at": "2026-07-12T00:00:00Z",
+      "integrity_hash": "sha256:transition",
+      "source_kind": "user_input"
+    }
+  ],
+  "provenances": [
+    {
+      "envelope": {
+        "id": "prov_transition",
+        "record_kind": "provenance",
+        "type_id": "core:provenance",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:capture",
+        "provenance_id": "prov_transition",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "source_refs": ["sf_transition"]
+    }
+  ],
+  "claims": [
+    {
+      "envelope": {
+        "id": "cl_retracted",
+        "record_kind": "claim",
+        "type_id": "core:claim",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_transition",
+        "maturity_status": "differentiating",
+        "epistemic_status": "retracted",
+        "governance_status": "local"
+      },
+      "proposition": {
+        "predicate": "level",
+        "arguments": ["high"]
+      },
+      "claimant": "user:a",
+      "branch_id": "branch_a",
+      "scope_id": "scope_a",
+      "polarity": "affirmative"
+    },
+    {
+      "envelope": {
+        "id": "cl_supported_same_prop",
+        "record_kind": "claim",
+        "type_id": "core:claim",
+        "created_at": "2026-07-12T01:00:00Z",
+        "created_by": "service:interpretation",
+        "provenance_id": "prov_transition",
+        "maturity_status": "differentiating",
+        "epistemic_status": "supported",
+        "governance_status": "local"
+      },
+      "proposition": {
+        "predicate": "level",
+        "arguments": ["high"]
+      },
+      "claimant": "user:a",
+      "branch_id": "branch_a",
+      "scope_id": "scope_a",
+      "polarity": "affirmative"
+    }
+  ],
+  "branch_memberships": [
+    {
+      "envelope": {
+        "id": "bm_cl1",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T00:00:00Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_transition",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "cl_retracted",
+      "branch_id": "branch_a",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_a",
+      "introduced_by": "service:branch",
+      "membership_provenance_id": "prov_transition"
+    },
+    {
+      "envelope": {
+        "id": "bm_cl2",
+        "record_kind": "branch_membership",
+        "type_id": "core:branch_membership",
+        "created_at": "2026-07-12T01:00:00Z",
+        "created_by": "service:branch",
+        "provenance_id": "prov_transition",
+        "maturity_status": "structured",
+        "epistemic_status": "not_applicable",
+        "governance_status": "local"
+      },
+      "record_id": "cl_supported_same_prop",
+      "branch_id": "branch_a",
+      "membership_kind": "asserted",
+      "effective_scope_id": "scope_a",
+      "introduced_by": "service:branch",
+      "membership_provenance_id": "prov_transition"
+    }
+  ]
+}

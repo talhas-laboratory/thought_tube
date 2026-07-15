@@ -5,7 +5,7 @@
   "gate": "G5",
   "provider_contract_version": "1.0.0",
   "kernel_contract_version_consumed": "1.1.0",
-  "kernel_release_git_revision_consumed": "4830b81fc6d2d78ea96743adad49bb254e98c7de",
+  "kernel_release_git_revision_consumed": "512236d4b089d0a4d04821cca3d068a2d0a539f4",
   "framework_version": "1.1",
   "compatibility_class": "additive_within_1.0.x",
   "release_git_revision": "e3784b72f7f51bea8f62a6637419634d6e096fe8",

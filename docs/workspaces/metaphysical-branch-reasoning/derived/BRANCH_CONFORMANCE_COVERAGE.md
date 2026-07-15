@@ -1,7 +1,7 @@
 # Branch Conformance Coverage — BRANCH-004
 
-**Task:** `BRANCH-004-adversarial-branch-conformance`  
-**Owner module:** `src/conversation_os/metaphysical_branch_reasoning.py`  
+**Task:** `BRANCH-004-adversarial-branch-conformance`
+**Owner module:** `src/conversation_os/metaphysical_branch_reasoning.py`
 **Machine manifest:** [`BRANCH_CONFORMANCE_COVERAGE.json`](./BRANCH_CONFORMANCE_COVERAGE.json)
 
 ## Verification command
