@@ -1,0 +1,155 @@
+{
+  "schema": "branch_contract_fixtures_index_v1.0.0",
+  "contract_version": "1.0.0",
+  "branch_contract_version": "1.0.0",
+  "kernel_contract_version": "1.1.0",
+  "framework_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "framework_sections": ["§7", "§20", "§27.2", "§27.16"],
+  "generated_by_task": "BRANCH-001-atomic-obligation-and-interface-lock",
+  "description": "Master index of BRANCH-001 contract fixtures. Each entry maps to an outcome table file. Tests in BRANCH-002+ must validate all cases in all tables.",
+  "fixture_tables": [
+    {
+      "operation": "InheritanceQuery",
+      "section": "§7.2",
+      "fixture_file": "tests/fixtures/metaphysical_branch/inheritance_outcome_table.json",
+      "case_count": 7,
+      "outcomes_covered": ["inherited", "asserted", "retracted", "replaced", "absent"],
+      "required_invariants": [
+        "Inheritance is a read rule, never physical duplication.",
+        "Retraction in any branch in the child-to-root path shadows ancestor assertions.",
+        "Branch-neutral record kinds readable without membership check (§27.16)."
+      ]
+    },
+    {
+      "operation": "SupportAssessment",
+      "section": "§7.3",
+      "fixture_file": "tests/fixtures/metaphysical_branch/support_outcome_table.json",
+      "case_count": 7,
+      "outcomes_covered": ["supported_only", "opposed_only", "both", "unresolved"],
+      "required_invariants": [
+        "Four-valued; both must never be collapsed.",
+        "Scope matching is required.",
+        "Retracted claims are excluded.",
+        "Fluency, majority, or narrative coherence is never a tie-breaker."
+      ]
+    },
+    {
+      "operation": "ConflictRecord",
+      "section": "§7.4",
+      "fixture_file": "tests/fixtures/metaphysical_branch/conflict_outcome_table.json",
+      "case_count": 7,
+      "outcomes_covered": [
+        "logical_contradiction",
+        "measurement_incompatible",
+        "perspective_divergence",
+        "temporal_change",
+        "scope_difference",
+        "semantic_ambiguity",
+        "causal_competing"
+      ],
+      "required_invariants": [
+        "Negation must be explicit.",
+        "scope_difference, temporal_change, perspective_divergence are never automatically logical_contradiction.",
+        "is_logical_contradiction=true requires same scope, same proposition, opposite polarity."
+      ]
+    },
+    {
+      "operation": "MergeAssessment",
+      "section": "§7.5",
+      "fixture_file": "tests/fixtures/metaphysical_branch/merge_outcome_table.json",
+      "case_count": 6,
+      "outcomes_covered": ["compatible", "partially_compatible", "incompatible"],
+      "required_invariants": [
+        "Merge must never silently choose a winner.",
+        "Conflicting claims remain unresolved in output.",
+        "Branch-neutral sources may share IDs without membership reconciliation (§27.16)."
+      ]
+    },
+    {
+      "operation": "InferenceContext/InferenceResult",
+      "section": "§7.6",
+      "fixture_file": "tests/fixtures/metaphysical_branch/inference_outcome_table.json",
+      "case_count": 8,
+      "outcomes_covered": [
+        "candidate_output",
+        "both_preserve",
+        "both_branch",
+        "both_clarify",
+        "both_abstain",
+        "insufficient_evidence_abstain",
+        "invalid_output_status_error",
+        "causal_hypothesis_candidate"
+      ],
+      "required_invariants": [
+        "Output epistemic_status is always candidate.",
+        "Fluency or coherence is never a tie-breaker on both.",
+        "Causal hypothesis generation never promotes beyond candidate.",
+        "abstain policy: output_claims must be empty."
+      ]
+    }
+  ],
+  "acceptance_tests_required": [
+    {
+      "test_id": "BRANCH-ACC-001",
+      "description": "Child inherits parent Claim (inherit-001)",
+      "fixture_ref": "inheritance_outcome_table.json#inherit-001",
+      "expected_result": "Read-visible with inherited membership semantics"
+    },
+    {
+      "test_id": "BRANCH-ACC-002",
+      "description": "Child retracts parent Claim — omitted from its default view; parent unchanged (inherit-003)",
+      "fixture_ref": "inheritance_outcome_table.json#inherit-003",
+      "expected_result": "retracted in child; parent view unchanged"
+    },
+    {
+      "test_id": "BRANCH-ACC-003",
+      "description": "Affirmative and negative evidence in same scope — both, no explosion (support-003)",
+      "fixture_ref": "support_outcome_table.json#support-003",
+      "expected_result": "support_value=both; no unrelated inference"
+    },
+    {
+      "test_id": "BRANCH-ACC-004",
+      "description": "Same claim, incompatible scopes — not a logical contradiction (conflict-002)",
+      "fixture_ref": "conflict_outcome_table.json#conflict-002",
+      "expected_result": "conflict_kind=scope_difference; is_logical_contradiction=false"
+    },
+    {
+      "test_id": "BRANCH-ACC-005",
+      "description": "Two perspectives disagree — preserved as divergence (conflict-003)",
+      "fixture_ref": "conflict_outcome_table.json#conflict-003",
+      "expected_result": "conflict_kind=perspective_divergence; is_logical_contradiction=false"
+    },
+    {
+      "test_id": "BRANCH-ACC-006",
+      "description": "Merge conflicting branches — MergeAssessment lists unresolved conflict (merge-003)",
+      "fixture_ref": "merge_outcome_table.json#merge-003",
+      "expected_result": "merge_verdict=incompatible; no winner selected"
+    },
+    {
+      "test_id": "BRANCH-ACC-007",
+      "description": "Inference encounters both — preserve/branch/clarify/abstain with explicit reason (infer-002 to infer-005)",
+      "fixture_ref": "inference_outcome_table.json#infer-002,infer-003,infer-004,infer-005",
+      "expected_result": "Policy-specific safe behavior; never implicit winner selection"
+    },
+    {
+      "test_id": "BRANCH-ACC-008",
+      "description": "Source reused in two branches — one source identity; distinct branch-local interpretations (inherit-006, merge-006)",
+      "fixture_ref": "inheritance_outcome_table.json#inherit-006,merge_outcome_table.json#merge-006",
+      "expected_result": "Source fragment shared; branch Claims have distinct membership"
+    }
+  ],
+  "open_decisions": [
+    {
+      "decision_id": "BRANCH-DECISION-001",
+      "description": "Scope hierarchy rule for inheritance compatibility is unspecified; needs parent scope matching semantics.",
+      "target_task": "BRANCH-002",
+      "risk": "BRANCH-R-001"
+    },
+    {
+      "decision_id": "BRANCH-DECISION-002",
+      "description": "BranchEnsemble weight normalization algorithm is task-relative but unspecified. Consumer must supply in Phase 1.",
+      "target_task": "BRANCH-005",
+      "risk": "BRANCH-R-002"
+    }
+  ]
+}

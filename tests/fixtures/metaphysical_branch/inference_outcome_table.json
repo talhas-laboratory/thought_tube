@@ -1,0 +1,220 @@
+{
+  "schema": "branch_inference_outcome_table_v1.0.0",
+  "framework_section": "§7.6",
+  "contract_version": "1.0.0",
+  "description": "Table-driven fixtures for InferenceContext/InferenceResult. Output status is always candidate. Fluency is never a tie-breaker on both.",
+  "cases": [
+    {
+      "case_id": "infer-001",
+      "description": "Affirmative-only evidence — single candidate claim output",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured", "stabilized_for_purpose"],
+        "accepted_epistemic_statuses": ["supported", "candidate"],
+        "accepted_governance_statuses": ["local", "approved_for_scope"],
+        "contradiction_policy": "preserve",
+        "output_status": "candidate",
+        "inference_kind": "structural",
+        "max_depth": 3
+      },
+      "input_claims": [
+        {
+          "id": "cl_premise_001",
+          "polarity": "affirmative",
+          "scope_id": "scope_org",
+          "proposition": {"predicate": "causes", "arguments": ["control_loss", "initiative_drop"]}
+        }
+      ],
+      "expected": {
+        "output_claims": [
+          {
+            "epistemic_status": "candidate",
+            "polarity": "affirmative",
+            "source_claim_ids": ["cl_premise_001"]
+          }
+        ],
+        "abstention": null,
+        "branched_sub_contexts": [],
+        "clarification_request": null
+      },
+      "invariant_note": "Output epistemic_status is always candidate, never promoted."
+    },
+    {
+      "case_id": "infer-002",
+      "description": "both support status, preserve policy — both conclusions preserved",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["both"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "preserve",
+        "output_status": "candidate",
+        "inference_kind": "structural",
+        "max_depth": 2
+      },
+      "input_claims": [
+        {
+          "id": "cl_aff_001",
+          "polarity": "affirmative",
+          "scope_id": "scope_org",
+          "proposition": {"predicate": "causes", "arguments": ["x", "y"]}
+        },
+        {
+          "id": "cl_neg_001",
+          "polarity": "negative",
+          "scope_id": "scope_org",
+          "proposition": {"predicate": "causes", "arguments": ["x", "y"]}
+        }
+      ],
+      "expected": {
+        "output_claims_count": 2,
+        "output_claims_polarities": ["affirmative", "negative"],
+        "abstention": null
+      },
+      "invariant_note": "preserve policy keeps both; selecting one for fluency is explicitly prohibited."
+    },
+    {
+      "case_id": "infer-003",
+      "description": "both support status, branch policy — two sub-contexts emitted",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["both"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "branch",
+        "output_status": "candidate",
+        "inference_kind": "structural",
+        "max_depth": 2
+      },
+      "expected": {
+        "output_claims": [],
+        "abstention": null,
+        "branched_sub_contexts_count": 2,
+        "clarification_request": null
+      }
+    },
+    {
+      "case_id": "infer-004",
+      "description": "both support status, clarify policy — clarification_request emitted",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["both"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "clarify",
+        "output_status": "candidate",
+        "inference_kind": "structural",
+        "max_depth": 2
+      },
+      "expected": {
+        "output_claims": [],
+        "abstention": null,
+        "branched_sub_contexts": [],
+        "clarification_request": {
+          "present": true,
+          "unresolved_claim_ids_nonempty": true
+        }
+      }
+    },
+    {
+      "case_id": "infer-005",
+      "description": "both support status, abstain policy — abstention record with reason",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["both"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "abstain",
+        "output_status": "candidate",
+        "inference_kind": "structural",
+        "max_depth": 2
+      },
+      "expected": {
+        "output_claims": [],
+        "abstention": {
+          "reason": "both_support_status",
+          "unresolved_claim_ids_nonempty": true
+        },
+        "branched_sub_contexts": [],
+        "clarification_request": null
+      }
+    },
+    {
+      "case_id": "infer-006",
+      "description": "No input claims in scope — abstention with insufficient_evidence",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["supported"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "preserve",
+        "output_status": "candidate",
+        "inference_kind": "definitional",
+        "max_depth": 1
+      },
+      "input_claims": [],
+      "expected": {
+        "output_claims": [],
+        "abstention": {
+          "reason": "insufficient_evidence"
+        }
+      }
+    },
+    {
+      "case_id": "infer-007",
+      "description": "output_status not candidate — must be rejected (error case)",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_org",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["supported"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "preserve",
+        "output_status": "supported",
+        "inference_kind": "structural",
+        "max_depth": 2
+      },
+      "expected_error": "InvalidInferenceOutputStatusError",
+      "invariant_note": "Inference output must always be candidate; never promoted to supported, committed, or state."
+    },
+    {
+      "case_id": "infer-008",
+      "description": "causal_hypothesis inference kind — output never exceeds candidate without stipulation",
+      "inference_context": {
+        "branches": ["branch_main"],
+        "scope_id": "scope_experiment",
+        "accepted_maturity_statuses": ["structured"],
+        "accepted_epistemic_statuses": ["candidate"],
+        "accepted_governance_statuses": ["local"],
+        "contradiction_policy": "preserve",
+        "output_status": "candidate",
+        "inference_kind": "causal_hypothesis",
+        "max_depth": 2
+      },
+      "input_claims": [
+        {
+          "id": "cl_obs_001",
+          "polarity": "affirmative",
+          "scope_id": "scope_experiment",
+          "proposition": {"predicate": "observed", "arguments": ["phenomenon_x"]}
+        }
+      ],
+      "expected": {
+        "output_claims": [
+          {
+            "epistemic_status": "candidate",
+            "source_claim_ids": ["cl_obs_001"]
+          }
+        ],
+        "abstention": null
+      },
+      "invariant_note": "Causal hypothesis output is always candidate; §7.6 prohibits promotion without evidence or explicit stipulation."
+    }
+  ]
+}
