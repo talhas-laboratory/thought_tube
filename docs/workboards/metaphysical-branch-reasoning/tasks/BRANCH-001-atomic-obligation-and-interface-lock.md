@@ -1,6 +1,6 @@
 # BRANCH-001-atomic-obligation-and-interface-lock: Refine branch obligations and lock interfaces
 
-Status: review
+Status: done
 Owner: unassigned
 Current gate: not_required
 
