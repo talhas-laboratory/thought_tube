@@ -1,0 +1,367 @@
+{
+  "schema": "branch_adversarial_suite_v1.0.0",
+  "contract_version": "1.0.0",
+  "generated_by_task": "BRANCH-004-adversarial-branch-conformance",
+  "description": "Minimized adversarial regressions for branch leakage, false contradictions, both-handling, merge-without-winner, and bounded inference.",
+  "cases": [
+    {
+      "case_id": "adv-leak-001",
+      "category": "cross_branch_leakage",
+      "acceptance_ref": "BRANCH-ACC-isolation",
+      "operation": "assess_support",
+      "inputs": {
+        "branch_id": "branch_a",
+        "scope_id": "scope_org",
+        "claim_proposition": {"predicate": "causes", "arguments": ["x", "y"]},
+        "include_inherited": false,
+        "evidence_claims": [
+          {
+            "id": "cl_foreign",
+            "branch_id": "branch_b",
+            "scope_id": "scope_org",
+            "polarity": "affirmative",
+            "proposition": {"predicate": "causes", "arguments": ["x", "y"]}
+          }
+        ]
+      },
+      "expected": {
+        "support_value": "unresolved",
+        "affirmative_claim_ids": [],
+        "negative_claim_ids": []
+      }
+    },
+    {
+      "case_id": "adv-both-001",
+      "category": "both_non_explosive",
+      "acceptance_ref": "BRANCH-ACC-003",
+      "operation": "assess_support",
+      "inputs": {
+        "branch_id": "branch_main",
+        "scope_id": "scope_org",
+        "claim_proposition": {"predicate": "causes", "arguments": ["pressure", "delay"]},
+        "include_inherited": false,
+        "evidence_claims": [
+          {
+            "id": "cl_aff_bulk",
+            "branch_id": "branch_main",
+            "scope_id": "scope_org",
+            "polarity": "affirmative",
+            "proposition": {"predicate": "causes", "arguments": ["pressure", "delay"]}
+          },
+          {
+            "id": "cl_neg_bulk",
+            "branch_id": "branch_main",
+            "scope_id": "scope_org",
+            "polarity": "negative",
+            "proposition": {"predicate": "causes", "arguments": ["pressure", "delay"]}
+          }
+        ]
+      },
+      "expected": {
+        "support_value": "both",
+        "affirmative_claim_ids": ["cl_aff_bulk"],
+        "negative_claim_ids": ["cl_neg_bulk"],
+        "max_total_ids": 2
+      }
+    },
+    {
+      "case_id": "adv-false-contradiction-001",
+      "category": "false_logical_contradiction",
+      "acceptance_ref": "BRANCH-ACC-004",
+      "operation": "classify_conflict",
+      "inputs": {
+        "claim_a": {
+          "id": "cl_scope_local",
+          "branch_id": "branch_main",
+          "scope_id": "scope_local",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "causes", "arguments": ["a", "b"]}
+        },
+        "claim_b": {
+          "id": "cl_scope_global",
+          "branch_id": "branch_main",
+          "scope_id": "scope_global",
+          "polarity": "negative",
+          "proposition": {"predicate": "causes", "arguments": ["a", "b"]}
+        }
+      },
+      "expected": {
+        "conflict_kind": "scope_difference",
+        "is_logical_contradiction": false
+      }
+    },
+    {
+      "case_id": "adv-false-contradiction-002",
+      "category": "perspective_divergence",
+      "acceptance_ref": "BRANCH-ACC-005",
+      "operation": "classify_conflict",
+      "inputs": {
+        "claim_a": {
+          "id": "cl_pers_a",
+          "branch_id": "branch_agent_a",
+          "scope_id": "scope_org",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "is", "arguments": ["policy_x", "effective"]},
+          "claimant": "agent:leader"
+        },
+        "claim_b": {
+          "id": "cl_pers_b",
+          "branch_id": "branch_agent_b",
+          "scope_id": "scope_org",
+          "polarity": "negative",
+          "proposition": {"predicate": "is", "arguments": ["policy_x", "effective"]},
+          "claimant": "agent:worker"
+        }
+      },
+      "expected": {
+        "conflict_kind": "perspective_divergence",
+        "is_logical_contradiction": false
+      }
+    },
+    {
+      "case_id": "adv-merge-001",
+      "category": "merge_without_winner",
+      "acceptance_ref": "BRANCH-ACC-006",
+      "operation": "assess_merge",
+      "inputs": {
+        "branch_a_id": "branch_a",
+        "branch_b_id": "branch_b",
+        "records_a": [
+          {
+            "id": "cl_aff_merge",
+            "record_kind": "claim",
+            "proposition": {"predicate": "causes", "arguments": ["m", "n"]},
+            "polarity": "affirmative",
+            "scope_id": "scope_org"
+          }
+        ],
+        "records_b": [
+          {
+            "id": "cl_neg_merge",
+            "record_kind": "claim",
+            "proposition": {"predicate": "causes", "arguments": ["m", "n"]},
+            "polarity": "negative",
+            "scope_id": "scope_org"
+          }
+        ]
+      },
+      "expected": {
+        "merge_verdict": "incompatible",
+        "conflict_claim_ids": ["cl_aff_merge", "cl_neg_merge"],
+        "compatible_additions": []
+      }
+    },
+    {
+      "case_id": "adv-inference-001",
+      "category": "both_preserve_no_winner",
+      "acceptance_ref": "BRANCH-ACC-007",
+      "operation": "run_inference",
+      "inputs": {
+        "inference_context": {
+          "branches": ["branch_main"],
+          "scope_id": "scope_org",
+          "accepted_maturity_statuses": ["structured"],
+          "accepted_epistemic_statuses": ["both"],
+          "accepted_governance_statuses": ["local"],
+          "contradiction_policy": "preserve",
+          "output_status": "candidate",
+          "inference_kind": "structural",
+          "max_depth": 2
+        },
+        "input_claims": [
+          {
+            "id": "cl_aff_inf",
+            "polarity": "affirmative",
+            "scope_id": "scope_org",
+            "proposition": {"predicate": "causes", "arguments": ["p", "q"]}
+          },
+          {
+            "id": "cl_neg_inf",
+            "polarity": "negative",
+            "scope_id": "scope_org",
+            "proposition": {"predicate": "causes", "arguments": ["p", "q"]}
+          }
+        ]
+      },
+      "expected": {
+        "output_claims_count": 2,
+        "all_epistemic_status": "candidate",
+        "polarities": ["affirmative", "negative"]
+      }
+    },
+    {
+      "case_id": "adv-inference-002",
+      "category": "abstention_inspectable",
+      "operation": "run_inference",
+      "inputs": {
+        "inference_context": {
+          "branches": ["branch_main"],
+          "scope_id": "scope_org",
+          "accepted_maturity_statuses": ["structured"],
+          "accepted_epistemic_statuses": ["both"],
+          "accepted_governance_statuses": ["local"],
+          "contradiction_policy": "abstain",
+          "output_status": "candidate",
+          "inference_kind": "structural",
+          "max_depth": 2
+        },
+        "input_claims": [
+          {
+            "id": "cl_aff_abs",
+            "polarity": "affirmative",
+            "scope_id": "scope_org",
+            "proposition": {"predicate": "causes", "arguments": ["r", "s"]}
+          },
+          {
+            "id": "cl_neg_abs",
+            "polarity": "negative",
+            "scope_id": "scope_org",
+            "proposition": {"predicate": "causes", "arguments": ["r", "s"]}
+          }
+        ]
+      },
+      "expected": {
+        "output_claims_count": 0,
+        "abstention_reason": "both_support_status",
+        "unresolved_claim_ids": ["cl_aff_abs", "cl_neg_abs"]
+      }
+    },
+    {
+      "case_id": "adv-inference-003",
+      "category": "causal_hypothesis_candidate_only",
+      "acceptance_ref": "BRANCH-R-004",
+      "operation": "run_inference",
+      "inputs": {
+        "inference_context": {
+          "branches": ["branch_main"],
+          "scope_id": "scope_experiment",
+          "accepted_maturity_statuses": ["structured"],
+          "accepted_epistemic_statuses": ["candidate"],
+          "accepted_governance_statuses": ["local"],
+          "contradiction_policy": "preserve",
+          "output_status": "candidate",
+          "inference_kind": "causal_hypothesis",
+          "max_depth": 2
+        },
+        "input_claims": [
+          {
+            "id": "cl_obs_adv",
+            "polarity": "affirmative",
+            "scope_id": "scope_experiment",
+            "proposition": {"predicate": "observed", "arguments": ["signal_y"]}
+          }
+        ]
+      },
+      "expected": {
+        "output_claims_count": 1,
+        "all_epistemic_status": "candidate"
+      }
+    },
+    {
+      "case_id": "adv-inference-004",
+      "category": "executable_state_candidate_only",
+      "acceptance_ref": "BRANCH-R-004",
+      "operation": "run_inference",
+      "inputs": {
+        "inference_context": {
+          "branches": ["branch_main"],
+          "scope_id": "scope_org",
+          "accepted_maturity_statuses": ["structured"],
+          "accepted_epistemic_statuses": ["supported"],
+          "accepted_governance_statuses": ["local"],
+          "contradiction_policy": "preserve",
+          "output_status": "candidate",
+          "inference_kind": "executable_state",
+          "max_depth": 2
+        },
+        "input_claims": [
+          {
+            "id": "cl_rule_premise",
+            "polarity": "affirmative",
+            "scope_id": "scope_org",
+            "proposition": {"predicate": "requires", "arguments": ["action_a", "guard_b"]}
+          }
+        ]
+      },
+      "expected": {
+        "output_claims_count": 1,
+        "all_epistemic_status": "candidate"
+      }
+    },
+    {
+      "case_id": "adv-bounded-001",
+      "category": "bounded_traversal",
+      "operation": "run_inference",
+      "inputs": {
+        "inference_context": {
+          "branches": ["branch_main"],
+          "scope_id": "scope_org",
+          "accepted_maturity_statuses": ["structured"],
+          "accepted_epistemic_statuses": ["supported"],
+          "accepted_governance_statuses": ["local"],
+          "contradiction_policy": "preserve",
+          "output_status": "candidate",
+          "inference_kind": "structural",
+          "max_depth": 0
+        },
+        "input_claims": [
+          {
+            "id": "cl_depth_block",
+            "polarity": "affirmative",
+            "scope_id": "scope_org",
+            "proposition": {"predicate": "causes", "arguments": ["d", "e"]}
+          }
+        ]
+      },
+      "expected": {
+        "output_claims_count": 0,
+        "abstention_reason": "contradiction_policy_halt"
+      }
+    },
+    {
+      "case_id": "adv-error-001",
+      "category": "contract_error",
+      "operation": "classify_conflict",
+      "inputs": {
+        "claim_a": {
+          "id": "cl_same",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "affirmative",
+          "proposition": {"predicate": "is", "arguments": ["x", "y"]}
+        },
+        "claim_b": {
+          "id": "cl_same",
+          "branch_id": "branch_main",
+          "scope_id": "scope_org",
+          "polarity": "negative",
+          "proposition": {"predicate": "is", "arguments": ["x", "y"]}
+        }
+      },
+      "expected_error": "SelfConflictError"
+    },
+    {
+      "case_id": "adv-source-001",
+      "category": "source_reuse",
+      "acceptance_ref": "BRANCH-ACC-008",
+      "operation": "assess_merge",
+      "inputs": {
+        "branch_a_id": "branch_a",
+        "branch_b_id": "branch_b",
+        "records_a": [
+          {"id": "sf_shared_adv", "record_kind": "source_fragment"},
+          {"id": "cl_interp_a", "record_kind": "claim"}
+        ],
+        "records_b": [
+          {"id": "sf_shared_adv", "record_kind": "source_fragment"},
+          {"id": "cl_interp_b", "record_kind": "claim"}
+        ]
+      },
+      "expected": {
+        "shared_record_ids": ["sf_shared_adv"],
+        "compatible_additions": ["cl_interp_a", "cl_interp_b"],
+        "merge_verdict": "compatible"
+      }
+    }
+  ]
+}
