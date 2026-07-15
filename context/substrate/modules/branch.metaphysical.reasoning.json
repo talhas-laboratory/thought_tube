@@ -1,0 +1,40 @@
+{
+  "module_id": "branch.metaphysical.reasoning",
+  "path": "src/conversation_os/metaphysical_branch_reasoning.py",
+  "layer": "kernel",
+  "owner": "conversation_os",
+  "purpose": "Branch inheritance, support, conflict, merge, and inference semantics (framework v1.1 §7.2–§7.6).",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "BRANCH_CONTRACT_VERSION",
+    "KERNEL_CONTRACT_VERSION",
+    "resolve_inheritance",
+    "assess_support",
+    "classify_conflict",
+    "assess_merge",
+    "run_inference"
+  ],
+  "contains": [
+    "InheritanceResult",
+    "SupportAssessmentResult",
+    "ConflictClassificationResult",
+    "MergeAssessmentResult",
+    "InferenceResult"
+  ],
+  "depends_on": ["kernel.metaphysical.records"],
+  "feeds_into": [],
+  "inputs": ["framework v1.1 section 7", "BRANCH_PUBLIC_CONTRACT_LOCK.md"],
+  "outputs": ["branch reasoning operations"],
+  "state_owned": [],
+  "surfaces_using": [],
+  "test_targets": [
+    "tests/test_metaphysical_branch_reasoning.py",
+    "tests/test_metaphysical_branch_conformance.py"
+  ],
+  "adjacent_docs": [
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_PUBLIC_CONTRACT_LOCK.md",
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_RUNTIME_OPERATIONS.md"
+  ]
+}

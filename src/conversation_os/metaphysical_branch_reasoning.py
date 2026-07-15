@@ -744,7 +744,20 @@ def run_inference(
     accepted_governance = list(inference_context.get("accepted_governance_statuses", []) or [])
     contradiction_policy = str(inference_context.get("contradiction_policy", "preserve"))
     inference_kind = str(inference_context.get("inference_kind", "structural"))
+    max_depth = int(inference_context.get("max_depth", 1))
     context_provenance_id = make_id("prov")
+
+    if max_depth < 1:
+        return InferenceResult(
+            inference_context_provenance_id=context_provenance_id,
+            abstention=AbstentionRecord(
+                reason="contradiction_policy_halt",
+                explanation="max_depth bound prevents traversal",
+                unresolved_claim_ids=sorted(
+                    {_claim_record_id(claim) for claim in input_claims if _claim_record_id(claim)}
+                ),
+            ),
+        )
 
     filtered = [
         claim

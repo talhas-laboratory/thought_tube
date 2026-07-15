@@ -1,9 +1,10 @@
-# Branch Runtime Operations — BRANCH-003
+# Branch Runtime Operations — BRANCH-004
 
-**Task:** `BRANCH-003-merge-and-inference-policy`  
+**Task:** `BRANCH-004-adversarial-branch-conformance` (conformance evidence)  
 **Owner module:** `src/conversation_os/metaphysical_branch_reasoning.py`  
 **Contract:** [`BRANCH_PUBLIC_CONTRACT_LOCK.md`](./BRANCH_PUBLIC_CONTRACT_LOCK.md) v1.0.0  
-**Kernel consumed:** `1.1.0`
+**Kernel consumed:** `1.1.0`  
+**Conformance:** [`BRANCH_CONFORMANCE_COVERAGE.md`](./BRANCH_CONFORMANCE_COVERAGE.md)
 
 ## Implemented operations (Phase 1)
 
@@ -21,6 +22,7 @@ BranchEnsemble (§7.7) remains contract-locked for BRANCH-005+.
 
 ```bash
 pytest -q tests/test_metaphysical_branch_reasoning.py
+pytest -q tests/test_metaphysical_branch_conformance.py
 pytest -q tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_runtime.py
 ```
 

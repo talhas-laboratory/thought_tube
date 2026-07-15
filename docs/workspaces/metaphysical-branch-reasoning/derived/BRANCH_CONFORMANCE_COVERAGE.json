@@ -1,0 +1,63 @@
+{
+  "schema": "branch_conformance_coverage_v1.0.0",
+  "contract_version": "1.0.0",
+  "generated_by_task": "BRANCH-004-adversarial-branch-conformance",
+  "owner_module": "src/conversation_os/metaphysical_branch_reasoning.py",
+  "test_command": "pytest -q tests/test_metaphysical_branch_reasoning.py tests/test_metaphysical_branch_conformance.py tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_runtime.py",
+  "last_verified": "2026-07-15",
+  "result_summary": "43 passed, 55 subtests passed",
+  "fixture_tables": [
+    "tests/fixtures/metaphysical_branch/inheritance_outcome_table.json",
+    "tests/fixtures/metaphysical_branch/support_outcome_table.json",
+    "tests/fixtures/metaphysical_branch/conflict_outcome_table.json",
+    "tests/fixtures/metaphysical_branch/merge_outcome_table.json",
+    "tests/fixtures/metaphysical_branch/inference_outcome_table.json",
+    "tests/fixtures/metaphysical_branch/adversarial_suite.json"
+  ],
+  "acceptance_coverage": [
+    {"id": "BRANCH-ACC-001", "case_ref": "inherit-001", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-002", "case_ref": "inherit-003", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-003", "case_ref": "support-003", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-004", "case_ref": "conflict-002", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-005", "case_ref": "conflict-003", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-006", "case_ref": "merge-003", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-007", "case_ref": "infer-005", "covered_by": "test_required_acceptance_scenarios"},
+    {"id": "BRANCH-ACC-008", "case_ref": "merge-006", "covered_by": "test_required_acceptance_scenarios"}
+  ],
+  "adversarial_categories": [
+    "cross_branch_leakage",
+    "both_non_explosive",
+    "false_logical_contradiction",
+    "perspective_divergence",
+    "merge_without_winner",
+    "both_preserve_no_winner",
+    "abstention_inspectable",
+    "causal_hypothesis_candidate_only",
+    "executable_state_candidate_only",
+    "bounded_traversal",
+    "contract_error",
+    "source_reuse"
+  ],
+  "residual_limits": [
+    {
+      "risk_id": "BRANCH-R-001",
+      "description": "Scope hierarchy inheritance compatibility remains unspecified."
+    },
+    {
+      "risk_id": "BRANCH-R-002",
+      "description": "BranchEnsemble weight normalization deferred to BRANCH-005."
+    },
+    {
+      "risk_id": "BRANCH-R-003",
+      "description": "InferenceContext perspective filter absence behavior partially tested only."
+    },
+    {
+      "risk_id": "BRANCH-R-004",
+      "description": "causal_hypothesis and executable_state kinds tested for candidate-only output; no promotion path exists."
+    },
+    {
+      "risk_id": "BRANCH-R-005",
+      "description": "max_depth>0 multi-proposition traversal is Phase 1 single-group only; depth=0 abstains."
+    }
+  ]
+}
