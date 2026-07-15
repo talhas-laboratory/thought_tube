@@ -13,7 +13,7 @@ This document is the **consumable G5 release** for the Phase 1 metaphysical kern
 |---|---|
 | `provider_contract_version` | `1.1.0` |
 | `compatibility_class` | Additive within `1.1.x` |
-| `release_git_revision` | `4830b81` (`4830b81fc6d2d78ea96743adad49bb254e98c7de`) |
+| `release_git_revision` | `512236d4` (`512236d4b089d0a4d04821cca3d068a2d0a539f4`) |
 | Conformance evidence | [`KERNEL_CONFORMANCE_COVERAGE.json`](./KERNEL_CONFORMANCE_COVERAGE.json) |
 
 ## What consumers may depend on
