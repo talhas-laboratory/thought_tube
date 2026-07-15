@@ -1,4 +1,4 @@
-# Branch Runtime Operations — BRANCH-004
+# Branch Runtime Operations — BRANCH-005
 
 **Task:** `BRANCH-004-adversarial-branch-conformance` (conformance evidence)
 **Owner module:** `src/conversation_os/metaphysical_branch_reasoning.py`  

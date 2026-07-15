@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "task_id": "BRANCH-005-release-branch-dependency-contract",
+  "workspace_id": "metaphysical-branch-reasoning",
+  "gate": "G5",
+  "provider_contract_version": "1.0.0",
+  "kernel_contract_version_consumed": "1.1.0",
+  "kernel_release_git_revision_consumed": "512236d4b089d0a4d04821cca3d068a2d0a539f4",
+  "framework_version": "1.1",
+  "compatibility_class": "additive_within_1.0.x",
+  "release_git_revision": "e3784b72f7f51bea8f62a6637419634d6e096fe8",
+  "released_at": "2026-07-15",
+  "authority_artifacts": [
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_PUBLIC_CONTRACT_LOCK.md",
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_OBLIGATION_REGISTER.md",
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_CONFORMANCE_COVERAGE.json",
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_RUNTIME_OPERATIONS.md",
+    "docs/workspaces/metaphysical-branch-reasoning/derived/BRANCH_TEST_AND_RELEASE_GUIDE.md"
+  ],
+  "owner_module": "src/conversation_os/metaphysical_branch_reasoning.py",
+  "supported_runtime_operations": [
+    "resolve_inheritance",
+    "assess_support",
+    "classify_conflict",
+    "assess_merge",
+    "run_inference"
+  ],
+  "unsupported_phase1_operations": [
+    "branch_ensemble_weighting",
+    "automatic_conflict_resolution",
+    "inference_promotion_to_supported_or_state",
+    "global_truth_selector",
+    "multi_proposition_depth_traversal"
+  ],
+  "core_invariants": [
+    "inheritance_is_read_rule_not_duplication",
+    "support_four_valued_both_never_collapsed",
+    "negation_explicit_via_polarity",
+    "merge_never_selects_winner",
+    "inference_output_always_candidate",
+    "branch_neutral_sources_shareable_without_membership_reconciliation",
+    "ensemble_weights_task_relative_not_universal_truth"
+  ],
+  "forbidden_interpretations": [
+    "merge_winner_selection",
+    "both_as_majority_or_fluency_tie_breaker",
+    "cross_branch_support_without_inheritance",
+    "scope_difference_as_logical_contradiction_by_default",
+    "inference_promotes_to_state",
+    "ensemble_weight_as_truth_probability"
+  ],
+  "breaking_change_policy": "Breaking semantic changes require BRANCH_CONTRACT_VERSION minor/major bump and parent unified-framework-synthesis decision record.",
+  "migration_policy": "Additive fixture tables and operations only within 1.0.x; consumers pin provider_contract_version and release_git_revision.",
+  "failure_and_absence_behavior": {
+    "cross_branch_leakage": "assess_support excludes foreign branch claims unless include_inherited with ancestry",
+    "merge_conflict": "merge_verdict incompatible or partially_compatible; conflicts listed explicitly",
+    "inference_non_candidate_output": "InvalidInferenceOutputStatusError",
+    "both_abstain": "output_claims empty; abstention record with reason and unresolved_claim_ids",
+    "max_depth_below_one": "abstention with reason contradiction_policy_halt"
+  },
+  "known_phase1_limits": [
+    {
+      "risk_id": "BRANCH-R-001",
+      "summary": "Scope hierarchy inheritance compatibility unspecified"
+    },
+    {
+      "risk_id": "BRANCH-R-002",
+      "summary": "BranchEnsemble weight normalization unspecified; consumer supplies task-relative weights"
+    },
+    {
+      "risk_id": "BRANCH-R-005",
+      "summary": "max_depth bounds request entry; multi-proposition traversal not published"
+    }
+  ],
+  "verification_ladder": {
+    "commands": [
+      "pytest -q tests/test_metaphysical_branch_reasoning.py tests/test_metaphysical_branch_conformance.py tests/test_metaphysical_branch_consumer_smoke.py tests/test_branch_release_contract.py tests/test_metaphysical_kernel_contracts.py tests/test_metaphysical_kernel_runtime.py"
+    ],
+    "expected_result": "all_pass"
+  },
+  "consumer_smoke_proofs": [
+    {
+      "consumer_workspace": "metaphysical-vocabulary-governance",
+      "test": "tests.test_metaphysical_branch_consumer_smoke::test_vocabulary_governance_consumer_preserves_branch_local_support",
+      "proves": "Branch-local vocabulary interpretations remain isolated; support does not collapse across branches"
+    }
+  ],
+  "downstream_consumer_contracts": [
+    {
+      "consumer_workspace": "metaphysical-vocabulary-governance",
+      "contract_path": "docs/workspaces/metaphysical-branch-reasoning/derived/dependency-contract-vocabulary-governance.md",
+      "consumer_ack_path": "docs/workspaces/metaphysical-vocabulary-governance/derived/branch-provider-acknowledgment.md"
+    }
+  ],
+  "future_consumer_programs": [
+    "metaphysical-conversation-formation",
+    "metaphysical-shape-pattern",
+    "metaphysical-agent-programs"
+  ],
+  "examples": {
+    "inheritance": "resolve_inheritance(child_branch_id='branch_child', record_id='cl_001', record_kind='claim', branch_ancestry=[...], membership_entries=[...])",
+    "support": "assess_support(branch_id='branch_main', scope_id='scope_org', claim_proposition={...}, evidence_claims=[...], include_inherited=False)",
+    "conflict": "classify_conflict(claim_a={...}, claim_b={...})",
+    "merge": "assess_merge(branch_a_id='branch_a', branch_b_id='branch_b', records_a=[...], records_b=[...])",
+    "inference": "run_inference(inference_context={...}, input_claims=[...])"
+  }
+}
