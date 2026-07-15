@@ -70,6 +70,10 @@ class InvalidInferenceOutputStatusError(BranchReasoningError):
     pass
 
 
+class InvalidContradictionPolicyError(BranchReasoningError):
+    pass
+
+
 @dataclass
 class InheritanceResult:
     record_id: str
@@ -90,7 +94,6 @@ class InheritanceResult:
         }
 
 
-@dataclass
 @dataclass
 class ConflictClassificationResult:
     claim_a_id: str
@@ -743,6 +746,10 @@ def run_inference(
     accepted_epistemic = list(inference_context.get("accepted_epistemic_statuses", []) or [])
     accepted_governance = list(inference_context.get("accepted_governance_statuses", []) or [])
     contradiction_policy = str(inference_context.get("contradiction_policy", "preserve"))
+    if contradiction_policy not in CONTRADICTION_POLICIES:
+        raise InvalidContradictionPolicyError(
+            f"unsupported contradiction_policy: {contradiction_policy!r}"
+        )
     inference_kind = str(inference_context.get("inference_kind", "structural"))
     context_provenance_id = make_id("prov")
 
@@ -769,21 +776,39 @@ def run_inference(
         )
 
     grouped = _group_claims_by_proposition(filtered)
-    primary_group = next(iter(grouped.values()))
-    affirmative = [claim for claim in primary_group if str(claim.get("polarity", "affirmative")) != "negative"]
-    negative = [claim for claim in primary_group if str(claim.get("polarity", "affirmative")) == "negative"]
-    both_encountered = bool(affirmative) and bool(negative)
+    contradictory_group: Optional[List[Mapping[str, Any]]] = None
+    for group in grouped.values():
+        affirmative = [
+            claim for claim in group if str(claim.get("polarity", "affirmative")) != "negative"
+        ]
+        negative = [
+            claim for claim in group if str(claim.get("polarity", "affirmative")) == "negative"
+        ]
+        if affirmative and negative:
+            contradictory_group = group
+            break
 
-    if both_encountered:
+    if contradictory_group is not None:
+        affirmative = [
+            claim
+            for claim in contradictory_group
+            if str(claim.get("polarity", "affirmative")) != "negative"
+        ]
+        negative = [
+            claim
+            for claim in contradictory_group
+            if str(claim.get("polarity", "affirmative")) == "negative"
+        ]
         unresolved_ids = sorted(
-            {_claim_record_id(claim) for claim in primary_group if _claim_record_id(claim)}
+            {_claim_record_id(claim) for claim in contradictory_group if _claim_record_id(claim)}
         )
-        branch_id = branches[0] if branches else str(primary_group[0].get("branch_id", "branch_main"))
+        branch_id = branches[0] if branches else str(contradictory_group[0].get("branch_id", "branch_main"))
 
         if contradiction_policy == "preserve":
-            outputs = []
-            for claim in affirmative + negative:
-                outputs.append(_candidate_from_claim(claim, branch_id=branch_id, scope_id=scope_id))
+            outputs = [
+                _candidate_from_claim(claim, branch_id=branch_id, scope_id=scope_id)
+                for claim in filtered
+            ]
             return InferenceResult(
                 inference_context_provenance_id=context_provenance_id,
                 output_claims=outputs,
@@ -852,6 +877,7 @@ __all__ = [
     "SelfConflictError",
     "ScopeNotFoundError",
     "InvalidInferenceOutputStatusError",
+    "InvalidContradictionPolicyError",
     "InheritanceResult",
     "SupportAssessmentResult",
     "ConflictClassificationResult",
