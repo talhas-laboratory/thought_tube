@@ -88,15 +88,6 @@ from .worldbuilding_studio import (
     update_character_feature_object as worldstudio_update_character_feature_object,
     update_character_profile_section as worldstudio_update_character_profile_section,
 )
-from .workspace_os_api import (
-    workspace_os_dashboard_payload,
-    workspace_os_live_catalog,
-    workspace_os_live_context,
-    workspace_os_live_gate,
-    workspace_os_live_health,
-)
-
-
 MODULE_ID = "surface.inner_world.miniapp"
 CONTRACT_VERSION = "1.0"
 PUBLIC_API = (
@@ -3106,11 +3097,21 @@ def make_miniapp_handler(
             return _normalize_host_header(self.headers.get("Host")) == configured_host
 
         def _serve_static_dir_asset(self, base_dir: Path, relative: str) -> bool:
+            if relative.strip("/") == "workspace-os.html":
+                return False
             candidate = _resolve_static_asset(base_dir, relative)
             if candidate is None:
                 return False
             if candidate.suffix == ".html":
-                self._send_text(candidate.read_text(encoding="utf-8"), "text/html")
+                content = candidate.read_text(encoding="utf-8")
+                content = content.replace(
+                    '<a class="topbar-link" href="./workspace-os.html">Workspace OS</a>',
+                    "",
+                ).replace(
+                    '<a class="studio-text-button" href="./workspace-os.html">Workspace OS</a>',
+                    "",
+                )
+                self._send_text(content, "text/html")
             else:
                 self._send_file(candidate)
             return True
@@ -3194,23 +3195,6 @@ def make_miniapp_handler(
             if api_path in {"/state", "/runtime-overview"}:
                 state = get_runtime_overview(root)
                 self._send_json(state)
-                return
-            if api_path == "/workspace-os/dashboard":
-                self._send_json(workspace_os_dashboard_payload(root))
-                return
-            if api_path == "/workspace-os/live/health":
-                self._send_json(workspace_os_live_health())
-                return
-            if api_path == "/workspace-os/live/catalog":
-                self._send_json(workspace_os_live_catalog())
-                return
-            if api_path and api_path.startswith("/workspace-os/live/context/"):
-                workspace_id = api_path.removeprefix("/workspace-os/live/context/").strip("/")
-                self._send_json(workspace_os_live_context(workspace_id))
-                return
-            if api_path and api_path.startswith("/workspace-os/live/gate/"):
-                workspace_id = api_path.removeprefix("/workspace-os/live/gate/").strip("/")
-                self._send_json(workspace_os_live_gate(workspace_id))
                 return
             if api_path == "/world-studio/worlds":
                 self._send_json(worldstudio_list_worlds(root))

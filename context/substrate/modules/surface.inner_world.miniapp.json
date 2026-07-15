@@ -2,8 +2,8 @@
   "module_id": "surface.inner_world.miniapp",
   "path": "src/conversation_os/miniapp.py",
   "layer": "surface",
-  "owner": "Browser-facing HTTP and UI serving layer for the Inner World reference surface.",
-  "purpose": "Expose the Inner World browser surface through a local HTTP handler and UI asset injection path.",
+  "owner": "Browser-facing HTTP, API route, and UI asset serving layer for the Inner World reference miniapp.",
+  "purpose": "Own Inner World miniapp route handling, browser surface serving, and UI asset injection, including removal of obsolete embedded product routes.",
   "status": "active",
   "version": "1.0.0",
   "public_api": [
