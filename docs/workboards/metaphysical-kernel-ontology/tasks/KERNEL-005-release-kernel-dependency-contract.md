@@ -1,6 +1,6 @@
 # KERNEL-005-release-kernel-dependency-contract: Release kernel dependency contract
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 
