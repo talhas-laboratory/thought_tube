@@ -1,6 +1,6 @@
 # Kernel Migration Fixture Catalog
 
-**Task:** KERNEL-002  
+**Task:** KERNEL-002
 **Authority:** framework v1.1 Appendix F via `metaphysical_kernel_migration.py`
 
 | Fixture | Source family | Proves |
