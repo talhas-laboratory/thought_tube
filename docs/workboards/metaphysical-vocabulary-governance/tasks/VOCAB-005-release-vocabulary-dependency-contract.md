@@ -6,8 +6,26 @@ Current gate: not_required
 
 ## Scope
 
-Live task created before its Git task packet was materialized.
-Refine scope, constraints, verification, and handoff notes here; update coordination state through the live workspace API.
+In: release a versioned vocabulary contract that profiles and applications can consume without erasing local language.
+
+Out: an unversioned label list, a hidden normalization rule, or consumer integration without a compatibility/migration statement.
+
+## Work plan
+
+1. Freeze mapping, promotion, and evolution contract versions.
+2. Publish allowed mapping kinds, lifecycle/governance behavior, migration/deprecation policy, and known limits.
+3. State exact Kernel and Branch dependencies.
+4. Demonstrate a profile or application consumer rendering the mapping without mutation.
+5. Record merge SHA and consumer evidence.
+
+## Acceptance criteria
+
+- Consumers receive a versioned contract, examples, compatibility policy, tests, and merge evidence.
+- Documentation makes clear that canonicalization is not forced normalization.
+
+## Verification plan
+
+- Complete the release checklist in [VOCABULARY_TEST_AND_RELEASE_GUIDE.md](../../../workspaces/metaphysical-vocabulary-governance/derived/VOCABULARY_TEST_AND_RELEASE_GUIDE.md).
 
 ## Verification Evidence
 
@@ -15,4 +33,4 @@ Refine scope, constraints, verification, and handoff notes here; update coordina
 
 ## Handoff Notes
 
-- Read the live workspace context before claiming this task.
+- Do not close until live verification names the consumer proof, exact SHA, and residual limitations.

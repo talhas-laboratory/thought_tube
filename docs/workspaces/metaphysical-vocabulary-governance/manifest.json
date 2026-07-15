@@ -14,6 +14,13 @@
   "continuity_projection": "docs/workspaces/metaphysical-vocabulary-governance/CONTINUITY.md",
   "sync_contract": "docs/workspaces/metaphysical-vocabulary-governance/derived/sync-contract.md",
   "artifact_roots": ["docs/workspaces/metaphysical-vocabulary-governance/derived", "docs/workboards/metaphysical-vocabulary-governance/artifacts"],
+  "agent_documentation": [
+    "derived/AGENT_BUILD_GUIDE.md",
+    "derived/VOCABULARY_OBLIGATION_REGISTER.md",
+    "derived/TASK_EXECUTION_MAP.md",
+    "derived/VOCABULARY_TEST_AND_RELEASE_GUIDE.md",
+    "docs/workboards/metaphysical-vocabulary-governance/LOCAL-AGENT-BOOT.md"
+  ],
   "ownership_rules": ["Own canonical vocabulary promotion and mapping rules.", "Mappings preserve source terms and provenance.", "Domain profiles may not bypass governance or silently collapse terms."],
   "created_at": "2026-07-15"
 }

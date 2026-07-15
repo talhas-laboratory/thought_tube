@@ -14,6 +14,13 @@
   "continuity_projection": "docs/workspaces/metaphysical-branch-reasoning/CONTINUITY.md",
   "sync_contract": "docs/workspaces/metaphysical-branch-reasoning/derived/sync-contract.md",
   "artifact_roots": ["docs/workspaces/metaphysical-branch-reasoning/derived", "docs/workboards/metaphysical-branch-reasoning/artifacts"],
+  "agent_documentation": [
+    "derived/AGENT_BUILD_GUIDE.md",
+    "derived/BRANCH_OBLIGATION_REGISTER.md",
+    "derived/TASK_EXECUTION_MAP.md",
+    "derived/BRANCH_TEST_AND_RELEASE_GUIDE.md",
+    "docs/workboards/metaphysical-branch-reasoning/LOCAL-AGENT-BOOT.md"
+  ],
   "ownership_rules": ["Own branch and contradiction semantics.", "Do not redefine kernel identity, provenance, or state semantics.", "Consumers use public branch contracts rather than private branch logic."],
   "created_at": "2026-07-15"
 }
