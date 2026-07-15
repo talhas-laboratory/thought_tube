@@ -1,0 +1,408 @@
+{
+  "schema_version": "1.0",
+  "task_id": "KERNEL-001-atomic-obligation-and-contract-lock",
+  "workspace_id": "metaphysical-kernel-ontology",
+  "canonical_source": "../../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "public_contract_version": "1.1.0",
+  "owner_modules": {
+    "records": "src/conversation_os/metaphysical_kernel.py",
+    "contracts": "src/conversation_os/metaphysical_kernel_contracts.py",
+    "store": "src/conversation_os/metaphysical_kernel_store.py",
+    "runtime": "src/conversation_os/metaphysical_kernel_runtime.py",
+    "migration": "src/conversation_os/metaphysical_kernel_migration.py",
+    "profile_registry": "src/conversation_os/metaphysical_kernel_profile_registry.py",
+    "application_sdk": "src/conversation_os/metaphysical_kernel_application_sdk.py"
+  },
+  "phase1_boundary": {
+    "implemented_record_kinds": [
+      "source_fragment",
+      "referent",
+      "scope",
+      "state",
+      "claim",
+      "relation_instance",
+      "provenance",
+      "model_branch",
+      "branch_membership",
+      "state_commitment",
+      "profile_definition",
+      "profile_conformance_result"
+    ],
+    "deferred_first_class_kernel_concepts": [
+      {
+        "concept": "Occurrence",
+        "section": "§5.5",
+        "deferral_reason": "Phase 1 vertical slice does not require occurrence records; relation and state paths suffice for capture-to-commitment.",
+        "owner_at_deferral": "metaphysical-kernel-ontology",
+        "consumer_impact": "Transformation and temporal profiles must not assume Occurrence records exist until KERNEL contract extends."
+      },
+      {
+        "concept": "Perspective",
+        "section": "§5.8",
+        "deferral_reason": "Perspective-scoped claims are modeled through branch_id + claimant + scope until a first-class Perspective record is justified.",
+        "owner_at_deferral": "metaphysical-kernel-ontology",
+        "consumer_impact": "Agent grounding program must treat claimant/branch as perspective proxy until explicit Perspective records ship."
+      },
+      {
+        "concept": "Evidence",
+        "section": "§5.9",
+        "deferral_reason": "Provenance closure and claim support are Phase 1 minimum; Evidence as a distinct kernel record is deferred.",
+        "owner_at_deferral": "metaphysical-kernel-ontology",
+        "consumer_impact": "Branch four-valued support must not require Evidence records until contract extension; use provenance + claim linkage."
+      },
+      {
+        "concept": "TypeDefinition",
+        "section": "§5.12",
+        "deferral_reason": "Canonical type evolution is owned by metaphysical-vocabulary-governance; kernel uses opaque type_id references only.",
+        "owner_at_deferral": "metaphysical-vocabulary-governance",
+        "consumer_impact": "Vocabulary program must publish type registry contract before kernel type_id semantics expand beyond opaque reference."
+      }
+    ]
+  },
+  "obligations": [
+    {
+      "obligation_id": "KERNEL-4.1-ENVELOPE-REQUIRED-FIELDS",
+      "source_section": "§4.1",
+      "source_quote": "Every stored object is a record with a common envelope:",
+      "interpretation": "KernelRecordEnvelope is mandatory on every kernel record; maturity, epistemic, and governance statuses are orthogonal literals.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "additive",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/valid_minimal_capture.json",
+        "tests.test_metaphysical_kernel_contracts::test_valid_minimal_capture_fixture"
+      ],
+      "downstream_consumers": [
+        "metaphysical-branch-reasoning",
+        "metaphysical-vocabulary-governance",
+        "metaphysical_kernel_application_sdk"
+      ],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-4.1-NO-UNIVERSAL-BRANCH-ID",
+      "source_section": "§4.1",
+      "source_quote": "`branch_id` is deliberately not universal.",
+      "interpretation": "Branch participation is expressed through BranchMembership and branch-bound record fields, not a universal envelope.branch_id.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": [
+        "FORBIDDEN_KERNEL_REDEFINITIONS.universal_branch_id"
+      ],
+      "downstream_consumers": ["metaphysical-branch-reasoning"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-4.2-TWELVE-CONCEPT-ACCOUNTING",
+      "source_section": "§4.2",
+      "source_quote": "The immutable kernel consists of:",
+      "interpretation": "Phase 1 implements eight first-class record kinds plus profile objects; Occurrence, Perspective, Evidence defer; TypeDefinition defers to Vocabulary program.",
+      "owner_module": "src/conversation_os/metaphysical_kernel.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "forward_compatible",
+      "tests_fixtures": ["docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_ATOMIC_OBLIGATIONS.json"],
+      "downstream_consumers": ["unified-framework-synthesis", "metaphysical-vocabulary-governance"],
+      "completion_state": "phase1_minimal",
+      "unresolved_question": "Which deferred concept ships in KERNEL-002 vs a later kernel tranche?"
+    },
+    {
+      "obligation_id": "KERNEL-4.3-PROFILE-NO-REDEFINE",
+      "source_section": "§4.3",
+      "source_quote": "Profiles MAY specialize or compose kernel semantics but MUST NOT redefine them.",
+      "interpretation": "ProfileDefinition.forbidden_kernel_redefinitions and validate_profile_definition enforce separation.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_profile_registry.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/invalid_profile_redefines_claim_as_state.json",
+        "tests.test_metaphysical_kernel_profile_registry"
+      ],
+      "downstream_consumers": ["metaphysical-conversation-formation"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.1-SOURCE-PRESERVATION",
+      "source_section": "§5.1",
+      "source_quote": "A `SourceFragment` is preserved input before interpretation.",
+      "interpretation": "SourceFragment stores media_type, content_pointer, integrity_hash, and source_kind without collapsing into Claim or State.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "preserves_source_ids",
+      "tests_fixtures": ["tests/fixtures/metaphysical_kernel/valid_minimal_capture.json"],
+      "downstream_consumers": ["metaphysical_kernel_migration", "metaphysical_kernel_runtime"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.2-REFERENT-IDENTITY",
+      "source_section": "§5.2, §5.13",
+      "source_quote": "A `Referent` is anything the model points to as a distinguishable target.",
+      "interpretation": "Referent carries canonical_label, aliases, and identity_policy_id placeholder; full IdentityPolicy record is not Phase 1.",
+      "owner_module": "src/conversation_os/metaphysical_kernel.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "additive",
+      "tests_fixtures": ["tests.test_metaphysical_kernel_contracts::test_valid_minimal_capture_fixture"],
+      "downstream_consumers": ["metaphysical-shape-addressing"],
+      "completion_state": "phase1_minimal",
+      "unresolved_question": "IdentityPolicy record shape and uncertain-identity relation tests are not yet specified (§5.13)."
+    },
+    {
+      "obligation_id": "KERNEL-5.3-SCOPE-BOUNDARY",
+      "source_section": "§5.3",
+      "source_quote": "A `Scope` specifies where and under what conditions a record is intended to hold.",
+      "interpretation": "Scope includes modal_scope literal set and optional temporal/spatial/domain/task/context_refs fields.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["validate_scope"],
+      "downstream_consumers": ["metaphysical-branch-reasoning"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.4-STATE-DISTINCT-FROM-CLAIM",
+      "source_section": "§5.4",
+      "source_quote": "A State is distinct from a Claim.",
+      "interpretation": "State records require valid_scope_id and optional commitment_id; Claims cannot be adopted without StateCommitment.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "breaking_if_collapsed",
+      "tests_fixtures": [
+        "FORBIDDEN_KERNEL_REDEFINITIONS.claim_is_state",
+        "tests/fixtures/metaphysical_kernel/invalid_claim_as_state_profile.json"
+      ],
+      "downstream_consumers": ["metaphysical-branch-reasoning", "metaphysical-transformation-dynamics"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.6-RELATION-PARTICIPANTS",
+      "source_section": "§5.6",
+      "source_quote": "A `RelationInstance` is a typed, potentially n-ary relation among participants.",
+      "interpretation": "RelationInstance requires type_id, participants with role/ref, and scope_id.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["validate_relation_instance"],
+      "downstream_consumers": ["metaphysical-shape-addressing"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.7-CLAIM-BRANCH-SCOPE",
+      "source_section": "§5.7",
+      "source_quote": "Claims MUST NOT be stored as globally true by default.",
+      "interpretation": "Claim requires branch_id, scope_id, claimant, proposition; validate_claim checks BranchMembership alignment.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["tests/fixtures/metaphysical_kernel/valid_minimal_capture.json"],
+      "downstream_consumers": ["metaphysical-branch-reasoning"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.10-PROVENANCE-CLOSURE",
+      "source_section": "§5.10, §6.4",
+      "source_quote": "Every non-raw record MUST have a derivation path terminating in SourceFragments, imported authoritative records, or explicit user creation.",
+      "interpretation": "validate_provenance_closure ensures source_refs and derivation_steps terminate at sources or explicit creation.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "preserves_provenance",
+      "tests_fixtures": ["foundation_review vertical_slice provenance_complete"],
+      "downstream_consumers": ["metaphysical-vocabulary-governance"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.11-MODEL-BRANCH",
+      "source_section": "§5.11",
+      "source_quote": "A `ModelBranch` is a coherent, explicitly scoped selection of records, assumptions, and interpretations.",
+      "interpretation": "ModelBranch records branch_kind, parent linkage, assumptions, and merge_status without selecting global truth.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["validate_model_branch"],
+      "downstream_consumers": ["metaphysical-branch-reasoning"],
+      "completion_state": "phase1_minimal",
+      "unresolved_question": "Merge semantics and inheritance tables are owned by Branch program (BRANCH-001), not kernel runtime."
+    },
+    {
+      "obligation_id": "KERNEL-5.15-BRANCH-MEMBERSHIP",
+      "source_section": "§5.15",
+      "source_quote": "A `BranchMembership` states how a record participates in a ModelBranch.",
+      "interpretation": "Membership links record_id, branch_id, membership_kind, effective_scope_id, and membership_provenance_id.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/invalid_state_branch_membership_mismatch.json"
+      ],
+      "downstream_consumers": ["metaphysical-branch-reasoning"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.16-STATE-COMMITMENT",
+      "source_section": "§5.16",
+      "source_quote": "A `StateCommitment` is the explicit reviewed operation by which a branch represents a condition as a State rather than merely retaining a Claim about it.",
+      "interpretation": "Adoption requires source_claim_ids, resulting_state_id, branch/scope alignment, responsible_actor, and commitment_provenance_id.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/valid_state_commitment_path.json",
+        "foundation_review state_adoption"
+      ],
+      "downstream_consumers": ["metaphysical-branch-reasoning", "metaphysical-transformation-dynamics"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-6.1-INVARIANT-CLAIM-STATE-SEPARATION",
+      "source_section": "§6.1",
+      "source_quote": "c may refer to s, but c is never identical to s.",
+      "interpretation": "Validators and profile conformance reject claim_is_state and state_is_claim redefinitions.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "breaking_if_collapsed",
+      "tests_fixtures": ["FORBIDDEN_KERNEL_REDEFINITIONS"],
+      "downstream_consumers": ["all child programs"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-6.11-COMMITMENT-LINKAGE",
+      "source_section": "§6.11",
+      "source_quote": "No Claim becomes a represented State merely through repetition, model fluency, confidence aggregation, or downstream use.",
+      "interpretation": "validate_state_adoption_links and runtime reject adoption without matching StateCommitment and BranchMembership.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_runtime.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["foundation_review state_adoption_rejected_without_write"],
+      "downstream_consumers": ["metaphysical-branch-reasoning"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-6.12-PROFILE-CONFORMANCE",
+      "source_section": "§6.12",
+      "source_quote": "Every profile record MUST resolve to kernel records, a versioned ProfileDefinition, and profile-specific validation results.",
+      "interpretation": "ProfileConformanceResult records evaluated_record_id, violations, and evaluated_at.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_profile_registry.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["tests.test_metaphysical_kernel_profile_registry"],
+      "downstream_consumers": ["metaphysical-conversation-formation"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-22.1-LIFECYCLE-ORTHOGONALITY",
+      "source_section": "§22.1",
+      "source_quote": "The framework MUST NOT overload one status field with maturity, epistemic standing, and governance authority.",
+      "interpretation": "validate_lifecycle_independence rejects collapsed or equal-axis values except not_applicable epistemic case.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["tests.test_metaphysical_kernel_contracts::test_lifecycle_axes_must_remain_orthogonal"],
+      "downstream_consumers": ["metaphysical-vocabulary-governance"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-22-LIFECYCLE-TRANSITIONS",
+      "source_section": "§22",
+      "source_quote": "Every promotion or demotion creates a record containing:",
+      "interpretation": "Phase 1 validates literal sets only; transition policy and invalid-transition rejection are not yet a public operation.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "additive",
+      "tests_fixtures": [],
+      "downstream_consumers": ["metaphysical-vocabulary-governance"],
+      "completion_state": "gap",
+      "unresolved_question": "Publish transition matrix and promotion/deprecation propagation in KERNEL-003 or KERNEL-004."
+    },
+    {
+      "obligation_id": "KERNEL-23-SINGLE-LOGICAL-SYSTEM",
+      "source_section": "§23",
+      "source_quote": "The framework is one logical system because records share:",
+      "interpretation": "CONTRACT_VERSION 1.1.0 is shared across records and contracts modules; append-only store is the single kernel persistence surface.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_store.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["foundation_review"],
+      "downstream_consumers": ["metaphysical-product-surfaces"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-25-MINIMAL-SCHEMAS",
+      "source_section": "§25",
+      "source_quote": "Minimal Canonical Schemas",
+      "interpretation": "Phase 1 dataclasses intentionally omit product fields; additions require obligation row and guard approval.",
+      "owner_module": "src/conversation_os/metaphysical_kernel.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "additive_only_with_review",
+      "tests_fixtures": ["KERNEL_ATOMIC_OBLIGATIONS phase1_boundary"],
+      "downstream_consumers": ["unified-framework-synthesis"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-29-PHASE1-MINIMALITY",
+      "source_section": "§29",
+      "source_quote": "The first implementation should use eight record types:",
+      "interpretation": "Deferred concepts and gap rows document intentional Phase 1 limits; no silent completeness claims.",
+      "owner_module": "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_ATOMIC_OBLIGATIONS.json",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "none",
+      "tests_fixtures": ["tests.test_kernel_atomic_obligations"],
+      "downstream_consumers": ["metaphysical-branch-reasoning", "metaphysical-vocabulary-governance"],
+      "completion_state": "verified",
+      "unresolved_question": null
+    },
+    {
+      "obligation_id": "KERNEL-5.16-STALENESS-PROPAGATION",
+      "source_section": "§5.16, §22.4",
+      "source_quote": "When a source Claim or Relation is retracted, dependent Shapes, Patterns, rules, and simulations are marked stale or invalidated according to their derivation graph.",
+      "interpretation": "Kernel stores commitment links; propagation contract for Shape/Transformation consumers is not yet published.",
+      "owner_module": "src/conversation_os/metaphysical_kernel_runtime.py",
+      "public_contract_version": "1.1.0",
+      "migration_impact": "additive",
+      "tests_fixtures": [],
+      "downstream_consumers": ["metaphysical-shape-addressing", "metaphysical-transformation-dynamics"],
+      "completion_state": "gap",
+      "unresolved_question": "Define staleness signals in KERNEL-005 dependency contract or a parent decision."
+    }
+  ],
+  "validator_fixture_plan": [
+    {
+      "gap_obligation_id": "KERNEL-22-LIFECYCLE-TRANSITIONS",
+      "planned_fixture": "invalid_maturity_transition.json",
+      "target_task": "KERNEL-004-kernel-conformance-suite"
+    },
+    {
+      "gap_obligation_id": "KERNEL-5.16-STALENESS-PROPAGATION",
+      "planned_fixture": "commitment_revocation_staleness.json",
+      "target_task": "KERNEL-004-kernel-conformance-suite"
+    },
+    {
+      "gap_obligation_id": "KERNEL-5.2-REFERENT-IDENTITY",
+      "planned_fixture": "uncertain_identity_relation.json",
+      "target_task": "KERNEL-002-migration-and-persistence-fixtures"
+    }
+  ],
+  "forbidden_interpretations": [
+    "claim_is_state",
+    "state_is_claim",
+    "universal_branch_id",
+    "single_status_field",
+    "product_specific_kernel_fields",
+    "parallel_canonical_store"
+  ]
+}
