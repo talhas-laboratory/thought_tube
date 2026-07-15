@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: metaphysical-kernel-ontology -->
-<!-- canonical_revision: d18d2403f474350a27be9c9a3d81882a2d68cb017e4eb676e46354f489366620 -->
+<!-- canonical_revision: 475ad56e1d195ceeb00ca85ac995c848114de334849ae165fcaa111a2077f9c4 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-15T09:18:31+00:00 -->
+<!-- generated_at: 2026-07-15T09:23:40+00:00 -->
 
 # Workspace continuity: metaphysical-kernel-ontology
 
@@ -26,6 +26,9 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- foundation-review
+- consumer-smoke
+- kernel-release-ladder
 - foundation-review
 - kernel-conformance-suite
 - foundation-review
