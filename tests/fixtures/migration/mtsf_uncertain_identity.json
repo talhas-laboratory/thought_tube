@@ -1,0 +1,48 @@
+{
+  "fixture_id": "migration-mtsf-uncertain-identity-001",
+  "fixture_version": "1.0.0",
+  "source_family": "mtsf",
+  "source_vocabulary_version": "mtsf-historical",
+  "mapping_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md#appendix-f",
+  "source_records": {
+    "idea_entity": {
+      "entity_id": "mtsf-entity-acme-corp",
+      "label": "Acme Corp",
+      "systemhood": "organization",
+      "confidence": 0.81
+    },
+    "secondary_idea_entity": {
+      "entity_id": "mtsf-entity-acme-holdings",
+      "label": "Acme Holdings",
+      "systemhood": "organization",
+      "confidence": 0.77
+    },
+    "identity_uncertainty": {
+      "relation": "possibly_same_as",
+      "confidence": 0.58,
+      "rationale": "Press coverage alternates names after restructuring; legal continuity unclear."
+    },
+    "assertion": {
+      "assertion_id": "mtsf-assert-restructure",
+      "subject": "mtsf-entity-acme-corp",
+      "predicate": "underwent_restructuring",
+      "object": "2024",
+      "confidence": 0.69
+    },
+    "evidence_span": {
+      "source_ref": "doc:acme-news-2024",
+      "text": "Acme Corp and Acme Holdings referenced interchangeably in filings.",
+      "kind": "observation"
+    }
+  },
+  "expected_loss_report": [
+    "Conservative identity: possibly_same_as relation recorded; Referents not merged per §5.13"
+  ],
+  "expected_record_counts": {
+    "claims": 1,
+    "referents": 2,
+    "relation_instances": 1,
+    "source_fragments": 1,
+    "states": 0
+  }
+}

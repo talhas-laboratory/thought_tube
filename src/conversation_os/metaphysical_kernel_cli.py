@@ -207,6 +207,7 @@ def foundation_consumer(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
 
 MIGRATION_FIXTURE_PATHS = [
     "tests/fixtures/migration/mtsf_minimal_assertion.json",
+    "tests/fixtures/migration/mtsf_uncertain_identity.json",
     "tests/fixtures/migration/thoughtshape_stateclaim_hold.json",
     "tests/fixtures/migration/sds_signal_dilution.json",
     "tests/fixtures/migration/conversation_os_minimal_session.json",
