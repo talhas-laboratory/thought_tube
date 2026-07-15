@@ -82,4 +82,4 @@ pytest -q tests/test_metaphysical_branch_reasoning.py tests/test_metaphysical_br
 
 ## Kernel dependency
 
-Branch G5 consumes Kernel G5 (`1.1.0`, revision `4830b81fc6d2d78ea96743adad49bb254e98c7de`). See [`kernel-provider-acknowledgment.md`](./kernel-provider-acknowledgment.md).
+Branch G5 consumes Kernel G5 (`1.1.0`, revision `512236d4b089d0a4d04821cca3d068a2d0a539f4`). See [`kernel-provider-acknowledgment.md`](./kernel-provider-acknowledgment.md).

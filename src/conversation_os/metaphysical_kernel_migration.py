@@ -353,6 +353,98 @@ def migrate_mtsf(
             )
         )
 
+    secondary_idea = dict(source_records.get("secondary_idea_entity", {}) or {})
+    identity_uncertainty = dict(source_records.get("identity_uncertainty", {}) or {})
+    if secondary_idea:
+        secondary_entity_id = str(secondary_idea.get("entity_id", "mtsf-entity-secondary"))
+        secondary_ref_id = f"ref_{secondary_entity_id}"
+        bundle["referents"].append(
+            {
+                "envelope": _envelope(
+                    secondary_ref_id,
+                    "referent",
+                    "core:referent",
+                    created_at=created_at,
+                    created_by="service:migration",
+                    provenance_id=prov_id,
+                    maturity_status="structured",
+                    epistemic_status="unassessed",
+                    governance_status="local",
+                ),
+                "canonical_label": str(secondary_idea.get("label", secondary_entity_id)),
+                "aliases": [],
+                "identity_policy_id": f"mtsf:{secondary_entity_id}",
+            }
+        )
+        rules.append(
+            MappingRule(
+                "mtsf",
+                "IdeaEntity",
+                secondary_entity_id,
+                "referent",
+                secondary_ref_id,
+                float(secondary_idea.get("confidence", 1.0) or 1.0),
+                semantic_loss_warnings=["secondary referent kept distinct pending identity resolution"],
+                inverse_mapping={
+                    "referent_id": secondary_ref_id,
+                    "mtsf_entity_id": secondary_entity_id,
+                },
+            )
+        )
+        relation_kind = str(
+            identity_uncertainty.get("relation", "possibly_same_as") or "possibly_same_as"
+        )
+        if relation_kind == "same_as":
+            loss_report.append(
+                "Identity link requests same_as but migration preserves separate Referents until explicit confirmation"
+            )
+            relation_kind = "possibly_same_as"
+        elif relation_kind not in {"possibly_same_as", "distinct_from"}:
+            raise ValueError(f"unsupported identity relation: {relation_kind}")
+        relation_id = f"rel_{fixture_id}_identity"
+        bundle["relation_instances"].append(
+            {
+                "envelope": _envelope(
+                    relation_id,
+                    "relation_instance",
+                    f"core:identity_relation:{relation_kind}",
+                    created_at=created_at,
+                    created_by="service:migration",
+                    provenance_id=prov_id,
+                    maturity_status="differentiating",
+                    epistemic_status="unresolved",
+                    governance_status="review_required",
+                ),
+                "type_id": f"kernel:identity:{relation_kind}",
+                "participants": [
+                    {"role": "left", "ref": ref_id},
+                    {"role": "right", "ref": secondary_ref_id},
+                ],
+                "scope_id": scope_id,
+                "qualifiers": {
+                    "confidence": float(identity_uncertainty.get("confidence", 0.5) or 0.5),
+                    "rationale": str(identity_uncertainty.get("rationale", "")),
+                },
+            }
+        )
+        rules.append(
+            MappingRule(
+                "mtsf",
+                "IdentityUncertainty",
+                f"{entity_id}:{secondary_entity_id}",
+                "relation_instance",
+                relation_id,
+                float(identity_uncertainty.get("confidence", 0.5) or 0.5),
+                semantic_loss_warnings=[
+                    "uncertain identity preserved as relation, not Referent merge (§5.13)"
+                ],
+                reversible=True,
+            )
+        )
+        loss_report.append(
+            "Conservative identity: possibly_same_as relation recorded; Referents not merged per §5.13"
+        )
+
     return MigrationResult(fixture_id, "mtsf", bundle, rules, loss_report, reversible=True)
 
 
@@ -1230,10 +1322,27 @@ def _analogy_identity_violations(rules: Sequence[MappingRule]) -> List[str]:
     return violations
 
 
+def _referent_collapse_violations(rules: Sequence[MappingRule]) -> List[str]:
+    """Reject merging distinct source entities into one Referent without explicit collapse."""
+    referent_targets: Dict[str, List[str]] = {}
+    for rule in rules:
+        if rule.target_record_kind != "referent" or rule.source_type != "IdeaEntity":
+            continue
+        referent_targets.setdefault(rule.target_id, []).append(rule.source_id)
+    violations: List[str] = []
+    for target_id, source_ids in referent_targets.items():
+        if len(source_ids) > 1:
+            violations.append(
+                f"distinct MTSF IdeaEntity records {source_ids} collapsed into referent `{target_id}`"
+            )
+    return violations
+
+
 def validate_migration_result(result: MigrationResult) -> List[str]:
     """Validate migrated kernel bundle and Gate F1 invariants."""
     errors = list(validate_fixture_bundle(result.kernel_bundle))
     errors.extend(_analogy_identity_violations(result.mapping_rules))
+    errors.extend(_referent_collapse_violations(result.mapping_rules))
     errors.extend(
         f"state `{state_id}` lacks StateCommitment"
         for state_id in _states_without_commitment(result.kernel_bundle)

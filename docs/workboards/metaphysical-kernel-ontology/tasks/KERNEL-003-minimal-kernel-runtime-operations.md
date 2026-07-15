@@ -1,6 +1,6 @@
 # KERNEL-003-minimal-kernel-runtime-operations: Implement minimal kernel runtime operations
 
-Status: backlog
+Status: done
 Owner: unassigned
 Current gate: not_required
 

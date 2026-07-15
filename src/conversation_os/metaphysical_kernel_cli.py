@@ -207,6 +207,7 @@ def foundation_consumer(root: Path, args: argparse.Namespace) -> Dict[str, Any]:
 
 MIGRATION_FIXTURE_PATHS = [
     "tests/fixtures/migration/mtsf_minimal_assertion.json",
+    "tests/fixtures/migration/mtsf_uncertain_identity.json",
     "tests/fixtures/migration/thoughtshape_stateclaim_hold.json",
     "tests/fixtures/migration/sds_signal_dilution.json",
     "tests/fixtures/migration/conversation_os_minimal_session.json",
@@ -217,6 +218,8 @@ ADVERSARIAL_STATE_FIXTURE_PATHS = [
     "tests/fixtures/metaphysical_kernel/invalid_state_scope_membership_mismatch.json",
     "tests/fixtures/metaphysical_kernel/invalid_state_missing_commitment_link.json",
     "tests/fixtures/metaphysical_kernel/invalid_state_unknown_source_claim.json",
+    "tests/fixtures/metaphysical_kernel/invalid_provenance_no_source.json",
+    "tests/fixtures/metaphysical_kernel/invalid_lifecycle_axis_collapse.json",
 ]
 
 FOUNDATION_TASK_IDS = [
