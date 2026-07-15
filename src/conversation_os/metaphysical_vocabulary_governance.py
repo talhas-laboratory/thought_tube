@@ -41,6 +41,14 @@ class DisjointTypeViolationError(VocabularyGovernanceError):
     pass
 
 
+class DestructiveEditForbiddenError(VocabularyGovernanceError):
+    pass
+
+
+class BranchLocalCoercionForbiddenError(VocabularyGovernanceError):
+    pass
+
+
 @dataclass
 class VocabularyLevelClassification:
     level: int
@@ -221,6 +229,192 @@ class LookupResult:
             "raw_expression": self.raw_expression.to_dict() if self.raw_expression else None,
             "canonical_view_label": self.canonical_view_label,
             "abstention_required": self.abstention_required,
+            "provenance_id": self.provenance_id,
+        }
+
+
+@dataclass
+class PromotionRubric:
+    stable_usage: bool = False
+    clear_definition: bool = False
+    distinct_identity: bool = False
+    demonstrated_reuse: bool = False
+    compatibility_with_existing_terms: bool = False
+    assigned_steward: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "stable_usage": self.stable_usage,
+            "clear_definition": self.clear_definition,
+            "distinct_identity": self.distinct_identity,
+            "demonstrated_reuse": self.demonstrated_reuse,
+            "compatibility_with_existing_terms": self.compatibility_with_existing_terms,
+            "assigned_steward": self.assigned_steward,
+        }
+
+
+@dataclass
+class PromotionRecord:
+    id: str
+    source_term: str
+    source_level: str
+    target_level: str
+    target_term: str = ""
+    rubric: PromotionRubric = field(default_factory=PromotionRubric)
+    review_outcome: str = "pending"
+    decline_reason: str = ""
+    steward: str = ""
+    branch_context: str = ""
+    governance_status: str = "local"
+    epistemic_status: str = "candidate"
+    provenance_id: str = ""
+    prior_source_level: str = ""
+    affected_records: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "source_term": self.source_term,
+            "source_level": self.source_level,
+            "target_level": self.target_level,
+            "target_term": self.target_term,
+            "rubric": self.rubric.to_dict(),
+            "review_outcome": self.review_outcome,
+            "decline_reason": self.decline_reason,
+            "steward": self.steward,
+            "branch_context": self.branch_context,
+            "governance_status": self.governance_status,
+            "epistemic_status": self.epistemic_status,
+            "provenance_id": self.provenance_id,
+            "prior_source_level": self.prior_source_level,
+            "affected_records": list(self.affected_records),
+        }
+
+
+@dataclass
+class PromotionReviewResult:
+    promotion_status: str
+    source_term_still_addressable: bool = True
+    prior_level_retained_in_provenance: bool = True
+    local_term_usable: bool = True
+    not_invalidated: bool = True
+    exposed_as_global: bool = False
+    governance_status: str = ""
+    epistemic_status_unchanged: str = ""
+    provenance_id: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "promotion_status": self.promotion_status,
+            "source_term_still_addressable": self.source_term_still_addressable,
+            "prior_level_retained_in_provenance": self.prior_level_retained_in_provenance,
+            "local_term_usable": self.local_term_usable,
+            "not_invalidated": self.not_invalidated,
+            "exposed_as_global": self.exposed_as_global,
+            "governance_status": self.governance_status,
+            "epistemic_status_unchanged": self.epistemic_status_unchanged,
+            "provenance_id": self.provenance_id,
+        }
+
+
+@dataclass
+class PromotionPolicyStatus:
+    promotion_required: bool
+    local_vocabulary_usable: bool
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "promotion_required": self.promotion_required,
+            "local_vocabulary_usable": self.local_vocabulary_usable,
+        }
+
+
+@dataclass
+class DeprecationRecord:
+    id: str
+    deprecated_term: str
+    replacement_term: str = ""
+    effective_scope: str = ""
+    migration_plan: str = ""
+    reversible: bool = True
+    provenance_id: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "deprecated_term": self.deprecated_term,
+            "replacement_term": self.replacement_term,
+            "effective_scope": self.effective_scope,
+            "migration_plan": self.migration_plan,
+            "reversible": self.reversible,
+            "provenance_id": self.provenance_id,
+        }
+
+
+@dataclass
+class EvolutionMigrationReport:
+    id: str
+    prior_definition: str
+    new_definition: str
+    compatibility_class: str = "additive"
+    affected_records: List[str] = field(default_factory=list)
+    migration_plan: str = ""
+    reversible: bool = True
+    semantic_loss_warnings: List[str] = field(default_factory=list)
+    stale_dependents: List[str] = field(default_factory=list)
+    steward: str = ""
+    review_decision: str = "pending"
+    provenance_id: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "prior_definition": self.prior_definition,
+            "new_definition": self.new_definition,
+            "compatibility_class": self.compatibility_class,
+            "affected_records": list(self.affected_records),
+            "migration_plan": self.migration_plan,
+            "reversible": self.reversible,
+            "semantic_loss_warnings": list(self.semantic_loss_warnings),
+            "stale_dependents": list(self.stale_dependents),
+            "steward": self.steward,
+            "review_decision": self.review_decision,
+            "provenance_id": self.provenance_id,
+        }
+
+
+@dataclass
+class EvolutionValidationResult:
+    validation_result: str
+    prior_definition_addressable: bool = True
+    stale_dependents_listed: bool = False
+    reversible: bool = True
+    semantic_loss_warnings_nonempty: bool = False
+    error_code: str = ""
+    provenance_id: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "validation_result": self.validation_result,
+            "prior_definition_addressable": self.prior_definition_addressable,
+            "stale_dependents_listed": self.stale_dependents_listed,
+            "reversible": self.reversible,
+            "semantic_loss_warnings_nonempty": self.semantic_loss_warnings_nonempty,
+            "error_code": self.error_code,
+            "provenance_id": self.provenance_id,
+        }
+
+
+@dataclass
+class EvolutionReversalResult:
+    reversal_recorded: bool
+    restored_definition_addressable: bool
+    provenance_id: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "reversal_recorded": self.reversal_recorded,
+            "restored_definition_addressable": self.restored_definition_addressable,
             "provenance_id": self.provenance_id,
         }
 
@@ -504,6 +698,159 @@ def lookup_with_mapping(
     )
 
 
+def _rubric_from_proposal(proposal: Mapping[str, Any]) -> PromotionRubric:
+    return PromotionRubric(
+        stable_usage=bool(proposal.get("stable_usage", False)),
+        clear_definition=bool(proposal.get("clear_definition", False)),
+        distinct_identity=bool(proposal.get("distinct_identity", False)),
+        demonstrated_reuse=bool(proposal.get("demonstrated_reuse", False)),
+        compatibility_with_existing_terms=bool(proposal.get("compatibility", proposal.get("compatibility_with_existing_terms", False))),
+        assigned_steward=bool(proposal.get("steward")),
+    )
+
+
+def _rubric_satisfied(rubric: PromotionRubric) -> bool:
+    return all(
+        (
+            rubric.stable_usage,
+            rubric.clear_definition,
+            rubric.distinct_identity,
+            rubric.demonstrated_reuse,
+            rubric.compatibility_with_existing_terms,
+            rubric.assigned_steward,
+        )
+    )
+
+
+def propose_promotion(proposal: Mapping[str, Any]) -> PromotionRecord:
+    """Create a pending promotion record with rubric fields (§8.2)."""
+    source_level = str(proposal.get("source_level", "workspace"))
+    return PromotionRecord(
+        id=str(proposal.get("id", make_id("promo"))),
+        source_term=str(proposal.get("source_term", "")),
+        source_level=source_level,
+        target_level=str(proposal.get("target_level", "governed_shared")),
+        target_term=str(proposal.get("target_term", "")),
+        rubric=_rubric_from_proposal(proposal),
+        review_outcome="pending",
+        steward=str(proposal.get("steward", "")),
+        branch_context=str(proposal.get("branch_context", "")),
+        governance_status=str(proposal.get("governance_status", "local")),
+        epistemic_status=str(proposal.get("epistemic_status", "candidate")),
+        provenance_id=make_id("prov"),
+        prior_source_level=source_level,
+    )
+
+
+def review_promotion(proposal: Optional[Mapping[str, Any]]) -> PromotionReviewResult:
+    """Review promotion proposal; declined promotion leaves local term usable (§8.2)."""
+    if proposal is None:
+        return PromotionReviewResult(
+            promotion_status="not_applicable",
+            provenance_id=make_id("prov"),
+        )
+
+    explicit_outcome = str(proposal.get("review_outcome", ""))
+    decline_reason = str(proposal.get("decline_reason", ""))
+    branch_context = str(proposal.get("branch_context", ""))
+    source_level = str(proposal.get("source_level", ""))
+
+    if decline_reason == "branch_local_coercion_forbidden" or (
+        branch_context and source_level == "model_local" and explicit_outcome == "declined"
+    ):
+        return PromotionReviewResult(
+            promotion_status="declined",
+            local_term_usable=True,
+            not_invalidated=True,
+            exposed_as_global=False,
+            provenance_id=make_id("prov"),
+        )
+
+    if explicit_outcome == "declined":
+        return PromotionReviewResult(
+            promotion_status="declined",
+            local_term_usable=True,
+            not_invalidated=True,
+            provenance_id=make_id("prov"),
+        )
+
+    rubric = _rubric_from_proposal(proposal)
+    governance_only_approval = bool(proposal.get("governance_status")) and "epistemic_status" in proposal
+    approved = explicit_outcome == "approved" and (_rubric_satisfied(rubric) or governance_only_approval)
+
+    if approved:
+        governance_status = str(proposal.get("governance_status", "approved_for_scope"))
+        epistemic = str(proposal.get("epistemic_status", "candidate"))
+        return PromotionReviewResult(
+            promotion_status="approved",
+            source_term_still_addressable=True,
+            prior_level_retained_in_provenance=True,
+            governance_status=governance_status,
+            epistemic_status_unchanged=epistemic,
+            provenance_id=make_id("prov"),
+        )
+
+    return PromotionReviewResult(
+        promotion_status="declined",
+        local_term_usable=True,
+        not_invalidated=True,
+        provenance_id=make_id("prov"),
+    )
+
+
+def assess_promotion_policy() -> PromotionPolicyStatus:
+    """Promotion is optional; local vocabulary remains usable without global approval (§8.2)."""
+    return PromotionPolicyStatus(promotion_required=False, local_vocabulary_usable=True)
+
+
+def record_deprecation(deprecation: Mapping[str, Any]) -> DeprecationRecord:
+    """Record deprecation with explicit migration plan (§8.6)."""
+    return DeprecationRecord(
+        id=str(deprecation.get("id", make_id("depr"))),
+        deprecated_term=str(deprecation.get("deprecated_term", "")),
+        replacement_term=str(deprecation.get("replacement_term", "")),
+        effective_scope=str(deprecation.get("effective_scope", "")),
+        migration_plan=str(deprecation.get("migration_plan", "")),
+        reversible=bool(deprecation.get("reversible", True)),
+        provenance_id=make_id("prov"),
+    )
+
+
+def publish_evolution_report(report: Mapping[str, Any]) -> EvolutionValidationResult:
+    """Publish versioned evolution report; reject destructive in-place edits (§8.6)."""
+    if report.get("destructive_in_place"):
+        return EvolutionValidationResult(
+            validation_result="invalid",
+            error_code="destructive_edit_forbidden",
+            provenance_id=make_id("prov"),
+        )
+
+    prior = str(report.get("prior_definition", ""))
+    new = str(report.get("new_definition", ""))
+    stale = list(report.get("stale_dependents", []) or [])
+    warnings = list(report.get("semantic_loss_warnings", []) or [])
+    reversible = bool(report.get("reversible", True))
+
+    return EvolutionValidationResult(
+        validation_result="valid",
+        prior_definition_addressable=bool(prior),
+        stale_dependents_listed=bool(stale),
+        reversible=reversible,
+        semantic_loss_warnings_nonempty=bool(warnings),
+        provenance_id=make_id("prov"),
+    )
+
+
+def record_evolution_reversal(reversal: Mapping[str, Any]) -> EvolutionReversalResult:
+    """Record reversible rollback to a prior definition version (§8.6)."""
+    restored = str(reversal.get("restored_definition", ""))
+    return EvolutionReversalResult(
+        reversal_recorded=bool(reversal.get("original_report_id")),
+        restored_definition_addressable=bool(restored),
+        provenance_id=make_id("prov"),
+    )
+
+
 __all__ = [
     "MODULE_ID",
     "VOCAB_CONTRACT_VERSION",
@@ -514,6 +861,8 @@ __all__ = [
     "VocabularyGovernanceError",
     "KernelRedefinitionForbiddenError",
     "DisjointTypeViolationError",
+    "DestructiveEditForbiddenError",
+    "BranchLocalCoercionForbiddenError",
     "VocabularyLevelClassification",
     "RawExpression",
     "VocabularyEntry",
@@ -522,6 +871,14 @@ __all__ = [
     "BranchMappingSeparationResult",
     "TypeExtensionValidationResult",
     "LookupResult",
+    "PromotionRubric",
+    "PromotionRecord",
+    "PromotionReviewResult",
+    "PromotionPolicyStatus",
+    "DeprecationRecord",
+    "EvolutionMigrationReport",
+    "EvolutionValidationResult",
+    "EvolutionReversalResult",
     "classify_vocabulary_level",
     "capture_raw_expression",
     "register_vocabulary_entry",
@@ -530,4 +887,10 @@ __all__ = [
     "assess_branch_mapping_separation",
     "validate_type_extension",
     "lookup_with_mapping",
+    "propose_promotion",
+    "review_promotion",
+    "assess_promotion_policy",
+    "record_deprecation",
+    "publish_evolution_report",
+    "record_evolution_reversal",
 ]

@@ -1,0 +1,93 @@
+{
+  "schema": "vocab_evolution_outcome_table_v1.0.0",
+  "framework_section": "§8.6",
+  "contract_version": "1.0.0",
+  "description": "Ontology evolution and deprecation with versioned, reversible, impact-aware changes.",
+  "cases": [
+    {
+      "case_id": "evo-001",
+      "description": "Version change retains prior definition and lists stale dependents",
+      "report": {
+        "prior_definition": "workspace:trust_metric@v1",
+        "new_definition": "workspace:trust_metric@v2",
+        "compatibility_class": "additive",
+        "affected_records": ["entry_trust_001", "entry_trust_002"],
+        "migration_plan": "alias v1 to v2 in scope_project_x",
+        "reversible": true,
+        "semantic_loss_warnings": [],
+        "stale_dependents": ["shape_sig_trust_001"],
+        "steward": "steward:ontology_team",
+        "review_decision": "approved"
+      },
+      "expected": {
+        "prior_definition_addressable": true,
+        "stale_dependents_listed": true,
+        "reversible": true
+      }
+    },
+    {
+      "case_id": "evo-002",
+      "description": "Deprecation with explicit migration plan",
+      "deprecation": {
+        "deprecated_term": "workspace:legacy_metric",
+        "replacement_term": "workspace:trust_metric@v2",
+        "effective_scope": "scope_project_x",
+        "migration_plan": "map legacy references through term_mapping records",
+        "reversible": true
+      },
+      "expected": {
+        "deprecated_term_preserved": true,
+        "migration_explicit": true,
+        "reversible": true
+      }
+    },
+    {
+      "case_id": "evo-003",
+      "description": "Destructive in-place edit rejected",
+      "report": {
+        "prior_definition": "shared:meaning_deficit@v1",
+        "new_definition": "shared:meaning_deficit@v1",
+        "destructive_in_place": true,
+        "review_decision": "rejected"
+      },
+      "expected": {
+        "validation_result": "invalid",
+        "error_code": "destructive_edit_forbidden"
+      }
+    },
+    {
+      "case_id": "evo-004",
+      "description": "Semantic loss warning surfaced on breaking change",
+      "report": {
+        "prior_definition": "workspace:stress@v1",
+        "new_definition": "workspace:pressure@v2",
+        "compatibility_class": "breaking",
+        "affected_records": ["cl_stress_ref_001"],
+        "migration_plan": "manual steward review required",
+        "reversible": false,
+        "semantic_loss_warnings": ["definition_narrowed"],
+        "stale_dependents": ["compiled_model_017"],
+        "steward": "steward:ontology_team",
+        "review_decision": "approved_with_warnings"
+      },
+      "expected": {
+        "semantic_loss_warnings_nonempty": true,
+        "reversible": false,
+        "stale_dependents_listed": true
+      }
+    },
+    {
+      "case_id": "evo-005",
+      "description": "Reversal record references prior evolution report",
+      "reversal": {
+        "original_report_id": "evo_report_001",
+        "restored_definition": "workspace:trust_metric@v1",
+        "reversal_reason": "steward rollback after compatibility review"
+      },
+      "expected": {
+        "reversal_recorded": true,
+        "restored_definition_addressable": true
+      }
+    }
+  ]
+}

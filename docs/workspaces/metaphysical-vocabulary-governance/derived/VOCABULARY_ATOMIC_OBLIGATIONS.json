@@ -96,6 +96,11 @@
       "operation": "VocabularyLevel",
       "fixture_file": "tests/fixtures/metaphysical_vocabulary/level_classification_outcome_table.json",
       "case_count": 5
+    },
+    {
+      "operation": "EvolutionMigrationReport",
+      "fixture_file": "tests/fixtures/metaphysical_vocabulary/evolution_outcome_table.json",
+      "case_count": 5
     }
   ]
 }
