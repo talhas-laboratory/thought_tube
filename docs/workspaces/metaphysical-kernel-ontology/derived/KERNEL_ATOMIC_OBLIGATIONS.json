@@ -148,7 +148,7 @@
       "tests_fixtures": ["tests.test_metaphysical_kernel_contracts::test_valid_minimal_capture_fixture"],
       "downstream_consumers": ["metaphysical-shape-addressing"],
       "completion_state": "phase1_minimal",
-      "unresolved_question": "IdentityPolicy record shape and uncertain-identity relation tests are not yet specified (§5.13)."
+      "unresolved_question": "IdentityPolicy record shape addressed by KERNEL-002/003 uncertain-identity path; full policy record deferred."
     },
     {
       "obligation_id": "KERNEL-5.3-SCOPE-BOUNDARY",
@@ -322,7 +322,10 @@
       "owner_module": "src/conversation_os/metaphysical_kernel_contracts.py",
       "public_contract_version": "1.1.0",
       "migration_impact": "additive",
-      "tests_fixtures": [],
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/invalid_maturity_transition.json",
+        "tests.test_kernel_conformance_suite::test_gap_fixtures_document_known_limits"
+      ],
       "downstream_consumers": ["metaphysical-vocabulary-governance"],
       "completion_state": "gap",
       "unresolved_question": "Publish transition matrix and promotion/deprecation propagation in KERNEL-003 or KERNEL-004."
@@ -374,7 +377,10 @@
       "owner_module": "src/conversation_os/metaphysical_kernel_runtime.py",
       "public_contract_version": "1.1.0",
       "migration_impact": "additive",
-      "tests_fixtures": [],
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/commitment_revocation_staleness.json",
+        "tests.test_kernel_conformance_suite::test_gap_fixtures_document_known_limits"
+      ],
       "downstream_consumers": ["metaphysical-shape-addressing", "metaphysical-transformation-dynamics"],
       "completion_state": "gap",
       "unresolved_question": "Define staleness signals in KERNEL-005 dependency contract or a parent decision."

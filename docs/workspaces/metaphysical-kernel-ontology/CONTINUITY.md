@@ -33,6 +33,8 @@ Select a task to receive a recommended next action.
 - foundation-review
 - kernel-conformance-suite
 - foundation-review
+- kernel-conformance-suite
+- foundation-review
 - kernel-runtime-tests
 - migrate-fixture-uncertain-identity
 - foundation-review
