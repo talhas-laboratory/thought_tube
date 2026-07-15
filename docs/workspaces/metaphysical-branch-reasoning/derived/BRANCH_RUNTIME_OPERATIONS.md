@@ -1,9 +1,9 @@
 # Branch Runtime Operations — BRANCH-004
 
-**Task:** `BRANCH-004-adversarial-branch-conformance` (conformance evidence)  
+**Task:** `BRANCH-004-adversarial-branch-conformance` (conformance evidence)
 **Owner module:** `src/conversation_os/metaphysical_branch_reasoning.py`  
 **Contract:** [`BRANCH_PUBLIC_CONTRACT_LOCK.md`](./BRANCH_PUBLIC_CONTRACT_LOCK.md) v1.0.0  
-**Kernel consumed:** `1.1.0`  
+**Kernel consumed:** `1.1.0`
 **Conformance:** [`BRANCH_CONFORMANCE_COVERAGE.md`](./BRANCH_CONFORMANCE_COVERAGE.md)
 
 ## Implemented operations (Phase 1)
