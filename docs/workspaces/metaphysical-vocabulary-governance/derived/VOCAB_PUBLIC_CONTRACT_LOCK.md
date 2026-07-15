@@ -1,10 +1,10 @@
 # Vocabulary Governance — Public Contract Lock v1.0.0
 
-**Task:** `VOCAB-001-atomic-obligation-and-governance-lock`  
-**Workspace:** `metaphysical-vocabulary-governance`  
-**Authority:** [Framework v1.1](../../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) §8, §6.10, §22, §27.15  
-**Kernel contract consumed:** [`KERNEL_PUBLIC_CONTRACT_LOCK.md`](../../metaphysical-kernel-ontology/derived/KERNEL_PUBLIC_CONTRACT_LOCK.md) `CONTRACT_VERSION=1.1.0`  
-**Branch contract consumed:** [`BRANCH_PUBLIC_CONTRACT_LOCK.md`](../../metaphysical-branch-reasoning/derived/BRANCH_PUBLIC_CONTRACT_LOCK.md) `BRANCH_CONTRACT_VERSION=1.0.0`  
+**Task:** `VOCAB-001-atomic-obligation-and-governance-lock`
+**Workspace:** `metaphysical-vocabulary-governance`
+**Authority:** [Framework v1.1](../../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) §8, §6.10, §22, §27.15
+**Kernel contract consumed:** [`KERNEL_PUBLIC_CONTRACT_LOCK.md`](../../metaphysical-kernel-ontology/derived/KERNEL_PUBLIC_CONTRACT_LOCK.md) `CONTRACT_VERSION=1.1.0`
+**Branch contract consumed:** [`BRANCH_PUBLIC_CONTRACT_LOCK.md`](../../metaphysical-branch-reasoning/derived/BRANCH_PUBLIC_CONTRACT_LOCK.md) `BRANCH_CONTRACT_VERSION=1.0.0`
 **Obligation register:** [`VOCABULARY_OBLIGATION_REGISTER.md`](./VOCABULARY_OBLIGATION_REGISTER.md)
 
 This document locks the **public vocabulary governance contract boundary** after VOCAB-001. Downstream programs (profiles, Conversation/Formation, Shape, Pattern, Agent) may depend on the version, record kinds, mapping semantics, promotion rubric, invariants, and explicit deferrals named here. They must not embed private normalization or identity-collapse logic.

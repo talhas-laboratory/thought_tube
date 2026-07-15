@@ -1,0 +1,279 @@
+{
+  "schema_version": "1.0",
+  "task_id": "KERNEL-004-kernel-conformance-suite",
+  "public_contract_version": "1.1.0",
+  "suite_modules": [
+    "tests.test_kernel_atomic_obligations",
+    "tests.test_kernel_conformance_suite",
+    "tests.test_metaphysical_kernel_contracts",
+    "tests.test_metaphysical_kernel_migration",
+    "tests.test_metaphysical_kernel_runtime",
+    "tests.test_metaphysical_kernel_profile_registry",
+    "tests.test_metaphysical_kernel_application_sdk"
+  ],
+  "rejected_kernel_fixtures": [
+    "invalid_claim_without_membership.json",
+    "invalid_state_branch_membership_mismatch.json",
+    "invalid_state_scope_membership_mismatch.json",
+    "invalid_state_missing_commitment_link.json",
+    "invalid_state_unknown_source_claim.json",
+    "invalid_state_without_commitment.json",
+    "invalid_profile_redefines_kernel.json",
+    "invalid_provenance_no_source.json",
+    "invalid_lifecycle_axis_collapse.json"
+  ],
+  "gap_kernel_fixtures": {
+    "KERNEL-22-LIFECYCLE-TRANSITIONS": "invalid_maturity_transition.json",
+    "KERNEL-5.16-STALENESS-PROPAGATION": "commitment_revocation_staleness.json"
+  },
+  "obligations": [
+    {
+      "obligation_id": "KERNEL-4.1-ENVELOPE-REQUIRED-FIELDS",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/valid_minimal_capture.json",
+        "tests.test_metaphysical_kernel_contracts::test_valid_minimal_capture_fixture"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-4.1-NO-UNIVERSAL-BRANCH-ID",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "FORBIDDEN_KERNEL_REDEFINITIONS.universal_branch_id"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-4.2-TWELVE-CONCEPT-ACCOUNTING",
+      "completion_state": "phase1_minimal",
+      "tests_fixtures": [
+        "docs/workspaces/metaphysical-kernel-ontology/derived/KERNEL_ATOMIC_OBLIGATIONS.json"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-4.3-PROFILE-NO-REDEFINE",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/invalid_profile_redefines_claim_as_state.json",
+        "tests.test_metaphysical_kernel_profile_registry"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.1-SOURCE-PRESERVATION",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/valid_minimal_capture.json"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.2-REFERENT-IDENTITY",
+      "completion_state": "phase1_minimal",
+      "tests_fixtures": [
+        "tests.test_metaphysical_kernel_contracts::test_valid_minimal_capture_fixture"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.3-SCOPE-BOUNDARY",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "validate_scope"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.4-STATE-DISTINCT-FROM-CLAIM",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "FORBIDDEN_KERNEL_REDEFINITIONS.claim_is_state",
+        "tests/fixtures/metaphysical_kernel/invalid_claim_as_state_profile.json"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.6-RELATION-PARTICIPANTS",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "validate_relation_instance"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.7-CLAIM-BRANCH-SCOPE",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/valid_minimal_capture.json"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.10-PROVENANCE-CLOSURE",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "foundation_review vertical_slice provenance_complete"
+      ],
+      "adversarial_fixtures": [
+        "invalid_provenance_no_source.json"
+      ],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.11-MODEL-BRANCH",
+      "completion_state": "phase1_minimal",
+      "tests_fixtures": [
+        "validate_model_branch"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.15-BRANCH-MEMBERSHIP",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/invalid_state_branch_membership_mismatch.json"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.16-STATE-COMMITMENT",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests/fixtures/metaphysical_kernel/valid_state_commitment_path.json",
+        "foundation_review state_adoption"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-6.1-INVARIANT-CLAIM-STATE-SEPARATION",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "FORBIDDEN_KERNEL_REDEFINITIONS"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-6.11-COMMITMENT-LINKAGE",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "foundation_review state_adoption_rejected_without_write"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-6.12-PROFILE-CONFORMANCE",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests.test_metaphysical_kernel_profile_registry"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-22.1-LIFECYCLE-ORTHOGONALITY",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests.test_metaphysical_kernel_contracts::test_lifecycle_axes_must_remain_orthogonal"
+      ],
+      "adversarial_fixtures": [
+        "invalid_lifecycle_axis_collapse.json"
+      ],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-22-LIFECYCLE-TRANSITIONS",
+      "completion_state": "gap",
+      "tests_fixtures": [],
+      "adversarial_fixtures": [],
+      "gap_fixture": "invalid_maturity_transition.json",
+      "adversarial_reject_expected": false,
+      "residual_owner": "Publish transition matrix and promotion/deprecation propagation in KERNEL-003 or KERNEL-004."
+    },
+    {
+      "obligation_id": "KERNEL-23-SINGLE-LOGICAL-SYSTEM",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "foundation_review"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-25-MINIMAL-SCHEMAS",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "KERNEL_ATOMIC_OBLIGATIONS phase1_boundary"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-29-PHASE1-MINIMALITY",
+      "completion_state": "verified",
+      "tests_fixtures": [
+        "tests.test_kernel_atomic_obligations"
+      ],
+      "adversarial_fixtures": [],
+      "gap_fixture": "",
+      "adversarial_reject_expected": true
+    },
+    {
+      "obligation_id": "KERNEL-5.16-STALENESS-PROPAGATION",
+      "completion_state": "gap",
+      "tests_fixtures": [],
+      "adversarial_fixtures": [],
+      "gap_fixture": "commitment_revocation_staleness.json",
+      "adversarial_reject_expected": false,
+      "residual_owner": "Define staleness signals in KERNEL-005 dependency contract or a parent decision."
+    }
+  ],
+  "residual_risks": [
+    {
+      "obligation_id": "KERNEL-22-LIFECYCLE-TRANSITIONS",
+      "owner": "KERNEL-005 dependency contract",
+      "summary": "Transition policy not enforced; gap fixture records scenario only."
+    },
+    {
+      "obligation_id": "KERNEL-5.16-STALENESS-PROPAGATION",
+      "owner": "KERNEL-005 dependency contract",
+      "summary": "Staleness signals for dependent profile records not published."
+    }
+  ]
+}
