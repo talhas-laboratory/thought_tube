@@ -4,7 +4,7 @@
 **Consumer:** `metaphysical-vocabulary-governance`  
 **Status:** **Released** — Branch G5 (`BRANCH-005`)  
 **Provider contract version:** `1.0.0`  
-**Kernel consumed:** `1.1.0` (`4830b81fc6d2d78ea96743adad49bb254e98c7de`)  
+**Kernel consumed:** `1.1.0` (`512236d4b089d0a4d04821cca3d068a2d0a539f4`)
 **Release packet:** [`BRANCH_RELEASE_DEPENDENCY_CONTRACT.json`](./BRANCH_RELEASE_DEPENDENCY_CONTRACT.json)
 
 ## Provider supplies
