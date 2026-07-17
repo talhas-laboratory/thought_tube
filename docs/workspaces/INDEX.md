@@ -7,6 +7,7 @@ Git-tracked working spaces for long design threads. These are continuity project
 
 | Workspace ID | Status | Entry | Manifest |
 |--------------|--------|-------|----------|
+| `cognitive-aperture-exceptional` | Active — good→exceptional disclosure/aperture hardening | [`cognitive-aperture-exceptional/README.md`](./cognitive-aperture-exceptional/README.md) | [`manifest.json`](./cognitive-aperture-exceptional/manifest.json) |
 | `holodeck-productization` | Active — local-first product discovery | [`holodeck-productization/README.md`](./holodeck-productization/README.md) | [`manifest.json`](./holodeck-productization/manifest.json) |
 | `unified-framework-synthesis` | Active — canonical foundation and schema lock | [`unified-framework-synthesis/README.md`](./unified-framework-synthesis/README.md) | [`manifest.json`](./unified-framework-synthesis/manifest.json) |
 | `metaphysical-kernel-ontology` | Active — kernel contract lock | [`metaphysical-kernel-ontology/README.md`](./metaphysical-kernel-ontology/README.md) | [`manifest.json`](./metaphysical-kernel-ontology/manifest.json) |

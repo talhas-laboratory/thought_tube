@@ -1,0 +1,46 @@
+{
+  "workspace_id": "cognitive-aperture-exceptional",
+  "label": "Cognitive Aperture Exceptional",
+  "status": "active",
+  "maturation_stage": "contextualizing",
+  "goal": "Move the selective-disclosure / cognitive-aperture system from a good doctrinal sketch to an exceptional, measurable aperture engine.",
+  "purpose": "Coordinate research-backed hardening of orient → grant → evidence → receipt so foreign intelligence reliably enters the right neighborhood of a vast private Inner World.",
+  "success_condition": "One disclose kernel enforces fail-empty retrieval, real token budgets, distinct envelope modes, no suppression leak, and neighborhood hit-rate evals across bridge, Holodeck, feed, and agent handoff surfaces.",
+  "artifact_roots": [
+    "src/conversation_os/knowledge_layer.py",
+    "src/conversation_os/reasoning_bridge.py",
+    "src/conversation_os/chat_backends.py",
+    "src/conversation_os/models.py",
+    "src/conversation_os/routing.py",
+    "src/conversation_os/holodeck.py",
+    "src/conversation_os/metaphysical_kernel_runtime.py",
+    "docs/product/semantic-operating-layer/",
+    "docs/product-thesis/"
+  ],
+  "objectives": [
+    "Lock the orient → grant → evidence → receipt architecture as the disclosure spine.",
+    "Close fail-open retrieval, dead token budgets, and suppression-leak gaps.",
+    "Unify bridge, Holodeck, feed, and task-pack surfaces behind one disclose kernel.",
+    "Define and measure neighborhood hit-rate, distractor harm, and budget obedience.",
+    "Preserve provenance and reversibility while making aperture selection exceptional."
+  ],
+  "scope_out": [
+    "Hosted multi-tenant SaaS.",
+    "Activation-steering inside model weights as a v1 requirement.",
+    "Rebuilding metaphysical kernel ontology.",
+    "World Studio canon semantics redesign.",
+    "Treating Inner World ponds as literal LLM residual-stream subspaces."
+  ],
+  "domains": [
+    "product",
+    "structure",
+    "research",
+    "bridge"
+  ],
+  "holodeck_workspace_id": "cognitive-aperture-exceptional",
+  "workboard": "docs/workboards/cognitive-aperture-exceptional/README.md",
+  "continuity_projection": "docs/workspaces/cognitive-aperture-exceptional/CONTINUITY.md",
+  "semantic_authority": "docs/workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md",
+  "linked_session_ids": [],
+  "live_api_note": "Canonical live registration deferred while talhas-laboratory workspace API host is offline; local Holodeck created 2026-07-17."
+}
