@@ -21,3 +21,10 @@
 - Holodeck: `cognitive-aperture-exceptional`
 - Gap map: `derived/GAP_MAP.md`
 - ADR: `derived/ADR-001-orient-grant-evidence-receipt.md`
+- Agent neighborhood pack: `AGENT_BOOT.md`, `NEIGHBORHOOD.md`, `QUICKREF.md`
+- Task pack: `docs/task_packs/cognitive-aperture-agent-boot.md`
+- Continuity transcript: `docs/continuity/cursor-cognitive-aperture-exceptional-2026-07-17.md`
+
+## Agent entry rule
+
+Foreign agents start at `AGENT_BOOT.md` → `NEIGHBORHOOD.md`. Do not dump the gap map or framework paper first.

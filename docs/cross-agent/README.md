@@ -49,6 +49,7 @@ Optional local machine replay (gitignored):
 
 | Thread | Workspace | Task pack | Transcript |
 |--------|-----------|-----------|------------|
+| **Cognitive aperture exceptional** | [**AGENT_BOOT**](../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md) · [neighborhood](../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md) | Gap map authority | [thread capture](../continuity/cursor-cognitive-aperture-exceptional-2026-07-17.md) · PR [#32](https://github.com/talhas-laboratory/thought_tube/pull/32) |
 | **Unified framework synthesis** | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + 8 analyses](../workspaces/unified-framework-synthesis/) |
 | **Phase 1 foundation — close gaps (local agent)** | [**LOCAL-AGENT-BOOT**](../workboards/unified-metaphysical-foundation/LOCAL-AGENT-BOOT.md) | PR [#11](https://github.com/talhas-laboratory/thought_tube/pull/11) | `cursor/metaphysical-kernel-contracts-423a` |
 | **Phase 1 foundation — code review** | [REVIEWER-START](../workboards/unified-metaphysical-foundation/REVIEWER-START.md) | PR [#11](https://github.com/talhas-laboratory/thought_tube/pull/11) | `cursor/metaphysical-kernel-contracts-423a` |

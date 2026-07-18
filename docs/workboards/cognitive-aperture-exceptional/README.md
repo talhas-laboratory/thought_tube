@@ -1,8 +1,11 @@
 # Workboard — Cognitive Aperture Exceptional
 
 **Workspace:** `cognitive-aperture-exceptional`  
+**Agent entry:** [`../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md`](../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md)  
+**Neighborhood:** [`../../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md`](../../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md)  
 **Gap map:** [`../../workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md`](../../workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md)  
-**Protocol:** [`../../workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md)
+**Protocol:** [`../../workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md)  
+**Rules:** [`AGENTS.md`](./AGENTS.md)
 
 ## Rules
 

@@ -4,6 +4,17 @@ Workspace for hardening the selective-disclosure / cognitive-aperture system fro
 
 **Universal protocol:** [`docs/workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../WORKSPACE-AGENT-PROTOCOL.md)
 
+## Instant entry (any agent)
+
+| Order | Open | Role |
+|------:|------|------|
+| 1 | **[`AGENT_BOOT.md`](./AGENT_BOOT.md)** | Orientation — places you in the neighborhood |
+| 2 | **[`NEIGHBORHOOD.md`](./NEIGHBORHOOD.md)** | Landscape / grant — what is in vs out |
+| 3 | [`QUICKREF.md`](./QUICKREF.md) | Pocket card |
+| 4 | [`derived/GAP_MAP.md`](./derived/GAP_MAP.md) | Full plan (after boot) |
+
+If you only open one file: **`AGENT_BOOT.md`**.
+
 ## Authority split
 
 | Layer | Source |
@@ -13,13 +24,13 @@ Workspace for hardening the selective-disclosure / cognitive-aperture system fro
 | Local Holodeck | `cognitive-aperture-exceptional` (created 2026-07-17) |
 | Git truth | This folder + workboard projections |
 
-## Start here
+## Also useful
 
-1. [`derived/GAP_MAP.md`](./derived/GAP_MAP.md) — full good → exceptional gap map
-2. [`manifest.json`](./manifest.json)
-3. [`CONTINUITY.md`](./CONTINUITY.md)
-4. Workboard: [`docs/workboards/cognitive-aperture-exceptional/`](../../workboards/cognitive-aperture-exceptional/README.md)
-5. Guard note: [`derived/GUARD_JUSTIFICATION.json`](./derived/GUARD_JUSTIFICATION.json)
+- [`CONTINUITY.md`](./CONTINUITY.md) — next safe action
+- [`manifest.json`](./manifest.json)
+- Workboard: [`docs/workboards/cognitive-aperture-exceptional/`](../../workboards/cognitive-aperture-exceptional/README.md)
+- Guard note: [`derived/GUARD_JUSTIFICATION.json`](./derived/GUARD_JUSTIFICATION.json)
+- Thread capture: [`../../continuity/cursor-cognitive-aperture-exceptional-2026-07-17.md`](../../continuity/cursor-cognitive-aperture-exceptional-2026-07-17.md)
 
 ## Product claim this workspace serves
 
