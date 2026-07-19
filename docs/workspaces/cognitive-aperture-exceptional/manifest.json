@@ -19,10 +19,14 @@
     "src/conversation_os/runtime_pipeline.py",
     "src/conversation_os/shape_projection_reader.py",
     "src/conversation_os/disclosure_contracts.py",
+    "src/conversation_os/aperture_baseline_harness.py",
     "tests/test_conversation_os.py",
     "tests/test_shape_projection_reader.py",
     "tests/test_disclosure_contracts.py",
-    "tests/fixtures/disclosure_contracts/v1"
+    "tests/test_aperture_baseline_harness.py",
+    "tests/fixtures/disclosure_contracts/v1",
+    "tests/fixtures/aperture_baselines/v1",
+    "docs/workspaces/cognitive-aperture-exceptional/derived/baselines"
   ],
   "external_dependencies": [
     "library/runtime corpus readiness",

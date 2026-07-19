@@ -69,3 +69,10 @@ Bridge adopts first, Holodeck second. Feed and task packs follow only after conf
 **Authority:** ADR-001, ADR-002, design §5–11
 
 Disclosure contracts version `1.0` live in `src/conversation_os/disclosure_contracts.py`. Public types are `ApertureRequest`, `ActiveStateSnapshot`, `RequestedGrant`, `EffectiveGrant`, `CandidateRef`, `EvidenceBlock`, `ExecutionBundle`, and `AuditReceipt`, with explicit result statuses and envelope defaults. `normalize_effective_grant()` applies envelope defaults and deny precedence once; downstream modules consume only `EffectiveGrant`. `ExecutionBundle` validation rejects suppression fields at the type boundary; `AuditReceipt` owns omissions and enforces incognito retention (`hashes_metrics_only`, no sensitive text). Fixtures under `tests/fixtures/disclosure_contracts/v1/` cover every contract and result status.
+
+## D-011 — Pre-enforcement baseline harness (CAE-006A)
+
+**Status:** accepted
+**Authority:** GAP_MAP §7, CHAT_CONVERTER_SEED_CORPUS_V1
+
+`aperture_baseline_harness` version `1.0` lives in `src/conversation_os/aperture_baseline_harness.py`. Versioned probe fixtures under `tests/fixtures/aperture_baselines/v1/` and published results under `derived/baselines/chat_converter_seed_v1.{json,md}` record corpus revision `db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad`, approved Stage A thresholds, and the near-neighbour known failure (`biological cognition agent memory` → `understanding-the-nature-of-thought`). The harness maps probes to explicit disclosure result statuses and distinguishes pass, no_hits, known_failure, abstained, denied, and error verdicts before enforcement work begins.

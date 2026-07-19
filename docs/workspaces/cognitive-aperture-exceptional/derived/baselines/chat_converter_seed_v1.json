@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "chat_converter_seed_v1",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "recorded_at": "2026-07-19T00:00:00+00:00",
+  "harness_version": "1.0",
+  "thresholds": {
+    "positive_recall_at_1": 0.8,
+    "negative_false_open_rate": 0.0,
+    "latency_ms_p50": 250,
+    "latency_ms_p95": 750,
+    "max_bytes_resolved": 65536
+  },
+  "summary": {
+    "probe_count": 6,
+    "pass_count": 5,
+    "known_failure_count": 1,
+    "retrieval_certified": false
+  },
+  "observed_results": [
+    {
+      "probe_id": "exact-hybrid-rag-file",
+      "verdict": "pass",
+      "result_status": "disclosed",
+      "top_source_slug": "agentic-hybrid-rag-for-information-extraction"
+    },
+    {
+      "probe_id": "retrieval-information-extraction-query",
+      "verdict": "pass",
+      "result_status": "disclosed",
+      "top_source_slug": "agentic-hybrid-rag-for-information-extraction"
+    },
+    {
+      "probe_id": "semantic-context-embedding-query",
+      "verdict": "pass",
+      "result_status": "disclosed",
+      "top_source_slug": "context-in-embedding-spaces"
+    },
+    {
+      "probe_id": "out-of-domain-quantum-gardening",
+      "verdict": "no_hits",
+      "result_status": "empty_no_positive_match",
+      "top_source_slug": ""
+    },
+    {
+      "probe_id": "structural-agent-memory-lexical",
+      "verdict": "pass",
+      "result_status": "disclosed",
+      "top_source_slug": "mapping-the-mind-for-agentic-systems"
+    },
+    {
+      "probe_id": "near-neighbour-agent-memory",
+      "verdict": "known_failure",
+      "result_status": "disclosed",
+      "expected_top_source_slug": "mapping-the-mind-for-agentic-systems",
+      "observed_top_source_slug": "understanding-the-nature-of-thought",
+      "notes": "Preserve as distractor/near-neighbour regression for CAE-006B"
+    }
+  ]
+}

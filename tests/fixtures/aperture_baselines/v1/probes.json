@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "chat_converter_seed_v1",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "thresholds": {
+    "positive_recall_at_1": 0.8,
+    "negative_false_open_rate": 0.0,
+    "latency_ms_p50": 250,
+    "latency_ms_p95": 750,
+    "max_bytes_resolved": 65536
+  },
+  "probes": [
+    {
+      "probe_id": "exact-hybrid-rag-file",
+      "category": "positive",
+      "query": "agentic-hybrid-rag-for-information-extraction",
+      "expected_top_source_slug": "agentic-hybrid-rag-for-information-extraction",
+      "expected_verdict": "pass",
+      "expected_result_status": "disclosed"
+    },
+    {
+      "probe_id": "retrieval-information-extraction-query",
+      "category": "positive",
+      "query": "hybrid retrieval information extraction graph traversal",
+      "expected_top_source_slug": "agentic-hybrid-rag-for-information-extraction",
+      "expected_verdict": "pass",
+      "expected_result_status": "disclosed"
+    },
+    {
+      "probe_id": "semantic-context-embedding-query",
+      "category": "positive",
+      "query": "semantic context embedding space residual stream",
+      "expected_top_source_slug": "context-in-embedding-spaces",
+      "expected_verdict": "pass",
+      "expected_result_status": "disclosed"
+    },
+    {
+      "probe_id": "out-of-domain-quantum-gardening",
+      "category": "negative",
+      "query": "quantum gardening extraterrestrial crops hydroponics",
+      "expected_verdict": "no_hits",
+      "expected_result_status": "empty_no_positive_match"
+    },
+    {
+      "probe_id": "structural-agent-memory-lexical",
+      "category": "positive",
+      "query": "recursive self-model agent memory mapping mind",
+      "expected_top_source_slug": "mapping-the-mind-for-agentic-systems",
+      "expected_verdict": "pass",
+      "expected_result_status": "disclosed"
+    },
+    {
+      "probe_id": "near-neighbour-agent-memory",
+      "category": "distractor",
+      "query": "biological cognition agent memory",
+      "expected_top_source_slug": "mapping-the-mind-for-agentic-systems",
+      "observed_top_source_slug": "understanding-the-nature-of-thought",
+      "expected_verdict": "known_failure",
+      "expected_result_status": "disclosed",
+      "notes": "Near-neighbour regression preserved for CAE-006B"
+    },
+    {
+      "probe_id": "privacy-denied-visibility",
+      "category": "privacy",
+      "query": "semantic context infrastructure",
+      "simulate_denial": true,
+      "forced_result_status": "denied_visibility",
+      "expected_verdict": "denied",
+      "search_mode": "skip"
+    },
+    {
+      "probe_id": "readiness-stale-index",
+      "category": "readiness",
+      "query": "thought tube overview",
+      "ignore_catalog_readiness": false,
+      "forced_result_status": "abstained_stale_index",
+      "expected_verdict": "abstained",
+      "search_mode": "skip",
+      "simulate_stale_catalog": true
+    },
+    {
+      "probe_id": "internal-failure",
+      "category": "readiness",
+      "query": "framework discussion",
+      "simulate_catalog_error": "catalog probe failure",
+      "expected_verdict": "error",
+      "expected_result_status": "failed_internal",
+      "search_mode": "skip"
+    }
+  ]
+}
