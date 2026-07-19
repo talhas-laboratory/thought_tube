@@ -1,19 +1,15 @@
-# Tasks — Cognitive Aperture Exceptional
+# Tasks
 
-Seed index. When live API is available, create these as live tasks and sync projections. Until then, treat as planning seeds (not live status authority).
+| id | status | owner | title | gate |
+|---|---|---|---|---|
+| `CAE-000` | backlog | unassigned | Lock ADR and contracts | not_required |
+| `CAE-001` | backlog | unassigned | Fail-empty retrieval | not_required |
+| `CAE-002` | backlog | unassigned | Remove suppression leak | not_required |
+| `CAE-003` | backlog | unassigned | Enforce token_budget and envelope matrix | not_required |
 
-| ID | Title | Phase | Priority | Depends |
-|----|-------|-------|----------|---------|
-| CAE-000 | Lock ADR + contract amendments | 0 | high | — |
-| CAE-001 | Fail-empty retrieval + tests | 1 | critical | CAE-000 |
-| CAE-002 | Remove suppression leak + fix tests | 1 | critical | CAE-000 |
-| CAE-003 | Enforce token_budget + envelope matrix | 1 | critical | CAE-000 |
-| CAE-004 | Orient-first compose MVP | 1 | high | CAE-002, CAE-003 |
-| CAE-005 | Extract disclose() for bridge+Holodeck | 2 | high | CAE-001…004 |
-| CAE-006 | Aperture eval harness + baselines | 2 | high | CAE-001 |
-| CAE-007 | Disclosure receipts + inspect | 2 | medium | CAE-005 |
-| CAE-008 | ActiveState continuity MVP | 2 | medium | CAE-004 |
-| CAE-009 | FeedContextPacket on disclose() | 2 | medium | CAE-005 |
-| CAE-010 | Task-pack relevance honesty | 3 | medium | CAE-005 |
-| CAE-011 | bounded_view wire-or-demote | 3 | medium | CAE-000 |
-| CAE-012 | Cross-surface state + metrics board | 3 | low | CAE-008, CAE-006 |
+Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
+A task may enter `done` only when every required gate in `GATES.md` has evidence.
+
+Live workspace tasks are synchronized at `backlog`. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
+
+**Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)

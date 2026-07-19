@@ -4,7 +4,7 @@
 **Mission:** harden selective disclosure from good → exceptional  
 **Workspace / Holodeck id:** `cognitive-aperture-exceptional`  
 **Branch:** `cursor/cognitive-aperture-gap-map-24c7` (PR [#32](https://github.com/talhas-laboratory/thought_tube/pull/32))  
-**Live API:** register when `talhas-laboratory` is online — until then git + local Holodeck are the resume surface
+**Live API:** registered as `cognitive-aperture-exceptional` (2026-07-19). Query live before mutating tasks.
 
 ---
 

@@ -44,6 +44,6 @@ Foreign intelligence should enter the **correct neighborhood** of the Inner Worl
 - Context packets are receipts / boundaries, not the primary steering mind.
 - Long-context stuffing is not a substitute for aperture selection.
 
-## Current blocker
+## Live status
 
-`INNER_WORLD_WORKSPACE_API_BASE` host (`talhas-laboratory`) was offline at workspace creation. Local Holodeck exists. Live API registration, task claims, and projection sync must run when the host returns.
+Live workspace **`cognitive-aperture-exceptional`** is registered. Projections published 2026-07-19. Boot via [`AGENT_BOOT.md`](./AGENT_BOOT.md).
