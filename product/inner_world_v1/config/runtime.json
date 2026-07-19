@@ -115,6 +115,12 @@
     "evidence_retrieval_limit": 8,
     "evidence_neighbor_limit": 4
   },
+  "task_pack": {
+    "disclosure_service_v1": false,
+    "max_evidence_blocks": 4,
+    "evidence_retrieval_limit": 6,
+    "evidence_neighbor_limit": 4
+  },
   "bridge": {
     "enabled": true,
     "agent": "thought_tube_router",

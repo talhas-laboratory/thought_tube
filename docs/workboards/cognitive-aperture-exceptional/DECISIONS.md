@@ -154,10 +154,24 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 
 ## D-023 — CAE-008 multi-turn rollback blocked (Stage C/D review)
 
-**Status:** accepted
+**Status:** superseded by D-025
 **Authority:** Independent Stage C/D review; live blocker `blocker-5fde7e6b3515`
 
-`rollback_active_state_transition()` currently re-asserts the compensated transition's own snapshot rather than restoring `prior_snapshot_id`. Multi-turn undo of the latest transition is therefore a state no-op. CAE-008 remains **blocked** until rollback restores the predecessor snapshot and a multi-turn regression covers T1→T2→rollback(T2). Flag stays default-off. Approved in the same review: CAE-005A, CAE-005B, CAE-007, CAE-006B, CAE-009 (and parents CAE-005, CAE-006).
+`rollback_active_state_transition()` originally re-asserted the compensated transition's own snapshot rather than restoring `prior_snapshot_id`. Multi-turn undo of the latest transition was therefore a state no-op. Resolved in D-025; CAE-008 unblocked.
+
+## D-025 — CAE-008 rollback restores predecessor snapshot
+
+**Status:** accepted
+**Authority:** D-023, D-020, GAP_MAP G7
+
+`rollback_active_state_transition()` now resolves `prior_snapshot_id` from the compensated transition and restores that predecessor snapshot via `_find_snapshot_by_id()`. When no prior exists (first transition), rollback falls back to the target snapshot. `test_multi_turn_rollback_restores_prior_snapshot` covers T1→T2→rollback(T2) restoring T1 topic/lens. Rollback still records a compensating operation that supersedes the target transition. Flag remains default-off via `disclosure.active_state.continuity_v1: false`.
+
+## D-026 — Task-pack bounded evidence adapter (CAE-010)
+
+**Status:** accepted
+**Authority:** D-017, D-022, GAP_MAP Stage D
+
+`task_pack_disclosure_adapter` version `1.0` optionally enriches `build_task_pack()` output with a bounded `bounded_evidence` section sourced from the shared `CandidateSearchPort`. Evidence blocks require positive query-token overlap with admitted capsules; unrelated requests receive no fallback filler. Task-pack narrative sections (sessions, cards, concepts, plans) remain primary; markdown adds `## Bounded Evidence (optional)` only when blocks exist. Rollback via `task_pack.disclosure_service_v1: false` (default off).
 
 ## D-024 — Cross-surface operator metrics (CAE-012)
 

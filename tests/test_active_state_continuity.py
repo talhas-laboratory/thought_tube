@@ -170,6 +170,45 @@ class ActiveStateContinuityTestCase(unittest.TestCase):
         assert restored is not None
         self.assertEqual(restored["lens"], "first lens")
 
+    def test_multi_turn_rollback_restores_prior_snapshot(self) -> None:
+        first = self._snapshot(request_id="req-t1", topic="first topic", lens="first lens")
+        _, transition_t1 = apply_active_state_continuity(
+            self.root,
+            first,
+            effective_grant=self._grant(),
+            session_envelope={"mode": "bounded"},
+            surface="bridge",
+            context_state={"active_workspace_id": "ws-continuity-001", "attributes": {"session_id": "session-continuity-001"}},
+        )
+        second = self._snapshot(request_id="req-t2", topic="second topic", lens="")
+        merged_t2, transition_t2 = apply_active_state_continuity(
+            self.root,
+            second,
+            effective_grant=self._grant(),
+            session_envelope={"mode": "bounded"},
+            surface="bridge",
+            context_state={"active_workspace_id": "ws-continuity-001", "attributes": {"session_id": "session-continuity-001"}},
+        )
+        self.assertEqual(merged_t2["topic"], "second topic")
+        self.assertEqual(merged_t2["lens"], "first lens")
+
+        result = rollback_active_state_transition(
+            self.root,
+            continuity_key=transition_t2["continuity_key"],
+            compensates_transition_id=transition_t2["transition_id"],
+            reason="undo second turn",
+            surface="bridge",
+        )
+        self.assertEqual(result["status"], "rolled_back")
+        self.assertEqual(result["restored_snapshot_id"], transition_t1["snapshot_id"])
+
+        restored = load_latest_snapshot_for_workspace(self.root, "ws-continuity-001")
+        self.assertIsNotNone(restored)
+        assert restored is not None
+        self.assertEqual(restored["topic"], "first topic")
+        self.assertEqual(restored["lens"], "first lens")
+        self.assertNotEqual(restored["topic"], "second topic")
+
     def test_cross_adapter_workspace_continuity(self) -> None:
         snapshot = self._snapshot(request_id="req-bridge", topic="shared workspace topic", lens="shared lens")
         apply_active_state_continuity(

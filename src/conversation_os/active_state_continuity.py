@@ -306,6 +306,18 @@ def apply_active_state_continuity(
     return merged, transition
 
 
+def _find_snapshot_by_id(rows: List[Mapping[str, Any]], snapshot_id: str) -> Dict[str, Any] | None:
+    needle = str(snapshot_id or "").strip()
+    if not needle:
+        return None
+    for row in rows:
+        if str(row.get("snapshot_id", "") or "") == needle:
+            snapshot = dict(row.get("snapshot", {}) or {})
+            if snapshot:
+                return snapshot
+    return None
+
+
 def rollback_active_state_transition(
     root: Path,
     *,
@@ -323,13 +335,24 @@ def rollback_active_state_transition(
     if target is None:
         return {"status": "not_found", "compensates_transition_id": compensates_transition_id}
 
-    restored_snapshot = dict(target.get("snapshot", {}) or {})
+    prior_snapshot_id = str(target.get("prior_snapshot_id", "") or "").strip()
+    if prior_snapshot_id:
+        restored_snapshot = _find_snapshot_by_id(rows, prior_snapshot_id)
+        if restored_snapshot is None:
+            return {
+                "status": "prior_not_found",
+                "compensates_transition_id": compensates_transition_id,
+                "prior_snapshot_id": prior_snapshot_id,
+            }
+    else:
+        restored_snapshot = dict(target.get("snapshot", {}) or {})
+
     rollback_row = build_state_transition(
         continuity_key=continuity_key,
         snapshot=restored_snapshot,
         envelope=str(target.get("envelope", "bounded") or "bounded"),
         surface=surface,
-        request_id=str(restored_snapshot.get("request_id", "") or ""),
+        request_id=str(restored_snapshot.get("request_id", "") or target.get("request_id", "") or ""),
         prior_snapshot_id=str(target.get("snapshot_id", "") or ""),
         fields_changed=["rollback"],
         durable=True,
