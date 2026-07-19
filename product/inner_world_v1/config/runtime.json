@@ -104,6 +104,7 @@
     "effective_grant_normalization_v1": true,
     "deterministic_budget_enforcement_v1": true,
     "orient_first_compose_v1": true,
+    "disclosure_service_v1": false,
     "openclaw_mode": "auto",
     "tracking": {
       "require_active_session": true,

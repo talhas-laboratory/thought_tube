@@ -44,6 +44,7 @@ PUBLIC_API = (
     "effective_grant_normalization_enabled",
     "deterministic_budget_enforcement_enabled",
     "orient_first_compose_enabled",
+    "disclosure_service_enabled",
 )
 __all__ = list(PUBLIC_API)
 
@@ -1206,6 +1207,15 @@ def orient_first_compose_enabled(root: Path) -> bool:
         return True
 
 
+def disclosure_service_enabled(root: Path) -> bool:
+    try:
+        from .disclosure_service import disclosure_service_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return False
+
+
 def execution_audit_isolation_enabled(root: Path | None) -> bool:
     if root is None:
         return True
@@ -1471,11 +1481,12 @@ def build_frame_bundle(
     return assembly
 
 
-def get_context_bundle(
+def _assemble_bridge_context_bundle_impl(
     root: Path,
     context_state: Dict[str, Any],
     *,
     budget: Dict[str, Any] | None = None,
+    candidate_search: Any | None = None,
 ) -> Dict[str, Any]:
     ensure_reasoning_runtime(root)
     state = bind_workspace(root, context_state)
@@ -1579,16 +1590,26 @@ def get_context_bundle(
         include_cross_pond = bool(note_retrieval_policy.get("cross_ocean"))
     else:
         include_cross_pond = bool(policy.get("cross_ocean")) if policy else state.get("depth_mode") == "deep"
-    if resolved_budget["use_global"] and state.get("active_topic"):
-        retrieval_bundle = build_retrieval_bundle(
-            root,
-            state["active_topic"],
-            limit=int(resolved_budget["retrieval_limit"]),
-            neighbor_limit=int(resolved_budget["neighbor_limit"]),
-            include_cross_pond=include_cross_pond,
-        )
 
     session_envelope = build_session_envelope(state, policy=policy)
+    if resolved_budget["use_global"] and state.get("active_topic"):
+        if candidate_search is not None:
+            retrieval_bundle = candidate_search.build_retrieval_bundle(
+                root,
+                state["active_topic"],
+                limit=int(resolved_budget["retrieval_limit"]),
+                neighbor_limit=int(resolved_budget["neighbor_limit"]),
+                include_cross_pond=include_cross_pond,
+            )
+        else:
+            retrieval_bundle = build_retrieval_bundle(
+                root,
+                state["active_topic"],
+                limit=int(resolved_budget["retrieval_limit"]),
+                neighbor_limit=int(resolved_budget["neighbor_limit"]),
+                include_cross_pond=include_cross_pond,
+            )
+
     orient_first_enabled = orient_first_compose_enabled(root)
     from .library_tracker import CHAT_CONVERTER_SEED_CORPUS_REVISION
     from .orient_first_compose import build_active_state_snapshot, load_orient_first_config
@@ -1774,6 +1795,19 @@ def get_context_bundle(
     if pending:
         pending["retrieval_sources"] = list(retrieval_bundle.get("source_refs", []))
     return bundle
+
+
+def get_context_bundle(
+    root: Path,
+    context_state: Dict[str, Any],
+    *,
+    budget: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    if disclosure_service_enabled(root):
+        from .bridge_disclosure_adapter import disclose_for_bridge
+
+        return disclose_for_bridge(root, context_state, budget=budget)
+    return _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
 
 
 def record_context_switch(root: Path, event: Dict[str, Any]) -> Dict[str, Any]:

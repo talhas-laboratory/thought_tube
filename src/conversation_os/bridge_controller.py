@@ -57,6 +57,7 @@ DEFAULT_BRIDGE_CONFIG = {
     "effective_grant_normalization_v1": True,
     "deterministic_budget_enforcement_v1": True,
     "orient_first_compose_v1": True,
+    "disclosure_service_v1": False,
     "openclaw_mode": "auto",
 }
 MAX_BRIDGE_PROMPT_CHARS = 48_000

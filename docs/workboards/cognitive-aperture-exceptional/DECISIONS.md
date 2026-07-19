@@ -110,3 +110,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** ADR-001, GAP_MAP G5
 
 `orient_first_compose` version `1.0` builds a capped `ActiveStateSnapshot` from authorized local continuity only (no undisclosed global material). `compose_orient_first_message()` orders sections orientation → constraints → evidence → user turn; empty evidence turns include explicit no-evidence guidance. Automatic note-agent widen beyond `session_only` requires `second_pass_widen_grant_id` or `widen_grant_id` in caller hints. Rollback via `bridge.orient_first_compose_v1: false`.
+
+## D-017 — Shared disclosure service (CAE-005A)
+
+**Status:** accepted
+**Authority:** ADR-002, GAP_MAP G2
+
+`disclosure_service` version `1.0` orchestrates Bridge disclosure through storage-independent ports (`CorpusCatalogPort`, `CandidateSearchPort`, `ShapeProjectionReaderPort`, `EvidenceResolverPort`, `ReceiptSinkPort`). The service module does not import product surfaces; Bridge routes through `bridge_disclosure_adapter.disclose_for_bridge()` when enabled. Parity is preserved against `_assemble_bridge_context_bundle_impl()`; corpus readiness `interrupted`/`unsupported` abstains before assembly. Rollback via `bridge.disclosure_service_v1: false` (default off).
