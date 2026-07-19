@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 920d5c0fcea9f0effd30753e0c2928ab8a9271175e3ae1f3b5c63f500f6c2c0d -->
+<!-- canonical_revision: 07dc53d6fdfd432462a88203608e7b903dcf535916b557185079461aaddd01be -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T13:44:53+00:00 -->
+<!-- generated_at: 2026-07-19T15:31:34+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -18,13 +18,16 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
-- none
+- Verification recorded; projections published; handing off for independent review.
+- Prior run went stale during temporary workspace API outage; final evidence is on the later run.
 
 ## Reasoning
 
-- none
+- CorpusCatalog readiness contract implemented
+- Baselines captured; guard ready
 
 ## Verification
 
+- pytest -q tests/test_conversation_os.py -k corpus_catalog
 - workspace_plan_tests
 - workspace_plan_static_validation

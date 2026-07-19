@@ -4,7 +4,7 @@
   "status": "active",
   "maturation_stage": "architecture_lock",
   "goal": "Build a reliable, lightweight, modular disclosure service over the private Inner World.",
-  "purpose": "Coordinate orient → grant → evidence → receipt without owning ingestion, canonical Shape formation, embeddings, or source truth.",
+  "purpose": "Coordinate orient \u2192 grant \u2192 evidence \u2192 receipt without owning ingestion, canonical Shape formation, embeddings, or source truth.",
   "success_condition": "Bridge and Holodeck share one versioned disclosure contract that fails empty, enforces grants and budgets, preserves Shape/provenance status, isolates execution from audit, meets performance limits, and emits reconstructible receipts.",
   "artifact_roots": [
     "docs/plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md",
@@ -14,7 +14,10 @@
     "src/conversation_os/reasoning_bridge.py",
     "src/conversation_os/chat_backends.py",
     "src/conversation_os/models.py",
-    "src/conversation_os/holodeck.py"
+    "src/conversation_os/holodeck.py",
+    "src/conversation_os/library_tracker.py",
+    "src/conversation_os/runtime_pipeline.py",
+    "tests/test_conversation_os.py"
   ],
   "external_dependencies": [
     "library/runtime corpus readiness",
@@ -38,7 +41,12 @@
     "World Studio canon semantics redesign.",
     "Treating Inner World structures as literal model residual-stream geometry."
   ],
-  "domains": ["product", "structure", "research", "bridge"],
+  "domains": [
+    "product",
+    "structure",
+    "research",
+    "bridge"
+  ],
   "holodeck_workspace_id": "cognitive-aperture-exceptional",
   "workboard": "docs/workboards/cognitive-aperture-exceptional/README.md",
   "continuity_projection": "docs/workspaces/cognitive-aperture-exceptional/CONTINUITY.md",

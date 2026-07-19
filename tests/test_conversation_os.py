@@ -199,7 +199,11 @@ from conversation_os.routing import build_task_pack
 from conversation_os.storage import read_json, read_jsonl, session_events_path, task_packs_dir, write_json, write_jsonl
 from conversation_os.thought_factory import build_thought_packets
 from conversation_os.library_tracker import (
+    CHAT_CONVERTER_SEED_CORPUS_ID,
+    CHAT_CONVERTER_SEED_CORPUS_REVISION,
+    CORPUS_CATALOG_CONTRACT_VERSION,
     apply_prune_candidates,
+    build_corpus_catalog,
     derive_chunk_dimension_profiles,
     filter_governed_chunks,
     get_chunk_pond_routing_state,
@@ -213,6 +217,9 @@ from conversation_os.library_tracker import (
     update_chunk_governance,
     update_chunk_link,
 )
+from conversation_os.runtime_layout import product_runtime_dir
+from conversation_os.runtime_pipeline import get_corpus_pipeline_signals
+from conversation_os.vault_ingest import ingest_text_content
 from conversation_os.knowledge_layer import (
     add_alias_resolution,
     build_knowledge_layer,
@@ -3649,6 +3656,184 @@ class ConversationOSTestCase(unittest.TestCase):
         self.assertIsNone(status["pipeline_summary"]["active_stage"])
         self.assertEqual(status["last_run"]["components"][1]["status"], "interrupted")
         self.assertTrue(status["last_run"]["stale_running_state"])
+
+    def _write_ready_catalog_fixture(self) -> dict:
+        """Synthetic fixture only — no production Chat Converter source text."""
+        result = ingest_text_content(
+            self.root,
+            title="aperture-ready-fixture",
+            content="# User\n\nSynthetic aperture readiness fixture.\n\n# Assistant\n\nKeep provenance and branch metadata intact.\n",
+            source_ref="fixture:cae013-ready",
+            source_type="chat_converter_conversation",
+            source_family="chat_converter",
+            metadata={
+                "branch_id": "branch-cae013-fixture",
+                "scope_id": "scope-stage-a",
+                "fixture_only": True,
+            },
+        )
+        data_dir = product_runtime_dir(self.root, "inner_world_v1", "data")
+        sources = read_jsonl(data_dir / "source_registry.jsonl")
+        chunks = read_jsonl(data_dir / "chunk_index.jsonl")
+        for row in sources:
+            metadata = dict(row.get("metadata") or {})
+            metadata.update({"branch_id": "branch-cae013-fixture", "scope_id": "scope-stage-a"})
+            row["metadata"] = metadata
+            row["branch_id"] = "branch-cae013-fixture"
+            row["scope_id"] = "scope-stage-a"
+        for row in chunks:
+            metadata = dict(row.get("metadata") or {})
+            metadata.update({"branch_id": "branch-cae013-fixture", "scope_id": "scope-stage-a"})
+            row["metadata"] = metadata
+            row["branch_id"] = "branch-cae013-fixture"
+            row["scope_id"] = "scope-stage-a"
+        write_jsonl(data_dir / "source_registry.jsonl", sources)
+        write_jsonl(data_dir / "chunk_index.jsonl", chunks)
+        write_jsonl(
+            data_dir / "knowledge_nodes.jsonl",
+            [
+                {
+                    "node_id": "kn-cae013-fixture",
+                    "label": "fixture node",
+                    "source_refs": ["fixture:cae013-ready"],
+                }
+            ],
+        )
+        # Shape signatures and runtime pipeline last-run still use the legacy product data path.
+        legacy_data_dir = self.root / "product" / "inner_world_v1" / "data"
+        legacy_data_dir.mkdir(parents=True, exist_ok=True)
+        write_jsonl(
+            legacy_data_dir / "shape_signatures.jsonl",
+            [
+                {
+                    "signature_id": "shape-sig-cae013-fixture",
+                    "label": "fixture shape",
+                    "status": "candidate",
+                    "source_ref": "fixture:cae013-ready",
+                    "source_refs": ["fixture:cae013-ready"],
+                }
+            ],
+        )
+        write_json(
+            legacy_data_dir / "runtime_pipeline_last_run.json",
+            {
+                "generated_at": "2026-07-19T00:00:00+00:00",
+                "run_started_at": "2026-07-19T00:00:00+00:00",
+                "run_finished_at": "2026-07-19T00:00:01+00:00",
+                "run_status": "completed",
+                "active_component_id": None,
+                "execution_order": ["analysis_units"],
+                "components": [{"component_id": "analysis_units", "status": "completed"}],
+            },
+        )
+        return result
+
+    def test_corpus_catalog_empty_valid_state(self) -> None:
+        catalog = build_corpus_catalog(self.root)
+
+        self.assertEqual(catalog["schema_version"], CORPUS_CATALOG_CONTRACT_VERSION)
+        self.assertEqual(catalog["readiness_state"], "empty_valid")
+        self.assertFalse(catalog["retrieval_allowed"])
+        self.assertEqual(catalog["counts"]["source_count"], 0)
+        self.assertEqual(catalog["counts"]["fragment_count"], 0)
+        self.assertEqual(catalog["coverage"]["provenance_coverage"], 1.0)
+        self.assertEqual(catalog["abstention_reason"], "empty_corpus_no_retrieval")
+        self.assertIn(CHAT_CONVERTER_SEED_CORPUS_ID, catalog["reference_corpora"])
+        self.assertEqual(
+            catalog["reference_corpora"][CHAT_CONVERTER_SEED_CORPUS_ID]["corpus_revision"],
+            CHAT_CONVERTER_SEED_CORPUS_REVISION,
+        )
+        self.assertEqual(get_library_status(self.root)["corpus_catalog"]["readiness_state"], "empty_valid")
+
+    def test_corpus_catalog_ready_state_with_provenance_and_coverage(self) -> None:
+        self._write_ready_catalog_fixture()
+        catalog = build_corpus_catalog(self.root)
+
+        self.assertEqual(catalog["readiness_state"], "ready")
+        self.assertTrue(catalog["retrieval_allowed"])
+        self.assertGreaterEqual(catalog["counts"]["source_count"], 1)
+        self.assertGreaterEqual(catalog["counts"]["fragment_count"], 1)
+        self.assertGreaterEqual(catalog["counts"]["indexed_record_count"], 1)
+        self.assertEqual(catalog["coverage"]["provenance_coverage"], 1.0)
+        self.assertEqual(catalog["coverage"]["branch_coverage"], 1.0)
+        self.assertEqual(catalog["coverage"]["scope_coverage"], 1.0)
+        self.assertGreater(catalog["coverage"]["shape_coverage"], 0.0)
+        self.assertIn("lexical", catalog["capabilities"]["supported"])
+        self.assertIn("structural_shape_legacy", catalog["capabilities"]["supported"])
+        self.assertNotIn("embedding", catalog["capabilities"]["supported"])
+        self.assertIsNone(catalog["abstention_reason"])
+        self.assertNotEqual(catalog["corpus_revision"], "empty")
+
+    def test_corpus_catalog_interrupted_state_abstains(self) -> None:
+        self._write_ready_catalog_fixture()
+        write_json(
+            self.root / "product" / "inner_world_v1" / "data" / "runtime_pipeline_last_run.json",
+            {
+                "generated_at": "2026-07-19T00:00:00+00:00",
+                "run_started_at": "2026-07-19T00:00:00+00:00",
+                "run_finished_at": None,
+                "run_status": "running",
+                "active_component_id": "context_bubbles",
+                "execution_order": ["context_bubbles"],
+                "components": [{"component_id": "context_bubbles", "status": "running"}],
+            },
+        )
+
+        signals = get_corpus_pipeline_signals(self.root)
+        catalog = build_corpus_catalog(self.root)
+
+        self.assertTrue(signals["interrupted"])
+        self.assertEqual(catalog["readiness_state"], "interrupted")
+        self.assertFalse(catalog["retrieval_allowed"])
+        self.assertEqual(catalog["abstention_reason"], "runtime_pipeline_interrupted")
+
+    def test_corpus_catalog_stale_pending_rederive_and_incomplete_provenance(self) -> None:
+        self._write_ready_catalog_fixture()
+        governance = load_library_governance(self.root)
+        governance["pending_rederive"] = {
+            "reason": "fixture_pending_rederive",
+            "requested_at": "2026-07-19T00:00:00+00:00",
+        }
+        write_json(Path(governance["governance_path"]), governance)
+
+        stale_catalog = build_corpus_catalog(self.root)
+        self.assertEqual(stale_catalog["readiness_state"], "stale")
+        self.assertFalse(stale_catalog["retrieval_allowed"])
+        self.assertEqual(stale_catalog["abstention_reason"], "pending_rederive")
+
+        governance["pending_rederive"] = None
+        write_json(Path(governance["governance_path"]), governance)
+        data_dir = product_runtime_dir(self.root, "inner_world_v1", "data")
+        sources = read_jsonl(data_dir / "source_registry.jsonl")
+        self.assertGreaterEqual(len(sources), 1)
+        sources[0]["content_hash"] = ""
+        write_jsonl(data_dir / "source_registry.jsonl", sources)
+
+        provenance_catalog = build_corpus_catalog(self.root)
+        self.assertEqual(provenance_catalog["readiness_state"], "stale")
+        self.assertLess(provenance_catalog["coverage"]["provenance_coverage"], 1.0)
+        self.assertEqual(provenance_catalog["abstention_reason"], "incomplete_provenance_coverage")
+        self.assertFalse(provenance_catalog["retrieval_allowed"])
+
+    def test_corpus_catalog_unsupported_capability_and_unknown_corpus_abstain(self) -> None:
+        self._write_ready_catalog_fixture()
+
+        embedding_catalog = build_corpus_catalog(
+            self.root,
+            required_capabilities=["embedding"],
+        )
+        unknown_catalog = build_corpus_catalog(self.root, corpus_id="no_such_corpus_v9")
+        seed_empty = build_corpus_catalog(self.root, corpus_id=CHAT_CONVERTER_SEED_CORPUS_ID)
+
+        self.assertEqual(embedding_catalog["readiness_state"], "unsupported")
+        self.assertFalse(embedding_catalog["retrieval_allowed"])
+        self.assertIn("embedding", embedding_catalog["capabilities"]["unsupported_required"])
+        self.assertEqual(unknown_catalog["readiness_state"], "unsupported")
+        self.assertFalse(unknown_catalog["retrieval_allowed"])
+        # Seed corpus id is known, but this fixture is not the seed revision: abstain as stale.
+        self.assertEqual(seed_empty["readiness_state"], "stale")
+        self.assertEqual(seed_empty["abstention_reason"], "seed_corpus_revision_mismatch")
+        self.assertFalse(seed_empty["retrieval_allowed"])
 
     def test_feed_returns_rebuilding_payload_without_triggering_batch_when_runtime_running(self) -> None:
         write_json(
