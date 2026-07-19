@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: bfc8eb7ee0b6e018f6476f7b6000d9e850c2d892819879620de7d2cae5a2a374 -->
+<!-- canonical_revision: b330ea34a9de47f0ecce3d19e6c7b46e9085c02bfe4a639b06bd49348016f5be -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T17:50:01+00:00 -->
+<!-- generated_at: 2026-07-19T21:47:10+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -18,6 +18,10 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- CAE-012 approved: read-only cross-surface operator metrics from receipts/baselines; flag default-off.
+- CAE-011 approved: wire kernel bounded view as optional epistemic backend (ADR-003/D-027).
+- CAE-010 approved: optional task-pack bounded_evidence via CandidateSearchPort; flag default-off.
+- CAE-008 approved: multi-turn rollback restores prior ActiveState snapshot (D-025).
 - CAE-006 parent closed
 - CAE-005 parent closed
 - CAE-008 blocked on rollback semantics; other Stage C/D leaves approved.
@@ -25,11 +29,7 @@ Select a task to receive a recommended next action.
 - CAE-006B approved: shape-aware service baselines published; structural/parity/perf probes pass; near-neighbour known_failure preserved.
 - CAE-007 approved: persistent AuditReceipts with reconstruction; incognito hashes-only; flag default-off.
 - CAE-005B approved: Holodeck adapter uses CandidateSearchPort; legacy meta scorer isolated; flag default-off.
-- Rotate to sequential leaf approvals
-- CAE-003B approved and done; Stage B leaf tasks completed after unset-budget fix verification.
-- Stage B review complete: CAE-003B blocked on token_budget=0 wipe; other Stage B leaves review-approved pending gate.
-- Stage A independent review approved CAE-000; task marked done.
-- Stage A independent review approved CAE-015; task marked done.
+- Independent review approve CAE-005A
 
 ## Reasoning
 
@@ -48,6 +48,10 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- tests/test_aperture_operator_metrics.py
+- tests/test_bounded_view_disclosure_adapter.py
+- tests/test_task_pack_disclosure_parity.py
+- tests/test_active_state_continuity.py::test_multi_turn_rollback_restores_prior_snapshot
 - parent-children-complete
 - parent-children-complete
 - adversarial_multi_turn_active_state_rollback
@@ -56,7 +60,3 @@ Select a task to receive a recommended next action.
 - tests/test_disclosure_receipts.py
 - tests/test_holodeck_disclosure_parity.py
 - tests/test_disclosure_service_bridge_parity.py
-- stage-b-parent-children-complete
-- stage-b-gate-reverify-CAE-004
-- stage-b-gate-reverify-CAE-001
-- stage-b-gate-reverify-CAE-003A
