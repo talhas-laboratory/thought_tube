@@ -28,6 +28,6 @@
 Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
-Live workspace task statuses: `CAE-000`=done, `CAE-001`=done, `CAE-002`=done, `CAE-003`=done, `CAE-003A`=done, `CAE-003B`=done, `CAE-004`=done, `CAE-005`=done, `CAE-005A`=done, `CAE-005B`=done, `CAE-006`=done, `CAE-006A`=done, `CAE-006B`=done, `CAE-007`=done, `CAE-008`=blocked, `CAE-009`=done, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=done, `CAE-013`=done, `CAE-014`=done, `CAE-015`=done. 1 open blocker(s) remain in the live workspace. Git projections refreshed for CAE-012 execution evidence (live API sync pending).
+Live workspace task statuses: `CAE-000`=done, `CAE-001`=done, `CAE-002`=done, `CAE-003`=done, `CAE-003A`=done, `CAE-003B`=done, `CAE-004`=done, `CAE-005`=done, `CAE-005A`=done, `CAE-005B`=done, `CAE-006`=done, `CAE-006A`=done, `CAE-006B`=done, `CAE-007`=done, `CAE-008`=blocked, `CAE-009`=done, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=done, `CAE-013`=done, `CAE-014`=done, `CAE-015`=done. 1 open blocker(s) remain in the live workspace. Git projections include Verification/Rollback evidence for all done leaf tasks except CAE-010/011 (backlog); live API sync pending.
 
 **Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)
