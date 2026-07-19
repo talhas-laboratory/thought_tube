@@ -1,0 +1,42 @@
+{
+  "contract_version": "1.0",
+  "receipt_id": "receipt-cae015-incognito",
+  "request_id": "req-cae015-incognito",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "requested_grant": {
+    "grant_id": "grant-incognito-cae015",
+    "envelope": "incognito"
+  },
+  "effective_grant": {
+    "grant_id": "grant-incognito-cae015",
+    "envelope": "incognito",
+    "effective_layers": ["ephemeral_turn"]
+  },
+  "candidate_decisions": [],
+  "included_block_ids": [],
+  "omitted_block_ids": [],
+  "omission_reasons": [],
+  "budget_ledger": {
+    "token_budget": 0,
+    "orientation_tokens": 0,
+    "evidence_tokens": 0
+  },
+  "policy_hashes": {
+    "effective_grant": "sha256:grant-hash-incognito",
+    "envelope_defaults": "sha256:envelope-incognito-v1"
+  },
+  "surface": "bridge",
+  "result_status": "empty_grant_excludes_all",
+  "retention_mode": "hashes_metrics_only",
+  "content_hashes": [
+    "sha256:7b8f9c0d1e2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c"
+  ],
+  "metrics": {
+    "candidate_count": 0,
+    "latency_ms": 12
+  },
+  "sensitive_text_included": false,
+  "provenance": {
+    "recorded_at": "2026-07-19T15:00:00+00:00"
+  }
+}

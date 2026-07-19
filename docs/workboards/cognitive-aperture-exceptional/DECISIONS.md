@@ -62,3 +62,10 @@ Bridge adopts first, Holodeck second. Feed and task packs follow only after conf
 **Authority:** ADR-002, GAP_MAP G-2
 
 `ShapeProjectionReader` contract version `1.0` lives in `src/conversation_os/shape_projection_reader.py`. Canonical reads use `profile:shape_and_semantic_addressing` when registered; until then the reader abstains on canonical promotion and exposes legacy `meta_layer` signatures only as explicit `candidate` projections with branch, scope, boundary, abstraction contract, scale, and provenance. AntiMatch records are read as `anti_match` projections. The aperture cannot promote Shape or Pattern status through this port. Legacy JSONL remains the provisional candidate source until the canonical profile registers and adapter conformance passes (`CAE-014-legacy-retained-until-canonical-profile`).
+
+## D-010 — Versioned disclosure contracts (CAE-015)
+
+**Status:** accepted
+**Authority:** ADR-001, ADR-002, design §5–11
+
+Disclosure contracts version `1.0` live in `src/conversation_os/disclosure_contracts.py`. Public types are `ApertureRequest`, `ActiveStateSnapshot`, `RequestedGrant`, `EffectiveGrant`, `CandidateRef`, `EvidenceBlock`, `ExecutionBundle`, and `AuditReceipt`, with explicit result statuses and envelope defaults. `normalize_effective_grant()` applies envelope defaults and deny precedence once; downstream modules consume only `EffectiveGrant`. `ExecutionBundle` validation rejects suppression fields at the type boundary; `AuditReceipt` owns omissions and enforces incognito retention (`hashes_metrics_only`, no sensitive text). Fixtures under `tests/fixtures/disclosure_contracts/v1/` cover every contract and result status.
