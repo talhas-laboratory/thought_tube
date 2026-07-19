@@ -1,4 +1,5 @@
-Status: backlog
+Status: review
+Owner: cursor-stage-b-review
 # CAE-003A — Effective grant and envelope matrix
 
 **Stage:** B

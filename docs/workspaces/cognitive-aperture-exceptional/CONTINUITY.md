@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: ecb565357f4474765165d207be8ccb5b7cf46a3f5d4ab1f471f3bd842922b603 -->
+<!-- canonical_revision: 7579fa02c4349d6937aa3cd71b66089ca9af4a4a5d5bd000eec82ae460e6f682 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T16:12:16+00:00 -->
+<!-- generated_at: 2026-07-19T16:47:52+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- Stage B review complete: CAE-003B blocked on token_budget=0 wipe; other Stage B leaves review-approved pending gate.
 - Stage A independent review approved CAE-000; task marked done.
 - Stage A independent review approved CAE-015; task marked done.
 - Stage A independent review approved CAE-006A; task marked done.
@@ -32,6 +33,11 @@ Select a task to receive a recommended next action.
 
 ## Reasoning
 
+- Stage B review: CAE-004 APPROVE pending CAE-003B fix
+- Stage B review: CAE-003B CHANGES REQUESTED
+- Stage B review: CAE-001 APPROVE pending Stage B gate
+- Stage B review: CAE-003A APPROVE pending Stage B gate
+- Stage B review: CAE-002 APPROVE pending Stage B gate
 - Stage A independent review APPROVE CAE-000
 - Stage A independent review APPROVE CAE-006A
 - Stage A independent review APPROVE CAE-015
@@ -39,19 +45,18 @@ Select a task to receive a recommended next action.
 - Stage A independent review APPROVE CAE-013
 - ShapeProjectionReader contract v1.0 implemented
 - CorpusCatalog readiness contract implemented
-- Baselines captured; guard ready
 
 ## Verification
 
+- stage-b-review-bridge-policy-integration
+- stage-b-review-orient-first
+- stage-b-review-budget-allocator-focused
+- stage-b-review-fail-empty
+- stage-b-review-effective-grant
+- stage-b-review-execution-audit-isolation
 - stage-a-independent-review-adr-lock
 - stage-a-independent-review-disclosure-contracts
 - stage-a-independent-review-baseline-harness
 - aperture_baseline_harness_v1
 - disclosure_contracts_v1
 - stage-a-independent-review-passing
-- stage-a-independent-review-passing
-- independent-review:pytest-shape-projection-reader
-- independent-review:pytest-corpus-catalog
-- pytest -q tests/test_shape_projection_reader.py
-- pytest -q tests/test_conversation_os.py -k corpus_catalog
-- workspace_plan_tests
