@@ -1,4 +1,5 @@
-Status: backlog
+Status: done
+Owner: cursor-cloud-reviewer
 # CAE-005A — Disclosure service and Bridge adapter
 
 **Stage:** C

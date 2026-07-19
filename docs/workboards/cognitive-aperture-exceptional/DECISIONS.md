@@ -151,3 +151,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** D-017, D-018, GAP_MAP Stage D
 
 `feed_disclosure_adapter` version `1.0` routes feed evidence pair selection through the shared `CandidateSearchPort` while bubble pairing, taste/diversity selection, and post presentation remain in `product_inner_world.py`. Admitted semantic capsules map to feed-compatible pairs with bounded `EffectiveGrant` metadata and per-post `disclosure_provenance` preserved on promotion rows. Legacy meta-edge selection via `select_candidate_pairs()` remains when `feed.disclosure_service_v1` is disabled (default off). Optional receipts record with `surface="feed"` when persistent receipts are enabled. Rollback via `feed.disclosure_service_v1: false`.
+
+## D-023 — CAE-008 multi-turn rollback blocked (Stage C/D review)
+
+**Status:** accepted
+**Authority:** Independent Stage C/D review; live blocker `blocker-5fde7e6b3515`
+
+`rollback_active_state_transition()` currently re-asserts the compensated transition's own snapshot rather than restoring `prior_snapshot_id`. Multi-turn undo of the latest transition is therefore a state no-op. CAE-008 remains **blocked** until rollback restores the predecessor snapshot and a multi-turn regression covers T1→T2→rollback(T2). Flag stays default-off. Approved in the same review: CAE-005A, CAE-005B, CAE-007, CAE-006B, CAE-009 (and parents CAE-005, CAE-006).

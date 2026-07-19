@@ -1,4 +1,5 @@
-Status: backlog
+Status: done
+Owner: cursor-cloud-reviewer
 # CAE-006B — Shape-aware and performance baselines
 
 **Stage:** C

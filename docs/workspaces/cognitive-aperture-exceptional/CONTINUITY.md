@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 2e02921c8e7725ac463db7752dc956ba880eceb5d093f5542b9dbf2625d500b7 -->
+<!-- canonical_revision: bfc8eb7ee0b6e018f6476f7b6000d9e850c2d892819879620de7d2cae5a2a374 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T16:54:12+00:00 -->
+<!-- generated_at: 2026-07-19T17:50:01+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -18,18 +18,18 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- CAE-006 parent closed
+- CAE-005 parent closed
+- CAE-008 blocked on rollback semantics; other Stage C/D leaves approved.
+- CAE-009 approved: feed adapter routes evidence pairs through CandidateSearchPort with grant/provenance; flag default-off.
+- CAE-006B approved: shape-aware service baselines published; structural/parity/perf probes pass; near-neighbour known_failure preserved.
+- CAE-007 approved: persistent AuditReceipts with reconstruction; incognito hashes-only; flag default-off.
+- CAE-005B approved: Holodeck adapter uses CandidateSearchPort; legacy meta scorer isolated; flag default-off.
+- Rotate to sequential leaf approvals
 - CAE-003B approved and done; Stage B leaf tasks completed after unset-budget fix verification.
 - Stage B review complete: CAE-003B blocked on token_budget=0 wipe; other Stage B leaves review-approved pending gate.
 - Stage A independent review approved CAE-000; task marked done.
 - Stage A independent review approved CAE-015; task marked done.
-- Stage A independent review approved CAE-006A; task marked done.
-- CAE-006A baseline harness left in review
-- CAE-015 disclosure contracts v1.0 left in review
-- CAE-015 disclosure contracts
-- Stage A independent review approved CAE-014; task marked done; D-009 recorded live.
-- Stage A independent review approved CAE-013; task marked done.
-- Verification recorded; projections to publish after commit.
-- Verification recorded; projections published; handing off for independent review.
 
 ## Reasoning
 
@@ -48,15 +48,15 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- parent-children-complete
+- parent-children-complete
+- adversarial_multi_turn_active_state_rollback
+- tests/test_feed_disclosure_parity.py
+- tests/test_aperture_service_baseline_harness.py
+- tests/test_disclosure_receipts.py
+- tests/test_holodeck_disclosure_parity.py
+- tests/test_disclosure_service_bridge_parity.py
 - stage-b-parent-children-complete
 - stage-b-gate-reverify-CAE-004
 - stage-b-gate-reverify-CAE-001
 - stage-b-gate-reverify-CAE-003A
-- stage-b-gate-reverify-CAE-002
-- stage-b-reverify-budget-and-bridge-policy
-- stage-b-review-bridge-policy-integration
-- stage-b-review-orient-first
-- stage-b-review-budget-allocator-focused
-- stage-b-review-fail-empty
-- stage-b-review-effective-grant
-- stage-b-review-execution-audit-isolation
