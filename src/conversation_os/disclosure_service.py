@@ -71,7 +71,35 @@ class DisclosureService:
         started = time.perf_counter()
         catalog = self.ports.catalog.build_corpus_catalog(root, corpus_id=corpus_id)
         readiness = str(catalog.get("readiness_state", "") or "")
+        request_id = str(context_state.get("request_id", "") or "")
         if readiness in {"interrupted", "unsupported"}:
+            abstained_grant = {
+                "grant_id": "",
+                "request_id": request_id,
+                "envelope": "bounded",
+                "effective_layers": [],
+                "effective_refs": [],
+                "dimensions": [],
+                "shape_maturity": "candidate",
+                "cross_ocean": False,
+                "token_budget": 0,
+                "persistence_mode": "gated",
+                "explicit_pins": [],
+                "narrowing_reasons": [],
+                "deny_precedence_applied": False,
+                "requested_grant_ref": "",
+            }
+            receipt = self.ports.receipt_sink.record_disclosure_receipt(
+                root,
+                request_id=request_id,
+                result_status="abstained_dependency_not_ready",
+                effective_grant=abstained_grant,
+                corpus_catalog=catalog,
+                frame_audit={},
+                frame_bundle={"included_blocks": [], "assembly_status": "empty"},
+                metrics={"corpus_readiness_state": readiness},
+                surface="bridge",
+            )
             return {
                 "context_state": dict(context_state),
                 "result_status": "abstained_dependency_not_ready",
@@ -81,6 +109,7 @@ class DisclosureService:
                 "frame_audit": {},
                 "budget": dict(budget or {}),
                 "global_fallback": {"count": 0},
+                "disclosure_receipt": receipt,
             }
 
         bundle = dict(
@@ -124,6 +153,11 @@ class DisclosureService:
                 "resolved_block_count": len(resolved_blocks),
                 "corpus_readiness_state": readiness,
             },
+            frame_bundle=dict(bundle.get("frame_bundle", {}) or {}),
+            corpus_catalog=catalog,
+            retrieval_bundle=dict(bundle.get("global_fallback", {}) or {}),
+            surface="bridge",
+            workspace_id=str(bundle.get("context_state", {}).get("active_workspace_id", "") or ""),
         )
 
         bundle["disclosure_service_v1"] = True

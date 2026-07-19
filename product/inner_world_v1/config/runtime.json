@@ -89,6 +89,12 @@
       "system_tokens": 120,
       "answer_tokens": 256,
       "orientation_max_tokens": 120
+    },
+    "persistent_receipts_v1": false,
+    "receipts": {
+      "persistent_receipts_v1": false,
+      "max_entries": 500,
+      "retention_days": 30
     }
   },
   "holodeck": {

@@ -45,6 +45,8 @@ PUBLIC_API = (
     "deterministic_budget_enforcement_enabled",
     "orient_first_compose_enabled",
     "disclosure_service_enabled",
+    "inspect_disclosure_receipt",
+    "list_disclosure_receipts",
 )
 __all__ = list(PUBLIC_API)
 
@@ -1807,7 +1809,40 @@ def get_context_bundle(
         from .bridge_disclosure_adapter import disclose_for_bridge
 
         return disclose_for_bridge(root, context_state, budget=budget)
-    return _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
+    bundle = _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
+    bundle["disclosure_receipt"] = _record_bridge_disclosure_receipt(root, bundle)
+    return bundle
+
+
+def _record_bridge_disclosure_receipt(root: Path, bundle: Dict[str, Any]) -> Dict[str, Any]:
+    from .disclosure_receipts import record_bridge_context_receipt
+
+    return record_bridge_context_receipt(root, bundle)
+
+
+def inspect_disclosure_receipt(root: Path, receipt_id: str) -> Dict[str, Any]:
+    from .disclosure_receipts import inspect_disclosure_receipt as _inspect
+
+    return _inspect(root, receipt_id)
+
+
+def list_disclosure_receipts(
+    root: Path,
+    *,
+    request_id: str = "",
+    surface: str = "",
+    workspace_id: str = "",
+    limit: int = 20,
+) -> List[Dict[str, Any]]:
+    from .disclosure_receipts import list_disclosure_receipts as _list
+
+    return _list(
+        root,
+        request_id=request_id,
+        surface=surface,
+        workspace_id=workspace_id,
+        limit=limit,
+    )
 
 
 def record_context_switch(root: Path, event: Dict[str, Any]) -> Dict[str, Any]:

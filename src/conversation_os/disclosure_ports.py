@@ -82,6 +82,11 @@ class ReceiptSinkPort(Protocol):
         budget_ledger: Mapping[str, Any] | None = None,
         frame_audit: Mapping[str, Any] | None = None,
         metrics: Mapping[str, Any] | None = None,
+        frame_bundle: Mapping[str, Any] | None = None,
+        corpus_catalog: Mapping[str, Any] | None = None,
+        retrieval_bundle: Mapping[str, Any] | None = None,
+        surface: str = "bridge",
+        workspace_id: str = "",
     ) -> Dict[str, Any]: ...
 
 
@@ -175,8 +180,13 @@ class _InMemoryReceiptSink:
         budget_ledger: Mapping[str, Any] | None = None,
         frame_audit: Mapping[str, Any] | None = None,
         metrics: Mapping[str, Any] | None = None,
+        frame_bundle: Mapping[str, Any] | None = None,
+        corpus_catalog: Mapping[str, Any] | None = None,
+        retrieval_bundle: Mapping[str, Any] | None = None,
+        surface: str = "bridge",
+        workspace_id: str = "",
     ) -> Dict[str, Any]:
-        _ = root
+        _ = root, frame_bundle, corpus_catalog, retrieval_bundle, surface, workspace_id
         record = {
             "request_id": request_id,
             "result_status": result_status,
@@ -189,13 +199,53 @@ class _InMemoryReceiptSink:
         return record
 
 
+class _DefaultReceiptSink:
+    def __init__(self) -> None:
+        self.records: list[Dict[str, Any]] = []
+
+    def record_disclosure_receipt(
+        self,
+        root: Path,
+        *,
+        request_id: str,
+        result_status: str,
+        effective_grant: Mapping[str, Any],
+        budget_ledger: Mapping[str, Any] | None = None,
+        frame_audit: Mapping[str, Any] | None = None,
+        metrics: Mapping[str, Any] | None = None,
+        frame_bundle: Mapping[str, Any] | None = None,
+        corpus_catalog: Mapping[str, Any] | None = None,
+        retrieval_bundle: Mapping[str, Any] | None = None,
+        surface: str = "bridge",
+        workspace_id: str = "",
+    ) -> Dict[str, Any]:
+        from .disclosure_receipts import record_disclosure_receipt
+
+        receipt = record_disclosure_receipt(
+            root,
+            request_id=request_id,
+            result_status=result_status,
+            effective_grant=effective_grant,
+            budget_ledger=budget_ledger,
+            frame_audit=frame_audit,
+            metrics=metrics,
+            frame_bundle=frame_bundle,
+            corpus_catalog=corpus_catalog,
+            retrieval_bundle=retrieval_bundle,
+            surface=surface,
+            workspace_id=workspace_id,
+        )
+        self.records.append(receipt)
+        return receipt
+
+
 def build_inner_world_ports(*, receipt_sink: ReceiptSinkPort | None = None) -> DisclosurePorts:
     return DisclosurePorts(
         catalog=_InnerWorldCorpusCatalog(),
         candidate_search=_InnerWorldCandidateSearch(),
         shape_reader=_InnerWorldShapeReader(),
         evidence_resolver=_InnerWorldEvidenceResolver(),
-        receipt_sink=receipt_sink or _InMemoryReceiptSink(),
+        receipt_sink=receipt_sink or _DefaultReceiptSink(),
     )
 
 

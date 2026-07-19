@@ -124,3 +124,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** ADR-002, GAP_MAP G2
 
 `holodeck_disclosure_adapter` version `1.0` routes Holodeck contextualization knowledge retrieval through the shared `CandidateSearchPort` while workspace projection layers (`product_thesis`, `artifact_doc`, `plan_doc`) remain Holodeck-owned. Legacy meta-layer term matching is isolated in `_collect_legacy_meta_layer_candidates()` and skipped when `holodeck.disclosure_service_v1` is enabled. Bridge/Holodeck parity is defined on admitted semantic capsule IDs and source refs for the same contextualization query. Rollback via `holodeck.disclosure_service_v1: false` (default off).
+
+## D-019 — Persistent disclosure receipts (CAE-007)
+
+**Status:** accepted
+**Authority:** ADR-001, D-017, GAP_MAP G6
+
+`disclosure_receipts` version `1.0` materializes CAE-015 `AuditReceipt` records for Bridge disclosure results via `record_disclosure_receipt()` / `record_bridge_context_receipt()`. Receipts store corpus revision, policy hashes, effective grant, candidate decisions, block IDs, budget ledger, and result status; sensitive evidence text is not duplicated. Incognito envelopes use `hashes_metrics_only` retention with content hashes only. Persistence is gated by `disclosure.receipts.persistent_receipts_v1` (default off); retention trims `disclosure_receipts.jsonl` to `max_entries`. `inspect_disclosure_receipt()` and `reconstruct_disclosure_result()` provide Bridge/Holodeck inspect paths.

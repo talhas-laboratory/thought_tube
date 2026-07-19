@@ -4407,6 +4407,28 @@ def holodeck_artifacts(root: Path, args: argparse.Namespace) -> dict:
     }
 
 
+def holodeck_list_disclosure_receipts(
+    root: Path,
+    *,
+    workspace_id: str = "",
+    limit: int = 20,
+) -> list[dict]:
+    from .disclosure_receipts import list_disclosure_receipts
+
+    return list_disclosure_receipts(
+        root,
+        surface="holodeck",
+        workspace_id=workspace_id,
+        limit=limit,
+    )
+
+
+def holodeck_inspect_disclosure_receipt(root: Path, receipt_id: str) -> dict:
+    from .disclosure_receipts import inspect_disclosure_receipt
+
+    return inspect_disclosure_receipt(root, receipt_id)
+
+
 def holodeck_contextualize(root: Path, args: argparse.Namespace) -> dict:
     return _run_contextualization_pass(
         root,
