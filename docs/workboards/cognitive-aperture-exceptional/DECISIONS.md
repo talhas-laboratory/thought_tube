@@ -53,6 +53,12 @@ Bridge adopts first, Holodeck second. Feed and task packs follow only after conf
 ## Open decisions
 
 - Exact tokenizer/estimator and budget reservation constants — CAE-003B.
-- Shape projection reader schema/version — CAE-014.
 - Approved positive-recall and latency thresholds — CAE-006A.
 - Kernel bounded-view integration versus explicit demotion — CAE-011.
+
+## D-009 — Shape projection reader schema and legacy retention (CAE-014)
+
+**Status:** accepted
+**Authority:** ADR-002, GAP_MAP G-2
+
+`ShapeProjectionReader` contract version `1.0` lives in `src/conversation_os/shape_projection_reader.py`. Canonical reads use `profile:shape_and_semantic_addressing` when registered; until then the reader abstains on canonical promotion and exposes legacy `meta_layer` signatures only as explicit `candidate` projections with branch, scope, boundary, abstraction contract, scale, and provenance. AntiMatch records are read as `anti_match` projections. The aperture cannot promote Shape or Pattern status through this port. Legacy JSONL remains the provisional candidate source until the canonical profile registers and adapter conformance passes (`CAE-014-legacy-retained-until-canonical-profile`).

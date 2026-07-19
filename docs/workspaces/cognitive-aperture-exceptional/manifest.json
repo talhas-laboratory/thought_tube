@@ -17,7 +17,9 @@
     "src/conversation_os/holodeck.py",
     "src/conversation_os/library_tracker.py",
     "src/conversation_os/runtime_pipeline.py",
-    "tests/test_conversation_os.py"
+    "src/conversation_os/shape_projection_reader.py",
+    "tests/test_conversation_os.py",
+    "tests/test_shape_projection_reader.py"
   ],
   "external_dependencies": [
     "library/runtime corpus readiness",
