@@ -4,6 +4,7 @@
 **Workspace:** `cognitive-aperture-exceptional`
 **Coordination:** live API is authoritative
 **Design:** [`Modular Cognitive Aperture Design`](../../plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md)
+**Executable handoff:** [`derived/EXECUTION_HANDOFF.md`](./derived/EXECUTION_HANDOFF.md)
 
 ## Orientation
 
@@ -70,7 +71,7 @@ Do not begin Stage B until the Stage A gate passes. Do not extract a shared serv
 
 ## Known current hazards
 
-- local runtime corpus is empty and the last pipeline run is stale/interrupted;
+- seed corpus `cognitive_aperture_chat_converter_v1` is materialized; its completed pipeline and known retrieval regression are recorded in `derived/CHAT_CONVERTER_SEED_CORPUS_V1.md`;
 - retrieval confidence currently makes all capsules positive;
 - bounded defaults to the same layers as open;
 - token budget is not enforced at execution;

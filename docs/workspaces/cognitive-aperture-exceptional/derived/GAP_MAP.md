@@ -58,7 +58,7 @@ It owns disclosure. It does not own ingestion, canonical records, Shape promotio
 | D5 | Policy axes overlap | depth, envelope, retrieval mode, and layer policy are reinterpreted downstream |
 | D6 | Retrieval mechanisms diverge | Bridge, Holodeck, feed, task packs, and kernel views select independently |
 | D7 | Shape authority is split | legacy signatures exist; canonical Shape profile is not registered |
-| D8 | Corpus is not ready locally | zero runtime chunks/capsules; last pipeline run interrupted |
+| D8 | Corpus readiness contract is not implemented | a representative corpus and derived projections exist, but no versioned `CorpusCatalog` makes readiness/capabilities enforceable |
 | D9 | Metrics are plumbing-heavy | no versioned neighborhood-quality baseline |
 | D10 | Live plan is incomplete | only CAE-000…003 registered; generic criteria; no task dependencies |
 
