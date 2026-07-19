@@ -103,3 +103,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** D-007, design §8, disclosure contracts
 
 `disclosure_budget_allocator` version `1.0` uses estimator `1.0` (whitespace token count) and reservation version `1.0` (`system_tokens=120`, `answer_tokens=256`, `orientation_max_tokens=120`). `apply_frame_budget_to_assembly()` selects whole frame blocks in layer priority order before execution composition; optional blocks drop with a ledger recorded in `frame_audit.drop_ledger` only. Required blocks that cannot fit return `abstained_insufficient_budget`. Rollback via `bridge.deterministic_budget_enforcement_v1: false`.
+
+## D-016 — Orient-first compose (CAE-004)
+
+**Status:** accepted
+**Authority:** ADR-001, GAP_MAP G5
+
+`orient_first_compose` version `1.0` builds a capped `ActiveStateSnapshot` from authorized local continuity only (no undisclosed global material). `compose_orient_first_message()` orders sections orientation → constraints → evidence → user turn; empty evidence turns include explicit no-evidence guidance. Automatic note-agent widen beyond `session_only` requires `second_pass_widen_grant_id` or `widen_grant_id` in caller hints. Rollback via `bridge.orient_first_compose_v1: false`.

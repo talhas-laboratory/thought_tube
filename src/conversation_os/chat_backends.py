@@ -912,6 +912,8 @@ def trim_context_bundle(bundle: Dict[str, Any], policy: Dict[str, Any] | None = 
         "frame_spec": dict(bundle.get("frame_spec", {}) or {}),
         "frame_bundle": dict(bundle.get("frame_bundle", {}) or {}),
         "execution_audit_isolation_v1": bool(bundle.get("execution_audit_isolation_v1", True)),
+        "orient_first_compose_v1": bool(bundle.get("orient_first_compose_v1", False)),
+        "active_state_snapshot": dict(bundle.get("active_state_snapshot", {}) or {}),
     }
     if "session" in layers:
         trimmed["session_local"] = list(bundle.get("session_local", []) or [])
@@ -941,6 +943,16 @@ def _format_provenance_lines(source_refs: List[str]) -> str:
 
 
 def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Dict[str, Any], user_text: str) -> str:
+    if trimmed_bundle.get("orient_first_compose_v1"):
+        from .orient_first_compose import ORIENTATION_MAX_CHARS, compose_orient_first_message
+
+        return compose_orient_first_message(
+            control_packet,
+            trimmed_bundle,
+            user_text,
+            orientation_max_chars=int(trimmed_bundle.get("orientation_max_chars", ORIENTATION_MAX_CHARS) or ORIENTATION_MAX_CHARS),
+        )
+
     policy = dict(control_packet.get("context_policy", {}) or {})
     layers = list(trimmed_bundle.get("bundle_layers", []) or [])
     constraints = [str(value) for value in control_packet.get("steering_constraints", []) or [] if str(value).strip()]

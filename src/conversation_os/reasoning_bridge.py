@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -42,6 +43,7 @@ PUBLIC_API = (
     "effective_layers_to_bridge_layers",
     "effective_grant_normalization_enabled",
     "deterministic_budget_enforcement_enabled",
+    "orient_first_compose_enabled",
 )
 __all__ = list(PUBLIC_API)
 
@@ -60,6 +62,8 @@ def _apply_note_agent_overrides(
     resolved_budget: Dict[str, Any],
     attributes: Dict[str, Any],
     retrieval_mode: str,
+    *,
+    orient_first_enabled: bool = False,
 ) -> tuple[Dict[str, Any], str, Dict[str, Any] | None]:
     note_agent_state = dict(attributes.get("note_agent", {}) or {})
     if not note_agent_state:
@@ -80,6 +84,22 @@ def _apply_note_agent_overrides(
         next_budget["neighbor_limit"] = int(retrieval_policy.get("neighbor_limit", 0) or 0)
 
     next_mode = _note_agent_retrieval_mode(note_agent_state)
+    if orient_first_enabled:
+        from .orient_first_compose import authorize_second_pass_widen
+
+        authorized, reason = authorize_second_pass_widen(
+            base_mode=retrieval_mode,
+            proposed_mode=next_mode,
+            caller_hints=caller_hints,
+        )
+        if not authorized:
+            blocked_state = {
+                **note_agent_state,
+                "widen_blocked": True,
+                "widen_block_reason": reason,
+            }
+            return resolved_budget, retrieval_mode, blocked_state
+
     next_budget["use_global"] = next_mode != "session_only"
     return next_budget, next_mode, note_agent_state
 
@@ -1164,6 +1184,15 @@ def deterministic_budget_enforcement_enabled(root: Path) -> bool:
         return True
 
 
+def orient_first_compose_enabled(root: Path) -> bool:
+    try:
+        from .orient_first_compose import orient_first_compose_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return True
+
+
 def execution_audit_isolation_enabled(root: Path | None) -> bool:
     if root is None:
         return True
@@ -1482,6 +1511,7 @@ def get_context_bundle(
         resolved_budget,
         attributes,
         retrieval_mode,
+        orient_first_enabled=orient_first_compose_enabled(root),
     )
     if retrieval_mode == CONTEXT_MODE_SESSION_ONLY:
         resolved_budget["use_global"] = False
@@ -1546,6 +1576,24 @@ def get_context_bundle(
         )
 
     session_envelope = build_session_envelope(state, policy=policy)
+    orient_first_enabled = orient_first_compose_enabled(root)
+    from .library_tracker import CHAT_CONVERTER_SEED_CORPUS_REVISION
+    from .orient_first_compose import build_active_state_snapshot, load_orient_first_config
+
+    orient_config = load_orient_first_config(root)
+    active_state_snapshot = build_active_state_snapshot(
+        state,
+        {
+            "request_id": state.get("request_id", ""),
+            "active_topic": state.get("active_topic", ""),
+            "user_goal": state.get("user_goal", ""),
+            "reasoning_posture": state.get("reasoning_posture", ""),
+            "object_scope": state.get("object_scope", "same_main"),
+        },
+        workspace_layer=workspace_layer,
+        session_envelope=session_envelope,
+        corpus_revision=CHAT_CONVERTER_SEED_CORPUS_REVISION,
+    )
 
     available_layers = ["session"]
     if workspace_layer:
@@ -1568,6 +1616,36 @@ def get_context_bundle(
         layer_names = list(available_layers)
         layer_names = _apply_layer_policy(layer_names, policy)
         layer_names = _apply_session_envelope_to_layers(layer_names, session_envelope)
+
+    widen_grant_id = str(
+        (attributes.get("caller_hints", {}) or {}).get("second_pass_widen_grant_id")
+        or (attributes.get("caller_hints", {}) or {}).get("widen_grant_id")
+        or ""
+    ).strip()
+    if (
+        widen_grant_id
+        and note_agent_state
+        and not note_agent_state.get("widen_blocked")
+        and "global" in note_retrieval_policy.get("include_layers", [])
+        and retrieval_bundle.get("count")
+    ):
+        if "global" not in layer_names and "global" in available_layers:
+            layer_names.append("global")
+        if "governed_global" not in effective_grant.effective_layers:
+            effective_grant = replace(
+                effective_grant,
+                effective_layers=[*effective_grant.effective_layers, "governed_global"],
+                narrowing_reasons=[
+                    *list(effective_grant.narrowing_reasons),
+                    {
+                        "code": "second_pass_widen_grant",
+                        "field": "effective_layers",
+                        "requested": list(effective_grant.effective_layers),
+                        "effective": [*effective_grant.effective_layers, "governed_global"],
+                        "reason": f"Explicit second-pass widen grant {widen_grant_id}",
+                    },
+                ],
+            )
 
     state["bundle_layers"] = layer_names
     frame_spec = build_frame_spec(
@@ -1594,7 +1672,6 @@ def get_context_bundle(
     budget_audit: Dict[str, Any] = {}
     if deterministic_budget_enforcement_enabled(root):
         from .disclosure_budget_allocator import apply_frame_budget_to_assembly
-        from .library_tracker import CHAT_CONVERTER_SEED_CORPUS_REVISION
 
         budget_audit = apply_frame_budget_to_assembly(
             frame_assembly,
@@ -1661,11 +1738,15 @@ def get_context_bundle(
             "anchor_pond": "",
             "include_cross_pond": False,
         },
+        "active_state_snapshot": active_state_snapshot,
+        "orient_first_compose_v1": orient_first_enabled,
+        "orientation_max_chars": int(orient_config.get("orientation_max_chars", 480) or 480),
     }
     if policy:
         bundle["context_policy"] = policy
     bundle["execution_audit_isolation_v1"] = execution_audit_isolation_enabled(root)
     bundle["deterministic_budget_enforcement_v1"] = deterministic_budget_enforcement_enabled(root)
+    bundle["orient_first_compose_v1"] = orient_first_enabled
     if budget_audit:
         bundle["budget_audit"] = {
             "result_status": budget_audit.get("result_status", ""),

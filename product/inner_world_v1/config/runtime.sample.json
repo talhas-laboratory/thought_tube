@@ -24,6 +24,7 @@
     "execution_audit_isolation_v1": true,
     "effective_grant_normalization_v1": true,
     "deterministic_budget_enforcement_v1": true,
+    "orient_first_compose_v1": true,
     "openclaw_mode": "auto"
   },
   "knowledge": {
@@ -33,6 +34,7 @@
   "disclosure": {
     "estimator_version": "1.0",
     "reservation_version": "1.0",
+    "orientation_max_chars": 480,
     "budget_reservations": {
       "system_tokens": 120,
       "answer_tokens": 256,
