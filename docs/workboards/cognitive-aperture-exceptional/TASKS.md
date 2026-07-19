@@ -13,7 +13,7 @@
 | `CAE-005A` | backlog | unassigned | Disclosure service and Bridge adapter | not_required |
 | `CAE-005B` | backlog | unassigned | Holodeck adapter and parity | not_required |
 | `CAE-006` | backlog | unassigned | Evaluation program | not_required |
-| `CAE-006A` | backlog | unassigned | Baseline evaluation harness | not_required |
+| `CAE-006A` | review | cursor-cloud-cae006a | Baseline evaluation harness | not_required |
 | `CAE-006B` | backlog | unassigned | Shape-aware and performance baselines | not_required |
 | `CAE-007` | backlog | unassigned | Receipts and observability | not_required |
 | `CAE-008` | backlog | unassigned | Bounded ActiveState continuity | not_required |
@@ -28,6 +28,6 @@
 Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
-Live workspace task statuses: `CAE-000`=review, `CAE-001`=backlog, `CAE-002`=backlog, `CAE-003`=backlog, `CAE-003A`=backlog, `CAE-003B`=backlog, `CAE-004`=backlog, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=backlog, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=done, `CAE-014`=done, `CAE-015`=review. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
+Live workspace task statuses: `CAE-000`=review, `CAE-001`=backlog, `CAE-002`=backlog, `CAE-003`=backlog, `CAE-003A`=backlog, `CAE-003B`=backlog, `CAE-004`=backlog, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=review, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=done, `CAE-014`=done, `CAE-015`=review. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
 
 **Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)

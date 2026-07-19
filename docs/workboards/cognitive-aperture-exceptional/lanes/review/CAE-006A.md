@@ -1,4 +1,5 @@
-Status: backlog
+Status: review
+Owner: cursor-cloud-cae006a
 # CAE-006A — Baseline evaluation harness
 
 **Stage:** A

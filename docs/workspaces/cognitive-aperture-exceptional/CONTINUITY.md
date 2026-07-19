@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 212c57c5137c8cc3a8cdf7d5ee1ce64f812ee708857592711cdb127612417fcf -->
+<!-- canonical_revision: 30860960c0e5b32c4ab213c8cebaf2f7cc44633c8d08071abed4e2d3d02348a3 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T15:59:36+00:00 -->
+<!-- generated_at: 2026-07-19T16:04:38+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -35,6 +35,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- aperture_baseline_harness_v1
 - disclosure_contracts_v1
 - stage-a-independent-review-passing
 - stage-a-independent-review-passing
