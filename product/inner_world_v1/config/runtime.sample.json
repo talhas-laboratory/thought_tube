@@ -25,6 +25,10 @@
     "effective_grant_normalization_v1": true,
     "openclaw_mode": "auto"
   },
+  "knowledge": {
+    "fail_empty_admission_shadow_v1": true,
+    "fail_empty_admission_enforce_v1": true
+  },
   "self_improvement": {
     "enabled": false,
     "agent": "thought_tube_self_improve",

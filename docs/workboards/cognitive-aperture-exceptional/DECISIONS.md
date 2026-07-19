@@ -90,3 +90,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** disclosure contracts, design §9
 
 `build_effective_grant_from_context()` normalizes policy and session envelope once into `EffectiveGrant` via `disclosure_contracts.normalize_effective_grant()`. Downstream bundle layers consume `effective_layers_to_bridge_layers()` output. Envelope matrix differences (open/bounded/strict/incognito) and deny precedence are enforced at this boundary. Rollback via `bridge.effective_grant_normalization_v1: false`.
+
+## D-014 — Fail-empty admission (CAE-001)
+
+**Status:** accepted
+**Authority:** GAP_MAP G1, ADR-001
+
+`candidate_admission` version `1.0` separates positive admission signals from ranking features in `build_retrieval_bundle()`. Confidence alone is not an admission signal; unrelated bounded/strict queries return `empty_no_positive_match` when enforcement is enabled. Shadow decisions are recorded in `shadow_admission`; rollback via `knowledge.fail_empty_admission_enforce_v1: false` (legacy fallback preserved when enforce is off).
