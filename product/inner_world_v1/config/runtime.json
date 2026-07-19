@@ -81,6 +81,15 @@
     "fail_empty_admission_shadow_v1": true,
     "fail_empty_admission_enforce_v1": true
   },
+  "disclosure": {
+    "estimator_version": "1.0",
+    "reservation_version": "1.0",
+    "budget_reservations": {
+      "system_tokens": 120,
+      "answer_tokens": 256,
+      "orientation_max_tokens": 120
+    }
+  },
   "bridge": {
     "enabled": true,
     "agent": "thought_tube_router",
@@ -92,6 +101,7 @@
     "execution_mode": "agent",
     "execution_audit_isolation_v1": true,
     "effective_grant_normalization_v1": true,
+    "deterministic_budget_enforcement_v1": true,
     "openclaw_mode": "auto",
     "tracking": {
       "require_active_session": true,

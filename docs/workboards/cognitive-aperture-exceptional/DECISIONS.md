@@ -52,7 +52,6 @@ Bridge adopts first, Holodeck second. Feed and task packs follow only after conf
 
 ## Open decisions
 
-- Exact tokenizer/estimator and budget reservation constants — CAE-003B.
 - Kernel bounded-view integration versus explicit demotion — CAE-011.
 - Harness probe fixtures for budget, leakage, provenance, and Shape/AntiMatch categories — CAE-006B (thresholds for recall/latency recorded in D-011).
 
@@ -97,3 +96,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** GAP_MAP G1, ADR-001
 
 `candidate_admission` version `1.0` separates positive admission signals from ranking features in `build_retrieval_bundle()`. Confidence alone is not an admission signal; unrelated bounded/strict queries return `empty_no_positive_match` when enforcement is enabled. Shadow decisions are recorded in `shadow_admission`; rollback via `knowledge.fail_empty_admission_enforce_v1: false` (legacy fallback preserved when enforce is off).
+
+## D-015 — Deterministic budget allocator (CAE-003B)
+
+**Status:** accepted
+**Authority:** D-007, design §8, disclosure contracts
+
+`disclosure_budget_allocator` version `1.0` uses estimator `1.0` (whitespace token count) and reservation version `1.0` (`system_tokens=120`, `answer_tokens=256`, `orientation_max_tokens=120`). `apply_frame_budget_to_assembly()` selects whole frame blocks in layer priority order before execution composition; optional blocks drop with a ledger recorded in `frame_audit.drop_ledger` only. Required blocks that cannot fit return `abstained_insufficient_budget`. Rollback via `bridge.deterministic_budget_enforcement_v1: false`.

@@ -41,6 +41,7 @@ PUBLIC_API = (
     "build_effective_grant_from_context",
     "effective_layers_to_bridge_layers",
     "effective_grant_normalization_enabled",
+    "deterministic_budget_enforcement_enabled",
 )
 __all__ = list(PUBLIC_API)
 
@@ -1154,6 +1155,15 @@ def build_frame_spec(
     }
 
 
+def deterministic_budget_enforcement_enabled(root: Path) -> bool:
+    try:
+        from .disclosure_budget_allocator import deterministic_budget_enforcement_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return True
+
+
 def execution_audit_isolation_enabled(root: Path | None) -> bool:
     if root is None:
         return True
@@ -1581,11 +1591,47 @@ def get_context_bundle(
         bridge_state=bridge_state,
         retrieval_bundle=retrieval_bundle,
     )
+    budget_audit: Dict[str, Any] = {}
+    if deterministic_budget_enforcement_enabled(root):
+        from .disclosure_budget_allocator import apply_frame_budget_to_assembly
+        from .library_tracker import CHAT_CONVERTER_SEED_CORPUS_REVISION
+
+        budget_audit = apply_frame_budget_to_assembly(
+            frame_assembly,
+            context_state=state,
+            effective_grant=effective_grant.to_dict(),
+            root=root,
+            corpus_revision=CHAT_CONVERTER_SEED_CORPUS_REVISION,
+            session_event_count=len(session_rows),
+        )
     if execution_audit_isolation_enabled(root):
         frame_bundle, frame_audit = split_frame_assembly(frame_assembly)
     else:
         frame_bundle = frame_assembly
         frame_audit = {}
+    if budget_audit:
+        dropped_blocks = list(budget_audit.get("dropped_blocks", []) or [])
+        if dropped_blocks:
+            frame_audit.setdefault("omitted_blocks", [])
+            frame_audit["omitted_blocks"].extend(
+                {
+                    "block_id": row.get("block_id", ""),
+                    "layer": row.get("layer", ""),
+                    "reason_code": "budget_insufficient",
+                    "summary": row.get("summary", ""),
+                    "source_ref": row.get("source_ref", ""),
+                    "disclosure_state": "dropped",
+                }
+                for row in dropped_blocks
+            )
+        frame_audit["drop_ledger"] = list(budget_audit.get("drop_ledger", []) or [])
+        frame_audit["budget_ledger"] = dict(budget_audit.get("budget_ledger", {}) or {})
+        frame_audit["budget_summary"] = dict(budget_audit.get("budget_summary", {}) or {})
+        frame_audit["budget_policy_hash"] = str(budget_audit.get("policy_hash", "") or "")
+        frame_bundle["budget_summary"] = dict(budget_audit.get("budget_summary", {}) or {})
+        frame_bundle["result_status"] = str(budget_audit.get("result_status", "") or frame_bundle.get("result_status", "disclosed"))
+        if "drop_ledger" in frame_bundle:
+            del frame_bundle["drop_ledger"]
 
     bundle = {
         "context_state": state,
@@ -1619,6 +1665,16 @@ def get_context_bundle(
     if policy:
         bundle["context_policy"] = policy
     bundle["execution_audit_isolation_v1"] = execution_audit_isolation_enabled(root)
+    bundle["deterministic_budget_enforcement_v1"] = deterministic_budget_enforcement_enabled(root)
+    if budget_audit:
+        bundle["budget_audit"] = {
+            "result_status": budget_audit.get("result_status", ""),
+            "budget_ledger": dict(budget_audit.get("budget_ledger", {}) or {}),
+            "drop_ledger": list(budget_audit.get("drop_ledger", []) or []),
+            "estimator_version": budget_audit.get("estimator_version", ""),
+            "reservation_version": budget_audit.get("reservation_version", ""),
+        }
+        bundle["result_status"] = str(budget_audit.get("result_status", "") or "disclosed")
 
     pending = state.get("attributes", {}).get("pending_switch_event")
     if pending:
