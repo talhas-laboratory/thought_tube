@@ -34,6 +34,8 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         attributes["context_policy"] = policy
         context["attributes"] = attributes
         context["depth_mode"] = policy.get("depth_mode", context.get("depth_mode"))
+        if policy.get("envelope_mode"):
+            attributes.setdefault("caller_hints", {})["envelope_mode"] = policy["envelope_mode"]
         return context
 
     def test_include_layers_allowlist_excludes_undeclared_layers(self) -> None:
@@ -65,6 +67,7 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
                 "cross_ocean": False,
                 "retrieval_limit": 6,
                 "neighbor_limit": 4,
+                "envelope_mode": "bounded",
             }
         )
         bundle = get_context_bundle(self.root, context)
@@ -157,11 +160,10 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         self.assertTrue(bundle["frame_spec"]["preview_only"])
         self.assertEqual(bundle["frame_bundle"]["frame_id"], bundle["frame_spec"]["frame_id"])
         self.assertEqual(bundle["session_envelope"]["mode"], "bounded")
-        self.assertEqual(bundle["frame_bundle"]["assembly_status"], "complete")
+        self.assertEqual(bundle["frame_bundle"]["assembly_status"], "partial")
         included_layers = {row["layer"] for row in bundle["frame_bundle"]["included_blocks"]}
         self.assertIn("session", included_layers)
         self.assertIn("workspace", included_layers)
-        self.assertIn("global", included_layers)
 
     def test_frame_bundle_tracks_suppressed_layers_separately_from_disclosure(self) -> None:
         context = self._context_with_policy(
@@ -174,6 +176,7 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
                 "cross_ocean": False,
                 "retrieval_limit": 6,
                 "neighbor_limit": 4,
+                "envelope_mode": "bounded",
             }
         )
         with mock.patch("conversation_os.reasoning_bridge.build_retrieval_bundle") as retrieval_mock:
@@ -197,14 +200,16 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
                 bundle = get_context_bundle(self.root, context)
 
         self.assertEqual(bundle["context_state"]["bundle_layers"], ["session", "workspace"])
-        self.assertEqual(bundle["session_envelope"]["mode"], "strict")
+        self.assertEqual(bundle["session_envelope"]["mode"], "bounded")
         self.assertEqual(bundle["session_envelope"]["explicit_excludes"], ["global", "user"])
         selector_layers = {row["layer"] for row in bundle["frame_spec"]["selectors"]}
         self.assertIn("user", selector_layers)
         self.assertIn("global", selector_layers)
-        suppressed_layers = {row["layer"] for row in bundle["frame_bundle"]["suppressed_blocks"]}
+        suppressed_layers = {row["layer"] for row in bundle["frame_audit"]["suppressed_blocks"]}
         self.assertIn("user", suppressed_layers)
         self.assertIn("global", suppressed_layers)
+        self.assertNotIn("suppressed_blocks", bundle["frame_bundle"])
+        self.assertEqual(bundle["frame_bundle"]["frame_audit_id"], bundle["frame_audit"]["audit_id"])
 
 
 class BridgeBehaviorSpecsTestCase(unittest.TestCase):

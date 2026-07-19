@@ -24,6 +24,8 @@
     "tests/test_shape_projection_reader.py",
     "tests/test_disclosure_contracts.py",
     "tests/test_aperture_baseline_harness.py",
+    "tests/test_execution_audit_isolation.py",
+    "tests/test_effective_grant_envelope.py",
     "tests/fixtures/disclosure_contracts/v1",
     "tests/fixtures/aperture_baselines/v1",
     "docs/workspaces/cognitive-aperture-exceptional/derived/baselines"

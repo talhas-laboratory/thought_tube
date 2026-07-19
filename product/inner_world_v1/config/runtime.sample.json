@@ -21,6 +21,8 @@
     "fallback": "heuristic",
     "emit_heuristic_preview": true,
     "execution_mode": "agent",
+    "execution_audit_isolation_v1": true,
+    "effective_grant_normalization_v1": true,
     "openclaw_mode": "auto"
   },
   "self_improvement": {

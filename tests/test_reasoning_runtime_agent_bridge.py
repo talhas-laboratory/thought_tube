@@ -231,7 +231,7 @@ class ReasoningRuntimeAgentBridgeTestCase(unittest.TestCase):
         self.assertNotIn("ocean", message)
         self.assertNotIn("bridge_behavior:test", message)
 
-    def test_execution_compose_includes_frame_envelope_and_suppression_summary(self) -> None:
+    def test_execution_compose_omits_suppression_when_isolation_enabled(self) -> None:
         control_packet = {
             "active_topic": "bridge execution",
             "user_goal": "build",
@@ -261,16 +261,19 @@ class ReasoningRuntimeAgentBridgeTestCase(unittest.TestCase):
                     {"layer": "session", "summary": "1 session event(s)", "source_ref": "memory/events/session-agent-001.jsonl"},
                     {"layer": "workspace", "summary": "workspace binding for ws-001", "source_ref": "workspace:ws-001"},
                 ],
+                "provenance_summary": {
+                    "source_refs": ["memory/events/session-agent-001.jsonl", "workspace:ws-001"],
+                    "included_layer_count": 2,
+                },
+            },
+            "frame_audit": {
+                "audit_id": "audit-001",
                 "suppressed_blocks": [
                     {"layer": "user", "summary": "1 user pattern(s)", "source_ref": "reasoning_runtime/bridge_state.json"},
                     {"layer": "global", "summary": "2 retrieval candidate(s)", "source_ref": "retrieval:bridge execution"},
                 ],
-                "provenance_summary": {
-                    "source_refs": ["memory/events/session-agent-001.jsonl", "workspace:ws-001"],
-                    "included_layer_count": 2,
-                    "suppressed_layer_count": 2,
-                },
             },
+            "execution_audit_isolation_v1": True,
             "session_local": [{"actor": "user", "content": "prior turn"}],
             "workspace_local": {"workspace_id": "ws-001"},
             "user_local": {"behavior_patterns": [{"pattern_key": "bridge_behavior:test"}]},
@@ -285,10 +288,38 @@ class ReasoningRuntimeAgentBridgeTestCase(unittest.TestCase):
         self.assertEqual(trimmed["frame_bundle"]["frame_id"], "frame-001")
         self.assertIn("Session envelope mode: strict", message)
         self.assertIn("Frame assembly: partial", message)
-        self.assertIn("Suppressed frame blocks:", message)
-        self.assertIn("global: 2 retrieval candidate(s)", message)
+        self.assertNotIn("Suppressed frame blocks:", message)
         self.assertIn("workspace: workspace binding for ws-001", message)
         self.assertIn("Do not mention internal bridge, routing, frame, or context-assembly mechanics", message)
+
+    def test_execution_compose_legacy_includes_suppression_when_isolation_disabled(self) -> None:
+        control_packet = {
+            "active_topic": "bridge execution",
+            "user_goal": "build",
+            "reasoning_posture": "implementation",
+            "pipeline_id": "idea_embedding_v1",
+            "bridge_behaviors": [],
+            "steering_constraints": [],
+            "context_policy": {"mode": "semantic_narrow", "depth_mode": "contextual"},
+        }
+        bundle = {
+            "context_state": {"bundle_layers": ["session", "workspace"]},
+            "session_envelope": {"mode": "strict"},
+            "frame_spec": {"frame_id": "frame-001"},
+            "frame_bundle": {
+                "frame_id": "frame-001",
+                "assembly_status": "partial",
+                "included_blocks": [{"layer": "session", "summary": "1 session event(s)"}],
+                "suppressed_blocks": [{"layer": "global", "summary": "2 retrieval candidate(s)"}],
+            },
+            "execution_audit_isolation_v1": False,
+            "session_local": [],
+            "workspace_local": {},
+            "user_local": {},
+            "global_fallback": {"count": 0},
+        }
+        message = compose_execution_message(control_packet, trim_context_bundle(bundle), "connect the bridge")
+        self.assertIn("Suppressed frame blocks:", message)
 
     @mock.patch("conversation_os.bridge_controller.classify_with_agent")
     @mock.patch("conversation_os.reasoning_runtime.request_bridge_execution_reply")

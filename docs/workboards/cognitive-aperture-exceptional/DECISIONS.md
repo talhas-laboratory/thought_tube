@@ -76,3 +76,17 @@ Disclosure contracts version `1.0` live in `src/conversation_os/disclosure_contr
 **Authority:** GAP_MAP §7, CHAT_CONVERTER_SEED_CORPUS_V1
 
 `aperture_baseline_harness` version `1.0` lives in `src/conversation_os/aperture_baseline_harness.py`. Versioned probe fixtures under `tests/fixtures/aperture_baselines/v1/` and published results under `derived/baselines/chat_converter_seed_v1.{json,md}` record corpus revision `db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad`, approved Stage A thresholds, and the near-neighbour known failure (`biological cognition agent memory` → `understanding-the-nature-of-thought`). The harness maps probes to explicit disclosure result statuses and distinguishes pass, no_hits, known_failure, abstained, denied, and error verdicts before enforcement work begins.
+
+## D-012 — Execution/audit isolation (CAE-002)
+
+**Status:** accepted
+**Authority:** ADR-001, D-005, disclosure contracts
+
+Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed fields) from `frame_audit` (omitted blocks and reasons). `compose_execution_message()` omits suppressed content when `execution_audit_isolation_v1` is enabled (default). Rollback via `runtime.json` → `bridge.execution_audit_isolation_v1: false`.
+
+## D-013 — Effective grant normalization (CAE-003A)
+
+**Status:** accepted
+**Authority:** disclosure contracts, design §9
+
+`build_effective_grant_from_context()` normalizes policy and session envelope once into `EffectiveGrant` via `disclosure_contracts.normalize_effective_grant()`. Downstream bundle layers consume `effective_layers_to_bridge_layers()` output. Envelope matrix differences (open/bounded/strict/incognito) and deny precedence are enforced at this boundary. Rollback via `bridge.effective_grant_normalization_v1: false`.
