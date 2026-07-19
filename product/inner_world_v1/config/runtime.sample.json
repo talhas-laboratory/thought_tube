@@ -42,6 +42,11 @@
       "orientation_max_tokens": 120
     }
   },
+  "holodeck": {
+    "disclosure_service_v1": false,
+    "contextualization_retrieval_limit": 6,
+    "contextualization_neighbor_limit": 4
+  },
   "self_improvement": {
     "enabled": false,
     "agent": "thought_tube_self_improve",

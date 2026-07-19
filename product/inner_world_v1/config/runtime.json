@@ -91,6 +91,11 @@
       "orientation_max_tokens": 120
     }
   },
+  "holodeck": {
+    "disclosure_service_v1": false,
+    "contextualization_retrieval_limit": 6,
+    "contextualization_neighbor_limit": 4
+  },
   "bridge": {
     "enabled": true,
     "agent": "thought_tube_router",

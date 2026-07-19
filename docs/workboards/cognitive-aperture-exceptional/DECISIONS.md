@@ -117,3 +117,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** ADR-002, GAP_MAP G2
 
 `disclosure_service` version `1.0` orchestrates Bridge disclosure through storage-independent ports (`CorpusCatalogPort`, `CandidateSearchPort`, `ShapeProjectionReaderPort`, `EvidenceResolverPort`, `ReceiptSinkPort`). The service module does not import product surfaces; Bridge routes through `bridge_disclosure_adapter.disclose_for_bridge()` when enabled. Parity is preserved against `_assemble_bridge_context_bundle_impl()`; corpus readiness `interrupted`/`unsupported` abstains before assembly. Rollback via `bridge.disclosure_service_v1: false` (default off).
+
+## D-018 — Holodeck disclosure adapter (CAE-005B)
+
+**Status:** accepted
+**Authority:** ADR-002, GAP_MAP G2
+
+`holodeck_disclosure_adapter` version `1.0` routes Holodeck contextualization knowledge retrieval through the shared `CandidateSearchPort` while workspace projection layers (`product_thesis`, `artifact_doc`, `plan_doc`) remain Holodeck-owned. Legacy meta-layer term matching is isolated in `_collect_legacy_meta_layer_candidates()` and skipped when `holodeck.disclosure_service_v1` is enabled. Bridge/Holodeck parity is defined on admitted semantic capsule IDs and source refs for the same contextualization query. Rollback via `holodeck.disclosure_service_v1: false` (default off).
