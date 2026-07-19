@@ -2,7 +2,7 @@
 
 | id | status | owner | title | gate |
 |---|---|---|---|---|
-| `CAE-000` | backlog | unassigned | Lock ADR and contracts | not_required |
+| `CAE-000` | review | codex | Lock ADR and contracts | not_required |
 | `CAE-001` | backlog | unassigned | Fail-empty retrieval | not_required |
 | `CAE-002` | backlog | unassigned | Remove suppression leak | not_required |
 | `CAE-003` | backlog | unassigned | Enforce token_budget and envelope matrix | not_required |
@@ -28,6 +28,6 @@
 Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
-Live workspace tasks are synchronized at `backlog`. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
+Live workspace task statuses: `CAE-000`=review, `CAE-001`=backlog, `CAE-002`=backlog, `CAE-003`=backlog, `CAE-003A`=backlog, `CAE-003B`=backlog, `CAE-004`=backlog, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=backlog, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=backlog, `CAE-014`=backlog, `CAE-015`=backlog. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
 
 **Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)
