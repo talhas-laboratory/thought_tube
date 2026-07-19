@@ -144,3 +144,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** D-016, D-019, GAP_MAP G7
 
 `active_state_continuity` version `1.0` persists versioned `ActiveStateSnapshot` transitions under `active_state_transitions.jsonl` keyed by session/workspace/thought references only (no copied ocean content). Multi-turn carry merges empty fields from the prior durable snapshot when the effective envelope permits persistence; incognito envelopes emit ephemeral transitions and leave no durable state. `rollback_active_state_transition()` records a compensating rollback operation that supersedes the target transition. Holodeck reads the same workspace continuity key via `holodeck_load_active_state_continuity()`. Rollback via `disclosure.active_state.continuity_v1: false` (default off).
+
+## D-022 — Feed disclosure adapter (CAE-009)
+
+**Status:** accepted
+**Authority:** D-017, D-018, GAP_MAP Stage D
+
+`feed_disclosure_adapter` version `1.0` routes feed evidence pair selection through the shared `CandidateSearchPort` while bubble pairing, taste/diversity selection, and post presentation remain in `product_inner_world.py`. Admitted semantic capsules map to feed-compatible pairs with bounded `EffectiveGrant` metadata and per-post `disclosure_provenance` preserved on promotion rows. Legacy meta-edge selection via `select_candidate_pairs()` remains when `feed.disclosure_service_v1` is disabled (default off). Optional receipts record with `surface="feed"` when persistent receipts are enabled. Rollback via `feed.disclosure_service_v1: false`.
