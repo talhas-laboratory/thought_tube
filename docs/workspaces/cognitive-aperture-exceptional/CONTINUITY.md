@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 1286615b8dc417918bb774794fa0f6f199a53d6dcec5b22a7dd79d5de46dc345 -->
+<!-- canonical_revision: 2e02921c8e7725ac463db7752dc956ba880eceb5d093f5542b9dbf2625d500b7 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T16:53:51+00:00 -->
+<!-- generated_at: 2026-07-19T16:54:12+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -48,6 +48,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- stage-b-parent-children-complete
 - stage-b-gate-reverify-CAE-004
 - stage-b-gate-reverify-CAE-001
 - stage-b-gate-reverify-CAE-003A
@@ -59,4 +60,3 @@ Select a task to receive a recommended next action.
 - stage-b-review-fail-empty
 - stage-b-review-effective-grant
 - stage-b-review-execution-audit-isolation
-- stage-a-independent-review-adr-lock
