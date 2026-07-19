@@ -39,7 +39,7 @@ Inner Space / Inner World
 | reasoning bridge | state, grant, and Bridge adapter | CAE-003A/B, 004, 005A |
 | Holodeck | second adapter and parity consumer | CAE-005B |
 | feed/task pack | later consumers | Stage D only |
-| kernel bounded view | optional epistemic backend | CAE-011 only |
+| kernel bounded view | optional epistemic backend (wired via `BoundedViewEpistemicPort`, default off) | CAE-011 complete; surface opt-in only |
 
 ## Out of neighborhood
 

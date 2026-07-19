@@ -16,6 +16,7 @@ PUBLIC_API = (
     "CorpusCatalogPort",
     "CandidateSearchPort",
     "ShapeProjectionReaderPort",
+    "BoundedViewEpistemicPort",
     "EvidenceResolverPort",
     "ReceiptSinkPort",
     "DisclosurePorts",
@@ -60,6 +61,17 @@ class ShapeProjectionReaderPort(Protocol):
 
 
 @runtime_checkable
+class BoundedViewEpistemicPort(Protocol):
+    def collect_bounded_view_evidence(
+        self,
+        root: Path,
+        effective_grant: Mapping[str, Any],
+        *,
+        root_record_ids: list[str] | None = None,
+    ) -> Dict[str, Any]: ...
+
+
+@runtime_checkable
 class EvidenceResolverPort(Protocol):
     def resolve_frame_blocks(
         self,
@@ -95,6 +107,7 @@ class DisclosurePorts:
     catalog: CorpusCatalogPort
     candidate_search: CandidateSearchPort
     shape_reader: ShapeProjectionReaderPort
+    bounded_view: BoundedViewEpistemicPort
     evidence_resolver: EvidenceResolverPort
     receipt_sink: ReceiptSinkPort
 
@@ -151,6 +164,23 @@ class _InnerWorldShapeReader:
             source_refs=source_refs,
             include_legacy=include_legacy,
             include_anti_match=include_anti_match,
+        )
+
+
+class _InnerWorldBoundedViewEpistemic:
+    def collect_bounded_view_evidence(
+        self,
+        root: Path,
+        effective_grant: Mapping[str, Any],
+        *,
+        root_record_ids: list[str] | None = None,
+    ) -> Dict[str, Any]:
+        from .bounded_view_disclosure_adapter import collect_bounded_view_evidence
+
+        return collect_bounded_view_evidence(
+            root,
+            effective_grant,
+            root_record_ids=root_record_ids,
         )
 
 
@@ -244,6 +274,7 @@ def build_inner_world_ports(*, receipt_sink: ReceiptSinkPort | None = None) -> D
         catalog=_InnerWorldCorpusCatalog(),
         candidate_search=_InnerWorldCandidateSearch(),
         shape_reader=_InnerWorldShapeReader(),
+        bounded_view=_InnerWorldBoundedViewEpistemic(),
         evidence_resolver=_InnerWorldEvidenceResolver(),
         receipt_sink=receipt_sink or _DefaultReceiptSink(),
     )

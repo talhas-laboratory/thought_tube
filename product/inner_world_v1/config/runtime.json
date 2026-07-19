@@ -103,6 +103,11 @@
     "operator_metrics": {
       "operator_metrics_v1": false,
       "receipt_limit": 500
+    },
+    "bounded_view": {
+      "epistemic_backend_v1": false,
+      "max_nodes": 8,
+      "max_depth": 3
     }
   },
   "holodeck": {

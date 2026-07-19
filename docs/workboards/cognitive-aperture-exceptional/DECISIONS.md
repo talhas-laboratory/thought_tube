@@ -50,9 +50,12 @@ Evidence is budgeted as provenance-preserving blocks. Required evidence that can
 
 Bridge adopts first, Holodeck second. Feed and task packs follow only after conformance and performance gates. No big-bang surface migration.
 
-## Open decisions
+## D-027 — Kernel bounded view as optional epistemic backend (CAE-011)
 
-- Kernel bounded-view integration versus explicit demotion — CAE-011.
+**Status:** accepted
+**Authority:** ADR-003, GAP_MAP G11, D-002
+
+`bounded_view_disclosure_adapter` version `1.0` exposes the metaphysical kernel `query_bounded_view()` path through `BoundedViewEpistemicPort` as a default-off optional epistemic evidence backend. Collection requires explicit grant provenance (`branch_id`, `scope_id`) and root record IDs via pins or `kernel:` refs. Returned blocks are reference-only (`kernel:{record_id}`) with branch/scope/depth/epistemic metadata; no claim text or source fragments are copied into disclosure artifacts and the adapter performs read-only queries (no foundation store mutation). Abstains when branch, scope, roots, or foundation store are missing. Rollback via `disclosure.bounded_view.epistemic_backend_v1: false`. Bridge/Holodeck default bundles do not consume epistemic blocks until a surface owner opts in.
 
 ## D-021 — Shape-aware and service performance baselines (CAE-006B)
 
