@@ -1,4 +1,4 @@
-Status: blocked
+Status: done
 Owner: cursor-stage-b-review
 # CAE-003B — Deterministic budget allocator
 

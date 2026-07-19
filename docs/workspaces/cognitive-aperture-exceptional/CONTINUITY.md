@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 7579fa02c4349d6937aa3cd71b66089ca9af4a4a5d5bd000eec82ae460e6f682 -->
+<!-- canonical_revision: 1286615b8dc417918bb774794fa0f6f199a53d6dcec5b22a7dd79d5de46dc345 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T16:47:52+00:00 -->
+<!-- generated_at: 2026-07-19T16:53:51+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- CAE-003B approved and done; Stage B leaf tasks completed after unset-budget fix verification.
 - Stage B review complete: CAE-003B blocked on token_budget=0 wipe; other Stage B leaves review-approved pending gate.
 - Stage A independent review approved CAE-000; task marked done.
 - Stage A independent review approved CAE-015; task marked done.
@@ -29,10 +30,10 @@ Select a task to receive a recommended next action.
 - Stage A independent review approved CAE-013; task marked done.
 - Verification recorded; projections to publish after commit.
 - Verification recorded; projections published; handing off for independent review.
-- Prior run went stale during temporary workspace API outage; final evidence is on the later run.
 
 ## Reasoning
 
+- Stage B review: CAE-003B APPROVE after unset-budget fix
 - Stage B review: CAE-004 APPROVE pending CAE-003B fix
 - Stage B review: CAE-003B CHANGES REQUESTED
 - Stage B review: CAE-001 APPROVE pending Stage B gate
@@ -44,10 +45,14 @@ Select a task to receive a recommended next action.
 - Stage A independent review APPROVE CAE-014
 - Stage A independent review APPROVE CAE-013
 - ShapeProjectionReader contract v1.0 implemented
-- CorpusCatalog readiness contract implemented
 
 ## Verification
 
+- stage-b-gate-reverify-CAE-004
+- stage-b-gate-reverify-CAE-001
+- stage-b-gate-reverify-CAE-003A
+- stage-b-gate-reverify-CAE-002
+- stage-b-reverify-budget-and-bridge-policy
 - stage-b-review-bridge-policy-integration
 - stage-b-review-orient-first
 - stage-b-review-budget-allocator-focused
@@ -55,8 +60,3 @@ Select a task to receive a recommended next action.
 - stage-b-review-effective-grant
 - stage-b-review-execution-audit-isolation
 - stage-a-independent-review-adr-lock
-- stage-a-independent-review-disclosure-contracts
-- stage-a-independent-review-baseline-harness
-- aperture_baseline_harness_v1
-- disclosure_contracts_v1
-- stage-a-independent-review-passing

@@ -3,12 +3,12 @@
 | id | status | owner | title | gate |
 |---|---|---|---|---|
 | `CAE-000` | done | codex | Lock ADR and contracts | not_required |
-| `CAE-001` | review | cursor-stage-b-review | Fail-empty retrieval | not_required |
-| `CAE-002` | review | cursor-stage-b-review | Remove suppression leak | not_required |
+| `CAE-001` | done | cursor-stage-b-review | Fail-empty retrieval | not_required |
+| `CAE-002` | done | cursor-stage-b-review | Remove suppression leak | not_required |
 | `CAE-003` | backlog | unassigned | Enforce token_budget and envelope matrix | not_required |
-| `CAE-003A` | review | cursor-stage-b-review | Effective grant and envelope matrix | not_required |
-| `CAE-003B` | blocked | cursor-stage-b-review | Deterministic budget allocator | not_required |
-| `CAE-004` | review | cursor-stage-b-review | Orient-first compose | not_required |
+| `CAE-003A` | done | cursor-stage-b-review | Effective grant and envelope matrix | not_required |
+| `CAE-003B` | done | cursor-stage-b-review | Deterministic budget allocator | not_required |
+| `CAE-004` | done | cursor-stage-b-review | Orient-first compose | not_required |
 | `CAE-005` | backlog | unassigned | Shared disclosure service program | not_required |
 | `CAE-005A` | backlog | unassigned | Disclosure service and Bridge adapter | not_required |
 | `CAE-005B` | backlog | unassigned | Holodeck adapter and parity | not_required |
@@ -28,6 +28,6 @@
 Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
-Live workspace task statuses: `CAE-000`=done, `CAE-001`=review, `CAE-002`=review, `CAE-003`=backlog, `CAE-003A`=review, `CAE-003B`=blocked, `CAE-004`=review, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=done, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=done, `CAE-014`=done, `CAE-015`=done. 1 open blocker(s) remain in the live workspace. Git projections were refreshed from live coordination state.
+Live workspace task statuses: `CAE-000`=done, `CAE-001`=done, `CAE-002`=done, `CAE-003`=backlog, `CAE-003A`=done, `CAE-003B`=done, `CAE-004`=done, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=done, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=done, `CAE-014`=done, `CAE-015`=done. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
 
 **Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)

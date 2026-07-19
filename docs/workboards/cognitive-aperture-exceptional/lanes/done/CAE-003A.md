@@ -1,4 +1,4 @@
-Status: review
+Status: done
 Owner: cursor-stage-b-review
 # CAE-003A — Effective grant and envelope matrix
 
