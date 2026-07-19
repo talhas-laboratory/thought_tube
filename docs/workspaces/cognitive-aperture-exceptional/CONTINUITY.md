@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 6e794edcb6a24518bdf6366eae335abd89552c0b0b45cdbb2e4a9d7c30b6a116 -->
+<!-- canonical_revision: 4e0c2cce61b02799b4f2cf6e8ad598a4ac378965d5428b462ed2c767dd04e496 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T13:06:20+00:00 -->
+<!-- generated_at: 2026-07-19T13:42:05+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 

@@ -1,32 +1,36 @@
 # Workboard — Cognitive Aperture Exceptional
 
-**Workspace:** `cognitive-aperture-exceptional`  
-**Agent entry:** [`../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md`](../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md)  
-**Neighborhood:** [`../../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md`](../../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md)  
-**Gap map:** [`../../workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md`](../../workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md)  
-**Protocol:** [`../../workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md)  
-**Rules:** [`AGENTS.md`](./AGENTS.md)
+**Workspace:** `cognitive-aperture-exceptional`
+**Agent entry:** [`../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md`](../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md)
+**Canonical plan:** [`../../workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md`](../../workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md)
+**Architecture:** [`../../plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md`](../../plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md)
+**Protocol:** [`../../workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md)
 
-## Rules
+## Ownership
 
-- Live API is coordination truth when available. Do not hand-edit `Status:` as authority.
-- Implement against gap IDs (G0–G11) and task seeds (CAE-000…).
-- After mutations: publish projections → commit → push.
+This board owns disclosure contracts, grant normalization, candidate admission, budget allocation, execution-safe projection, receipts, and surface adapters.
 
-## Phase board
+It does not own ingestion, canonical Shape formation/promotion, embeddings, canonical records, or product-surface presentation. Those enter through readiness and read contracts.
 
-| Phase | Intent | Exit |
-|-------|--------|------|
-| 0 Lock | ADR + contracts | Implementers unblocked |
-| 1 Stop bleeding | Fail-empty, leak, budgets, orient-first | P0 suites green |
-| 2 One kernel + measure | disclose() + evals + receipts | ≥2 surfaces, baselines |
-| 3 Sameness | Feed/task-pack/kernel honesty | C1–C12 near exceptional |
-| 4 Optional+ | Steering / learned rerank | Category-defining |
+## Operating rules
 
-## Task index (seeds)
+- Live API is coordination truth; Git task files are projections and specifications.
+- Read `GATES.md` and `DECISIONS.md` before claiming work.
+- Claim the smallest ready leaf task, not a parent program task.
+- Run the engineering guard before runtime edits.
+- Record baseline behavior before enabling enforcement.
+- Publish projections after every live mutation.
+- No task is done without commands, results, artifacts, and residual risks.
 
-See [`TASKS.md`](./TASKS.md) and [`tasks/`](./tasks/).
+## Delivery stages
 
-## Current blocker
+| Stage | Work | Exit |
+|---|---|---|
+| A — readiness | contracts, corpus fixture, Shape read boundary, baselines | current failures reproducible; dependencies explicit |
+| B — safety | execution isolation, grant matrix, fail-empty, budgets, orientation | Bridge safety suites and positive recall pass |
+| C — modular service | disclosure service, Bridge/Holodeck adapters, receipts, state | two consumers pass conformance and latency gates |
+| D — expansion | feed, task packs, bounded view, operator metrics | each adapter has evidence and rollback |
 
-Live workspace API host offline at creation. Local Holodeck workspace exists. Register tasks live before claiming implementation work when API recovers.
+## Start here
+
+The first executable leaf is CAE-000 only if its documentation acceptance has not been verified. Otherwise start CAE-013, then CAE-014, CAE-015, and CAE-006A. Runtime safety tasks remain blocked until the Stage A gate passes.

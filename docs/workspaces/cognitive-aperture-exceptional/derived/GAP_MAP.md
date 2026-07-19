@@ -1,614 +1,247 @@
-# Gap Map — Good → Exceptional Cognitive Aperture
+# Gap Map — Reliable Modular Cognitive Aperture
 
-**Workspace:** `cognitive-aperture-exceptional`  
-**Holodeck:** `cognitive-aperture-exceptional`  
-**Status:** living plan  
-**Date locked:** 2026-07-17  
-**Audience:** implementers, reviewers, foreign agents
+**Workspace:** `cognitive-aperture-exceptional`
+**Version:** 2.0
+**Status:** canonical implementation plan
+**Date locked:** 2026-07-19
+**Architecture:** [`Modular Cognitive Aperture Design`](../../../plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md)
 
----
+## 1. Objective
 
-## 0. Purpose of this document
+Build a lightweight disclosure service that gives an agent the smallest authorized, provenance-backed view of a large private knowledge world and can prove why that view was selected.
 
-This is the coordination and planning authority for hardening selective disclosure from:
-
-- **Good:** strong doctrine, partial bridge plumbing, multiple aperture-like mechanisms  
-to  
-- **Exceptional:** one measurable aperture engine that places foreign intelligence in the right neighborhood of a vast private world
-
-It is deliberately forward-looking across product, runtime, eval, research, ops, and multi-agent dimensions.
-
----
-
-## 1. North star
-
-### Exceptional product sentence
-
-A system that can place any foreign model into the **correct neighborhood** of a vast private Inner World, with almost no distractors, thin orientation, hard budgets, and a receipt — and can **prove** that over time.
-
-### Governing loop (locked)
+The service follows:
 
 ```text
-Evidence → State → Orient (prose/posture)
-                 → Grant (what may open)
-                 → Evidence bundle (what opened)
-                 → Execution
-                 → Evaluation
-                 → Promotion
-                 → Receipt / packet (audit + handoff)
+orient -> grant -> evidence -> receipt
 ```
 
-### Architectural law
-
-| Layer | Job | Must not do |
-|-------|-----|-------------|
-| **State + posture** | Place intelligence in a situational frame | Narrate the whole Inner World |
-| **Disclosure grant** | Authorize refs/layers/budgets | Ship library contents |
-| **Evidence bundle** | Supply high-SNR opened material | Pad with confidence fillers |
-| **Packet / contract** | Freeze boundary for audit & handoff | Act as primary steering mind |
-
-### Research alignment (non-negotiable reading)
-
-| Finding | Implication |
-|---------|-------------|
-| Concepts behave as directions in activation space (RepE / steering) | Thin orientation can soft-shift neighborhoods; do not overclaim literal residual control |
-| ICL ≈ latent task inference (approximate, not perfect Bayes) | State/prose should set task/posture before evidence |
-| Lost-in-the-middle + Context Rot | Distractors actively harm; fail-empty beats fail-open |
-| Selective retrieval / hybrid RAG | Aperture chooser is first-class product intelligence |
-| Persona prose < activation vectors for precision | Prose is v1 steer; activation steering is optional later tier |
-
----
-
-## 2. Exceptional characteristics (scorecard)
-
-These are the dimensions that define “exceptional.” Current grades reflect code as of 2026-07-17 research evaluation.
-
-| ID | Characteristic | Exceptional meaning | Now | Target |
-|----|----------------|---------------------|-----|--------|
-| **C1** | Aperture intelligence | Chooser optimizes neighborhood hit-rate under uncertainty | D+ | A |
-| **C2** | Orient-before-evidence | Thin posture/landscape before any ocean material | C | A |
-| **C3** | Fail-empty disclosure | No relevant match → open nothing | F | A |
-| **C4** | High signal density | Every token earns place; distractors treated as harm | D | A |
-| **C5** | One disclosure kernel | All surfaces call `disclose()` | D | A |
-| **C6** | Grant ≠ evidence ≠ receipt | Clean object separation | D+ | A |
-| **C7** | True budget enforcement | Token/layer/depth bite; `open ≠ bounded ≠ strict ≠ incognito` | C− | A |
-| **C8** | No suppression leak | Withheld content never reaches execution prompt | F | A |
-| **C9** | State continuity | Live purpose/tension/object across turns & surfaces | C | A− |
-| **C10** | Provenance + reversibility | Source-backed opens; reviewable promotion/demotion | B | A |
-| **C11** | Cross-surface sameness | Chat, feed, Holodeck, agents, studio feel one world | C | A− |
-| **C12** | Measurable neighborhood hit-rate | Eval suite proves aperture quality over baselines | D | A |
-
-**Composite now:** ~C− engine / B vision  
-**Composite exceptional bar:** ≥A− on C1–C8 and ≥B+ on C9–C12
-
----
-
-## 3. Current-state inventory (what exists)
-
-### 3.1 Strong assets (keep)
-
-| Asset | Location | Why it matters |
-|-------|----------|----------------|
-| Doctrine | `TENETS.md`, `CONTEXT_ROUTING.md` | Task-scoped context is law |
-| Product thesis loop | `docs/product-thesis/` | Semantic OS formula already correct |
-| Bridge policy object | `models.ContextPolicy`, `reasoning_bridge` | Real control-plane sketch |
-| Layer allow/deny | `reasoning_bridge._apply_layer_policy` | Tested |
-| Pond neighbor gate | `knowledge_layer.build_retrieval_bundle` | Membrane exists when ponds exist |
-| Kernel bounded views | `metaphysical_kernel_runtime.query_bounded_view` | Best fail-closed projector (unwired) |
-| Frame contracts (draft) | `docs/product/semantic-operating-layer/FRAME_CONTRACTS.md` | Names the right pipeline |
-| Task-pack caps | `routing.build_task_pack` | Crude but real handoff aperture |
-| Holodeck local workspaces | `holodeck.py` | Coordination surface for this work |
-
-### 3.2 Parallel mechanisms (must converge)
-
-```text
-A. Bridge spine          ControlPacket + ContextPolicy + get_context_bundle
-B. Ocean retrieval       build_retrieval_bundle (capsules/ponds)
-C. Task packs            keyword handoff (no ContextPolicy)
-D. Kernel bounded_view   epistemic projector (isolated)
-E. Holodeck / Feed / Portable   own scorers and caps
-```
-
-Exceptional requires **A+B unified as kernel**, with C/E calling it, and D optionally backing global epistemic projection.
-
-### 3.3 Known implementation failures (still true)
-
-| Failure | Evidence | Blocks |
-|---------|----------|--------|
-| Fail-open seeds | `knowledge_layer.py`: confidence always scores; empty match forces `ranked[:3]` | C3, C4 |
-| Dead `token_budget` | Parsed/steered; never truncates in bridge/compose | C7 |
-| `bounded ≡ open` layers | `_default_allowed_layers_for_envelope` | C7 |
-| Suppression leak | `chat_backends.compose_execution_message` includes “Suppressed frame blocks” | C8 |
-| FrameSpec post-hoc | Built after retrieval; preview-only | C2, C6 |
-| Heuristic path weak policy | Many turns lack real ControlPacket policy | C1, C2 |
-| No neighborhood metrics | Unit tests prove plumbing, not hit-rate | C12 |
-
----
-
-## 4. Target architecture
-
-### 4.1 Single disclose kernel
-
-```text
-disclose(
-  query: str,
-  state: ActiveState,          # topic, purpose, tension, posture, object
-  grant: DisclosureGrant,      # layers, limits, cross_ocean, allow/deny refs
-  mode: EnvelopeMode           # open | bounded | strict | incognito
-) -> DisclosedBundle
-```
-
-`DisclosedBundle` fields:
+It owns disclosure. It does not own ingestion, canonical records, Shape promotion, embeddings, or surface presentation.
 
-- `orientation` — thin prose/posture block actually used
-- `grant_applied` — effective grant after envelope
-- `evidence` — opened blocks with provenance + scores + why-included
-- `omitted` — structured omit reasons (audit-only; **never** in execution prompt)
-- `metrics` — token counts, layer counts, empty?/hit estimates
-- `receipt_ref` — id for packet materialization
+## 2. Non-negotiable invariants
 
-### 4.2 Compose order (execution)
+1. No positive match means no evidence opens.
+2. Confidence, popularity, or availability alone never admits a candidate.
+3. Denials override defaults, inferred intent, pins, and ranking.
+4. Suppressed content is unrepresentable in the execution object.
+5. Raw source text is stored once; derived artifacts use references and hashes.
+6. Every included block has source, branch, scope, and inclusion reason.
+7. Every Shape result states candidate versus validated status.
+8. Shape derivation and promotion stay outside the aperture.
+9. Budgets are deterministic and enforced by whole evidence block.
+10. Incognito performs no ocean retrieval or durable learning.
+11. Dependency failure never widens retrieval.
+12. Surface adapters cannot reinterpret or bypass the effective grant.
+13. No full-ocean scan occurs on the request path.
+14. Equivalent inputs at the same corpus and policy revision produce equivalent results.
+15. Every disclosure, empty result, denial, or abstention produces a reconstructible receipt.
 
-```text
-1. Orientation (state + posture prose)
-2. Steering constraints (thin)
-3. Evidence blocks (only granted & opened)
-4. User turn
----
-Audit surface (not execution): omitted reasons, full grant, FrameBundle
-```
+## 3. Current state
 
-### 4.3 Object split (implementation shapes)
+### Assets to keep
 
-| Object | Owner module (proposed) | Persisted? |
-|--------|-------------------------|------------|
-| `ActiveState` | `reasoning_bridge` / active_field | session |
-| `DisclosureGrant` | evolve from `ContextPolicy` | packet |
-| `EvidenceBundle` | evolve from retrieval + layer trim | packet |
-| `DisclosureReceipt` | evolve from ControlPacket/FrameBundle | packet + audit |
-| `disclose()` | **new thin kernel module** or `knowledge_layer` + bridge facade | n/a |
+- `ContextPolicy`, bridge state, layer filtering, and session envelopes;
+- `build_retrieval_bundle` capsule and governed-link retrieval;
+- Frame contracts and inspect surfaces;
+- legacy Shape signatures, structural matching, and AntiMatch memory;
+- canonical branch, scope, provenance, and bounded-view kernel;
+- Holodeck and workspaces as coordination/adoption surfaces.
 
-**Minimality rule:** prefer extending `ContextPolicy` + `build_retrieval_bundle` + compose path before inventing a large new subsystem. Introduce `disclose()` only when ≥2 surfaces call it (bridge + Holodeck minimum).
+### Verified defects
 
-### 4.4 Surface adoption matrix
+| ID | Defect | Current evidence |
+|---|---|---|
+| D1 | Retrieval fails open | confidence contributes to every score; fallback forces top seeds |
+| D2 | Budget is decorative | `ContextPolicy.token_budget` does not trim the model-bound bundle |
+| D3 | Envelope modes overlap | `bounded` defaults to the same layers as `open` |
+| D4 | Suppression leaks | execution composer renders suppressed frame blocks |
+| D5 | Policy axes overlap | depth, envelope, retrieval mode, and layer policy are reinterpreted downstream |
+| D6 | Retrieval mechanisms diverge | Bridge, Holodeck, feed, task packs, and kernel views select independently |
+| D7 | Shape authority is split | legacy signatures exist; canonical Shape profile is not registered |
+| D8 | Corpus is not ready locally | zero runtime chunks/capsules; last pipeline run interrupted |
+| D9 | Metrics are plumbing-heavy | no versioned neighborhood-quality baseline |
+| D10 | Live plan is incomplete | only CAE-000…003 registered; generic criteria; no task dependencies |
 
-| Surface | Today | Exceptional |
-|---------|-------|-------------|
-| Bridge / chat / mobile compose | Own bundle path | Calls `disclose()` |
-| Holodeck contextualize | Own term scorer | Calls `disclose()` with workspace grant |
-| Feed / FeedContextPacket | Ad hoc lookups | Per-post grant via `disclose()` |
-| Task packs | Keyword + fallback fill | Optional evidence enrichment via `disclose()`; still capped handoff |
-| World Studio compile | Loose selective retrieval | Grant-scoped evidence only |
-| Kernel bounded_view | Isolated | Optional backend for global/epistemic layer |
+## 4. Target modules
 
----
+| Module | Responsibility | Must not own |
+|---|---|---|
+| `disclosure/contracts` | request, state, grant, candidate, bundle, receipt types | storage or ranking |
+| `disclosure/grants` | requested policy -> immutable effective grant | source access implementation |
+| `disclosure/candidates` | admission gate and ranking over compact refs | evidence text or promotion |
+| `disclosure/budget` | deterministic whole-block allocation | prompt composition |
+| `disclosure/service` | orchestration and result status | surface-specific behavior |
+| `disclosure/receipts` | compact audit materialization | model-bound content |
+| Bridge adapter | bridge state and execution projection | policy reinterpretation |
+| Holodeck adapter | workspace grant and projection | independent scorer |
 
-## 5. Gap catalog (detailed)
+Exact file placement is decided by the engineering guard. Do not create a package until the first two consumers justify it.
 
-Each gap has: problem, why it blocks exceptional, target, acceptance tests, risks, dependencies.
+## 5. External dependency contracts
 
-### G0 — Architecture lock (docs + contracts)
+### G-1 — Corpus readiness
 
-**Problem:** Orient/grant/evidence/receipt is agreed in conversation but not locked as build contract.  
-**Target:** This gap map + Frame contract amendment + short ADR.  
-**Acceptance:**
+The aperture requires a `CorpusCatalog` reporting revision, counts, provenance coverage, branch/scope coverage, index capabilities, Shape/address coverage, and stale pipeline state.
 
-- [ ] ADR records the four-layer law and non-claims (latent space ≠ Inner World)
-- [ ] `FRAME_CONTRACTS.md` updated: FrameSpec may be preview; disclosure order is orient→grant→evidence→receipt
-- [ ] Compose contract forbids suppressed content in execution prompts
+**Gate:** a representative fixture corpus contains positive, negative, distractor, privacy, multi-dimensional, and Shape/AntiMatch cases. An empty production corpus may be valid, but it cannot be used to claim retrieval quality.
 
-**Depends on:** nothing  
-**Risk:** docs drift from code if no tests follow
+### G-2 — Canonical Shape read boundary
 
----
+The aperture reads promoted Shape projections from the canonical framework and provisional legacy signatures through an explicitly candidate-labeled adapter.
 
-### G1 — Fail-empty retrieval (C3, C4) — **P0**
+**Gate:** no third Shape store; candidate status and provenance survive retrieval; profile-unavailable returns abstention.
 
-**Problem:** `build_retrieval_bundle` adds confidence to every capsule and falls back to top-ranked seeds.  
-**Target:**
+## 6. Disclosure gaps
 
-1. Require positive query evidence (token/alias/structural hit) before seeding
-2. If no seeds after threshold → empty bundle (`count=0`, `empty_reason=no_positive_match`)
-3. Remove forced `ranked[:3]` fallback for bounded/strict modes
-4. Pond-less capsules excluded under `bounded`/`strict` (fail closed on missing membrane metadata)
+### G0 — Contract lock
 
-**Owner paths:** `src/conversation_os/knowledge_layer.py`, tests  
-**Acceptance:**
+Lock ADR-001, ADR-002, effective grant, execution/audit separation, result statuses, and owner boundaries.
 
-- [ ] Unrelated query against populated capsules returns `count=0`
-- [ ] Empty query returns empty under bounded/strict
-- [ ] Alias hits still work
-- [ ] Deep/open mode policy explicitly documented if any soft fallback remains (prefer none)
+### G1 — Fail-empty retrieval
 
-**Eval metric:** distractor inclusion rate → near 0 on negative suite  
-**Risk:** recall drop; mitigate with better aliasing + pond metadata backfill job
+Separate positive admission from ranking. Remove confidence-only admission and forced fallback. Missing required membrane metadata fails closed under bounded/strict.
 
----
+**Acceptance:** unrelated and empty queries return `empty_no_positive_match`; positive alias/pin fixtures retain expected recall; stale indexes abstain.
 
-### G2 — Real token budgets + envelope distinctness (C7) — **P0**
+### G2 — Effective grant and envelope matrix
 
-**Problem:** `token_budget` is decorative; `open` and `bounded` share layer defaults.  
-**Target:**
+Normalize requested policy, envelope defaults, workspace/source constraints, branch/scope visibility, pins, and denials once. Downstream modules consume only `EffectiveGrant`.
 
-| Mode | Default layers | Default cross_ocean | Learning default |
-|------|----------------|---------------------|------------------|
-| open | session, workspace, user, global | policy | on (guarded) |
-| bounded | session, workspace (+ user only if granted) | false | on (guarded) |
-| strict | session (+ explicit pins) | false | off/session-local |
-| incognito | session ephemeral | false | off |
+**Acceptance:** open, bounded, strict, and incognito differ in access and persistence; deny precedence passes the complete matrix.
 
-**Enforcement:**
+### G3 — Execution/audit isolation
 
-- Truncate evidence/events to `token_budget` before compose
-- Record `truncated=true` + dropped block ids in receipt only
-- Tests: `open ≠ bounded ≠ strict ≠ incognito` for layers **and** persistence
+Replace the shared leaky frame object at the execution boundary with an `ExecutionBundle` that cannot contain suppressed or omitted fields. Keep suppression reasons in `AuditReceipt` and inspect tools.
 
-**Owner paths:** `models.py`, `reasoning_bridge.py`, `chat_backends.py`, tests  
-**Acceptance:**
+**Acceptance:** unique suppression sentinels never appear in any model-bound request; audit still reconstructs the decision.
 
-- [ ] Oversized bundle truncated to budget
-- [ ] Bounded cannot pull global without explicit grant
-- [ ] Incognito: no retrieval call, no durable learning side effects
+### G4 — Deterministic budget enforcement
 
----
+Define tokenizer/estimator version, reserved answer/system capacity, orientation/evidence caps, block priorities, overflow behavior, and a drop ledger.
 
-### G3 — Kill suppression leak (C8) — **P0**
+**Acceptance:** no emitted bundle exceeds its effective budget; identical inputs are deterministic; required evidence that cannot fit produces explicit insufficient-budget status.
 
-**Problem:** Execution prompt includes “Suppressed frame blocks.”  
-**Target:**
+### G5 — Orient-first execution
 
-- Execution sees only orientation + allowed evidence
-- Omitted/suppressed available on audit/inspect tools only (`bridge_inspect_request`, Holodeck status, debug MCP)
+Build orientation from the current turn and already-authorized local continuity. Compose orientation, constraints, evidence, then user turn. Newly retrieved evidence cannot retroactively authorize itself.
 
-**Acceptance:**
+**Acceptance:** orientation is capped and precedes evidence; no-global-evidence responses remain coherent; an optional second-pass widen requires a new grant and receipt.
 
-- [ ] Compose unit test asserts suppressed labels/content absent from execution message
-- [ ] Inspect/audit path still shows omit reasons
-- [ ] Delete or rewrite tests that currently require leak
+### G6 — Shared disclosure service
 
----
+Introduce the orchestration boundary only after contracts and two adapters are ready. Bridge adopts first; Holodeck second.
 
-### G4 — Orient-before-evidence compose (C2, C6) — **P0/P1**
+**Acceptance:** both surfaces call the same service and pass adapter conformance; neither imports the other or implements a parallel admission rule.
 
-**Problem:** Retrieval and fat packet fields dominate; orientation is not first-class.  
-**Target:**
+### G7 — Receipts and observability
 
-1. Build thin `orientation_block` from ActiveState (topic, purpose, posture, tension, landscape note ≤ N tokens)
-2. Compose order: orientation → constraints → evidence → user
-3. FrameSpec becomes grant/selectors input when available; until then, ControlPacket posture fields feed orientation
-4. Pins/exclusions apply during assembly, not only as receipts
+Record request/corpus revisions, requested/effective grant, candidate decisions, included/omitted IDs, budget ledger, policy hashes, result status, and surface.
 
-**Acceptance:**
+**Acceptance:** one result is reconstructible; incognito receipts store hashes/metrics only; receipt retention is explicit.
 
-- [ ] Snapshot tests show orientation precedes evidence
-- [ ] Orientation token cap enforced
-- [ ] Removing evidence still leaves coherent posture (smoke)
+### G8 — Shape-aware aperture quality
 
----
+Support optional Shape candidate recall, structural alignment, boundary/scale checks, AntiMatch filtering, and evidence resolution. Shape reasoning remains lazy.
 
-### G5 — Unify disclose kernel (C5) — **P1**
+**Acceptance:** structural match beats a lexical distractor; AntiMatch blocks a known false analogy; candidate is never presented as validated Pattern membership.
 
-**Problem:** Parallel scorers (bridge, Holodeck, feed, task pack).  
-**Target:**
+### G9 — State continuity
 
-Phase A: extract shared function used by bridge + Holodeck contextualize  
-Phase B: feed assist / FeedContextPacket  
-Phase C: optional task-pack enrichment (not replacement of handoff narrative)
+Version a bounded `ActiveStateSnapshot` across allowed surfaces without turning state into another knowledge store.
 
-**Acceptance:**
+**Acceptance:** purpose, object, tension, posture, lens, branch, and scope survive permitted transitions; incognito does not persist them.
 
-- [ ] ≥2 surfaces call same kernel
-- [ ] Holodeck no longer uses independent term-seed scoring for ocean/static context
-- [ ] Policy/grant honored identically across callers (shared tests)
+### G10 — Later surface adapters
 
-**Risk:** big-bang rewrite — avoid; facade first
+Add feed and optional task-pack enrichment only after Bridge/Holodeck release. Preserve task-pack narrative handoff and feed-specific presentation.
 
----
+### G11 — Kernel bounded-view decision
 
-### G6 — Aperture intelligence quality (C1, C12) — **P1**
+Use the kernel bounded view only as an optional epistemic evidence backend under an explicit grant, or document it as separate. Do not imply integration until a conformance test exists.
 
-**Problem:** Lexical/confidence scoring ≠ neighborhood selection.  
-**Target chooser signals (v1):**
+## 7. Evaluation program
 
-- Positive lexical/alias overlap (required gate)
-- Pond coherence with active object
-- Link governance / promoted bridges only for cross-pond
-- Recency / session attachment soft boost
-- Explicit pins
-- **Negative evidence:** near-duplicate distractors demoted
+Baselines are created before enforcement.
 
-**Out of v1:** learned rerankers, embedding-only ocean walks without grant
+| Suite | Required result |
+|---|---|
+| `aperture_negative` | unrelated/empty queries fail empty |
+| `aperture_positive` | gold evidence/Shape sets meet declared recall target |
+| `distractor_harm` | distractor additions do not silently change admitted evidence |
+| `grant_matrix` | deny precedence and envelope access/persistence invariants pass |
+| `budget_obedience` | all bundles remain within effective budget |
+| `leak_suite` | suppressed sentinel absent from model-bound payload |
+| `provenance_suite` | every block resolves to source, branch, scope, and hash |
+| `shape_alignment` | structural matches and AntiMatches behave as specified |
+| `adapter_conformance` | Bridge and Holodeck return equivalent decisions for equivalent inputs |
+| `performance` | p50/p95 latency, bytes resolved, graph expansion, and cache behavior published |
 
-**Eval harness (new):**
+Release metrics and fixture revisions live under `derived/baselines/`; no “exceptional” claim is allowed without published numbers.
 
-| Suite | Measures |
-|-------|----------|
-| `aperture_negative` | Unrelated queries → empty |
-| `aperture_positive` | Gold pond/capsule sets → recall@k |
-| `distractor_harm` | Add N distractors → answer/posture degradation |
-| `budget_obedience` | Token/layer caps never exceeded |
-| `leak_suite` | Suppressed never in execution |
-| `envelope_matrix` | Mode distinctness |
+## 8. Execution order
 
-**Acceptance:** publish baseline numbers before claiming exceptional
+### Stage A — Plan and dependency readiness
 
----
+1. **CAE-000** — lock ADRs and contracts.
+2. **CAE-013** — define corpus readiness contract and fixture corpus.
+3. **CAE-014** — lock canonical Shape read adapter and legacy migration decision.
+4. **CAE-015** — lock effective grant, execution bundle, receipt, and result contracts.
+5. **CAE-006A** — create baseline evaluation harness and record current behavior.
 
-### G7 — State continuity across surfaces (C9, C11) — **P1/P2**
+**Exit:** contracts reviewed; representative corpus versioned; current failures reproducible; no runtime behavior changed.
 
-**Problem:** State exists in bridge session objects but is not the product center.  
-**Target:**
+### Stage B — Stop unsafe behavior
 
-- ActiveState schema: purpose, topic, object_id, tension, posture, depth, lens
-- Persist per session/workspace with retention policy
-- Feed/Holodeck/chat can read same ActiveState when scoped
-- Turn updates state explicitly (append-only events)
+1. **CAE-002** — remove suppression leak through execution/audit type separation.
+2. **CAE-003A** — normalize effective grant and envelope matrix.
+3. **CAE-001** — implement fail-empty admission in shadow mode, repair metadata, then enforce.
+4. **CAE-003B** — enforce deterministic token/block budgets.
+5. **CAE-004** — implement orient-first compose.
 
-**Acceptance:**
+**Exit:** negative, leak, grant, budget, provenance, and positive-recall gates pass on the Bridge path.
 
-- [ ] Multi-turn test: posture/tension survives and conditions next grant
-- [ ] Workspace-scoped state visible to Holodeck contextualize
+### Stage C — One service, two consumers
 
----
+1. **CAE-005A** — extract disclosure service around the proven Bridge path.
+2. **CAE-005B** — adopt Holodeck through an adapter.
+3. **CAE-007** — persist receipts and publish operational metrics.
+4. **CAE-008** — add bounded ActiveState continuity.
+5. **CAE-006B** — publish Shape-aware and performance baselines.
 
-### G8 — Wire or demote kernel bounded_view (epistemic) — **P2**
+**Exit:** Bridge and Holodeck pass adapter conformance; receipts reconstruct results; latency budget met.
 
-**Problem:** Best fail-closed projector is unwired; claiming shared architecture is false.  
-**Options:**
+### Stage D — Controlled expansion
 
-- **A (preferred later):** use bounded_view as epistemic backend when grant asks for graph-true global slice  
-- **B:** document as separate kernel capability; stop implying bridge uses it
+1. **CAE-009** — feed adapter.
+2. **CAE-010** — optional task-pack evidence adapter.
+3. **CAE-011** — bounded-view wire-or-demote decision.
+4. **CAE-012** — cross-surface metrics/operator view.
 
-**Acceptance:** explicit decision recorded; if A, one bridge path integration test
+**Exit:** each adapter has an owner, rollback, conformance evidence, and no duplicate selection logic.
 
----
+## 9. Rollout rules
 
-### G9 — Task-pack aperture upgrade — **P2**
+- Use feature flags for grant normalization, fail-empty, budget enforcement, and execution-safe projection.
+- Measure current behavior before enabling each flag.
+- Run shadow decisions without disclosing shadow-selected evidence.
+- Backfill missing metadata before enforcing policies that depend on it.
+- Roll back by configuration, not data deletion.
+- Never migrate all surfaces in one change.
+- A task may enter `done` only with exact commands, results, artifacts, and residual risks recorded.
 
-**Problem:** Fallback fills unrelated cards/sessions; no grant object.  
-**Target:**
+## 10. Definition of Done — reliable v1
 
-- Keep narrative handoff (what/why/decided/open)
-- Fail empty on relevance for optional evidence section
-- Optional `disclose()` enrichment under pack budget
-- Atlas gate remains (index readiness)
+All conditions must hold:
 
-**Acceptance:** unrelated request does not fabricate “relevant” cards without labeling fallback
+1. Corpus readiness and canonical Shape read contracts are implemented or explicitly return not-ready.
+2. Bridge and Holodeck use one disclosure service and pass adapter conformance.
+3. Fail-empty, grant, leak, budget, provenance, and incognito suites pass.
+4. Positive recall does not fall below the approved fixture threshold.
+5. Shape retrieval preserves candidate status, branch, scope, abstraction contract, and source spans.
+6. No execution object can carry suppressed content.
+7. No request path performs a full-ocean scan.
+8. p50/p95 latency and resolved-byte baselines meet the approved budget.
+9. Every result emits a compact receipt with explicit status.
+10. Feature flags and rollback paths are tested.
 
----
-
-### G10 — Observability & receipts — **P1**
-
-**Problem:** Hard to prove aperture quality in production.  
-**Target receipt fields:**
-
-- orientation hash/text
-- grant effective
-- evidence ids + scores + include reasons
-- omit reasons (audit)
-- budgets requested/applied
-- empty_reason
-- surface + session + workspace ids
-
-**Tools:** bridge inspect, Holodeck status, MCP inspect  
-**Acceptance:** one turn fully reconstructible from receipt
-
----
-
-### G11 — Forward research track (optional exceptional+) — **P3**
-
-Not required for exceptional v1; category-defining later:
-
-1. Contrastive posture vectors (honesty/exploration/decision) via activation steering on owned models  
-2. Learned aperture reranker trained on accept/reject feedback  
-3. Multimodal capsule retrieval (where World Studio already gestured)  
-4. Self-routing: model requests widen/narrow grant with policy governor  
-5. Formal neighborhood metrics tied to user “felt orientation” studies
-
-**Rule:** do not block v1 exceptional bar on these.
-
----
-
-## 6. Phased roadmap
-
-### Phase 0 — Lock (docs / contracts) — **now**
-
-**Outcome:** shared language and acceptance bar  
-**Work:**
-
-0.1 This workspace + Holodeck + gap map  
-0.2 ADR: orient/grant/evidence/receipt  
-0.3 Amend Frame/compose contracts (no suppression in execution)  
-0.4 Eval suite skeletons (empty tests ok)
-
-**Exit:** implementers can start G1–G3 without rediscovering doctrine
-
----
-
-### Phase 1 — Stop the bleeding (P0 runtime) 
-
-**Outcome:** disclosure stops lying  
-**Work order (strict):**
-
-1. **G1** fail-empty retrieval  
-2. **G3** suppression leak kill  
-3. **G2** token budgets + envelope distinctness  
-4. **G4** orient-first compose (minimal)
-
-**Exit metrics:**
-
-- Negative aperture suite green  
-- Leak suite green  
-- Budget obedience green on bridge path  
-- Bounded ≠ open in tests
-
-**Why this order:** fail-empty + leak + budgets are the research-critical harms; orientation polish after honesty.
-
----
-
-### Phase 2 — One kernel + measurement (P1)
-
-**Outcome:** exceptional becomes measurable and portable across surfaces  
-
-1. Extract `disclose()` facade (bridge + Holodeck) — **G5 Phase A**  
-2. Aperture eval harness with published baselines — **G6**  
-3. Receipts/observability — **G10**  
-4. ActiveState continuity MVP — **G7**  
-5. Feed adoption — **G5 Phase B**
-
-**Exit metrics:**
-
-- ≥2 surfaces on kernel  
-- Hit-rate / distractor-harm baselines published in workspace derived/  
-- Receipt reconstructs a turn
-
----
-
-### Phase 3 — Product sameness + epistemic integrity (P2)
-
-**Outcome:** one world feeling; honest architecture claims  
-
-1. Task-pack relevance honesty — **G9**  
-2. bounded_view wire-or-demote decision + action — **G8**  
-3. World Studio compile grant discipline (if in scope)  
-4. Cross-surface ActiveState  
-5. Operator dashboards / Holodeck views for aperture metrics
-
-**Exit:** C1–C8 at A−/A; C9–C12 at B+/A−
-
----
-
-### Phase 4 — Category-defining (P3, optional)
-
-Activation steering, learned rerankers, self-routing grants, human orientation studies — only after Phase 3 exit.
-
----
-
-## 7. Work breakdown (task seeds)
-
-Use these as live tasks when API is available. Do not hand-edit Status in markdown.
-
-| Task ID | Title | Phase | Priority | Primary paths |
-|---------|-------|-------|----------|---------------|
-| CAE-000 | Lock ADR + contract amendments | 0 | high | `docs/workspaces/cognitive-aperture-exceptional/derived/`, `docs/product/semantic-operating-layer/` |
-| CAE-001 | Fail-empty retrieval + tests | 1 | critical | `knowledge_layer.py`, tests |
-| CAE-002 | Remove suppression leak + fix tests | 1 | critical | `chat_backends.py`, tests |
-| CAE-003 | Enforce token_budget + envelope matrix | 1 | critical | `reasoning_bridge.py`, `models.py`, tests |
-| CAE-004 | Orient-first compose MVP | 1 | high | `chat_backends.py`, `reasoning_bridge.py` |
-| CAE-005 | Extract disclose() for bridge+Holodeck | 2 | high | new/facade + `holodeck.py` |
-| CAE-006 | Aperture eval harness + baselines | 2 | high | `tests/`, `derived/baselines/` |
-| CAE-007 | Disclosure receipts + inspect | 2 | medium | bridge inspect paths |
-| CAE-008 | ActiveState continuity MVP | 2 | medium | session/bridge state |
-| CAE-009 | FeedContextPacket on disclose() | 2 | medium | feed/long_form paths |
-| CAE-010 | Task-pack relevance honesty | 3 | medium | `routing.py` |
-| CAE-011 | bounded_view wire-or-demote | 3 | medium | kernel + docs decision |
-| CAE-012 | Cross-surface state + metrics board | 3 | low | Holodeck UI/docs |
-
----
-
-## 8. Dimension checklists (forward-looking)
-
-### 8.1 Product
-
-- [ ] User-visible depth controls map to envelope modes
-- [ ] “Widen / narrow context” is an explicit user/agent act, not silent creep
-- [ ] Feed posts declare scope boundary
-- [ ] Agent handoffs remain narrative + capped, not ocean exports
-
-### 8.2 Runtime / correctness
-
-- [ ] Fail-empty default for bounded/strict
-- [ ] Budgets truncate deterministically
-- [ ] Pond metadata backfilled for top capsules
-- [ ] Heuristic classify either emits policy or inherits safe default grant
-
-### 8.3 Evaluation
-
-- [ ] Golden aperture fixtures (positive/negative/distractor)
-- [ ] CI gate on leak_suite + budget_obedience
-- [ ] Published baseline JSON per release
-- [ ] Canary: random unrelated prompts in staging → empty global layer
-
-### 8.4 Multi-agent / Holodeck
-
-- [ ] This workspace registered live when API returns
-- [ ] Tasks claimed with path scopes before edits
-- [ ] Projections published after mutations
-- [ ] Handoffs include gap-map section pointer + current phase exit criteria
-
-### 8.5 Research honesty
-
-- [ ] Docs never claim Inner World == model latent space
-- [ ] Orientation described as soft conditioning, not residual rotation (unless P3 ships)
-- [ ] Cite context-rot / lost-in-middle as rationale for fail-empty
-
-### 8.6 Security / privacy
-
-- [ ] Incognito: no ocean, no durable learn
-- [ ] Receipts may contain sensitive evidence — retention policy defined
-- [ ] Suppressed content not logged into execution transcripts
-
-### 8.7 Performance
-
-- [ ] disclose() p95 budget for hot path
-- [ ] Capsule index warm path; no full ocean scan per turn
-- [ ] Eval suites run in CI under time cap
-
-### 8.8 Migration / compatibility
-
-- [ ] Feature flags: `fail_empty_retrieval`, `enforce_token_budget`, `compose_no_suppressed`
-- [ ] Shadow mode: compute empty decisions without enforcing (metrics only)
-- [ ] Rollback path if recall regressions spike
-
----
-
-## 9. Risks and anti-patterns
-
-| Risk | Mitigation |
-|------|------------|
-| Recall collapse after fail-empty | Alias governance + pond backfill + positive-suite gates |
-| Big-bang kernel rewrite | Facade; adopt surfaces incrementally |
-| Docs theater without tests | Phase 1 exit = suites green |
-| Packet fattening returns | Hard compose allowlist; receipt ≠ prompt |
-| Overclaiming latent geometry | ADR non-claim; review checklist |
-| Live API offline | Local Holodeck + git workspace; register later |
-| Parallel “temporary” scorers | Ban new scorers once disclose() exists |
-
----
-
-## 10. Definition of Done — Exceptional v1
-
-All must be true:
-
-1. **C3/C7/C8** at A (fail-empty, real budgets, no leak)  
-2. **C2/C6** at A− (orient-first; grant/evidence/receipt separated in code)  
-3. **C5** at A− (≥2 surfaces on one kernel)  
-4. **C1/C12** at B+/A− (chooser improved; baselines published)  
-5. ADR + contracts match runtime  
-6. Bridge path CI gates: leak, budget, negative aperture  
-7. No docs claim latent-space identity with Inner World  
-
-Phase 3/4 items may remain open without blocking “exceptional v1.”
-
----
-
-## 11. Immediate next actions
-
-1. **When laboratory host is online:** register live workspace, create CAE-000… tasks, publish projections.  
-2. **CAE-000:** write ADR + amend Frame/compose contracts.  
-3. **CAE-001 → CAE-003:** Phase 1 P0 code in that order on a feature branch.  
-4. Keep this gap map updated when grades change; append baselines under `derived/baselines/`.
-
----
-
-## 12. Source thread (provenance)
-
-This map synthesizes:
-
-- Repo doctrine (`TENETS`, `CONTEXT_ROUTING`, product thesis, Frame contracts)
-- Runtime evaluation of retrieval/bridge/compose/task-pack/kernel (2026-07-17)
-- Product vision: semantic OS / apertures over one ocean
-- Architecture split: state+posture / grant / evidence / receipt
-- Frontier research alignment: RepE/steering, ICL latent-task views, context rot / lost-in-middle, selective retrieval
-
-Holodeck workspace created locally: `cognitive-aperture-exceptional` (2026-07-17T23:57:11Z).
+Optional learned reranking, activation steering, and broad World Studio adoption remain outside reliable v1.

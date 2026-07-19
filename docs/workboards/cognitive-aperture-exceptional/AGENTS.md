@@ -1,16 +1,14 @@
 # Agent Rules — Cognitive Aperture Exceptional
 
-**Start:** [`../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md`](../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md)  
-**Landscape:** [`../../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md`](../../workspaces/cognitive-aperture-exceptional/NEIGHBORHOOD.md)  
-**Protocol:** [`../../workspaces/WORKSPACE-AGENT-PROTOCOL.md`](../../workspaces/WORKSPACE-AGENT-PROTOCOL.md)
-
-## Rules
-
-1. Orient from `AGENT_BOOT.md` before opening other files.
-2. Stay inside the NEIGHBORHOOD default grant unless the task widen table allows it.
-3. Prefer Phase 1 order: CAE-001 → CAE-002 → CAE-003 → CAE-004.
-4. Do not hand-edit live `Status:` as authority; use live API when available.
-5. After live mutations: `workspace_projection_sync.py publish`.
-6. Execution prompts must never include suppressed/omitted membership content.
-7. Retrieval under bounded/strict must fail empty without positive match.
-8. Leave CONTINUITY.md with a next safe action when you stop.
+1. Boot from [`AGENT_BOOT.md`](../../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md).
+2. Query live coordination state before trusting Git status.
+3. Read [`GATES.md`](./GATES.md), [`DECISIONS.md`](./DECISIONS.md), and the active task packet.
+4. Stay within the disclosure boundary in ADR-002. Do not repair ingestion or invent a Shape store here.
+5. Prefer the Stage A → B → C → D order in the canonical gap map.
+6. Claim leaf tasks only; parent tasks are coordination containers.
+7. Before runtime edits, refresh the repo overview and pass the engineering guard with the smallest path set.
+8. Never pass suppressed/omitted material to execution.
+9. Never admit a retrieval candidate on confidence alone.
+10. Never enforce metadata-dependent fail-closed behavior before readiness/backfill evidence exists.
+11. Record exact verification, artifacts, rollback, and residual risks before review.
+12. After live mutations: publish projections, check freshness, commit, and push.
