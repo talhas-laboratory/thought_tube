@@ -48,10 +48,16 @@ Controlled, provenance-preserving seed corpus for the Cognitive Aperture Stage A
 | Out-of-domain: quantum gardening on extraterrestrial crops | no result | pass |
 | Structural: recursive self-model / agent memory | mapping-the-mind evidence | pass (lexical baseline) |
 
+## Recovered derivation state
+
+The prior `interrupted` state was stale (2026-07-01); the status command had not attempted recovery. On 2026-07-19, a dependency-ordered resume completed successfully for this corpus: 1,069 analysis units, 5,146 meta records, 454 Shape signatures, a 55-node / 18-edge Shape graph, 68 context bubbles, 5,540 knowledge nodes, 33,637 knowledge edges, and 5,246 semantic capsules.
+
+The first exact-top-1 regression set found a real weakness: the query `biological cognition agent memory` returned `understanding-the-nature-of-thought` instead of `mapping-the-mind-for-agentic-systems`. This corpus is therefore **derived and observable, but not retrieval-certified**. Preserve this failure as a distractor/near-neighbour regression when CAE-006B adds Shape/AntiMatch evaluation.
+
 ## Remaining evaluation suite
 
 Before enforcement, test: model-imitation; system-prompt framework; nature of thought; biological-to-agent memory mapping; modular building blocks; hybrid retrieval and graph traversal; empathy-agent architecture; generative harnesses; relational codebases; graph debugging; Thought Tube; reasoning frameworks; cognitive traces; behavioral archetypes; semantic-context infrastructure; report architecture; context in embedding spaces; semantic interfaces; implicit composition; and one out-of-domain `NO_HITS` query.
 
 ## Known limits
 
-This is a valid chunked, provenance-preserving lexical baseline. It is **not** yet a certified semantic-embedding or canonical-Shape corpus: the current runtime has no materialized embedding index or canonical Shape profiles for these records. CAE-013 must run the full probe suite; CAE-014 must wire readiness/read ports; CAE-006B must evaluate Shape/AntiMatch behavior before aperture enforcement.
+This is a valid chunked, provenance-preserving lexical and legacy-Shape baseline. It is **not** yet a certified semantic-embedding or canonical-Shape corpus: the current runtime has no materialized embedding index or framework-canonical Shape profiles for these records. CAE-013 must complete the full probe suite; CAE-014 must wire readiness/read ports; CAE-006B must evaluate Shape/AntiMatch behavior before aperture enforcement.
