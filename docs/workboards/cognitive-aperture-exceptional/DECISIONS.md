@@ -158,3 +158,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** Independent Stage C/D review; live blocker `blocker-5fde7e6b3515`
 
 `rollback_active_state_transition()` currently re-asserts the compensated transition's own snapshot rather than restoring `prior_snapshot_id`. Multi-turn undo of the latest transition is therefore a state no-op. CAE-008 remains **blocked** until rollback restores the predecessor snapshot and a multi-turn regression covers T1→T2→rollback(T2). Flag stays default-off. Approved in the same review: CAE-005A, CAE-005B, CAE-007, CAE-006B, CAE-009 (and parents CAE-005, CAE-006).
+
+## D-024 — Cross-surface operator metrics (CAE-012)
+
+**Status:** accepted
+**Authority:** D-019, D-021, GAP_MAP Stage D
+
+`aperture_operator_metrics` version `1.0` aggregates privacy-preserving disclosure metrics from persisted receipts and published baseline snapshots (`chat_converter_seed_v1`, `chat_converter_seed_v1_service`). `build_operator_view()` and `inspect_operator_view()` are read-only: they expose surface/result-status counts, empty/abstention rates, budget-pressure rows, latency percentiles, and cross-surface comparisons keyed by `corpus_revision` without duplicating sensitive evidence text or creating a new truth store. Bridge (`inspect_aperture_operator_view`), Holodeck (`holodeck_inspect_aperture_operator_view`), and the miniapp GET `/aperture/operator-view` expose the same inspect surface with no mutation paths. Rollback via `disclosure.operator_metrics.operator_metrics_v1: false` (default off).

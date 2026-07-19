@@ -99,6 +99,10 @@
     "active_state": {
       "continuity_v1": false,
       "max_transitions": 200
+    },
+    "operator_metrics": {
+      "operator_metrics_v1": false,
+      "receipt_limit": 500
     }
   },
   "holodeck": {

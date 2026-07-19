@@ -4435,6 +4435,23 @@ def holodeck_inspect_disclosure_receipt(root: Path, receipt_id: str) -> dict:
     return inspect_disclosure_receipt(root, receipt_id)
 
 
+def holodeck_inspect_aperture_operator_view(
+    root: Path,
+    *,
+    surface: str = "",
+    corpus_revision: str = "",
+    receipt_limit: int | None = None,
+) -> dict:
+    from .aperture_operator_metrics import inspect_operator_view
+
+    return inspect_operator_view(
+        root,
+        surface=surface,
+        corpus_revision=corpus_revision,
+        receipt_limit=receipt_limit,
+    )
+
+
 def holodeck_contextualize(root: Path, args: argparse.Namespace) -> dict:
     return _run_contextualization_pass(
         root,

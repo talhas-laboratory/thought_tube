@@ -47,6 +47,7 @@ PUBLIC_API = (
     "disclosure_service_enabled",
     "inspect_disclosure_receipt",
     "list_disclosure_receipts",
+    "inspect_aperture_operator_view",
     "active_state_continuity_enabled",
 )
 __all__ = list(PUBLIC_API)
@@ -1862,6 +1863,23 @@ def list_disclosure_receipts(
         surface=surface,
         workspace_id=workspace_id,
         limit=limit,
+    )
+
+
+def inspect_aperture_operator_view(
+    root: Path,
+    *,
+    surface: str = "",
+    corpus_revision: str = "",
+    receipt_limit: int | None = None,
+) -> Dict[str, Any]:
+    from .aperture_operator_metrics import inspect_operator_view
+
+    return inspect_operator_view(
+        root,
+        surface=surface,
+        corpus_revision=corpus_revision,
+        receipt_limit=receipt_limit,
     )
 
 
