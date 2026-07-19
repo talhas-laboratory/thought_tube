@@ -4407,6 +4407,12 @@ def holodeck_artifacts(root: Path, args: argparse.Namespace) -> dict:
     }
 
 
+def holodeck_load_active_state_continuity(root: Path, workspace_id: str) -> dict | None:
+    from .active_state_continuity import load_latest_snapshot_for_workspace
+
+    return load_latest_snapshot_for_workspace(root, workspace_id)
+
+
 def holodeck_list_disclosure_receipts(
     root: Path,
     *,

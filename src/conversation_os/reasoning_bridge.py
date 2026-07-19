@@ -47,6 +47,7 @@ PUBLIC_API = (
     "disclosure_service_enabled",
     "inspect_disclosure_receipt",
     "list_disclosure_receipts",
+    "active_state_continuity_enabled",
 )
 __all__ = list(PUBLIC_API)
 
@@ -1646,6 +1647,23 @@ def _assemble_bridge_context_bundle_impl(
         available_layers = [layer for layer in available_layers if layer not in blocked_layers]
 
     effective_grant = build_effective_grant_from_context(state, policy, session_envelope)
+    active_state_transition: Dict[str, Any] = {}
+    active_state_continuity_on = False
+    try:
+        from .active_state_continuity import active_state_continuity_enabled, apply_active_state_continuity
+
+        active_state_continuity_on = active_state_continuity_enabled(root)
+        if active_state_continuity_on:
+            active_state_snapshot, active_state_transition = apply_active_state_continuity(
+                root,
+                active_state_snapshot,
+                effective_grant=effective_grant.to_dict(),
+                session_envelope=session_envelope,
+                surface="bridge",
+                context_state=state,
+            )
+    except Exception:
+        active_state_transition = {}
     if effective_grant_normalization_enabled(root):
         layer_names = effective_layers_to_bridge_layers(effective_grant, available_layers)
     else:
@@ -1775,6 +1793,8 @@ def _assemble_bridge_context_bundle_impl(
             "include_cross_pond": False,
         },
         "active_state_snapshot": active_state_snapshot,
+        "active_state_transition": active_state_transition,
+        "active_state_continuity_v1": active_state_continuity_on,
         "orient_first_compose_v1": orient_first_enabled,
         "orientation_max_chars": int(orient_config.get("orientation_max_chars", 480) or 480),
     }
@@ -1843,6 +1863,15 @@ def list_disclosure_receipts(
         workspace_id=workspace_id,
         limit=limit,
     )
+
+
+def active_state_continuity_enabled(root: Path) -> bool:
+    try:
+        from .active_state_continuity import active_state_continuity_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return False
 
 
 def record_context_switch(root: Path, event: Dict[str, Any]) -> Dict[str, Any]:

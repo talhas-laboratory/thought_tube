@@ -131,3 +131,10 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Authority:** ADR-001, D-017, GAP_MAP G6
 
 `disclosure_receipts` version `1.0` materializes CAE-015 `AuditReceipt` records for Bridge disclosure results via `record_disclosure_receipt()` / `record_bridge_context_receipt()`. Receipts store corpus revision, policy hashes, effective grant, candidate decisions, block IDs, budget ledger, and result status; sensitive evidence text is not duplicated. Incognito envelopes use `hashes_metrics_only` retention with content hashes only. Persistence is gated by `disclosure.receipts.persistent_receipts_v1` (default off); retention trims `disclosure_receipts.jsonl` to `max_entries`. `inspect_disclosure_receipt()` and `reconstruct_disclosure_result()` provide Bridge/Holodeck inspect paths.
+
+## D-020 — Bounded ActiveState continuity (CAE-008)
+
+**Status:** accepted
+**Authority:** D-016, D-019, GAP_MAP G7
+
+`active_state_continuity` version `1.0` persists versioned `ActiveStateSnapshot` transitions under `active_state_transitions.jsonl` keyed by session/workspace/thought references only (no copied ocean content). Multi-turn carry merges empty fields from the prior durable snapshot when the effective envelope permits persistence; incognito envelopes emit ephemeral transitions and leave no durable state. `rollback_active_state_transition()` records a compensating rollback operation that supersedes the target transition. Holodeck reads the same workspace continuity key via `holodeck_load_active_state_continuity()`. Rollback via `disclosure.active_state.continuity_v1: false` (default off).

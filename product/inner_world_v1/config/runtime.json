@@ -95,6 +95,10 @@
       "persistent_receipts_v1": false,
       "max_entries": 500,
       "retention_days": 30
+    },
+    "active_state": {
+      "continuity_v1": false,
+      "max_transitions": 200
     }
   },
   "holodeck": {
