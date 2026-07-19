@@ -23,11 +23,11 @@
 | `CAE-012` | backlog | unassigned | Cross-surface metrics and operator view | not_required |
 | `CAE-013` | done | cursor-cloud-cae013 | Corpus readiness contract and fixture corpus | not_required |
 | `CAE-014` | done | cursor-cloud-cae014 | Canonical Shape read adapter | not_required |
-| `CAE-015` | backlog | unassigned | Version disclosure contracts | not_required |
+| `CAE-015` | review | cursor-cloud-cae015 | Version disclosure contracts | not_required |
 
 Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
-Live workspace task statuses: `CAE-000`=review, `CAE-001`=backlog, `CAE-002`=backlog, `CAE-003`=backlog, `CAE-003A`=backlog, `CAE-003B`=backlog, `CAE-004`=backlog, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=backlog, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=done, `CAE-014`=done, `CAE-015`=backlog. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
+Live workspace task statuses: `CAE-000`=review, `CAE-001`=backlog, `CAE-002`=backlog, `CAE-003`=backlog, `CAE-003A`=backlog, `CAE-003B`=backlog, `CAE-004`=backlog, `CAE-005`=backlog, `CAE-005A`=backlog, `CAE-005B`=backlog, `CAE-006`=backlog, `CAE-006A`=backlog, `CAE-006B`=backlog, `CAE-007`=backlog, `CAE-008`=backlog, `CAE-009`=backlog, `CAE-010`=backlog, `CAE-011`=backlog, `CAE-012`=backlog, `CAE-013`=done, `CAE-014`=done, `CAE-015`=review. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
 
 **Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)

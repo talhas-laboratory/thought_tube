@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: cognitive-aperture-exceptional -->
-<!-- canonical_revision: 6b18e4f178a9b05d91e3da0eb899e400483214c4d3cf75d7159e518d87a4d75e -->
+<!-- canonical_revision: 212c57c5137c8cc3a8cdf7d5ee1ce64f812ee708857592711cdb127612417fcf -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-19T15:49:36+00:00 -->
+<!-- generated_at: 2026-07-19T15:59:36+00:00 -->
 
 # Workspace continuity: cognitive-aperture-exceptional
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- CAE-015 disclosure contracts v1.0 left in review
 - Stage A independent review approved CAE-014; task marked done; D-009 recorded live.
 - Stage A independent review approved CAE-013; task marked done.
 - Verification recorded; projections to publish after commit.
@@ -34,6 +35,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- disclosure_contracts_v1
 - stage-a-independent-review-passing
 - stage-a-independent-review-passing
 - independent-review:pytest-shape-projection-reader
