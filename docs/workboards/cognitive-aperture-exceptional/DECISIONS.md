@@ -53,8 +53,8 @@ Bridge adopts first, Holodeck second. Feed and task packs follow only after conf
 ## Open decisions
 
 - Exact tokenizer/estimator and budget reservation constants — CAE-003B.
-- Approved positive-recall and latency thresholds — CAE-006A.
 - Kernel bounded-view integration versus explicit demotion — CAE-011.
+- Harness probe fixtures for budget, leakage, provenance, and Shape/AntiMatch categories — CAE-006B (thresholds for recall/latency recorded in D-011).
 
 ## D-009 — Shape projection reader schema and legacy retention (CAE-014)
 

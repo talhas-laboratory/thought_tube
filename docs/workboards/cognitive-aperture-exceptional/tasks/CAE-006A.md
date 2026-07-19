@@ -1,4 +1,4 @@
-Status: review
+Status: done
 Owner: cursor-cloud-cae006a
 # CAE-006A — Baseline evaluation harness
 
