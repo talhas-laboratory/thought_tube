@@ -102,7 +102,7 @@ Bridge frame assembly splits `frame_bundle` (execution-safe, no suppressed field
 **Status:** accepted
 **Authority:** D-007, design §8, disclosure contracts
 
-`disclosure_budget_allocator` version `1.0` uses estimator `1.0` (whitespace token count) and reservation version `1.0` (`system_tokens=120`, `answer_tokens=256`, `orientation_max_tokens=120`). `apply_frame_budget_to_assembly()` selects whole frame blocks in layer priority order before execution composition; optional blocks drop with a ledger recorded in `frame_audit.drop_ledger` only. Required blocks that cannot fit return `abstained_insufficient_budget`. Rollback via `bridge.deterministic_budget_enforcement_v1: false`.
+`disclosure_budget_allocator` version `1.0` uses estimator `1.0` (whitespace token count) and reservation version `1.0` (`system_tokens=120`, `answer_tokens=256`, `orientation_max_tokens=120`). `apply_frame_budget_to_assembly()` selects whole frame blocks in layer priority order before execution composition; optional blocks drop with a ledger recorded in `frame_audit.drop_ledger` only. Required blocks that cannot fit return `abstained_insufficient_budget`. Unset `token_budget` defaults from depth mode (`contextual=1200`); explicit zero or incognito skips enforcement. Rollback via `bridge.deterministic_budget_enforcement_v1: false`.
 
 ## D-016 — Orient-first compose (CAE-004)
 

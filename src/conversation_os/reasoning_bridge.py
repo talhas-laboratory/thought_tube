@@ -1056,6 +1056,10 @@ def build_effective_grant_from_context(
     requested_layers = [_BRIDGE_LAYER_TO_GRANT.get(layer, layer) for layer in (include_layers or default_layers)]
     explicit_denials = [_BRIDGE_LAYER_TO_GRANT.get(layer, layer) for layer in exclude_layers]
     attributes = dict(state.get("attributes", {}) or {})
+    policy_specified = "token_budget" in policy_payload
+    depth_mode = str(state.get("depth_mode", "focused") or "focused")
+    from .disclosure_budget_allocator import resolve_token_budget
+
     requested = RequestedGrant(
         grant_id=make_id("grant"),
         request_id=str(state.get("request_id", "")),
@@ -1064,14 +1068,23 @@ def build_effective_grant_from_context(
         requested_refs=[str(value) for value in state.get("source_refs", []) or [] if str(value).strip()],
         dimensions=[],
         shape_maturity="candidate",
-        token_budget=int(policy_payload.get("token_budget", 0) or 0),
+        token_budget=resolve_token_budget(
+            int(policy_payload.get("token_budget", 0) or 0),
+            depth_mode=depth_mode,
+            policy_specified=policy_specified,
+        ),
         persistence_mode=str(session_envelope.get("persistence_mode", "gated") or "gated"),
         explicit_pins=[str(value) for value in attributes.get("explicit_pins", []) or [] if str(value).strip()],
         explicit_denials=list(dict.fromkeys(explicit_denials)),
         cross_ocean=bool(policy_payload.get("cross_ocean")) if "cross_ocean" in policy_payload else None,
     )
     workspace_layers = ["session", "workspace", "user", "governed_global"] if state.get("active_workspace_id") else None
-    return normalize_effective_grant(requested, workspace_layers=workspace_layers)
+    grant = normalize_effective_grant(requested, workspace_layers=workspace_layers)
+    grant_dict = grant.to_dict()
+    grant_dict["token_budget_specified"] = policy_specified
+    from .disclosure_contracts import EffectiveGrant
+
+    return EffectiveGrant.from_dict(grant_dict)
 
 
 def effective_layers_to_bridge_layers(grant, available_layers: List[str]) -> List[str]:

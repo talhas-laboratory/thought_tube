@@ -22,6 +22,13 @@ DEFAULT_RESERVATIONS = {
     "orientation_max_tokens": 120,
 }
 
+DEFAULT_TOKEN_BUDGET_BY_DEPTH = {
+    "focused": 800,
+    "contextual": 1200,
+    "deep": 1600,
+    "incognito": 0,
+}
+
 LAYER_PRIORITY = {
     "session": 0,
     "explicit_pin": 1,
@@ -39,6 +46,8 @@ PUBLIC_API = (
     "LAYER_PRIORITY",
     "load_budget_allocator_config",
     "deterministic_budget_enforcement_enabled",
+    "resolve_token_budget",
+    "should_skip_budget_enforcement",
     "estimate_tokens",
     "estimate_orientation_tokens",
     "build_budget_reservation",
@@ -76,6 +85,24 @@ def load_budget_allocator_config(root: Path) -> Dict[str, Any]:
 
 def deterministic_budget_enforcement_enabled(root: Path) -> bool:
     return bool(load_budget_allocator_config(root)["deterministic_budget_enforcement_v1"])
+
+
+def resolve_token_budget(
+    token_budget: int,
+    *,
+    depth_mode: str = "contextual",
+    policy_specified: bool = False,
+) -> int:
+    budget = max(0, int(token_budget or 0))
+    if budget > 0:
+        return budget
+    if policy_specified:
+        return 0
+    return int(DEFAULT_TOKEN_BUDGET_BY_DEPTH.get(str(depth_mode or "contextual"), 1200))
+
+
+def should_skip_budget_enforcement(token_budget: int) -> bool:
+    return max(0, int(token_budget or 0)) <= 0
 
 
 def estimate_tokens(text: str) -> int:
@@ -277,7 +304,30 @@ def apply_frame_budget_to_assembly(
     pinned_block_ids: Sequence[str] | None = None,
 ) -> Dict[str, Any]:
     config = load_budget_allocator_config(root)
-    token_budget = max(0, int(effective_grant.get("token_budget", 0) or 0))
+    depth_mode = str(context_state.get("depth_mode", "contextual") or "contextual")
+    policy_specified = bool(effective_grant.get("token_budget_specified"))
+    token_budget = resolve_token_budget(
+        int(effective_grant.get("token_budget", 0) or 0),
+        depth_mode=depth_mode,
+        policy_specified=policy_specified,
+    )
+    if should_skip_budget_enforcement(token_budget):
+        return {
+            "drop_ledger": [],
+            "budget_ledger": {},
+            "budget_summary": {
+                "enforcement_skipped": True,
+                "reason": "token_budget_unconfigured",
+                "token_budget": 0,
+            },
+            "policy_hash": "",
+            "result_status": str(assembly.get("result_status", "") or "disclosed"),
+            "dropped_blocks": [],
+            "estimator_version": config.get("estimator_version", ESTIMATOR_VERSION),
+            "reservation_version": config.get("reservation_version", RESERVATION_VERSION),
+            "enforcement_enabled": False,
+        }
+
     reservations = dict(config.get("reservations", DEFAULT_RESERVATIONS))
     orientation_tokens = estimate_orientation_tokens(
         context_state,

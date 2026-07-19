@@ -165,6 +165,38 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         self.assertIn("session", included_layers)
         self.assertIn("workspace", included_layers)
 
+    def test_unset_token_budget_preserves_frame_preview_assembly(self) -> None:
+        """Regression: unset token_budget must not zero-out block budget under enforcement."""
+        append_jsonl(
+            self.root / "memory" / "events" / "session-policy-003.jsonl",
+            {
+                "event_id": "event-1",
+                "session_id": "session-policy-003",
+                "timestamp": "2026-06-26T17:10:00+00:00",
+                "actor": "user",
+                "kind": "message",
+                "content": "Build bridge integration preview.",
+                "attachments": [],
+                "tags": [],
+                "source_ref": None,
+            },
+        )
+        context = heuristic_classify_turn(
+            self.root,
+            {
+                "request_id": "req-policy-003",
+                "session_id": "session-policy-003",
+                "raw_text": "Build bridge integration preview.",
+                "caller_hints": {"workspace_id": "workspace-policy-003"},
+                "domain_hints": [],
+                "source_refs": [],
+            },
+        )
+        bundle = get_context_bundle(self.root, context)
+        self.assertGreater(int(bundle["effective_grant"].get("token_budget", 0) or 0), 0)
+        self.assertNotEqual(bundle["frame_bundle"]["assembly_status"], "empty")
+        self.assertTrue(bundle["frame_bundle"]["included_blocks"])
+
     def test_frame_bundle_tracks_suppressed_layers_separately_from_disclosure(self) -> None:
         context = self._context_with_policy(
             {

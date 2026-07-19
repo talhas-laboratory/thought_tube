@@ -24,6 +24,15 @@ from conversation_os.reasoning_bridge import (
 
 
 class DisclosureBudgetAllocatorTestCase(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.root = Path(self.tempdir.name)
+        config_dir = self.root / "product" / "inner_world_v1" / "config"
+        config_dir.mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.tempdir.cleanup()
+
     def test_estimate_tokens_is_deterministic(self) -> None:
         text = "orientation and evidence budgeting"
         self.assertEqual(estimate_tokens(text), 4)
@@ -85,6 +94,30 @@ class DisclosureBudgetAllocatorTestCase(unittest.TestCase):
         self.assertEqual(reservation["estimator_version"], ESTIMATOR_VERSION)
         self.assertEqual(reservation["reservation_version"], RESERVATION_VERSION)
         self.assertEqual(reservation["available_for_blocks"], 900 - 120 - 256 - 25)
+
+    def test_unset_token_budget_defaults_from_depth_mode(self) -> None:
+        from conversation_os.disclosure_budget_allocator import resolve_token_budget
+
+        self.assertEqual(resolve_token_budget(0, depth_mode="contextual", policy_specified=False), 1200)
+        self.assertEqual(resolve_token_budget(0, depth_mode="incognito", policy_specified=False), 0)
+        self.assertEqual(resolve_token_budget(0, depth_mode="contextual", policy_specified=True), 0)
+
+    def test_apply_frame_budget_skips_when_token_budget_unconfigured(self) -> None:
+        assembly = {
+            "included_blocks": [
+                {"block_id": "b-session", "layer": "session", "summary": "session continuity", "token_estimate": 40}
+            ],
+            "assembly_status": "partial",
+        }
+        audit = apply_frame_budget_to_assembly(
+            assembly,
+            context_state={"depth_mode": "incognito"},
+            effective_grant={"token_budget": 0, "token_budget_specified": True, "effective_layers": ["session"]},
+            root=self.root,
+        )
+        self.assertFalse(audit["enforcement_enabled"])
+        self.assertEqual(assembly["assembly_status"], "partial")
+        self.assertEqual(len(assembly["included_blocks"]), 1)
 
 
 class DisclosureBudgetBridgeIntegrationTestCase(unittest.TestCase):
