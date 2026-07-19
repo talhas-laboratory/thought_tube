@@ -53,7 +53,13 @@ Bridge adopts first, Holodeck second. Feed and task packs follow only after conf
 ## Open decisions
 
 - Kernel bounded-view integration versus explicit demotion — CAE-011.
-- Harness probe fixtures for budget, leakage, provenance, and Shape/AntiMatch categories — CAE-006B (thresholds for recall/latency recorded in D-011).
+
+## D-021 — Shape-aware and service performance baselines (CAE-006B)
+
+**Status:** accepted
+**Authority:** D-011, D-017, D-018, GAP_MAP §7
+
+`aperture_service_baseline_harness` version `1.0` lives in `src/conversation_os/aperture_service_baseline_harness.py`. Versioned service probe fixtures under `tests/fixtures/aperture_baselines/v1/service_probes.json` and published results under `derived/baselines/chat_converter_seed_v1_service.{json,md}` extend the Stage A seed corpus with Shape/AntiMatch probes, Bridge/Holodeck adapter parity checks, and disclosure-path performance metrics (p50/p95 latency, bytes resolved, expansion counts, cache stability). Structural ranking probes require preferred structural matches to beat lexical distractors; distractor-harm probes preserve the near-neighbour known failure from D-011. Legacy Shape signatures and AntiMatch records are read through `ShapeProjectionReader`; retrieval must not promote candidates. Parent suite `chat_converter_seed_v1` thresholds remain authoritative for Stage A lexical probes.
 
 ## D-009 — Shape projection reader schema and legacy retention (CAE-014)
 

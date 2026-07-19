@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "chat_converter_seed_v1_service",
+  "parent_suite_id": "chat_converter_seed_v1",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "recorded_at": "2026-07-19T00:00:00+00:00",
+  "harness_version": "1.0",
+  "aperture_harness_version": "1.0",
+  "thresholds": {
+    "structural_beats_distractor_rate": 1.0,
+    "anti_match_block_rate": 1.0,
+    "candidate_upgrade_rate": 0.0,
+    "adapter_parity_rate": 1.0,
+    "latency_ms_p50": 250,
+    "latency_ms_p95": 750,
+    "max_bytes_resolved": 65536,
+    "max_expansion_count": 12
+  },
+  "summary": {
+    "probe_count": 5,
+    "pass_count": 4,
+    "known_failure_count": 1,
+    "service_certified": false,
+    "notes": "Near-neighbour distractor preserved; Shape legacy adapter blocks promotion; Bridge/Holodeck parity on semantic capsules"
+  },
+  "observed_results": [
+    {
+      "probe_id": "structural-agent-memory-ranking",
+      "verdict": "pass",
+      "structural_beats_distractor": true,
+      "preferred_source_slug": "mapping-the-mind-for-agentic-systems"
+    },
+    {
+      "probe_id": "near-neighbour-distractor-harm",
+      "verdict": "known_failure",
+      "preferred_source_slug": "mapping-the-mind-for-agentic-systems",
+      "distractor_source_slug": "understanding-the-nature-of-thought",
+      "notes": "Preserved from CAE-006A near-neighbour regression"
+    },
+    {
+      "probe_id": "shape-anti-match-no-promotion",
+      "verdict": "pass",
+      "promotion_allowed": false,
+      "candidate_upgrade_detected": false,
+      "anti_match_count": 1
+    },
+    {
+      "probe_id": "bridge-holodeck-retrieval-parity",
+      "verdict": "pass",
+      "adapter_parity": true
+    },
+    {
+      "probe_id": "disclosure-path-performance",
+      "verdict": "pass",
+      "latency_ms_p50": 2.0,
+      "latency_ms_p95": 4.0,
+      "max_bytes_resolved": 211,
+      "max_expansion_count": 2
+    }
+  ]
+}
