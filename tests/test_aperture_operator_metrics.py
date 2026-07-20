@@ -31,7 +31,10 @@ class ApertureOperatorMetricsTestCase(unittest.TestCase):
             json.dumps(
                 {
                     "disclosure": {
-                        "receipts": {"persistent_receipts_v1": True},
+                        "receipts": {
+                            "persistent_receipts_v1": True,
+                            "rollout": {"bridge": "enforced", "holodeck": "enforced", "feed": "enforced"},
+                        },
                         "operator_metrics": {"operator_metrics_v1": True},
                     }
                 }

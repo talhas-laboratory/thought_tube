@@ -240,7 +240,7 @@ def record_feed_disclosure_receipt(
 ) -> Dict[str, Any] | None:
     from .disclosure_receipts import persistent_receipts_enabled, record_disclosure_receipt
 
-    if not persistent_receipts_enabled(root):
+    if not persistent_receipts_enabled(root, surface="feed"):
         return None
     grant_dict = effective_grant.to_dict() if hasattr(effective_grant, "to_dict") else dict(effective_grant or {})
     subset = feed_evidence_decision_subset(retrieval_bundle)

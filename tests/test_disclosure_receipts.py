@@ -41,6 +41,10 @@ class DisclosureReceiptsTestCase(unittest.TestCase):
                             "persistent_receipts_v1": True,
                             "max_entries": 2,
                             "retention_days": 30,
+                            "rollout": {
+                                "bridge": "enforced",
+                                "holodeck": "enforced",
+                            },
                         }
                     },
                     "knowledge": {

@@ -90,11 +90,17 @@
       "answer_tokens": 256,
       "orientation_max_tokens": 120
     },
-    "persistent_receipts_v1": false,
+    "persistent_receipts_v1": true,
     "receipts": {
-      "persistent_receipts_v1": false,
+      "persistent_receipts_v1": true,
       "max_entries": 500,
-      "retention_days": 30
+      "retention_days": 30,
+      "rollout": {
+        "bridge": "enforced",
+        "holodeck": "enforced",
+        "feed": "legacy",
+        "task_pack": "legacy"
+      }
     },
     "active_state": {
       "continuity_v1": false,
