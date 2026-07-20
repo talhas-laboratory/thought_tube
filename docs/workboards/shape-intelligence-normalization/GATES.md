@@ -1,3 +1,3 @@
 # Gates
 
-Done requires implementation-packet acceptance criteria, focused pytest evidence, full-suite impact check, receipt of changed paths, and no residual policy ambiguity.
+Done requires every exit condition and evidence item in `derived/REMEDIATION_PACKET.md`, including lossless round trips, 10 MB/100 MB scaling, content stored once, stable offsets/IDs, asynchronous enqueue, focused pytest evidence, full-suite impact, changed paths, and explicit residual limits.
