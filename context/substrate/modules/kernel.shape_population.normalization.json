@@ -1,0 +1,40 @@
+{
+  "module_id": "kernel.shape_population.normalization",
+  "path": "src/conversation_os/shape_population/normalization.py",
+  "layer": "kernel",
+  "owner": "Lossless normalize_source automatic infrastructure.",
+  "purpose": "Lossless normalize_source automatic infrastructure.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "normalize_source",
+    "SUPPORTED_MODALITIES"
+  ],
+  "contains": [
+    "Lossless normalize_source automatic infrastructure."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_normalization.py"
+  ]
+}
