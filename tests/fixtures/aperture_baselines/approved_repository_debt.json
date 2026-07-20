@@ -1,0 +1,433 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "approved_repository_debt",
+  "recorded_at": "2026-07-20T15:00:00+00:00",
+  "gate_version": "1.0",
+  "summary": {
+    "allowed_failure_count": 82,
+    "categories": [
+      "cae_admission_debt",
+      "cae_holodeck_bounded_view",
+      "cae_known_retrieval_debt",
+      "cae_receipt_rollout_config",
+      "cae_shape_retrieval_debt",
+      "private_substrate_bridge",
+      "private_substrate_manifests",
+      "private_substrate_personal",
+      "private_substrate_pipeline",
+      "private_substrate_reasoning"
+    ]
+  },
+  "allowed_failures": [
+    {
+      "node_id": "tests/test_aperture_service_baseline_harness.py::ApertureServiceBaselineHarnessTestCase::test_near_neighbour_distractor_is_recorded_as_known_failure",
+      "category": "cae_known_retrieval_debt",
+      "reason": "Recorded near-neighbour and service baseline probes not yet certified (R-001/R-006B)"
+    },
+    {
+      "node_id": "tests/test_aperture_service_baseline_harness.py::ApertureServiceBaselineHarnessTestCase::test_run_service_baseline_suite_emits_machine_readable_metrics",
+      "category": "cae_known_retrieval_debt",
+      "reason": "Recorded near-neighbour and service baseline probes not yet certified (R-001/R-006B)"
+    },
+    {
+      "node_id": "tests/test_aperture_service_baseline_harness.py::ApertureServiceBaselineHarnessTestCase::test_structural_ranking_beats_distractor",
+      "category": "cae_known_retrieval_debt",
+      "reason": "Recorded near-neighbour and service baseline probes not yet certified (R-001/R-006B)"
+    },
+    {
+      "node_id": "tests/test_bridge_controller.py::BridgeControllerTestCase::test_classify_with_agent_returns_packet_on_valid_json",
+      "category": "private_substrate_bridge",
+      "reason": "Bridge controller/session tests require private substrate agent fixtures"
+    },
+    {
+      "node_id": "tests/test_bridge_session_context.py::BridgeSessionContextTestCase::test_get_context_bundle_allows_note_agent_policy_to_widen_tracked_session",
+      "category": "private_substrate_bridge",
+      "reason": "Bridge controller/session tests require private substrate agent fixtures"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_build_mobile_library_groups_captures_saved_items_and_conversations",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_build_openclaw_miniapp_tool_writes_feed_ui_enhancement_assets",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_build_proposal_task_pack_requires_approval_and_links_artifact",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_chat_markdown_inferrs_user_and_assistant_roles",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_chunk_pond_routing_flows_into_dimension_profiles",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_development_flow_records_routes_proposes_and_approves",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_check_enforces_constraint_kinds_for_paths_and_non_goals",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_check_reports_work_expansion_outside_active_run",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_check_tracks_required_proof_surfaces_and_local_only_posture",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_constraint_records_bound_scoping_and_task_packs",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_context_records_ground_contextualizing_stage",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_contextualize_emits_bounded_inherited_context_and_knowledge",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_inquiry_planner_surfaces_grounded_founder_questions",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_integration_targets_ground_integrating_stage",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_run_contracts_bound_execution_and_surface_active_run",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_stage_readiness_reports_scope_gaps_and_task_pack_constraints",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_task_pack_carries_workspace_blocker_constraints",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cli_holodeck_task_pack_renders_blocker_reasons",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_cross_pond_links_are_tagged_as_bridge_candidates_and_downweighted",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_deploy_inner_world_syncs_mobile_surface_bundle",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_dimension_search_respects_pond_boundaries_and_cross_pond_toggle",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_engineering_guard_allows_adjacent_owner_extraction_when_existing_owner_stays_in_scope",
+      "category": "private_substrate_manifests",
+      "reason": "Requires hand-authored module manifests excluded from public release"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_feed_interactions_build_taste_profile",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_feed_payloads_shape_from_learned_taste_profile",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_feed_returns_rebuilding_payload_without_triggering_batch_when_runtime_running",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_feed_selection_uses_learned_taste_profile",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_get_chunk_pond_routing_state_exposes_current_route_and_override_options",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_hybrid_pond_router_can_escalate_ambiguous_chunks_to_assisted_route",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_inner_world_batch_contract_and_feedback",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_library_sync_can_bound_pending_ingest_without_double_ingesting_synced_items",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_manual_chunk_pond_reroute_emits_learning_feedback",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_markdown_seed_uses_semantic_chunks_and_replaces_same_source",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_materialize_connections_writes_bounded_summary_payload",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_miniapp_chunk_pond_routes_support_inspect_update_and_clear",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_miniapp_mobile_bundle_serves_key_pwa_assets",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_miniapp_mobile_feed_requires_session_auth",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_miniapp_mobile_feedback_saved_persists_saved_state",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_miniapp_mobile_host_root_serves_mobile_shell_and_assets",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_miniapp_pond_aware_search_api_and_cross_pond_toggle",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_override_chunk_pond_routing_applies_manual_route_and_persists_feedback",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_override_chunk_pond_routing_can_clear_manual_override",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_product_chunk_pond_wrappers_delegate_to_substrate_owner",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_product_surface_exposes_capsule_and_link_filters",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_promoted_cross_pond_bridge_can_flow_without_cross_pond_toggle",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_retrieval_bundle_assembles_linked_semantic_handles",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_retrieval_bundle_is_pond_bounded_unless_cross_pond_enabled",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_rewrite_outgoing_message_tracks_quick_mood_history",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_rewrite_outgoing_message_updates_shared_bridge_state",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_runtime_overview_exposes_connection_summary_and_top_connections",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_runtime_pipeline_can_resume_completed_stage_when_artifact_exists",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_session_close_builds_concept_synthesis_and_task_pack_retrieval",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_session_lifecycle_materializes_artifacts",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_single_conversation_end_to_end_import_seed_and_derive",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_staged_derive_can_resume_from_downstream_stage_after_library_sync",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_task_pack_is_deterministic",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_thought_feed_and_thread_lifecycle",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_conversation_os.py::ConversationOSTestCase::test_translate_idea_to_technical_framing_uses_translation_profile",
+      "category": "private_substrate_pipeline",
+      "reason": "End-to-end pipeline tests depend on private substrate manifests and full corpus"
+    },
+    {
+      "node_id": "tests/test_disclosure_receipt_rollout.py::DisclosureReceiptRolloutTestCase::test_release_runtime_enables_bridge_and_holodeck_receipts",
+      "category": "cae_receipt_rollout_config",
+      "reason": "Release runtime feed receipt rollout differs from staged expectation (R-015)"
+    },
+    {
+      "node_id": "tests/test_engineering_guard.py::EngineeringGuardTestCase::test_assess_change_request_routes_to_relevant_existing_modules",
+      "category": "private_substrate_manifests",
+      "reason": "Requires hand-authored module manifests excluded from public release"
+    },
+    {
+      "node_id": "tests/test_engineering_guard.py::EngineeringGuardTestCase::test_cli_repo_overview_and_engineering_guard_commands",
+      "category": "private_substrate_manifests",
+      "reason": "Requires hand-authored module manifests excluded from public release"
+    },
+    {
+      "node_id": "tests/test_engineering_guard.py::EngineeringGuardTestCase::test_load_module_manifests_surfaces_seed_tranche_and_missing_modules",
+      "category": "private_substrate_manifests",
+      "reason": "Requires hand-authored module manifests excluded from public release"
+    },
+    {
+      "node_id": "tests/test_fail_empty_admission.py::FailEmptyAdmissionTestCase::test_alias_hit_preserves_recall",
+      "category": "cae_admission_debt",
+      "reason": "Fail-empty admission enforcement incomplete (R-005)"
+    },
+    {
+      "node_id": "tests/test_fail_empty_admission.py::FailEmptyAdmissionTestCase::test_bounded_missing_pond_metadata_fails_closed",
+      "category": "cae_admission_debt",
+      "reason": "Fail-empty admission enforcement incomplete (R-005)"
+    },
+    {
+      "node_id": "tests/test_fail_empty_admission.py::FailEmptyAdmissionTestCase::test_explicit_pin_admits_candidate",
+      "category": "cae_admission_debt",
+      "reason": "Fail-empty admission enforcement incomplete (R-005)"
+    },
+    {
+      "node_id": "tests/test_fail_empty_admission.py::FailEmptyAdmissionTestCase::test_unrelated_query_returns_empty_when_enforced",
+      "category": "cae_admission_debt",
+      "reason": "Fail-empty admission enforcement incomplete (R-005)"
+    },
+    {
+      "node_id": "tests/test_holodeck_disclosure_parity.py::HolodeckDisclosureParityTestCase::test_collect_contextualization_routes_knowledge_through_disclosure",
+      "category": "cae_holodeck_bounded_view",
+      "reason": "Holodeck contextualization missing bounded-view disclosure layer (R-014)"
+    },
+    {
+      "node_id": "tests/test_personal_interface.py::PersonalInterfaceTestCase::test_calibration_interview_materializes_profile",
+      "category": "private_substrate_personal",
+      "reason": "Personal interface tests require private substrate calibration fixtures"
+    },
+    {
+      "node_id": "tests/test_personal_interface.py::PersonalInterfaceTestCase::test_cli_personal_interface_doctor_reports_readiness",
+      "category": "private_substrate_personal",
+      "reason": "Personal interface tests require private substrate calibration fixtures"
+    },
+    {
+      "node_id": "tests/test_personal_interface.py::PersonalInterfaceTestCase::test_cli_rewrite_turn_accepts_conversation_json",
+      "category": "private_substrate_personal",
+      "reason": "Personal interface tests require private substrate calibration fixtures"
+    },
+    {
+      "node_id": "tests/test_personal_interface.py::PersonalInterfaceTestCase::test_feedback_updates_policy_snapshot",
+      "category": "private_substrate_personal",
+      "reason": "Personal interface tests require private substrate calibration fixtures"
+    },
+    {
+      "node_id": "tests/test_personal_interface.py::PersonalInterfaceTestCase::test_rewrite_conversation_turn_derives_context_from_conversation",
+      "category": "private_substrate_personal",
+      "reason": "Personal interface tests require private substrate calibration fixtures"
+    },
+    {
+      "node_id": "tests/test_personal_interface.py::PersonalInterfaceTestCase::test_rewrite_uses_declared_mode_and_records_event",
+      "category": "private_substrate_personal",
+      "reason": "Personal interface tests require private substrate calibration fixtures"
+    },
+    {
+      "node_id": "tests/test_reasoning_pipeline_runtime.py::ReasoningRuntimeBridgeAndFieldTestCase::test_build_active_field_produces_parent_ideas_from_retrieval_bundle",
+      "category": "private_substrate_reasoning",
+      "reason": "Reasoning runtime tests require private substrate retrieval fixtures"
+    },
+    {
+      "node_id": "tests/test_reasoning_pipeline_runtime.py::ReasoningRuntimeBridgeAndFieldTestCase::test_get_context_bundle_uses_session_user_and_global_layers",
+      "category": "private_substrate_reasoning",
+      "reason": "Reasoning runtime tests require private substrate retrieval fixtures"
+    },
+    {
+      "node_id": "tests/test_shape_candidate_retrieval.py::ShapeCandidateRetrievalTestCase::test_anti_match_hard_rejects_false_analogy_candidate",
+      "category": "cae_shape_retrieval_debt",
+      "reason": "Shape-assisted retrieval and AntiMatch enforcement incomplete (R-001/R-002/R-003)"
+    },
+    {
+      "node_id": "tests/test_shape_candidate_retrieval.py::ShapeCandidateRetrievalTestCase::test_profile_unavailable_abstains_shape_search_without_lexical_widen",
+      "category": "cae_shape_retrieval_debt",
+      "reason": "Shape-assisted retrieval and AntiMatch enforcement incomplete (R-001/R-002/R-003)"
+    },
+    {
+      "node_id": "tests/test_shape_candidate_retrieval.py::ShapeCandidateRetrievalTestCase::test_shape_assisted_retrieval_promotes_structural_candidate_above_lexical_distractor",
+      "category": "cae_shape_retrieval_debt",
+      "reason": "Shape-assisted retrieval and AntiMatch enforcement incomplete (R-001/R-002/R-003)"
+    }
+  ]
+}

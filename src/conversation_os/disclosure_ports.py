@@ -79,7 +79,7 @@ class EvidenceResolverPort(Protocol):
         *,
         included_blocks: list[Dict[str, Any]],
         effective_grant: Mapping[str, Any],
-    ) -> list[Dict[str, Any]]: ...
+    ) -> Dict[str, Any]: ...
 
 
 @runtime_checkable
@@ -114,9 +114,9 @@ class DisclosurePorts:
 
 class _InnerWorldCorpusCatalog:
     def build_corpus_catalog(self, root: Path, *, corpus_id: str = "local_runtime") -> Dict[str, Any]:
-        from .library_tracker import build_corpus_catalog
+        from .corpus_catalog_snapshot import load_corpus_catalog_for_request
 
-        return build_corpus_catalog(root, corpus_id=corpus_id)
+        return load_corpus_catalog_for_request(root, corpus_id=corpus_id)
 
 
 class _InnerWorldCandidateSearch:
@@ -191,9 +191,14 @@ class _InnerWorldEvidenceResolver:
         *,
         included_blocks: list[Dict[str, Any]],
         effective_grant: Mapping[str, Any],
-    ) -> list[Dict[str, Any]]:
-        _ = root, effective_grant
-        return [dict(row) for row in included_blocks]
+    ) -> Dict[str, Any]:
+        from .evidence_resolver import resolve_frame_blocks
+
+        return resolve_frame_blocks(
+            root,
+            included_blocks=included_blocks,
+            effective_grant=effective_grant,
+        )
 
 
 class _InMemoryReceiptSink:

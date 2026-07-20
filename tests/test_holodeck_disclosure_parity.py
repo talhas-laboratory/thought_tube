@@ -5,7 +5,9 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.holodeck import _collect_contextualization_candidates, _seed_bundle
 from conversation_os.holodeck_disclosure_adapter import (
     build_contextualization_query,
@@ -78,6 +80,7 @@ class HolodeckDisclosureParityTestCase(unittest.TestCase):
                 "attributes": {"domain": "bridge"},
             },
         )
+        publish_corpus_catalog_snapshot(self.root)
 
     def test_knowledge_candidates_match_bridge_retrieval(self) -> None:
         self._write_capsule()
@@ -183,6 +186,68 @@ class HolodeckDisclosureParityTestCase(unittest.TestCase):
         self.assertIn("meta_layer", layers)
         self.assertNotIn("disclosure_service", layers)
         self.assertTrue(any(str(row.get("source_layer", "")).startswith("meta_") for row in candidates))
+
+    @mock.patch("conversation_os.holodeck._collect_legacy_meta_layer_candidates")
+    @mock.patch("conversation_os.holodeck_disclosure_adapter.collect_disclosure_knowledge_candidates")
+    def test_dependency_failure_abstains_instead_of_legacy_widen(
+        self,
+        collect_mock: mock.MagicMock,
+        legacy_mock: mock.MagicMock,
+    ) -> None:
+        collect_mock.side_effect = RuntimeError("catalog unavailable")
+        seed = self._seed_bundle()
+        candidates, layers = _collect_contextualization_candidates(
+            self.root,
+            "ws-holodeck-001",
+            seed,
+            [],
+            max_source_refs=6,
+        )
+        legacy_mock.assert_not_called()
+        self.assertIn("abstained_dependency_not_ready", layers)
+        self.assertIn("disclosure_service", layers)
+        self.assertNotIn("meta_layer", layers)
+        self.assertFalse(any(str(row.get("source_layer", "")).startswith("meta_") for row in candidates))
+
+    @mock.patch("conversation_os.holodeck._collect_legacy_meta_layer_candidates")
+    @mock.patch("conversation_os.holodeck_disclosure_adapter.collect_disclosure_knowledge_candidates")
+    def test_explicit_legacy_mode_still_calls_meta_scorer_when_flag_disabled(
+        self,
+        collect_mock: mock.MagicMock,
+        legacy_mock: mock.MagicMock,
+    ) -> None:
+        config_path = self.root / "product" / "inner_world_v1" / "config" / "runtime.json"
+        runtime = json.loads(config_path.read_text(encoding="utf-8"))
+        runtime["holodeck"]["disclosure_service_v1"] = False
+        config_path.write_text(json.dumps(runtime), encoding="utf-8")
+        legacy_mock.return_value = (
+            [
+                {
+                    "candidate_kind": "knowledge",
+                    "source_layer": "meta_guardrail",
+                    "source_ref": "docs/plans/bounded-assist.md",
+                    "title": "Bounded Semantic Assist",
+                    "statement": "Legacy scorer path.",
+                    "matched_terms": ["bridge"],
+                    "score": 40,
+                    "confidence": 0.9,
+                }
+            ],
+            ["meta_layer"],
+        )
+        seed = self._seed_bundle()
+        candidates, layers = _collect_contextualization_candidates(
+            self.root,
+            "ws-holodeck-001",
+            seed,
+            [],
+            max_source_refs=6,
+        )
+        collect_mock.assert_not_called()
+        legacy_mock.assert_called_once()
+        self.assertIn("meta_layer", layers)
+        self.assertNotIn("abstained_dependency_not_ready", layers)
+        self.assertTrue(any(row.get("source_layer") == "meta_guardrail" for row in candidates))
 
     def test_adapter_avoids_product_surface_imports(self) -> None:
         adapter_path = Path(__file__).resolve().parents[1] / "src" / "conversation_os" / "holodeck_disclosure_adapter.py"

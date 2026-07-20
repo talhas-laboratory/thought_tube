@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.feed_disclosure_adapter import (
     build_feed_effective_grant,
     collect_feed_evidence_pairs,
@@ -71,6 +72,7 @@ class FeedDisclosureParityTestCase(unittest.TestCase):
         ]
         for row in rows:
             append_jsonl(path, row)
+        publish_corpus_catalog_snapshot(self.root)
 
     def test_feed_pairs_match_bridge_retrieval_subset(self) -> None:
         self._write_capsules()
@@ -181,7 +183,13 @@ class FeedDisclosureParityTestCase(unittest.TestCase):
         self._write_capsules()
         config_path = self.root / "product" / "inner_world_v1" / "config" / "runtime.json"
         runtime = json.loads(config_path.read_text(encoding="utf-8"))
-        runtime["disclosure"] = {"receipts": {"persistent_receipts_v1": True}}
+        runtime["disclosure"] = {
+            "persistent_receipts_v1": True,
+            "receipts": {
+                "persistent_receipts_v1": True,
+                "rollout": {"feed": "enforced"},
+            },
+        }
         config_path.write_text(json.dumps(runtime), encoding="utf-8")
 
         pairs, retrieval_bundle, _layers = collect_feed_evidence_pairs(self.root, limit=2)

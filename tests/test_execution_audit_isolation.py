@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 from conversation_os.chat_backends import compose_execution_message, trim_context_bundle
-from conversation_os.disclosure_contracts import validate_execution_bundle
+from conversation_os.disclosure_contracts import ContractValidationError, validate_execution_bundle
 from conversation_os.reasoning_bridge import (
     assemble_frame_bundle,
     execution_audit_isolation_enabled,
@@ -104,6 +104,128 @@ class ExecutionAuditIsolationTestCase(unittest.TestCase):
         )
         self.assertNotIn("Suppressed frame blocks:", message)
         self.assertNotIn("suppressed", message.lower())
+
+    def test_compose_execution_message_rejects_contaminated_bundle_when_isolated(self) -> None:
+        bundle = {
+            "context_state": {"bundle_layers": ["session"]},
+            "session_envelope": {"mode": "strict"},
+            "frame_spec": {"frame_id": "frame-001"},
+            "frame_bundle": {
+                "frame_id": "frame-001",
+                "assembly_status": "partial",
+                "included_blocks": [{"layer": "session", "summary": "1 session event(s)"}],
+                "suppressed_blocks": [
+                    {
+                        "block_id": "block-global",
+                        "layer": "global",
+                        "summary": "SENTINEL_SUPPRESSED_GLOBAL_7f3a",
+                        "source_ref": "retrieval:topic",
+                        "disclosure_state": "suppressed",
+                    }
+                ],
+            },
+            "execution_audit_isolation_v1": True,
+            "session_local": [{"actor": "user", "content": "hello"}],
+            "workspace_local": {},
+            "user_local": {},
+            "global_fallback": {"count": 0},
+        }
+        with self.assertRaises(ContractValidationError) as ctx:
+            compose_execution_message(
+                {
+                    "active_topic": "topic",
+                    "user_goal": "build",
+                    "reasoning_posture": "implementation",
+                    "pipeline_id": "pipeline",
+                    "bridge_behaviors": [],
+                    "steering_constraints": [],
+                    "context_policy": {"mode": "semantic_narrow", "depth_mode": "contextual"},
+                },
+                trim_context_bundle(bundle),
+                "user text",
+            )
+        self.assertEqual(ctx.exception.code, "suppression_field_forbidden")
+        self.assertIn("suppressed_blocks", str(ctx.exception))
+
+    def test_compose_execution_message_rejects_nested_disclosure_state_when_isolated(self) -> None:
+        bundle = {
+            "context_state": {"bundle_layers": ["session"]},
+            "session_envelope": {"mode": "strict"},
+            "frame_spec": {"frame_id": "frame-002"},
+            "frame_bundle": {
+                "frame_id": "frame-002",
+                "assembly_status": "complete",
+                "included_blocks": [
+                    {
+                        "block_id": "block-session",
+                        "layer": "session",
+                        "summary": "SENTINEL_DISCLOSURE_STATE_9c2b",
+                        "disclosure_state": "suppressed",
+                    }
+                ],
+            },
+            "execution_audit_isolation_v1": True,
+            "session_local": [{"actor": "user", "content": "hello"}],
+            "workspace_local": {},
+            "user_local": {},
+            "global_fallback": {"count": 0},
+        }
+        with self.assertRaises(ContractValidationError) as ctx:
+            compose_execution_message(
+                {
+                    "active_topic": "topic",
+                    "user_goal": "build",
+                    "reasoning_posture": "implementation",
+                    "pipeline_id": "pipeline",
+                    "bridge_behaviors": [],
+                    "steering_constraints": [],
+                    "context_policy": {"mode": "semantic_narrow", "depth_mode": "contextual"},
+                },
+                trim_context_bundle(bundle),
+                "user text",
+            )
+        self.assertEqual(ctx.exception.code, "suppression_field_forbidden")
+        self.assertIn("disclosure_state", str(ctx.exception))
+
+    def test_compose_execution_message_legacy_renders_suppressed_when_isolation_off(self) -> None:
+        bundle = {
+            "context_state": {"bundle_layers": ["session"]},
+            "session_envelope": {"mode": "strict"},
+            "frame_spec": {"frame_id": "frame-legacy"},
+            "frame_bundle": {
+                "frame_id": "frame-legacy",
+                "assembly_status": "partial",
+                "included_blocks": [{"layer": "session", "summary": "1 session event(s)"}],
+                "suppressed_blocks": [
+                    {
+                        "block_id": "block-global",
+                        "layer": "global",
+                        "summary": "LEGACY_SUPPRESSED_MARKER_4d1e",
+                        "source_ref": "retrieval:topic",
+                    }
+                ],
+            },
+            "execution_audit_isolation_v1": False,
+            "session_local": [{"actor": "user", "content": "hello"}],
+            "workspace_local": {},
+            "user_local": {},
+            "global_fallback": {"count": 0},
+        }
+        message = compose_execution_message(
+            {
+                "active_topic": "topic",
+                "user_goal": "build",
+                "reasoning_posture": "implementation",
+                "pipeline_id": "pipeline",
+                "bridge_behaviors": [],
+                "steering_constraints": [],
+                "context_policy": {"mode": "semantic_narrow", "depth_mode": "contextual"},
+            },
+            trim_context_bundle(bundle),
+            "user text",
+        )
+        self.assertIn("Suppressed frame blocks:", message)
+        self.assertIn("LEGACY_SUPPRESSED_MARKER_4d1e", message)
 
     def test_get_context_bundle_attaches_frame_audit_when_isolation_enabled(self) -> None:
         context = {

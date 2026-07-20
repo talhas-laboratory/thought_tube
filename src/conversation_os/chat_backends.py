@@ -8,9 +8,10 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping
 
 from .cost_tracker import estimate_token_count, record_actual_cost
+from .disclosure_contracts import validate_model_bound_payload
 
 
 MODULE_ID = "kernel.runtime.chat_backends"
@@ -942,7 +943,24 @@ def _format_provenance_lines(source_refs: List[str]) -> str:
     return "\n".join(f"- {value}" for value in refs[:6])
 
 
+def _execution_audit_isolation_enabled(trimmed_bundle: Mapping[str, Any]) -> bool:
+    return bool(trimmed_bundle.get("execution_audit_isolation_v1", True))
+
+
+def _enforce_model_bound_isolation(trimmed_bundle: Mapping[str, Any]) -> None:
+    frame_bundle = dict(trimmed_bundle.get("frame_bundle", {}) or {})
+    if frame_bundle:
+        validate_model_bound_payload(frame_bundle, label="FrameBundle")
+    frame_audit = trimmed_bundle.get("frame_audit")
+    if isinstance(frame_audit, dict) and frame_audit:
+        validate_model_bound_payload(frame_audit, label="FrameAudit")
+
+
 def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Dict[str, Any], user_text: str) -> str:
+    isolation_enabled = _execution_audit_isolation_enabled(trimmed_bundle)
+    if isolation_enabled:
+        _enforce_model_bound_isolation(trimmed_bundle)
+
     if trimmed_bundle.get("orient_first_compose_v1"):
         from .orient_first_compose import ORIENTATION_MAX_CHARS, compose_orient_first_message
 
@@ -997,9 +1015,6 @@ def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Di
     frame_included_block = _format_frame_block_lines(list(frame_bundle.get("included_blocks", []) or []))
     provenance_block = _format_provenance_lines(
         list((frame_bundle.get("provenance_summary", {}) or {}).get("source_refs", []) or [])
-    )
-    isolation_enabled = bool(trimmed_bundle.get("execution_audit_isolation_v1", True)) and not list(
-        frame_bundle.get("suppressed_blocks", []) or []
     )
     message_parts = [
             "Inner World bridge execution request.",

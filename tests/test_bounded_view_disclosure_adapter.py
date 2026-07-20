@@ -4,12 +4,14 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from conversation_os.bounded_view_disclosure_adapter import (
     bounded_view_epistemic_backend_enabled,
     collect_bounded_view_evidence,
     extract_bounded_view_grant_context,
     map_bounded_view_to_evidence_blocks,
+    merge_bounded_view_evidence_into_bundle,
 )
 from conversation_os.disclosure_ports import build_inner_world_ports
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime
@@ -185,6 +187,40 @@ class BoundedViewDisclosureAdapterTestCase(unittest.TestCase):
         )
         self.assertEqual(context["branch_id"], "branch_main")
         self.assertEqual(context["scope_id"], "scope_main")
+
+    def test_merge_attaches_reference_only_evidence_without_calling_when_flag_off(self) -> None:
+        config_path = self.root / "product" / "inner_world_v1" / "config" / "runtime.json"
+        runtime = json.loads(config_path.read_text(encoding="utf-8"))
+        runtime["disclosure"]["bounded_view"]["epistemic_backend_v1"] = False
+        config_path.write_text(json.dumps(runtime), encoding="utf-8")
+        scope_id = "scope-bv-merge"
+        claim_id = self._seed_branch_claim(branch_id="branch_main", scope_id=scope_id)
+        bundle: dict = {}
+        with mock.patch(
+            "conversation_os.bounded_view_disclosure_adapter.collect_bounded_view_evidence"
+        ) as collect_mock:
+            merge_bounded_view_evidence_into_bundle(
+                self.root,
+                bundle,
+                self._grant(branch_id="branch_main", scope_id=scope_id, root_record_ids=[claim_id]),
+                surface="bridge",
+            )
+            collect_mock.assert_not_called()
+        self.assertEqual(bundle["bounded_view_audit"]["result_status"], "disabled")
+        self.assertNotIn("bounded_view_evidence", bundle)
+
+    def test_merge_abstains_when_branch_scope_missing(self) -> None:
+        scope_id = "scope-bv-merge-abstain"
+        claim_id = self._seed_branch_claim(branch_id="branch_main", scope_id=scope_id)
+        bundle: dict = {}
+        merge_bounded_view_evidence_into_bundle(
+            self.root,
+            bundle,
+            self._grant(branch_id="", scope_id=scope_id, root_record_ids=[claim_id]),
+            surface="holodeck",
+        )
+        self.assertEqual(bundle["bounded_view_audit"]["result_status"], "abstained_missing_branch_scope")
+        self.assertNotIn("bounded_view_evidence", bundle)
 
 
 if __name__ == "__main__":

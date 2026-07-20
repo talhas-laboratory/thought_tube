@@ -23,6 +23,7 @@ PUBLIC_API = (
     "extract_bounded_view_grant_context",
     "map_bounded_view_to_evidence_blocks",
     "collect_bounded_view_evidence",
+    "merge_bounded_view_evidence_into_bundle",
 )
 __all__ = list(PUBLIC_API)
 
@@ -212,3 +213,48 @@ def collect_bounded_view_evidence(
             "reference_only": True,
         },
     }
+
+
+def merge_bounded_view_evidence_into_bundle(
+    root: Path,
+    bundle: Dict[str, Any],
+    effective_grant: Mapping[str, Any],
+    *,
+    surface: str,
+) -> Dict[str, Any]:
+    """Attach reference-only bounded-view evidence without mixing into lexical retrieval."""
+    audit = {
+        "result_status": "skipped",
+        "block_count": 0,
+        "surface": str(surface or "").strip(),
+    }
+    if not bounded_view_epistemic_backend_enabled(root):
+        audit["result_status"] = "disabled"
+        bundle["bounded_view_audit"] = audit
+        return bundle
+
+    grant_context = extract_bounded_view_grant_context(effective_grant)
+    branch_id = grant_context["branch_id"]
+    scope_id = grant_context["scope_id"]
+    roots = grant_context["root_record_ids"]
+    if not branch_id or not scope_id:
+        audit["result_status"] = "abstained_missing_branch_scope"
+        bundle["bounded_view_audit"] = audit
+        return bundle
+    if not roots:
+        audit["result_status"] = "abstained_missing_root_records"
+        bundle["bounded_view_audit"] = audit
+        return bundle
+    if not _foundation_store_available(root):
+        audit["result_status"] = "abstained_dependency_not_ready"
+        bundle["bounded_view_audit"] = audit
+        return bundle
+
+    evidence = collect_bounded_view_evidence(root, effective_grant)
+    bundle["bounded_view_evidence"] = evidence
+    bundle["bounded_view_audit"] = {
+        "result_status": str(evidence.get("result_status", "") or ""),
+        "block_count": int(evidence.get("count", 0) or 0),
+        "surface": str(surface or "").strip(),
+    }
+    return bundle

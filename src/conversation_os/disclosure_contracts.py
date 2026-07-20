@@ -86,6 +86,7 @@ PUBLIC_API = (
     "receipt_retention_for_envelope",
     "normalize_effective_grant",
     "validate_execution_bundle",
+    "validate_model_bound_payload",
     "validate_audit_receipt",
     "contract_field_catalog",
 )
@@ -603,24 +604,19 @@ def normalize_effective_grant(
 
 
 def validate_execution_bundle(payload: Mapping[str, Any]) -> None:
-    data = _coerce_mapping(payload, "ExecutionBundle")
+    validate_model_bound_payload(payload, label="ExecutionBundle")
+
+
+def validate_model_bound_payload(payload: Mapping[str, Any], *, label: str = "ModelBoundPayload") -> None:
+    """Reject suppression or audit-only fields before model-bound compose."""
+    data = _coerce_mapping(payload, label)
     forbidden = _find_forbidden_execution_keys(data)
     if forbidden:
         raise ContractValidationError(
             "suppression_field_forbidden",
-            f"ExecutionBundle cannot represent suppression; forbidden keys: {sorted(forbidden)}",
-            "ExecutionBundle",
+            f"{label} cannot carry suppression or audit-only fields; forbidden keys: {sorted(forbidden)}",
+            label,
         )
-    for block in data.get("evidence_blocks", []) or []:
-        if not isinstance(block, dict):
-            continue
-        block_forbidden = _find_forbidden_execution_keys(block)
-        if block_forbidden:
-            raise ContractValidationError(
-                "suppression_field_forbidden",
-                f"ExecutionBundle evidence block cannot represent suppression; forbidden keys: {sorted(block_forbidden)}",
-                "ExecutionBundle",
-            )
 
 
 def validate_audit_receipt(payload: Mapping[str, Any], *, envelope: Optional[str] = None) -> None:

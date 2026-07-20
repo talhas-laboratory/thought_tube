@@ -94,11 +94,21 @@
     "receipts": {
       "persistent_receipts_v1": false,
       "max_entries": 500,
-      "retention_days": 30
+      "retention_days": 30,
+      "rollout": {
+        "bridge": "legacy",
+        "holodeck": "legacy",
+        "feed": "legacy",
+        "task_pack": "legacy"
+      }
     },
     "active_state": {
       "continuity_v1": false,
-      "max_transitions": 200
+      "max_transitions": 200,
+      "rollout": {
+        "bridge": "legacy",
+        "holodeck": "legacy"
+      }
     },
     "operator_metrics": {
       "operator_metrics_v1": false,
@@ -108,6 +118,12 @@
       "epistemic_backend_v1": false,
       "max_nodes": 8,
       "max_depth": 3
+    },
+    "rollout": {
+      "bridge": "legacy",
+      "holodeck": "legacy",
+      "canary_percent": 0,
+      "canary_salt": "cae-release-v1"
     }
   },
   "holodeck": {

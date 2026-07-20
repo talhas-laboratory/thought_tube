@@ -25,6 +25,7 @@ PUBLIC_API = (
     "disclosure_receipts_path",
     "load_receipt_config",
     "persistent_receipts_enabled",
+    "load_receipt_rows",
     "build_audit_receipt",
     "record_disclosure_receipt",
     "list_disclosure_receipts",
@@ -70,8 +71,32 @@ def load_receipt_config(root: Path) -> Dict[str, Any]:
     }
 
 
-def persistent_receipts_enabled(root: Path) -> bool:
+def persistent_receipts_enabled(root: Path, *, surface: str = "") -> bool:
+    if surface:
+        from .disclosure_receipt_rollout import persistent_receipts_enabled_for_surface
+
+        return persistent_receipts_enabled_for_surface(root, surface)
     return bool(load_receipt_config(root)["persistent_receipts_v1"])
+
+
+def load_receipt_rows(root: Path, *, repair: bool = False) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    path = disclosure_receipts_path(root)
+    if not path.exists():
+        return [], []
+    valid: List[Dict[str, Any]] = []
+    corrupt: List[Dict[str, Any]] = []
+    for index, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+            AuditReceipt.from_dict(row, validate=True)
+            valid.append(dict(row))
+        except Exception as exc:
+            corrupt.append({"line_number": index, "error": str(exc), "raw": line[:240]})
+    if repair and corrupt:
+        _write_receipt_rows(path, valid)
+    return valid, corrupt
 
 
 def _policy_hash(prefix: str, payload: Mapping[str, Any]) -> str:
@@ -256,24 +281,45 @@ def _write_receipt_rows(path: Path, rows: List[Dict[str, Any]]) -> None:
 
 
 def apply_receipt_retention(root: Path) -> Dict[str, Any]:
+    from collections import defaultdict
+
+    from .disclosure_receipt_rollout import retention_limit_for_mode
+
     config = load_receipt_config(root)
     path = disclosure_receipts_path(root)
-    rows = read_jsonl(path)
+    rows, corrupt = load_receipt_rows(root, repair=True)
     if not rows:
-        return {"removed": 0, "retained": 0}
+        return {"removed": 0, "retained": 0, "corrupt_removed": len(corrupt)}
 
     if config["retention_days"] > 0:
         cutoff_prefix = utc_now()[:10]
-        # Keep rows whose recorded_at date is within retention_days via simple count trim below;
-        # exact day parsing is avoided to keep dependency-free behavior in tests.
         _ = cutoff_prefix
 
     max_entries = int(config["max_entries"])
-    removed = max(0, len(rows) - max_entries)
-    retained_rows = rows[-max_entries:] if removed else rows
-    if removed:
+    by_mode: dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        mode = str(row.get("retention_mode", "normal_policy") or "normal_policy")
+        by_mode[mode].append(row)
+
+    retained_rows: List[Dict[str, Any]] = []
+    for mode, mode_rows in by_mode.items():
+        limit = retention_limit_for_mode(mode, max_entries=max_entries)
+        retained_rows.extend(mode_rows[-limit:])
+    retained_rows.sort(
+        key=lambda row: str(dict(row.get("provenance", {}) or {}).get("recorded_at", "") or "")
+    )
+    removed = max(0, len(rows) - len(retained_rows))
+    if len(retained_rows) > max_entries:
+        removed += len(retained_rows) - max_entries
+        retained_rows = retained_rows[-max_entries:]
+    total_removed = removed + len(corrupt)
+    if total_removed:
         _write_receipt_rows(path, retained_rows)
-    return {"removed": removed, "retained": len(retained_rows)}
+    return {
+        "removed": total_removed,
+        "retained": len(retained_rows),
+        "corrupt_removed": len(corrupt),
+    }
 
 
 def record_disclosure_receipt(
@@ -304,9 +350,21 @@ def record_disclosure_receipt(
         retrieval_bundle=retrieval_bundle,
         workspace_id=workspace_id,
     )
-    if persistent_receipts_enabled(root):
-        append_jsonl(disclosure_receipts_path(root), receipt)
-        apply_receipt_retention(root)
+    if persistent_receipts_enabled(root, surface=surface):
+        try:
+            append_jsonl(disclosure_receipts_path(root), receipt)
+            apply_receipt_retention(root)
+            receipt["persistence"] = {"persisted": True, "surface": surface}
+        except Exception as exc:
+            from .disclosure_receipt_rollout import record_receipt_health_issue
+
+            record_receipt_health_issue(
+                root,
+                issue_code="write_failure",
+                detail=str(exc),
+                surface=surface,
+            )
+            receipt["persistence"] = {"persisted": False, "surface": surface, "error": str(exc)}
     return receipt
 
 
@@ -318,7 +376,7 @@ def list_disclosure_receipts(
     workspace_id: str = "",
     limit: int = 20,
 ) -> List[Dict[str, Any]]:
-    rows = read_jsonl(disclosure_receipts_path(root))
+    rows, _corrupt = load_receipt_rows(root, repair=True)
     filtered: List[Dict[str, Any]] = []
     for row in reversed(rows):
         if request_id and str(row.get("request_id", "")) != request_id:
@@ -335,7 +393,8 @@ def list_disclosure_receipts(
 
 
 def get_disclosure_receipt(root: Path, receipt_id: str) -> Dict[str, Any] | None:
-    for row in read_jsonl(disclosure_receipts_path(root)):
+    rows, _corrupt = load_receipt_rows(root, repair=True)
+    for row in rows:
         if str(row.get("receipt_id", "")) == str(receipt_id):
             return dict(row)
     return None
@@ -357,6 +416,7 @@ def reconstruct_disclosure_result(receipt_payload: Mapping[str, Any]) -> Dict[st
         "budget_ledger": dict(receipt.budget_ledger),
         "policy_hashes": dict(receipt.policy_hashes),
         "metrics": dict(receipt.metrics),
+        "included_span_ids": list(receipt.metrics.get("included_span_ids", []) or []),
         "retention_mode": receipt.retention_mode,
         "content_hashes": list(receipt.content_hashes),
         "provenance": dict(receipt.provenance),

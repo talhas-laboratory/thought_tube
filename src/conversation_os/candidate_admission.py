@@ -18,12 +18,15 @@ ADMISSION_SIGNALS = (
     "explicit_pin",
     "governed_graph",
     "structural_shape_legacy",
+    "structural_shape_match",
+    "anti_match_blocked",
     "semantic_address",
 )
 REJECTION_REASONS = (
     "confidence_only",
     "no_positive_signal",
     "missing_membrane_metadata",
+    "anti_match_blocked",
 )
 PUBLIC_API = (
     "MODULE_ID",

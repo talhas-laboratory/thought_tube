@@ -58,12 +58,15 @@ __all__ = list(PUBLIC_API)
 
 
 def seed_semantic_capsules(root: Path, rows: Sequence[Mapping[str, Any]]) -> None:
+    from .corpus_catalog_snapshot import publish_corpus_catalog_snapshot
+
     path = root / "product" / "inner_world_v1" / "data" / "semantic_capsules.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
         path.unlink()
     for row in rows:
         append_jsonl(path, dict(row))
+    publish_corpus_catalog_snapshot(root)
 
 
 def _capsule_rows_for_seed() -> List[Dict[str, Any]]:

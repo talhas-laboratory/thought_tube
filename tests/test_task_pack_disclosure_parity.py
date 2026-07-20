@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.knowledge_layer import build_retrieval_bundle
 from conversation_os.storage import append_jsonl
 from conversation_os.task_pack_disclosure_adapter import (
@@ -67,6 +68,7 @@ class TaskPackDisclosureParityTestCase(unittest.TestCase):
         ]
         for row in rows:
             append_jsonl(path, row)
+        publish_corpus_catalog_snapshot(self.root)
 
     def test_evidence_blocks_match_bridge_retrieval_subset(self) -> None:
         self._write_capsules()

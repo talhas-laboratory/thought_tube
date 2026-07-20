@@ -76,6 +76,13 @@ class DisclosureContractsTestCase(unittest.TestCase):
         self.assertTrue(effective.deny_precedence_applied)
         self.assertTrue(any(reason["code"] == "explicit_deny" for reason in effective.narrowing_reasons))
 
+    def test_model_bound_payload_rejects_suppression_fields(self) -> None:
+        from conversation_os.disclosure_contracts import validate_model_bound_payload
+
+        with self.assertRaises(ContractValidationError) as ctx:
+            validate_model_bound_payload({"omitted_blocks": [{"reason": "layer_not_disclosed"}]})
+        self.assertEqual(ctx.exception.code, "suppression_field_forbidden")
+
     def test_execution_bundle_rejects_suppression_fields(self) -> None:
         payload = _load_fixture("execution_bundle.json")
         payload["suppressed_layers"] = ["user"]

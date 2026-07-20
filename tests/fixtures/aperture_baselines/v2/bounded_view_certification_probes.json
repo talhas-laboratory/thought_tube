@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "chat_converter_seed_v2_bounded_view_certification",
+  "fixture_revision": "cae-bounded-view-cert-v1-2026-07-20",
+  "thresholds": {
+    "branch_isolation_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "flag_off_no_query_rate": 1.0,
+    "bridge_integration_rate": 1.0
+  },
+  "probes": [
+    {
+      "probe_id": "branch-isolation-competing-branches",
+      "category": "branch_isolation"
+    },
+    {
+      "probe_id": "abstain-missing-branch-scope",
+      "category": "abstention"
+    },
+    {
+      "probe_id": "flag-off-skips-bounded-view-query",
+      "category": "flag_off"
+    },
+    {
+      "probe_id": "bridge-bundle-includes-bounded-view-evidence",
+      "category": "bridge_integration"
+    }
+  ]
+}

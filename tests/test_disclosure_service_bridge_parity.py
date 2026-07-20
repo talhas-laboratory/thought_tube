@@ -11,6 +11,7 @@ from conversation_os.bridge_disclosure_adapter import (
     create_bridge_disclosure_service,
     disclose_for_bridge,
 )
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.disclosure_ports import build_inner_world_ports
 from conversation_os.disclosure_service import DisclosureService, disclosure_service_enabled
 from conversation_os.reasoning_bridge import (
@@ -57,6 +58,7 @@ class DisclosureServiceBridgeParityTestCase(unittest.TestCase):
         )
         runtime = self.root / "product" / "inner_world_v1" / "data" / "reasoning_runtime"
         runtime.mkdir(parents=True)
+        publish_corpus_catalog_snapshot(self.root)
 
     def tearDown(self) -> None:
         self.tempdir.cleanup()

@@ -18,6 +18,8 @@ from .storage import read_json, read_jsonl, utc_now
 
 MODULE_ID = "kernel.disclosure.aperture_operator_metrics"
 OPERATOR_VIEW_VERSION = "1.0"
+MINIMUM_AGGREGATE_COUNT = 3
+OPERATOR_SURFACES = ("bridge", "holodeck", "feed", "task_pack")
 
 PUBLISHED_BASELINE_FILES = (
     ("chat_converter_seed_v1", "docs/workspaces/cognitive-aperture-exceptional/derived/baselines/chat_converter_seed_v1.json"),
@@ -25,15 +27,35 @@ PUBLISHED_BASELINE_FILES = (
         "chat_converter_seed_v1_service",
         "docs/workspaces/cognitive-aperture-exceptional/derived/baselines/chat_converter_seed_v1_service.json",
     ),
+    (
+        "chat_converter_seed_v2_shape_certification",
+        "docs/workspaces/cognitive-aperture-exceptional/derived/baselines/chat_converter_seed_v2_shape_certification.json",
+    ),
+    (
+        "chat_converter_seed_v2_feed_certification",
+        "docs/workspaces/cognitive-aperture-exceptional/derived/baselines/chat_converter_seed_v2_feed_certification.json",
+    ),
+    (
+        "chat_converter_seed_v2_task_pack_certification",
+        "docs/workspaces/cognitive-aperture-exceptional/derived/baselines/chat_converter_seed_v2_task_pack_certification.json",
+    ),
+    (
+        "chat_converter_seed_v2_bounded_view_certification",
+        "docs/workspaces/cognitive-aperture-exceptional/derived/baselines/chat_converter_seed_v2_bounded_view_certification.json",
+    ),
 )
 
 PUBLIC_API = (
     "MODULE_ID",
     "OPERATOR_VIEW_VERSION",
+    "MINIMUM_AGGREGATE_COUNT",
+    "OPERATOR_SURFACES",
     "load_operator_metrics_config",
     "operator_metrics_enabled",
     "aggregate_receipt_metrics",
+    "certify_baseline_snapshot",
     "load_published_baseline_snapshots",
+    "load_surface_rollout_modes",
     "compare_surfaces_by_revision",
     "build_operator_view",
     "render_operator_view_summary",
@@ -63,6 +85,54 @@ def load_operator_metrics_config(root: Path) -> Dict[str, Any]:
 
 def operator_metrics_enabled(root: Path) -> bool:
     return bool(load_operator_metrics_config(root)["operator_metrics_v1"])
+
+
+def certify_baseline_snapshot(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
+    row = dict(snapshot)
+    summary = dict(row.get("summary", {}) or {})
+    threshold_check = dict(row.get("threshold_check", {}) or {})
+    certified = bool(summary.get("service_certified")) or bool(threshold_check.get("passed"))
+    row["certification_status"] = "certified" if certified else "uncertified"
+    row["eligible_for_release_claims"] = certified
+    if not certified:
+        row["release_claim_exclusion_reason"] = "baseline_not_certified"
+    return row
+
+
+def load_surface_rollout_modes(root: Path) -> Dict[str, str]:
+    from .disclosure_rollout import resolve_surface_rollout_mode
+
+    return {surface: resolve_surface_rollout_mode(root, surface) for surface in OPERATOR_SURFACES}
+
+
+def _privacy_safe_surface_counts(
+    counts: Mapping[str, int],
+    *,
+    minimum: int = MINIMUM_AGGREGATE_COUNT,
+) -> Dict[str, Any]:
+    safe: Dict[str, Any] = {}
+    for surface, count in sorted(counts.items()):
+        value = int(count or 0)
+        if value < minimum:
+            safe[surface] = {
+                "suppressed": True,
+                "reason": "below_minimum_aggregate_count",
+                "minimum_aggregate_count": minimum,
+            }
+        else:
+            safe[surface] = value
+    return safe
+
+
+def _revision_certification_status(baseline_rows: Sequence[Mapping[str, Any]]) -> str:
+    if not baseline_rows:
+        return "uncertified"
+    statuses = {str(row.get("certification_status", "uncertified") or "uncertified") for row in baseline_rows}
+    if statuses == {"certified"}:
+        return "certified"
+    if "certified" in statuses:
+        return "partial"
+    return "uncertified"
 
 
 def _percentile(values: Sequence[float], percentile: float) -> float:
@@ -216,7 +286,7 @@ def load_published_baseline_snapshots(root: Path) -> List[Dict[str, Any]]:
             payload = json.loads(path.read_text(encoding="utf-8"))
         else:
             payload = dict(fallbacks.get(suite_id, {}))
-        snapshots.append(
+        snapshot = certify_baseline_snapshot(
             {
                 "baseline_suite_id": str(payload.get("baseline_suite_id", suite_id)),
                 "corpus_id": str(payload.get("corpus_id", CHAT_CONVERTER_SEED_CORPUS_ID)),
@@ -224,51 +294,89 @@ def load_published_baseline_snapshots(root: Path) -> List[Dict[str, Any]]:
                 "harness_version": str(payload.get("harness_version", OPERATOR_VIEW_VERSION)),
                 "thresholds": dict(payload.get("thresholds", {}) or {}),
                 "summary": dict(payload.get("summary", {}) or {}),
+                "threshold_check": dict(payload.get("threshold_check", {}) or {}),
                 "observed_results": list(payload.get("observed_results", []) or []),
                 "source_path": str(path) if path.exists() else "",
             }
         )
+        snapshots.append(snapshot)
     return snapshots
 
 
 def compare_surfaces_by_revision(
     receipt_metrics: Mapping[str, Any],
     baseline_snapshots: Sequence[Mapping[str, Any]],
+    *,
+    rollout_modes: Mapping[str, str] | None = None,
+    minimum_aggregate_count: int = MINIMUM_AGGREGATE_COUNT,
 ) -> Dict[str, Any]:
     revisions = sorted(set(receipt_metrics.get("by_corpus_revision", {}) or {}) | {row.get("corpus_revision", "") for row in baseline_snapshots})
     comparisons: List[Dict[str, Any]] = []
+    rollout_modes = dict(rollout_modes or {})
     for revision in revisions:
         if not revision:
             continue
         revision_receipts = dict((receipt_metrics.get("by_corpus_revision", {}) or {}).get(revision, {}) or {})
         baseline_rows = [row for row in baseline_snapshots if str(row.get("corpus_revision", "")) == revision]
         surface_counts = dict(revision_receipts.get("by_surface", {}) or {})
-        comparisons.append(
-            {
-                "corpus_revision": revision,
-                "receipt_count": int(revision_receipts.get("receipt_count", 0) or 0),
-                "surfaces_observed": sorted(surface_counts.keys()),
-                "surface_receipt_counts": surface_counts,
-                "result_status_counts": dict(revision_receipts.get("by_result_status", {}) or {}),
-                "latency_ms_p50": revision_receipts.get("latency_ms_p50", 0.0),
-                "latency_ms_p95": revision_receipts.get("latency_ms_p95", 0.0),
-                "baseline_suites": [str(row.get("baseline_suite_id", "")) for row in baseline_rows],
-                "baseline_summaries": [
-                    {
-                        "baseline_suite_id": row.get("baseline_suite_id", ""),
-                        "pass_count": dict(row.get("summary", {}) or {}).get("pass_count"),
-                        "known_failure_count": dict(row.get("summary", {}) or {}).get("known_failure_count"),
-                        "service_certified": dict(row.get("summary", {}) or {}).get("service_certified"),
-                        "retrieval_certified": dict(row.get("summary", {}) or {}).get("retrieval_certified"),
-                    }
-                    for row in baseline_rows
-                ],
-            }
+        privacy_safe_counts = _privacy_safe_surface_counts(
+            surface_counts,
+            minimum=minimum_aggregate_count,
         )
+        revision_status = _revision_certification_status(baseline_rows)
+        eligible_for_release_claims = revision_status == "certified"
+        comparison_row: Dict[str, Any] = {
+            "corpus_revision": revision,
+            "receipt_count": int(revision_receipts.get("receipt_count", 0) or 0),
+            "certification_status": revision_status,
+            "eligible_for_release_claims": eligible_for_release_claims,
+            "surfaces_observed": sorted(surface_counts.keys()),
+            "surface_receipt_counts": privacy_safe_counts,
+            "result_status_counts": dict(revision_receipts.get("by_result_status", {}) or {}),
+            "latency_ms_p50": revision_receipts.get("latency_ms_p50", 0.0),
+            "latency_ms_p95": revision_receipts.get("latency_ms_p95", 0.0),
+            "rollout_modes": dict(rollout_modes),
+            "baseline_suites": [str(row.get("baseline_suite_id", "")) for row in baseline_rows],
+            "baseline_summaries": [
+                {
+                    "baseline_suite_id": row.get("baseline_suite_id", ""),
+                    "certification_status": row.get("certification_status", "uncertified"),
+                    "eligible_for_release_claims": bool(row.get("eligible_for_release_claims", False)),
+                    "pass_count": dict(row.get("summary", {}) or {}).get("pass_count"),
+                    "known_failure_count": dict(row.get("summary", {}) or {}).get("known_failure_count"),
+                    "service_certified": dict(row.get("summary", {}) or {}).get("service_certified"),
+                    "retrieval_certified": dict(row.get("summary", {}) or {}).get("retrieval_certified"),
+                    "threshold_check_passed": dict(row.get("threshold_check", {}) or {}).get("passed"),
+                }
+                for row in baseline_rows
+            ],
+        }
+        if not eligible_for_release_claims:
+            comparison_row["uncertified_label"] = "excluded_from_release_claims"
+        comparisons.append(comparison_row)
+    cross_surface_surfaces = sorted(
+        {
+            surface
+            for row in comparisons
+            for surface, count in (row.get("surface_receipt_counts", {}) or {}).items()
+            if not (isinstance(count, dict) and count.get("suppressed"))
+        }
+    )
     return {
         "revision_count": len(comparisons),
+        "minimum_aggregate_count": minimum_aggregate_count,
         "comparisons": comparisons,
-        "cross_surface_surfaces": sorted({surface for row in comparisons for surface in row.get("surfaces_observed", [])}),
+        "cross_surface_surfaces": cross_surface_surfaces,
+        "release_claim_eligible_revisions": [
+            row["corpus_revision"]
+            for row in comparisons
+            if bool(row.get("eligible_for_release_claims"))
+        ],
+        "release_claim_excluded_revisions": [
+            row["corpus_revision"]
+            for row in comparisons
+            if not bool(row.get("eligible_for_release_claims"))
+        ],
     }
 
 
@@ -288,6 +396,13 @@ def build_operator_view(
     baseline_snapshots = load_published_baseline_snapshots(root)
     if corpus_revision:
         baseline_snapshots = [row for row in baseline_snapshots if str(row.get("corpus_revision", "")) == corpus_revision]
+    rollout_modes = load_surface_rollout_modes(root)
+    cross_surface_comparison = compare_surfaces_by_revision(
+        receipt_metrics,
+        baseline_snapshots,
+        rollout_modes=rollout_modes,
+    )
+    certified_baselines = [row for row in baseline_snapshots if row.get("certification_status") == "certified"]
     return {
         "schema_version": OPERATOR_VIEW_VERSION,
         "generated_at": utc_now(),
@@ -296,9 +411,22 @@ def build_operator_view(
         "corpus_id": CHAT_CONVERTER_SEED_CORPUS_ID,
         "corpus_revision_filter": corpus_revision or None,
         "surface_filter": surface or None,
+        "minimum_aggregate_count": MINIMUM_AGGREGATE_COUNT,
+        "rollout_modes": rollout_modes,
         "receipt_metrics": receipt_metrics,
         "baseline_snapshots": baseline_snapshots,
-        "cross_surface_comparison": compare_surfaces_by_revision(receipt_metrics, baseline_snapshots),
+        "certified_baseline_count": len(certified_baselines),
+        "uncertified_baseline_count": len(baseline_snapshots) - len(certified_baselines),
+        "cross_surface_comparison": cross_surface_comparison,
+        "release_claims": {
+            "eligible_revisions": list(cross_surface_comparison.get("release_claim_eligible_revisions", []) or []),
+            "excluded_revisions": list(cross_surface_comparison.get("release_claim_excluded_revisions", []) or []),
+            "certified_baseline_suite_ids": [
+                str(row.get("baseline_suite_id", ""))
+                for row in certified_baselines
+                if str(row.get("baseline_suite_id", ""))
+            ],
+        },
     }
 
 
@@ -325,10 +453,16 @@ def render_operator_view_summary(view: Mapping[str, Any]) -> str:
     lines.extend(["", "## Baselines", ""])
     for row in view.get("baseline_snapshots", []) or []:
         summary = dict(row.get("summary", {}) or {})
+        status = str(row.get("certification_status", "uncertified") or "uncertified")
         lines.append(
             f"- `{row.get('baseline_suite_id', '')}` revision `{row.get('corpus_revision', '')}` "
-            f"(pass {summary.get('pass_count', 0)}, known failures {summary.get('known_failure_count', 0)})"
+            f"[{status}] (pass {summary.get('pass_count', 0)}, known failures {summary.get('known_failure_count', 0)})"
         )
+    rollout_modes = dict(view.get("rollout_modes", {}) or {})
+    if rollout_modes:
+        lines.extend(["", "## Rollout modes", ""])
+        for surface, mode in sorted(rollout_modes.items()):
+            lines.append(f"- `{surface}`: `{mode}`")
     return "\n".join(lines) + "\n"
 
 

@@ -1092,6 +1092,38 @@ def build_effective_grant_from_context(
     return EffectiveGrant.from_dict(grant_dict)
 
 
+def _grant_governed_search_allowed(
+    effective_grant: Any,
+    *,
+    resolved_budget: Dict[str, Any],
+    active_topic: str,
+) -> bool:
+    if not str(active_topic or "").strip():
+        return False
+    if not resolved_budget.get("use_global"):
+        return False
+    if str(getattr(effective_grant, "envelope", "") or "").strip().lower() == "incognito":
+        return False
+    layers = set(getattr(effective_grant, "effective_layers", []) or [])
+    if "governed_global" in layers:
+        return True
+    if "explicit_pin" in layers and list(getattr(effective_grant, "explicit_pins", []) or []):
+        return True
+    return False
+
+
+def _grant_governed_search_kwargs(
+    effective_grant: Any,
+    *,
+    include_cross_pond: bool,
+) -> Dict[str, Any]:
+    return {
+        "envelope_mode": str(getattr(effective_grant, "envelope", "") or "bounded"),
+        "explicit_pins": list(getattr(effective_grant, "explicit_pins", []) or []),
+        "include_cross_pond": bool(include_cross_pond),
+    }
+
+
 def effective_layers_to_bridge_layers(grant, available_layers: List[str]) -> List[str]:
     available = set(available_layers)
     bridge_layers: List[str] = []
@@ -1212,12 +1244,9 @@ def orient_first_compose_enabled(root: Path) -> bool:
 
 
 def disclosure_service_enabled(root: Path) -> bool:
-    try:
-        from .disclosure_service import disclosure_service_enabled as _enabled
+    from .disclosure_rollout import resolve_surface_rollout_mode
 
-        return bool(_enabled(root))
-    except Exception:
-        return False
+    return resolve_surface_rollout_mode(root, "bridge") != "legacy"
 
 
 def execution_audit_isolation_enabled(root: Path | None) -> bool:
@@ -1590,28 +1619,36 @@ def _assemble_bridge_context_bundle_impl(
         if note_agent_state
         else {}
     )
+    session_envelope = build_session_envelope(state, policy=policy)
+    effective_grant = build_effective_grant_from_context(state, policy, session_envelope)
+
     if note_retrieval_policy:
         include_cross_pond = bool(note_retrieval_policy.get("cross_ocean"))
     else:
-        include_cross_pond = bool(policy.get("cross_ocean")) if policy else state.get("depth_mode") == "deep"
+        include_cross_pond = bool(effective_grant.cross_ocean)
 
-    session_envelope = build_session_envelope(state, policy=policy)
-    if resolved_budget["use_global"] and state.get("active_topic"):
+    search_kwargs = _grant_governed_search_kwargs(effective_grant, include_cross_pond=include_cross_pond)
+    active_topic = str(state.get("active_topic", "") or "")
+    if _grant_governed_search_allowed(
+        effective_grant,
+        resolved_budget=resolved_budget,
+        active_topic=active_topic,
+    ):
         if candidate_search is not None:
             retrieval_bundle = candidate_search.build_retrieval_bundle(
                 root,
-                state["active_topic"],
+                active_topic,
                 limit=int(resolved_budget["retrieval_limit"]),
                 neighbor_limit=int(resolved_budget["neighbor_limit"]),
-                include_cross_pond=include_cross_pond,
+                **search_kwargs,
             )
         else:
             retrieval_bundle = build_retrieval_bundle(
                 root,
-                state["active_topic"],
+                active_topic,
                 limit=int(resolved_budget["retrieval_limit"]),
                 neighbor_limit=int(resolved_budget["neighbor_limit"]),
-                include_cross_pond=include_cross_pond,
+                **search_kwargs,
             )
 
     orient_first_enabled = orient_first_compose_enabled(root)
@@ -1638,7 +1675,7 @@ def _assemble_bridge_context_bundle_impl(
         available_layers.append("workspace")
     if user_patterns or bridge_state.get("personalization") or bridge_state.get("presentation", {}).get("current_mode"):
         available_layers.append("user")
-    if retrieval_bundle.get("count"):
+    if retrieval_bundle.get("count") and "governed_global" in set(effective_grant.effective_layers or []):
         available_layers.append("global")
     if note_retrieval_policy.get("include_layers"):
         allowed_layers = {str(value) for value in note_retrieval_policy.get("include_layers", []) or []}
@@ -1647,13 +1684,15 @@ def _assemble_bridge_context_bundle_impl(
         blocked_layers = {str(value) for value in note_retrieval_policy.get("exclude_layers", []) or []}
         available_layers = [layer for layer in available_layers if layer not in blocked_layers]
 
-    effective_grant = build_effective_grant_from_context(state, policy, session_envelope)
     active_state_transition: Dict[str, Any] = {}
     active_state_continuity_on = False
     try:
         from .active_state_continuity import active_state_continuity_enabled, apply_active_state_continuity
 
-        active_state_continuity_on = active_state_continuity_enabled(root)
+        active_state_continuity_on = active_state_continuity_enabled(
+            root,
+            cohort_key=str(state.get("request_id", "") or ""),
+        )
         if active_state_continuity_on:
             active_state_snapshot, active_state_transition = apply_active_state_continuity(
                 root,
@@ -1817,6 +1856,14 @@ def _assemble_bridge_context_bundle_impl(
     pending = state.get("attributes", {}).get("pending_switch_event")
     if pending:
         pending["retrieval_sources"] = list(retrieval_bundle.get("source_refs", []))
+    from .bounded_view_disclosure_adapter import merge_bounded_view_evidence_into_bundle
+
+    merge_bounded_view_evidence_into_bundle(
+        root,
+        bundle,
+        effective_grant.to_dict(),
+        surface="bridge",
+    )
     return bundle
 
 
@@ -1826,13 +1873,58 @@ def get_context_bundle(
     *,
     budget: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    if disclosure_service_enabled(root):
+    from .disclosure_rollout import (
+        compare_bridge_rollout_bundles,
+        record_rollout_shadow_receipt,
+        resolve_execution_path,
+        resolve_surface_rollout_mode,
+    )
+
+    cohort_key = str(
+        context_state.get("request_id", "")
+        or context_state.get("context_id", "")
+        or ""
+    )
+    execution_path = resolve_execution_path(root, "bridge", cohort_key=cohort_key)
+    rollout_mode = resolve_surface_rollout_mode(root, "bridge")
+
+    if execution_path == "shared":
         from .bridge_disclosure_adapter import disclose_for_bridge
 
-        return disclose_for_bridge(root, context_state, budget=budget)
-    bundle = _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
-    bundle["disclosure_receipt"] = _record_bridge_disclosure_receipt(root, bundle)
-    return bundle
+        bundle = disclose_for_bridge(root, context_state, budget=budget)
+        bundle["disclosure_rollout_mode"] = rollout_mode
+        return bundle
+
+    legacy_bundle = _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
+    legacy_bundle["disclosure_receipt"] = _record_bridge_disclosure_receipt(root, legacy_bundle)
+    legacy_bundle["disclosure_rollout_mode"] = rollout_mode
+
+    if execution_path == "shadow":
+        try:
+            from .bridge_disclosure_adapter import disclose_for_bridge
+
+            shared_bundle = disclose_for_bridge(root, context_state, budget=budget)
+            comparison = compare_bridge_rollout_bundles(legacy_bundle, shared_bundle)
+            shadow_record = {
+                "surface": "bridge",
+                "mode": "shadow",
+                **comparison,
+            }
+            legacy_bundle["disclosure_rollout_shadow"] = shadow_record
+            record_rollout_shadow_receipt(
+                root,
+                shadow_record,
+                surface="bridge",
+                cohort_key=cohort_key,
+            )
+        except Exception as exc:
+            legacy_bundle["disclosure_rollout_shadow"] = {
+                "surface": "bridge",
+                "mode": "shadow",
+                "parity_match": False,
+                "shared_error": type(exc).__name__,
+            }
+    return legacy_bundle
 
 
 def _record_bridge_disclosure_receipt(root: Path, bundle: Dict[str, Any]) -> Dict[str, Any]:
