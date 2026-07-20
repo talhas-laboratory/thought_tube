@@ -11,7 +11,8 @@ The workspace builds the doorway—policy, admission, evidence budgeting, execut
 3. [`NEIGHBORHOOD.md`](./NEIGHBORHOOD.md)
 4. [`derived/GAP_MAP.md`](./derived/GAP_MAP.md)
 5. [`derived/REMEDIATION_GAP_OVERVIEW.md`](./derived/REMEDIATION_GAP_OVERVIEW.md)
-6. [Workboard gates and tasks](../../workboards/cognitive-aperture-exceptional/README.md)
+6. [`derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md`](./derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md)
+7. [Workboard gates and tasks](../../workboards/cognitive-aperture-exceptional/README.md)
 
 ## Authority
 
@@ -20,6 +21,7 @@ The workspace builds the doorway—policy, admission, evidence budgeting, execut
 | architecture | [`Modular Cognitive Aperture Design`](../../plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md) |
 | implementation plan | [`derived/GAP_MAP.md`](./derived/GAP_MAP.md) |
 | post-implementation remediation | [`derived/REMEDIATION_GAP_OVERVIEW.md`](./derived/REMEDIATION_GAP_OVERVIEW.md) |
+| Shape intelligence readiness | [`derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md`](./derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md) |
 | disclosure law | ADR-001 and ADR-002 |
 | task status/evidence | live workspace API |
 | code | Git branches and commits |

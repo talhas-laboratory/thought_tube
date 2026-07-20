@@ -1,0 +1,59 @@
+{
+  "workspace_id": "shape-intelligence-population",
+  "label": "Shape Intelligence Population",
+  "status": "active",
+  "maturation_stage": "architecture_lock",
+  "goal": "Build a reliable, lightweight, evidence-bound intelligence workflow that turns new content into governed provisional Shape candidates.",
+  "purpose": "Coordinate the population, critique, validation, review, and promotion handoff of Shape candidates without owning source ingestion, canonical Shape authority, or Cognitive Aperture retrieval/disclosure.",
+  "success_condition": "New content can be processed asynchronously into provenance-backed, schema-valid provisional Shape candidates; candidates are independently critiqued, deterministically validated, evaluated, and only promoted by a designated canonical authority.",
+  "artifact_roots": [
+    "docs/workspaces/shape-intelligence-population/",
+    "docs/workspaces/cognitive-aperture-exceptional/derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md",
+    "docs/workspaces/cognitive-aperture-exceptional/derived/REMEDIATION_GAP_OVERVIEW.md",
+    "docs/workspaces/unified-framework-synthesis/",
+    "docs/workspaces/unified-framework-synthesis/sources/",
+    "src/conversation_os/library_tracker.py",
+    "src/conversation_os/runtime_pipeline.py",
+    "src/conversation_os/shape_projection_reader.py",
+    "src/conversation_os/holodeck.py",
+    "src/conversation_os/workspace_coordination.py",
+    "tools/conversation_os.py"
+  ],
+  "external_dependencies": [
+    "library/runtime corpus readiness",
+    "OpenClaw gateway and dedicated agent identities",
+    "Unified Metaphysical Framework Shape and Semantic Addressing profile",
+    "canonical Shape owner and promotion governance",
+    "existing source provenance, chunking, and knowledge-ocean registries"
+  ],
+  "objectives": [
+    "Define the evidence-packet and provisional-Shape candidate contracts.",
+    "Configure bounded, least-privilege OpenClaw proposer, critic, and synthesizer identities.",
+    "Implement deterministic validation, idempotent job control, and durable provenance.",
+    "Keep candidate creation separate from canonical promotion and retrieval ranking.",
+    "Establish evaluation, observability, cost, safety, and promotion-quality gates."
+  ],
+  "scope_out": [
+    "Source ingestion and chunking implementation.",
+    "Automatic canonical Shape promotion.",
+    "Replacing Cognitive Aperture retrieval or disclosure services.",
+    "Embedding provider or vector database selection.",
+    "Treating legacy deterministic signatures as canonical Shapes.",
+    "Open-ended autonomous agent execution with broad filesystem, shell, or network access."
+  ],
+  "domains": [
+    "shape-intelligence",
+    "knowledge-ocean",
+    "openclaw",
+    "governance",
+    "evaluation"
+  ],
+  "holodeck_workspace_id": "shape-intelligence-population",
+  "workboard": "docs/workboards/shape-intelligence-population/README.md",
+  "continuity_projection": "docs/workspaces/shape-intelligence-population/CONTINUITY.md",
+  "semantic_authority": "docs/workspaces/unified-framework-synthesis/",
+  "sync_contract": "docs/workspaces/shape-intelligence-population/derived/sync-contract.md",
+  "linked_session_ids": [
+    "session-19a1ad61259e"
+  ]
+}
