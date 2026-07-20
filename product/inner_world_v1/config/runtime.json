@@ -103,8 +103,12 @@
       }
     },
     "active_state": {
-      "continuity_v1": false,
-      "max_transitions": 200
+      "continuity_v1": true,
+      "max_transitions": 200,
+      "rollout": {
+        "bridge": "enforced",
+        "holodeck": "enforced"
+      }
     },
     "operator_metrics": {
       "operator_metrics_v1": false,

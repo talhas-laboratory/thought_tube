@@ -7,14 +7,20 @@ from pathlib import Path
 
 from conversation_os.active_state_continuity import (
     active_state_continuity_enabled,
+    active_state_transitions_path,
     apply_active_state_continuity,
+    apply_transition_retention,
     build_continuity_key,
     build_state_transition,
+    inspect_continuity_store_health,
     load_latest_snapshot_for_workspace,
     load_latest_transition_for_key,
+    load_transition_rows,
     merge_active_state_snapshots,
     rollback_active_state_transition,
+    sanitize_snapshot_for_persistence,
 )
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.holodeck import holodeck_load_active_state_continuity
 from conversation_os.orient_first_compose import build_active_state_snapshot
 from conversation_os.reasoning_bridge import get_context_bundle, heuristic_classify_turn
@@ -30,15 +36,29 @@ class ActiveStateContinuityTestCase(unittest.TestCase):
             json.dumps(
                 {
                     "disclosure": {
-                        "active_state": {"continuity_v1": True, "max_transitions": 50}
+                        "persistent_receipts_v1": True,
+                        "receipts": {
+                            "persistent_receipts_v1": True,
+                            "rollout": {"bridge": "enforced", "holodeck": "enforced"},
+                        },
+                        "active_state": {
+                            "continuity_v1": True,
+                            "max_transitions": 50,
+                            "rollout": {"bridge": "enforced", "holodeck": "enforced"},
+                        },
                     },
-                    "bridge": {"orient_first_compose_v1": True},
+                    "bridge": {
+                        "orient_first_compose_v1": True,
+                        "disclosure_rollout_v1": "enforced",
+                        "disclosure_service_v1": True,
+                    },
                 }
             ),
             encoding="utf-8",
         )
         runtime = self.root / "product" / "inner_world_v1" / "data" / "reasoning_runtime"
         runtime.mkdir(parents=True)
+        publish_corpus_catalog_snapshot(self.root)
 
     def tearDown(self) -> None:
         self.tempdir.cleanup()
@@ -224,6 +244,77 @@ class ActiveStateContinuityTestCase(unittest.TestCase):
         assert loaded is not None
         self.assertEqual(loaded["topic"], "shared workspace topic")
         self.assertEqual(loaded["lens"], "shared lens")
+
+    def test_sanitize_snapshot_strips_non_carry_fields(self) -> None:
+        compact = sanitize_snapshot_for_persistence(
+            {
+                **self._snapshot(request_id="req-sanitize", topic="topic"),
+                "seed_capsules": [{"capsule_id": "secret"}],
+                "bounded_text": "ocean content",
+            }
+        )
+        payload = json.dumps(compact)
+        self.assertNotIn("seed_capsules", payload)
+        self.assertNotIn("ocean content", payload)
+        self.assertTrue(compact["provenance"]["reference_only"])
+
+    def test_rollback_aborts_safely_when_predecessor_expired(self) -> None:
+        first = self._snapshot(request_id="req-expired-1", topic="first", lens="first lens")
+        _, transition_t1 = apply_active_state_continuity(
+            self.root,
+            first,
+            effective_grant=self._grant(),
+            session_envelope={"mode": "bounded"},
+            surface="bridge",
+            context_state={"active_workspace_id": "ws-continuity-001", "attributes": {"session_id": "session-continuity-001"}},
+        )
+        second = self._snapshot(request_id="req-expired-2", topic="second", lens="")
+        _, transition_t2 = apply_active_state_continuity(
+            self.root,
+            second,
+            effective_grant=self._grant(),
+            session_envelope={"mode": "bounded"},
+            surface="bridge",
+            context_state={"active_workspace_id": "ws-continuity-001", "attributes": {"session_id": "session-continuity-001"}},
+        )
+        apply_transition_retention(self.root)
+        path = active_state_transitions_path(self.root)
+        rows, _ = load_transition_rows(self.root)
+        trimmed = [row for row in rows if row.get("transition_id") != transition_t1["transition_id"]]
+        path.write_text("\n".join(json.dumps(row) for row in trimmed) + "\n", encoding="utf-8")
+
+        result = rollback_active_state_transition(
+            self.root,
+            continuity_key=transition_t2["continuity_key"],
+            compensates_transition_id=transition_t2["transition_id"],
+            reason="undo after retention",
+            surface="bridge",
+        )
+        self.assertEqual(result["status"], "prior_expired")
+        self.assertTrue(result.get("safe_abort"))
+        restored = load_latest_snapshot_for_workspace(self.root, "ws-continuity-001")
+        self.assertIsNotNone(restored)
+        assert restored is not None
+        self.assertEqual(restored["topic"], "second")
+
+    def test_corrupt_transition_rows_are_repaired_on_read(self) -> None:
+        snapshot = self._snapshot(request_id="req-corrupt", topic="corrupt test")
+        apply_active_state_continuity(
+            self.root,
+            snapshot,
+            effective_grant=self._grant(),
+            session_envelope={"mode": "bounded"},
+            surface="bridge",
+            context_state={"active_workspace_id": "ws-continuity-001", "attributes": {"session_id": "session-continuity-001"}},
+        )
+        path = active_state_transitions_path(self.root)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write("{bad json\n")
+        rows, corrupt = load_transition_rows(self.root, repair=True)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(len(corrupt), 1)
+        health = inspect_continuity_store_health(self.root)
+        self.assertTrue(health["healthy"])
 
     def test_get_context_bundle_emits_transition_contract(self) -> None:
         context = heuristic_classify_turn(

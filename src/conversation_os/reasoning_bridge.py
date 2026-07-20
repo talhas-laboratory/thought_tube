@@ -1689,7 +1689,10 @@ def _assemble_bridge_context_bundle_impl(
     try:
         from .active_state_continuity import active_state_continuity_enabled, apply_active_state_continuity
 
-        active_state_continuity_on = active_state_continuity_enabled(root)
+        active_state_continuity_on = active_state_continuity_enabled(
+            root,
+            cohort_key=str(state.get("request_id", "") or ""),
+        )
         if active_state_continuity_on:
             active_state_snapshot, active_state_transition = apply_active_state_continuity(
                 root,
