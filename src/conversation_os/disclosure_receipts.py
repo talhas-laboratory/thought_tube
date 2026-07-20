@@ -357,6 +357,7 @@ def reconstruct_disclosure_result(receipt_payload: Mapping[str, Any]) -> Dict[st
         "budget_ledger": dict(receipt.budget_ledger),
         "policy_hashes": dict(receipt.policy_hashes),
         "metrics": dict(receipt.metrics),
+        "included_span_ids": list(receipt.metrics.get("included_span_ids", []) or []),
         "retention_mode": receipt.retention_mode,
         "content_hashes": list(receipt.content_hashes),
         "provenance": dict(receipt.provenance),

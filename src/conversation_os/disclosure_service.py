@@ -134,11 +134,25 @@ class DisclosureService:
 
         shape_summary = self.ports.shape_reader.read_shape_projections(root, include_legacy=True)
         included_blocks = list(bundle.get("frame_bundle", {}).get("included_blocks", []) or [])
-        resolved_blocks = self.ports.evidence_resolver.resolve_frame_blocks(
+        resolution = self.ports.evidence_resolver.resolve_frame_blocks(
             root,
             included_blocks=included_blocks,
             effective_grant=effective_grant,
         )
+        resolved_blocks = list(resolution.get("resolved_blocks", []) or [])
+        resolution_audit = dict(resolution.get("resolution_audit", {}) or {})
+        if resolution_audit:
+            frame_audit = dict(frame_audit)
+            frame_audit["evidence_resolution"] = resolution_audit
+            for row in list(resolution_audit.get("omitted", []) or []):
+                frame_audit.setdefault("omitted_blocks", [])
+                frame_audit["omitted_blocks"].append(
+                    {
+                        "block_id": row.get("block_id", ""),
+                        "reason_code": row.get("reason_code", "evidence_resolution_omitted"),
+                        "reason": row.get("reason", ""),
+                    }
+                )
         receipt = self.ports.receipt_sink.record_disclosure_receipt(
             root,
             request_id=request_id,
@@ -154,6 +168,13 @@ class DisclosureService:
                 "latency_ms": latency_ms,
                 "resolved_block_count": len(resolved_blocks),
                 "corpus_readiness_state": readiness,
+                "bytes_resolved": int(resolution_audit.get("bytes_resolved", 0) or 0),
+                "evidence_lookup_count": int(resolution_audit.get("lookup_count", 0) or 0),
+                "included_span_ids": [
+                    str(row.get("fragment_id", "") or "")
+                    for row in list(resolution_audit.get("included_spans", []) or [])
+                    if str(row.get("fragment_id", "") or "").strip()
+                ],
             },
             frame_bundle=dict(bundle.get("frame_bundle", {}) or {}),
             corpus_catalog=catalog,
