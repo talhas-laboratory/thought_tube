@@ -1856,6 +1856,14 @@ def _assemble_bridge_context_bundle_impl(
     pending = state.get("attributes", {}).get("pending_switch_event")
     if pending:
         pending["retrieval_sources"] = list(retrieval_bundle.get("source_refs", []))
+    from .bounded_view_disclosure_adapter import merge_bounded_view_evidence_into_bundle
+
+    merge_bounded_view_evidence_into_bundle(
+        root,
+        bundle,
+        effective_grant.to_dict(),
+        surface="bridge",
+    )
     return bundle
 
 

@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "chat_converter_seed_v2_bounded_view_certification",
+  "fixture_revision": "cae-bounded-view-cert-v1-2026-07-20",
+  "corpus_id": "",
+  "corpus_revision": "",
+  "recorded_at": "2026-07-20T00:00:00+00:00",
+  "harness_version": "1.0",
+  "thresholds": {
+    "branch_isolation_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "flag_off_no_query_rate": 1.0,
+    "bridge_integration_rate": 1.0
+  },
+  "metrics": {
+    "branch_isolation_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "flag_off_no_query_rate": 1.0,
+    "bridge_integration_rate": 1.0
+  },
+  "summary": {
+    "probe_count": 4,
+    "pass_count": 4,
+    "known_failure_count": 0,
+    "service_certified": true
+  },
+  "threshold_check": {
+    "passed": true,
+    "checks": {
+      "branch_isolation_rate": true,
+      "abstention_correctness_rate": true,
+      "flag_off_no_query_rate": true,
+      "bridge_integration_rate": true
+    }
+  },
+  "observed_results": [
+    {
+      "probe_id": "branch-isolation-competing-branches",
+      "verdict": "pass"
+    },
+    {
+      "probe_id": "abstain-missing-branch-scope",
+      "verdict": "pass"
+    },
+    {
+      "probe_id": "flag-off-skips-bounded-view-query",
+      "verdict": "pass"
+    },
+    {
+      "probe_id": "bridge-bundle-includes-bounded-view-evidence",
+      "verdict": "pass"
+    }
+  ]
+}

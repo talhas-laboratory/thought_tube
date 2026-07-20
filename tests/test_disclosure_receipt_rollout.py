@@ -74,7 +74,8 @@ class DisclosureReceiptRolloutTestCase(unittest.TestCase):
         self.assertTrue(receipts["persistent_receipts_v1"])
         self.assertEqual(receipts["rollout"]["bridge"], "enforced")
         self.assertEqual(receipts["rollout"]["holodeck"], "enforced")
-        self.assertEqual(receipts["rollout"]["feed"], "legacy")
+        self.assertEqual(receipts["rollout"]["feed"], "enforced")
+        self.assertEqual(receipts["rollout"]["task_pack"], "enforced")
 
     def test_surface_rollout_gates_persistence(self) -> None:
         self.assertTrue(persistent_receipts_enabled_for_surface(self.root, "bridge"))

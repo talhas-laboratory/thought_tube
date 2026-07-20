@@ -19,6 +19,7 @@ PUBLIC_API = (
     "load_holodeck_disclosure_config",
     "holodeck_disclosure_service_enabled",
     "build_contextualization_query",
+    "build_holodeck_effective_grant_from_seed",
     "retrieval_decision_subset",
     "map_retrieval_bundle_to_candidates",
     "collect_disclosure_knowledge_candidates",
@@ -50,6 +51,32 @@ def holodeck_disclosure_service_enabled(root: Path) -> bool:
     from .disclosure_rollout import resolve_surface_rollout_mode
 
     return resolve_surface_rollout_mode(root, "holodeck") != "legacy"
+
+
+def build_holodeck_effective_grant_from_seed(seed_bundle: Mapping[str, Any]) -> Dict[str, Any]:
+    embedded = seed_bundle.get("effective_grant")
+    if isinstance(embedded, Mapping):
+        return dict(embedded)
+    provenance = dict(seed_bundle.get("provenance", {}) or {})
+    explicit_pins = [str(value).strip() for value in seed_bundle.get("explicit_pins", []) or [] if str(value).strip()]
+    effective_refs = [str(value).strip() for value in seed_bundle.get("effective_refs", []) or [] if str(value).strip()]
+    return {
+        "grant_id": str(seed_bundle.get("grant_id", "") or "holodeck-grant"),
+        "request_id": str(seed_bundle.get("workspace_id", "") or ""),
+        "envelope": "bounded",
+        "effective_layers": ["kernel"],
+        "effective_refs": effective_refs,
+        "dimensions": [],
+        "shape_maturity": "candidate",
+        "cross_ocean": False,
+        "token_budget": 0,
+        "persistence_mode": "gated",
+        "explicit_pins": explicit_pins,
+        "narrowing_reasons": [],
+        "deny_precedence_applied": False,
+        "requested_grant_ref": str(seed_bundle.get("grant_id", "") or "holodeck-grant"),
+        "provenance": provenance,
+    }
 
 
 def build_contextualization_query(seed_bundle: Mapping[str, Any]) -> str:
@@ -131,6 +158,8 @@ def collect_disclosure_knowledge_candidates(
     seed_bundle: Mapping[str, Any],
     *,
     max_source_refs: int,
+    effective_grant: Mapping[str, Any] | None = None,
+    disclosure_bundle: Dict[str, Any] | None = None,
 ) -> tuple[List[Dict[str, Any]], List[str]]:
     query = build_contextualization_query(seed_bundle)
     if not query.strip():
@@ -152,4 +181,15 @@ def collect_disclosure_knowledge_candidates(
     consulted_layers = ["disclosure_service"]
     if int(retrieval_bundle.get("count", 0) or 0) > 0:
         consulted_layers.append("semantic_retrieval")
+
+    bundle = disclosure_bundle if disclosure_bundle is not None else {}
+    bundle["retrieval_bundle"] = retrieval_bundle
+    from .bounded_view_disclosure_adapter import merge_bounded_view_evidence_into_bundle
+
+    grant = effective_grant or build_holodeck_effective_grant_from_seed(seed_bundle)
+    merge_bounded_view_evidence_into_bundle(root, bundle, grant, surface="holodeck")
+    audit = dict(bundle.get("bounded_view_audit", {}) or {})
+    if audit.get("result_status") == "disclosed":
+        consulted_layers.append("bounded_view_epistemic")
+
     return candidates[: max_source_refs * 4], consulted_layers

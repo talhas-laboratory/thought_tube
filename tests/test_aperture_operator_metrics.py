@@ -7,8 +7,10 @@ import unittest
 from pathlib import Path
 
 from conversation_os.aperture_operator_metrics import (
+    MINIMUM_AGGREGATE_COUNT,
     aggregate_receipt_metrics,
     build_operator_view,
+    certify_baseline_snapshot,
     compare_surfaces_by_revision,
     inspect_operator_view,
     load_operator_metrics_config,
@@ -87,12 +89,18 @@ class ApertureOperatorMetricsTestCase(unittest.TestCase):
         view = build_operator_view(self.root)
         comparison = view["cross_surface_comparison"]
         self.assertGreaterEqual(comparison["revision_count"], 1)
-        self.assertIn("bridge", comparison["cross_surface_surfaces"])
-        self.assertIn("holodeck", comparison["cross_surface_surfaces"])
-        self.assertIn("feed", comparison["cross_surface_surfaces"])
+        self.assertEqual(comparison["minimum_aggregate_count"], MINIMUM_AGGREGATE_COUNT)
         first = comparison["comparisons"][0]
         self.assertEqual(first["corpus_revision"], CHAT_CONVERTER_SEED_CORPUS_REVISION)
         self.assertTrue(first["baseline_suites"])
+        self.assertIn("rollout_modes", first)
+        # k-anonymity suppresses per-surface counts below 3 receipts.
+        self.assertEqual(comparison["cross_surface_surfaces"], [])
+        for surface in ("bridge", "holodeck", "feed"):
+            self.assertIn(surface, first["surfaces_observed"])
+            suppressed = first["surface_receipt_counts"][surface]
+            self.assertTrue(suppressed["suppressed"])
+            self.assertEqual(suppressed["minimum_aggregate_count"], MINIMUM_AGGREGATE_COUNT)
 
     def test_load_published_baseline_snapshots_use_repo_artifacts(self) -> None:
         workspace_root = Path(__file__).resolve().parents[1]
@@ -100,6 +108,79 @@ class ApertureOperatorMetricsTestCase(unittest.TestCase):
         suite_ids = {row["baseline_suite_id"] for row in snapshots}
         self.assertIn("chat_converter_seed_v1", suite_ids)
         self.assertIn("chat_converter_seed_v1_service", suite_ids)
+        self.assertIn("chat_converter_seed_v2_shape_certification", suite_ids)
+        self.assertIn("chat_converter_seed_v2_feed_certification", suite_ids)
+        self.assertIn("chat_converter_seed_v2_task_pack_certification", suite_ids)
+        self.assertIn("chat_converter_seed_v2_bounded_view_certification", suite_ids)
+        self.assertEqual(len(snapshots), 6)
+
+    def test_certify_baseline_snapshot_marks_v2_certification(self) -> None:
+        workspace_root = Path(__file__).resolve().parents[1]
+        snapshots = load_published_baseline_snapshots(workspace_root)
+        by_suite = {row["baseline_suite_id"]: row for row in snapshots}
+        self.assertEqual(by_suite["chat_converter_seed_v2_shape_certification"]["certification_status"], "uncertified")
+        self.assertFalse(by_suite["chat_converter_seed_v2_shape_certification"]["eligible_for_release_claims"])
+        self.assertEqual(by_suite["chat_converter_seed_v2_feed_certification"]["certification_status"], "certified")
+        self.assertTrue(by_suite["chat_converter_seed_v2_feed_certification"]["eligible_for_release_claims"])
+        self.assertEqual(by_suite["chat_converter_seed_v2_task_pack_certification"]["certification_status"], "certified")
+        self.assertEqual(by_suite["chat_converter_seed_v2_bounded_view_certification"]["certification_status"], "certified")
+
+    def test_certify_baseline_snapshot_from_threshold_or_service_flag(self) -> None:
+        certified = certify_baseline_snapshot(
+            {"summary": {"service_certified": True}, "threshold_check": {"passed": False}}
+        )
+        self.assertEqual(certified["certification_status"], "certified")
+        certified_via_threshold = certify_baseline_snapshot(
+            {"summary": {"service_certified": False}, "threshold_check": {"passed": True}}
+        )
+        self.assertEqual(certified_via_threshold["certification_status"], "certified")
+        uncertified = certify_baseline_snapshot(
+            {"summary": {"service_certified": False}, "threshold_check": {"passed": False}}
+        )
+        self.assertEqual(uncertified["certification_status"], "uncertified")
+        self.assertEqual(uncertified["release_claim_exclusion_reason"], "baseline_not_certified")
+
+    def test_build_operator_view_labels_uncertified_revisions(self) -> None:
+        view = build_operator_view(Path(__file__).resolve().parents[1])
+        comparison = view["cross_surface_comparison"]
+        self.assertIn("release_claim_eligible_revisions", comparison)
+        self.assertIn("release_claim_excluded_revisions", comparison)
+        first = comparison["comparisons"][0]
+        self.assertIn(first["certification_status"], {"partial", "uncertified"})
+        self.assertFalse(first["eligible_for_release_claims"])
+        self.assertEqual(first["uncertified_label"], "excluded_from_release_claims")
+        certified_ids = set(view["release_claims"]["certified_baseline_suite_ids"])
+        self.assertIn("chat_converter_seed_v2_feed_certification", certified_ids)
+        self.assertIn("chat_converter_seed_v2_task_pack_certification", certified_ids)
+        self.assertNotIn("chat_converter_seed_v2_shape_certification", certified_ids)
+
+    def test_minimum_aggregate_count_suppresses_small_cross_surface_counts(self) -> None:
+        receipts = []
+        for index in range(2):
+            receipts.append(
+                {
+                    "surface": "bridge",
+                    "corpus_revision": CHAT_CONVERTER_SEED_CORPUS_REVISION,
+                    "result_status": "disclosed",
+                    "metrics": {"latency_ms": 5.0},
+                }
+            )
+        metrics = aggregate_receipt_metrics(receipts)
+        comparison = compare_surfaces_by_revision(metrics, [], minimum_aggregate_count=3)
+        bridge_count = comparison["comparisons"][0]["surface_receipt_counts"]["bridge"]
+        self.assertTrue(bridge_count["suppressed"])
+        receipts.append(
+            {
+                "surface": "bridge",
+                "corpus_revision": CHAT_CONVERTER_SEED_CORPUS_REVISION,
+                "result_status": "disclosed",
+                "metrics": {"latency_ms": 6.0},
+            }
+        )
+        metrics = aggregate_receipt_metrics(receipts)
+        comparison = compare_surfaces_by_revision(metrics, [], minimum_aggregate_count=3)
+        self.assertEqual(comparison["comparisons"][0]["surface_receipt_counts"]["bridge"], 3)
+        self.assertEqual(comparison["cross_surface_surfaces"], ["bridge"])
 
     def test_inspect_operator_view_is_read_only_and_flag_gated(self) -> None:
         disabled_root = Path(tempfile.mkdtemp())

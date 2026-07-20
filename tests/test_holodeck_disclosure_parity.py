@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.holodeck import _collect_contextualization_candidates, _seed_bundle
 from conversation_os.holodeck_disclosure_adapter import (
     build_contextualization_query,
@@ -79,6 +80,7 @@ class HolodeckDisclosureParityTestCase(unittest.TestCase):
                 "attributes": {"domain": "bridge"},
             },
         )
+        publish_corpus_catalog_snapshot(self.root)
 
     def test_knowledge_candidates_match_bridge_retrieval(self) -> None:
         self._write_capsule()
