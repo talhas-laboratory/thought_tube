@@ -253,6 +253,13 @@ def test_apply_promotion_and_rollback(store: PopulationStore) -> None:
     )
     assert rolled["projection"] is None
     assert rolled["candidate"]["status"] == "recommended"
+    tombstone = rolled.get("tombstone") or store.get_canonical_projection_receipt(candidate["candidate_id"])
+    assert tombstone is not None
+    assert tombstone["operation"] == "rollback"
+    assert tombstone["canonical_result"]["rolled_back"] is True
+    # Prior apply receipt must remain addressable in history (latest is tombstone).
+    assert "prior_projection" in tombstone["canonical_result"]
+    assert tombstone["canonical_result"]["prior_projection"]
 
 
 def test_unauthorized_and_missing_evidence(store: PopulationStore) -> None:

@@ -5,54 +5,65 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Mapping
 
+from conversation_os.source_content_store import SourceContentStore
 from conversation_os.shape_population.contracts import ValidationError
-from conversation_os.vault_ingest import load_chunk_index_raw, load_source_registry_raw
+from conversation_os.vault_ingest import load_source_registry_raw
 
 MODULE_ID = "kernel.shape_population.vault_bridge"
-CONTRACT_VERSION = "1.0.0"
+CONTRACT_VERSION = "1.1.0"
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
-    "reconstruct_vault_source_text",
+    "load_vault_source_bytes",
     "source_request_from_vault",
+    "merge_job_payload_with_vault",
 )
 __all__ = list(PUBLIC_API)
 
 
-def reconstruct_vault_source_text(root: Path | str, vault_source_id: str) -> tuple[str, dict[str, Any]]:
-    """Rebuild source text from durable vault chunks for Shape normalization.
-
-    Vault chunking may drop exact byte identity (for example trailing newlines).
-    Shape normalization then assigns its own content digest to the reconstructed text.
-    """
-
-    root_path = Path(root)
+def _vault_entry(root: Path, vault_source_id: str) -> dict[str, Any]:
     source_id = str(vault_source_id or "").strip()
     if not source_id:
         raise ValidationError("vault_source_id required")
-    registry = load_source_registry_raw(root_path)
+    registry = load_source_registry_raw(root)
     entry = next((row for row in registry if str(row.get("source_id") or "") == source_id), None)
     if entry is None:
         raise ValidationError(f"unknown vault source: {source_id}")
-    chunks = [
-        row
-        for row in load_chunk_index_raw(root_path)
-        if str(row.get("source_id") or "") == source_id
-    ]
-    if not chunks:
-        raise ValidationError(f"vault source has no chunks: {source_id}")
-    chunks.sort(key=lambda row: int(row.get("chunk_index") or 0))
-    parts = [str(row.get("content") or "") for row in chunks]
-    kinds = {str(row.get("content_kind") or "") for row in chunks}
-    if "paragraph" in kinds or len(parts) > 1:
-        text = "\n\n".join(part for part in parts if part)
-    else:
-        text = "\n".join(parts)
-    if not text.strip():
-        raise ValidationError(f"vault source content empty: {source_id}")
-    if not text.endswith("\n"):
-        text = text + "\n"
-    return text, dict(entry)
+    return dict(entry)
+
+
+def load_vault_source_bytes(
+    root: Path | str,
+    vault_source_id: str,
+    *,
+    content_store: SourceContentStore | None = None,
+) -> tuple[bytes, dict[str, Any]]:
+    """Load the exact original vault source bytes from the content-addressed store.
+
+    Requires ingest to have persisted original bytes under ``content_hash``.
+    Does not reconstruct from chunks (chunk joins are lossy).
+    """
+
+    root_path = Path(root)
+    entry = _vault_entry(root_path, vault_source_id)
+    digest = str(entry.get("content_hash") or "").strip()
+    pointer = str(entry.get("content_pointer") or "").strip()
+    if not digest and pointer.startswith("sha256:"):
+        digest = pointer.split(":", 1)[1]
+    if not digest:
+        raise ValidationError(f"vault source missing content_hash: {vault_source_id}")
+    store = content_store or SourceContentStore(root_path)
+    try:
+        raw = store.get_bytes(digest)
+    except FileNotFoundError as exc:
+        raise ValidationError(
+            f"original vault source bytes unavailable for {vault_source_id}; "
+            "ingest must persist content-addressed bytes before Shape enqueue"
+        ) from exc
+    actual = __import__("hashlib").sha256(raw).hexdigest()
+    if actual != digest.lower():
+        raise ValidationError(f"vault source digest mismatch for {vault_source_id}")
+    return raw, entry
 
 
 def source_request_from_vault(
@@ -60,10 +71,12 @@ def source_request_from_vault(
     vault_source_id: str,
     *,
     modality: str = "plain_text",
+    content_store: SourceContentStore | None = None,
 ) -> dict[str, Any]:
-    """Build a normalize_source request from a committed vault source."""
+    """Build a normalize_source request from exact original vault bytes."""
 
-    text, entry = reconstruct_vault_source_text(root, vault_source_id)
+    raw, entry = load_vault_source_bytes(root, vault_source_id, content_store=content_store)
+    digest = str(entry.get("content_hash") or "")
     source_ref = str(entry.get("source_ref") or "")
     suffix = Path(source_ref).suffix.lower() if source_ref else ""
     resolved_modality = modality
@@ -73,16 +86,20 @@ def source_request_from_vault(
     metadata.update(
         {
             "vault_source_id": str(entry.get("source_id") or vault_source_id),
-            "vault_content_hash": str(entry.get("content_hash") or ""),
+            "vault_content_hash": digest,
             "vault_source_ref": source_ref,
             "vault_title": str(entry.get("title") or ""),
+            "lossless_original": True,
         }
     )
+    # Prefer digest+content_store load inside normalize_source; also pass bytes for callers
+    # that do not yet wire a content store.
     return {
-        "content": text,
+        "content": raw,
+        "content_sha256": digest,
         "modality": resolved_modality,
         "locator": source_ref or f"vault:{vault_source_id}",
-        "raw_ref": source_ref or f"vault:{vault_source_id}",
+        "raw_ref": f"sha256:{digest}",
         "metadata": metadata,
     }
 

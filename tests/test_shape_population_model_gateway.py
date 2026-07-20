@@ -94,3 +94,49 @@ def test_evaluator_tool_allowlist_is_request_promotion_only() -> None:
 
     client_tools = gateway.allowed_tools_for_role("evaluator")
     assert client_tools == ["request_promotion"]
+
+
+def test_inquiry_requires_materialized_text_and_rejects_empty_selection(tmp_path) -> None:
+    from conversation_os.shape_population.normalization import normalize_source
+    from conversation_os.shape_population.storage import ShapePopulationStore
+    from conversation_os.source_content_store import SourceContentStore
+
+    store = ShapePopulationStore(tmp_path)
+    content_store = SourceContentStore(tmp_path)
+    normalized = normalize_source(
+        {"content": "Boundary B constrains mechanism A.\n", "modality": "plain_text"},
+        store=store,
+        content_store=content_store,
+    )
+    segments = [segment.to_dict() for segment in normalized.segments]
+    ctx = agent_context(PROPOSER_IDENTITY, capabilities=(CAP_CANDIDATE_SUBMIT,), model_id="m", prompt_version="p")
+
+    # Empty selection fails closed.
+    gateway = ShapeModelGateway(
+        StubModelClient([json.dumps({"question": "q?", "segment_ids": [], "anchors": [], "scope": "declared_segments"})]),
+        content_store=content_store,
+        store=store,
+        repair_attempts=0,
+    )
+    with pytest.raises(ValidationError, match="did not select"):
+        gateway.plan_inquiry(source_id=normalized.source_id, segments=segments, context=ctx)
+
+    # Successful inquiry must receive quoted text in prior artifacts.
+    client = StubModelClient(
+        [
+            json.dumps(
+                {
+                    "question": "What mechanism is bounded?",
+                    "segment_ids": [segments[0]["segment_id"]],
+                    "anchors": [normalized.source_id],
+                    "scope": "declared_segments",
+                }
+            )
+        ]
+    )
+    gateway = ShapeModelGateway(client, content_store=content_store, store=store, repair_attempts=0)
+    planned = gateway.plan_inquiry(source_id=normalized.source_id, segments=segments, context=ctx)
+    assert planned["segment_ids"] == [segments[0]["segment_id"]]
+    prior = json.loads(client.calls[0]["messages"][2]["content"])["prior_artifacts"]
+    assert prior["SOURCE_DATA_SEGMENTS"][0]["text"]
+    assert "constrains mechanism" in prior["SOURCE_DATA_SEGMENTS"][0]["text"]

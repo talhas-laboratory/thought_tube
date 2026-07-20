@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional
 
@@ -52,8 +53,29 @@ def _projection_parity(projection: Mapping[str, Any], read_back: Mapping[str, An
     read_projection = read_back.get("projection")
     if not isinstance(read_projection, Mapping):
         return False
-    for key in ("candidate_id", "request_id", "evaluation_id", "title", "statement", "boundary", "mechanism"):
+
+    def _canon(value: Any) -> str:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+
+    scalar_keys = (
+        "candidate_id",
+        "request_id",
+        "evaluation_id",
+        "approval_id",
+        "title",
+        "statement",
+        "boundary",
+        "mechanism",
+        "uncertainty",
+    )
+    for key in scalar_keys:
         if projection.get(key) != read_projection.get(key):
+            return False
+    for key in ("dimensions", "relationships", "evidence_refs"):
+        if _canon(projection.get(key) or []) != _canon(read_projection.get(key) or []):
+            return False
+    for key in ("decision", "lineage"):
+        if _canon(projection.get(key) or {}) != _canon(read_projection.get(key) or {}):
             return False
     return True
 
@@ -357,7 +379,15 @@ def rollback_promotion(
                 "rollback_receipt": rollback_receipt,
                 "rollback_reason": reason.strip(),
             }
-        store.remove_canonical_projection(candidate_id)
+        # Append-only tombstone: keep prior apply receipt and record rollback on top.
+        store.put_canonical_rollback_tombstone(
+            candidate_id,
+            request_id=str((current_projection or {}).get("request_id") or ""),
+            canonical_id=canonical_id,
+            reason=reason.strip(),
+            rollback_receipt=rollback_receipt,
+            prior_projection=current_projection,
+        )
         candidate = dict(candidate)
         candidate["status"] = "recommended"
         candidate["updated_at"] = store.now()
@@ -365,6 +395,7 @@ def rollback_promotion(
         return {
             "candidate": candidate,
             "projection": store.get_canonical_projection(candidate_id),
+            "tombstone": store.get_canonical_projection_receipt(candidate_id),
             "rollback_receipt": rollback_receipt,
             "rollback_reason": reason.strip(),
         }

@@ -109,6 +109,8 @@ def test_ingest_enqueue_process_job_materializes_evidence_text(root: Path) -> No
         post_ingest_hooks=[hook],
     )
     vault_source_id = ingested["source_id"]
+    assert ingested["content_hash"]
+    assert content_store.get_bytes(ingested["content_hash"]) == source_text.encode("utf-8")
 
     # Queue stub responses: inquiry, propose, critique, synthesize.
     inquiry = {
@@ -129,33 +131,29 @@ def test_ingest_enqueue_process_job_materializes_evidence_text(root: Path) -> No
             user = json.loads(messages[2]["content"])
             if self._phase == 0:
                 self._phase += 1
-                # Fill segment_ids from prior structure if empty in planned response later.
-                segments = (user.get("prior_artifacts") or {}).get("segments") or []
+                prior = user.get("prior_artifacts") or {}
+                quoted = prior.get("SOURCE_DATA_SEGMENTS") or []
+                assert quoted, "inquiry must receive verified segment text"
+                quoted_text = " ".join(str(item.get("text") or "") for item in quoted).lower()
+                assert "mechanism" in quoted_text and "boundary" in quoted_text, quoted_text
+                assert "SOURCE_DATA_SEGMENTS_JSON" in str(prior.get("SOURCE_DATA_MATERIALIZED") or "")
+                # Intelligence selects a real subset (here: the only available segment).
                 payload = dict(inquiry)
-                payload["segment_ids"] = [str(item["segment_id"]) for item in segments]
+                payload["segment_ids"] = [str(item["segment_id"]) for item in quoted]
                 return json.dumps(payload)
             if self._phase == 1:
                 self._phase += 1
-                packet = {
-                    "packet_id": "pending",
-                    "blocks": [],
-                }
                 # Evidence is materialized into SOURCE_DATA_MATERIALIZED
                 materialized = user.get("SOURCE_DATA_MATERIALIZED") or ""
                 assert "SOURCE_DATA_BLOCKS_JSON" in materialized
-                assert "mechanism appears when boundary B holds" in materialized.lower() or "mechanism" in materialized.lower()
+                assert "mechanism" in materialized.lower()
                 # Reconstruct packet id from blocks refs
                 blocks = user.get("SOURCE_DATA_BLOCKS") or []
                 packet_id = blocks[0]["packet_id"] if blocks else "pkt"
                 proposal = _proposal_for_packet(
                     {
                         "packet_id": packet_id,
-                        "blocks": [
-                            {
-                                **blocks[0],
-                                "text_sha256": blocks[0]["text_sha256"],
-                            }
-                        ],
+                        "blocks": [dict(blocks[0])],
                     }
                 )
                 return json.dumps(proposal)
@@ -194,16 +192,49 @@ def test_ingest_enqueue_process_job_materializes_evidence_text(root: Path) -> No
     )
     outcome = orchestrator.run_once()
     assert outcome is not None
-    assert outcome["state"] == "completed"
+    assert outcome["state"] == "completed", outcome.get("last_error")
     assert outcome["result"]["vault_source_id"] == vault_source_id
     assert outcome["result"]["candidate_id"]
     assert outcome["result"]["comparison_set_version"]
     assert store.get_comparison_set(outcome["result"]["comparison_set_version"]) is not None
-    assert store.get_source(outcome["result"]["source_id"]) is not None
+    shape_source = store.get_source(outcome["result"]["source_id"])
+    assert shape_source is not None
+    assert shape_source["content_sha256"] == ingested["content_hash"]
     assert len(client.calls) >= 3
+    inquire_user = json.loads(client.calls[0]["messages"][2]["content"])
+    assert inquire_user["prior_artifacts"]["SOURCE_DATA_SEGMENTS"][0]["text"]
     propose_user = json.loads(client.calls[1]["messages"][2]["content"])
     assert propose_user["SOURCE_DATA_MATERIALIZED"]
     assert "quoted source data" in propose_user["SOURCE_DATA_MATERIALIZED"].lower() or "SOURCE_DATA_BLOCKS_JSON" in propose_user["SOURCE_DATA_MATERIALIZED"]
+
+
+def test_vault_bridge_requires_original_bytes_not_chunk_reconstruction(root: Path) -> None:
+    from conversation_os.shape_population.contracts import ValidationError
+    from conversation_os.shape_population.vault_bridge import load_vault_source_bytes, source_request_from_vault
+
+    # Registry-only source without content-store bytes must fail closed.
+    store = ShapePopulationStore(root)
+    ingested = ingest_text_content(
+        root,
+        title="Lossless",
+        content="Exact original bytes must survive.\n",
+        source_ref="manual://lossless-1",
+    )
+    raw, entry = load_vault_source_bytes(root, ingested["source_id"])
+    assert raw == b"Exact original bytes must survive.\n"
+    assert entry["content_hash"] == ingested["content_hash"]
+    request = source_request_from_vault(root, ingested["source_id"])
+    assert request["content_sha256"] == ingested["content_hash"]
+    assert request["metadata"]["lossless_original"] is True
+
+    # Remove blob and ensure bridge does not fall back to lossy chunk join.
+    blob = root / "product" / "inner_world_v1" / "data" / "source_content"
+    for path in blob.rglob("*"):
+        if path.is_file() and path.suffix != ".json":
+            path.unlink()
+    with pytest.raises(ValidationError, match="original vault source bytes unavailable"):
+        load_vault_source_bytes(root, ingested["source_id"])
+    _ = store  # keep fixture root owned by Shape store path conventions
 
 
 def test_worker_cli_processes_queued_job(root: Path) -> None:

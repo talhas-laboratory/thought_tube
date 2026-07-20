@@ -149,7 +149,11 @@ class ShapePopulationOrchestrator:
             raise ValidationError("population job missing source_id")
 
         vault_root = self._resolve_vault_root(payload)
-        source_request = source_request_from_vault(vault_root, vault_source_id)
+        source_request = source_request_from_vault(
+            vault_root,
+            vault_source_id,
+            content_store=self.content_store,
+        )
         normalized = normalize_source(
             source_request,
             store=self.store,

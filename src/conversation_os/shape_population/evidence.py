@@ -27,6 +27,7 @@ PUBLIC_API = (
     "REQUIRED_CAPABILITY",
     "build_evidence_packet",
     "materialize_packet_text",
+    "materialize_segments_for_inquiry",
     "validate_evidence_ref_against_packet",
 )
 __all__ = list(PUBLIC_API)
@@ -399,6 +400,49 @@ def materialize_packet_text(packet: EvidencePacket | Mapping[str, Any], content_
             "</SOURCE_DATA_BLOCKS_JSON>",
         ]
     )
+
+
+def materialize_segments_for_inquiry(
+    segments: Sequence[Mapping[str, Any]],
+    *,
+    content_store: SourceContentStore,
+    store: PopulationStore,
+) -> list[dict[str, Any]]:
+    """Materialize verified segment text for inquiry planning (quoted data only)."""
+
+    if content_store is None:
+        raise ValidationError("content_store is required to materialize inquiry segment text")
+    materialized: List[Dict[str, Any]] = []
+    for segment in segments:
+        segment_id = str(segment.get("segment_id") or "")
+        stored = store.get_segment(segment_id) if segment_id else None
+        row = dict(stored or segment)
+        source = _source_for_segment(store, row)
+        digest = _content_digest(source, row)
+        if not digest:
+            raise ValidationError(f"inquiry segment missing source digest: {segment_id}")
+        text = _segment_text(row, source, content_store)
+        actual = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        expected = str(row.get("text_sha256") or "")
+        if expected and actual != expected:
+            raise ValidationError(f"inquiry segment text digest mismatch: {segment_id}")
+        materialized.append(
+            {
+                "segment_id": segment_id,
+                "source_id": str(row.get("source_id") or source.get("source_id") or ""),
+                "ordinal": row.get("ordinal"),
+                "structure_path": row.get("structure_path"),
+                "char_start": row.get("char_start"),
+                "char_end": row.get("char_end"),
+                "byte_start": row.get("byte_start"),
+                "byte_end": row.get("byte_end"),
+                "text_sha256": expected or actual,
+                "source_content_sha256": digest,
+                "instruction_authority": False,
+                "text": text,
+            }
+        )
+    return materialized
 
 
 def validate_evidence_ref_against_packet(store: PopulationStore, packet_id: str, ref: Mapping[str, Any]) -> bool:

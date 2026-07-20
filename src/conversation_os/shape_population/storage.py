@@ -802,7 +802,7 @@ class ShapePopulationStore:
                 """
                 SELECT * FROM canonical_projection_receipts
                 WHERE receipt_id = ? OR request_id = ? OR candidate_id = ?
-                ORDER BY created_at DESC
+                ORDER BY created_at DESC, rowid DESC
                 LIMIT 1
                 """,
                 (key, key, key),
@@ -837,7 +837,43 @@ class ShapePopulationStore:
             return None
         return dict(receipt.get("canonical_result") or {})
 
+    def put_canonical_rollback_tombstone(
+        self,
+        candidate_id: str,
+        *,
+        request_id: str,
+        canonical_id: str,
+        reason: str,
+        rollback_receipt: Mapping[str, Any],
+        prior_projection: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Append-only rollback tombstone. Does not delete prior apply receipts."""
+
+        tombstone = {
+            "receipt_id": self.new_id("canon-rb"),
+            "request_id": request_id or str((prior_projection or {}).get("request_id") or f"rollback:{candidate_id}"),
+            "candidate_id": candidate_id,
+            "operation": "rollback",
+            "canonical_id": canonical_id,
+            "idempotency_key": str(
+                rollback_receipt.get("idempotency_key")
+                or f"canonical-rollback-tombstone:{candidate_id}:{reason}"
+            ),
+            "projection": {
+                "candidate_id": candidate_id,
+                "canonical_id": canonical_id,
+                "rolled_back": True,
+                "rollback_reason": reason,
+                "prior_projection": dict(prior_projection or {}),
+                "rollback_receipt": dict(rollback_receipt),
+            },
+        }
+        self.put_canonical_projection_receipt(tombstone)
+        return tombstone
+
     def remove_canonical_projection(self, candidate_id: str) -> None:
+        """Deprecated destructive helper. Prefer put_canonical_rollback_tombstone."""
+
         self.remove_canonical_projection_receipt(candidate_id)
 
     def enqueue_job(
