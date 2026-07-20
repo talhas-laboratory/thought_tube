@@ -1,0 +1,65 @@
+{
+  "module_id": "kernel.shape_population",
+  "path": "src/conversation_os/shape_population/__init__.py",
+  "layer": "kernel",
+  "owner": "Shape Intelligence population control plane for provisional Shape candidates.",
+  "purpose": "Coordinate lossless normalization, evidence assembly, population-agent tools, candidate governance, and human-gated canonical promotion for Shape intelligence.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "POPULATION_AGENT_TOOLS",
+    "PRIVILEGED_PROMOTION_OPS",
+    "AUTOMATIC_INFRA_OPS",
+    "normalize_source",
+    "build_evidence_packet",
+    "submit_candidate",
+    "find_comparison_candidates",
+    "submit_evaluation",
+    "request_promotion",
+    "apply_promotion",
+    "rollback_promotion",
+    "PopulationStore"
+  ],
+  "contains": [
+    "population package boundary",
+    "tool boundary exports"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "raw sources",
+    "evidence inquiries",
+    "provisional candidate payloads",
+    "evaluation payloads",
+    "promotion requests"
+  ],
+  "outputs": [
+    "normalized sources",
+    "evidence packets",
+    "provisional candidates",
+    "evaluations",
+    "receipts",
+    "promotion audit"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1",
+    "openclaw"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_normalization.py",
+    "tests/test_shape_population_evidence.py",
+    "tests/test_shape_population_interpretation.py",
+    "tests/test_shape_population_critique.py",
+    "tests/test_shape_population_governance.py",
+    "tests/test_shape_population_promotion.py"
+  ]
+}
