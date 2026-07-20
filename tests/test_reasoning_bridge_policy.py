@@ -34,6 +34,8 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         attributes["context_policy"] = policy
         context["attributes"] = attributes
         context["depth_mode"] = policy.get("depth_mode", context.get("depth_mode"))
+        if policy.get("envelope_mode"):
+            attributes.setdefault("caller_hints", {})["envelope_mode"] = policy["envelope_mode"]
         return context
 
     def test_include_layers_allowlist_excludes_undeclared_layers(self) -> None:
@@ -65,6 +67,7 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
                 "cross_ocean": False,
                 "retrieval_limit": 6,
                 "neighbor_limit": 4,
+                "envelope_mode": "bounded",
             }
         )
         bundle = get_context_bundle(self.root, context)
@@ -157,11 +160,42 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         self.assertTrue(bundle["frame_spec"]["preview_only"])
         self.assertEqual(bundle["frame_bundle"]["frame_id"], bundle["frame_spec"]["frame_id"])
         self.assertEqual(bundle["session_envelope"]["mode"], "bounded")
-        self.assertEqual(bundle["frame_bundle"]["assembly_status"], "complete")
+        self.assertEqual(bundle["frame_bundle"]["assembly_status"], "partial")
         included_layers = {row["layer"] for row in bundle["frame_bundle"]["included_blocks"]}
         self.assertIn("session", included_layers)
         self.assertIn("workspace", included_layers)
-        self.assertIn("global", included_layers)
+
+    def test_unset_token_budget_preserves_frame_preview_assembly(self) -> None:
+        """Regression: unset token_budget must not zero-out block budget under enforcement."""
+        append_jsonl(
+            self.root / "memory" / "events" / "session-policy-003.jsonl",
+            {
+                "event_id": "event-1",
+                "session_id": "session-policy-003",
+                "timestamp": "2026-06-26T17:10:00+00:00",
+                "actor": "user",
+                "kind": "message",
+                "content": "Build bridge integration preview.",
+                "attachments": [],
+                "tags": [],
+                "source_ref": None,
+            },
+        )
+        context = heuristic_classify_turn(
+            self.root,
+            {
+                "request_id": "req-policy-003",
+                "session_id": "session-policy-003",
+                "raw_text": "Build bridge integration preview.",
+                "caller_hints": {"workspace_id": "workspace-policy-003"},
+                "domain_hints": [],
+                "source_refs": [],
+            },
+        )
+        bundle = get_context_bundle(self.root, context)
+        self.assertGreater(int(bundle["effective_grant"].get("token_budget", 0) or 0), 0)
+        self.assertNotEqual(bundle["frame_bundle"]["assembly_status"], "empty")
+        self.assertTrue(bundle["frame_bundle"]["included_blocks"])
 
     def test_frame_bundle_tracks_suppressed_layers_separately_from_disclosure(self) -> None:
         context = self._context_with_policy(
@@ -174,6 +208,7 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
                 "cross_ocean": False,
                 "retrieval_limit": 6,
                 "neighbor_limit": 4,
+                "envelope_mode": "bounded",
             }
         )
         with mock.patch("conversation_os.reasoning_bridge.build_retrieval_bundle") as retrieval_mock:
@@ -197,14 +232,16 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
                 bundle = get_context_bundle(self.root, context)
 
         self.assertEqual(bundle["context_state"]["bundle_layers"], ["session", "workspace"])
-        self.assertEqual(bundle["session_envelope"]["mode"], "strict")
+        self.assertEqual(bundle["session_envelope"]["mode"], "bounded")
         self.assertEqual(bundle["session_envelope"]["explicit_excludes"], ["global", "user"])
         selector_layers = {row["layer"] for row in bundle["frame_spec"]["selectors"]}
         self.assertIn("user", selector_layers)
         self.assertIn("global", selector_layers)
-        suppressed_layers = {row["layer"] for row in bundle["frame_bundle"]["suppressed_blocks"]}
+        suppressed_layers = {row["layer"] for row in bundle["frame_audit"]["suppressed_blocks"]}
         self.assertIn("user", suppressed_layers)
         self.assertIn("global", suppressed_layers)
+        self.assertNotIn("suppressed_blocks", bundle["frame_bundle"])
+        self.assertEqual(bundle["frame_bundle"]["frame_audit_id"], bundle["frame_audit"]["audit_id"])
 
 
 class BridgeBehaviorSpecsTestCase(unittest.TestCase):

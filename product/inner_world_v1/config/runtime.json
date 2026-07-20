@@ -77,6 +77,55 @@
     "judge_role_id": "pond_router_judge",
     "router_version": "v1"
   },
+  "knowledge": {
+    "fail_empty_admission_shadow_v1": true,
+    "fail_empty_admission_enforce_v1": true
+  },
+  "disclosure": {
+    "estimator_version": "1.0",
+    "reservation_version": "1.0",
+    "orientation_max_chars": 480,
+    "budget_reservations": {
+      "system_tokens": 120,
+      "answer_tokens": 256,
+      "orientation_max_tokens": 120
+    },
+    "persistent_receipts_v1": false,
+    "receipts": {
+      "persistent_receipts_v1": false,
+      "max_entries": 500,
+      "retention_days": 30
+    },
+    "active_state": {
+      "continuity_v1": false,
+      "max_transitions": 200
+    },
+    "operator_metrics": {
+      "operator_metrics_v1": false,
+      "receipt_limit": 500
+    },
+    "bounded_view": {
+      "epistemic_backend_v1": false,
+      "max_nodes": 8,
+      "max_depth": 3
+    }
+  },
+  "holodeck": {
+    "disclosure_service_v1": false,
+    "contextualization_retrieval_limit": 6,
+    "contextualization_neighbor_limit": 4
+  },
+  "feed": {
+    "disclosure_service_v1": false,
+    "evidence_retrieval_limit": 8,
+    "evidence_neighbor_limit": 4
+  },
+  "task_pack": {
+    "disclosure_service_v1": false,
+    "max_evidence_blocks": 4,
+    "evidence_retrieval_limit": 6,
+    "evidence_neighbor_limit": 4
+  },
   "bridge": {
     "enabled": true,
     "agent": "thought_tube_router",
@@ -86,6 +135,11 @@
     "fallback": "heuristic",
     "emit_heuristic_preview": true,
     "execution_mode": "agent",
+    "execution_audit_isolation_v1": true,
+    "effective_grant_normalization_v1": true,
+    "deterministic_budget_enforcement_v1": true,
+    "orient_first_compose_v1": true,
+    "disclosure_service_v1": false,
     "openclaw_mode": "auto",
     "tracking": {
       "require_active_session": true,

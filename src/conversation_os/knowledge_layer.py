@@ -18,6 +18,13 @@ from .thread_abstractions import (
     load_thread_abstraction_links,
     load_thread_abstractions,
 )
+from .candidate_admission import (
+    apply_fail_empty_gate,
+    compute_ranking_score,
+    evaluate_capsule_admission,
+    fail_empty_admission_enforce_enabled,
+    fail_empty_admission_shadow_enabled,
+)
 from .vault_ingest import load_source_registry, tokenize
 
 
@@ -817,24 +824,44 @@ def build_retrieval_bundle(
     neighbor_limit: int = 6,
     *,
     include_cross_pond: bool = False,
+    envelope_mode: str = "open",
+    explicit_pins: List[str] | None = None,
 ) -> Dict[str, Any]:
+    empty_bundle = {
+        "query": query,
+        "seed_capsules": [],
+        "related_capsules": [],
+        "included_links": [],
+        "source_refs": [],
+        "count": 0,
+        "alias_hits": [],
+        "anchor_pond": "",
+        "include_cross_pond": include_cross_pond,
+        "envelope_mode": str(envelope_mode or "open").strip().lower(),
+    }
+    shadow_enabled = fail_empty_admission_shadow_enabled(root)
+    enforce_enabled = fail_empty_admission_enforce_enabled(root)
+
+    if enforce_enabled:
+        from .library_tracker import build_corpus_catalog
+
+        catalog = build_corpus_catalog(root)
+        readiness = str(catalog.get("readiness_state", "") or "")
+        if readiness == "stale":
+            return empty_bundle | {"result_status": "abstained_stale_index"}
+        if readiness in {"interrupted", "unsupported"}:
+            return empty_bundle | {"result_status": "abstained_dependency_not_ready"}
+
     capsules = load_semantic_capsules(root)
     links = load_context_links(root)
     governance = load_link_governance(root)
     query_tokens = set(tokenize(query))
     source_ref_map = _source_ref_pond_map(root)
     if not capsules:
-        return {
-            "query": query,
-            "seed_capsules": [],
-            "related_capsules": [],
-            "included_links": [],
-            "source_refs": [],
-            "count": 0,
-            "alias_hits": [],
-            "anchor_pond": "",
-            "include_cross_pond": include_cross_pond,
-        }
+        bundle = dict(empty_bundle)
+        if enforce_enabled:
+            bundle["result_status"] = "empty_no_positive_match"
+        return bundle
 
     type_weight = {
         "concept": 1.2,
@@ -843,7 +870,9 @@ def build_retrieval_bundle(
         "meta": 0.8,
     }
     scores: Dict[str, float] = {}
+    admission_by_capsule: Dict[str, Dict[str, Any]] = {}
     capsule_by_ref = {f"{row['ref_type']}:{row['ref_id']}": row for row in capsules}
+    alias_ref_keys: set[str] = set()
     alias_hits: List[Dict[str, Any]] = []
     for alias in _active_alias_resolutions(governance):
         alias_tokens = set(tokenize(alias.get("alias_text", "")))
@@ -853,6 +882,7 @@ def build_retrieval_bundle(
         capsule = capsule_by_ref.get(ref_key)
         if capsule is None:
             continue
+        alias_ref_keys.add(ref_key)
         alias_hits.append(
             {
                 "alias_text": alias.get("alias_text", ""),
@@ -860,19 +890,35 @@ def build_retrieval_bundle(
                 "ref_id": alias.get("ref_id", ""),
             }
         )
-        scores[capsule["capsule_id"]] = scores.get(capsule["capsule_id"], 0.0) + 7.5
+
     for capsule in capsules:
         index = _capsule_index_tokens(capsule)
-        score = scores.get(capsule["capsule_id"], 0.0)
-        score += len(query_tokens & index["label"]) * 4.0
-        score += len(query_tokens & index["summary"]) * 2.0
-        score += len(query_tokens & index["attrs"]) * 1.2
-        score += float(capsule.get("confidence", 0.0)) * type_weight.get(capsule["capsule_type"], 0.7)
-        scores[capsule["capsule_id"]] = round(score, 3)
         capsule["pond_profile"] = _capsule_pond_profile(capsule, source_ref_map)
+        ref_key = f"{capsule['ref_type']}:{capsule['ref_id']}"
+        decision = evaluate_capsule_admission(
+            capsule,
+            query_tokens=query_tokens,
+            index_tokens=index,
+            alias_matched=ref_key in alias_ref_keys,
+            explicit_pins=explicit_pins,
+            envelope_mode=envelope_mode,
+            pond_profile=capsule.get("pond_profile", {}),
+        )
+        admission_by_capsule[capsule["capsule_id"]] = decision
+        ranking_score = compute_ranking_score(
+            capsule,
+            ranking_features=decision["ranking_features"],
+            type_weight=type_weight,
+        )
+        if ref_key in alias_ref_keys:
+            ranking_score = round(ranking_score + 7.5, 3)
+        scores[capsule["capsule_id"]] = ranking_score
 
     pond_scores: Dict[str, float] = defaultdict(float)
     for capsule in capsules:
+        decision = admission_by_capsule[capsule["capsule_id"]]
+        if not decision.get("admitted"):
+            continue
         pond_id = str(capsule.get("pond_profile", {}).get("primary_pond", "")).strip()
         if pond_id:
             pond_scores[pond_id] += scores.get(capsule["capsule_id"], 0.0)
@@ -888,9 +934,13 @@ def build_retrieval_bundle(
             item["label"],
         ),
     )
-    seeds = [row for row in ranked if scores[row["capsule_id"]] > 0][:3]
-    if not seeds:
-        seeds = ranked[: min(3, len(ranked))]
+    admitted_ranked = [
+        row for row in ranked if admission_by_capsule[row["capsule_id"]].get("admitted")
+    ]
+    seeds = admitted_ranked[:3]
+    if not seeds and not enforce_enabled:
+        legacy_seeds = [row for row in ranked if scores[row["capsule_id"]] > 0][:3]
+        seeds = legacy_seeds or ranked[: min(3, len(ranked))]
     if anchor_pond:
         bounded_seeds = [
             row
@@ -900,7 +950,6 @@ def build_retrieval_bundle(
         if bounded_seeds:
             seeds = bounded_seeds
 
-    seed_ref_keys = {f"{row['ref_type']}:{row['ref_id']}" for row in seeds}
     selected_capsules = {row["capsule_id"]: row for row in seeds}
     included_links: List[Dict[str, Any]] = []
     adjacency: Dict[str, List[Tuple[float, Dict[str, Any], str]]] = defaultdict(list)
@@ -924,11 +973,27 @@ def build_retrieval_bundle(
             neighbor = capsule_by_ref.get(neighbor_ref)
             if neighbor is None:
                 continue
+            if "pond_profile" not in neighbor:
+                neighbor["pond_profile"] = _capsule_pond_profile(neighbor, source_ref_map)
             if anchor_pond and not include_cross_pond:
                 neighbor_pond = str(neighbor.get("pond_profile", {}).get("primary_pond", "")).strip()
                 bridge_status = str(link.get("bridge_status", "")).strip().lower()
                 if neighbor_pond and neighbor_pond != anchor_pond and bridge_status != "promoted":
                     continue
+            neighbor_index = _capsule_index_tokens(neighbor)
+            neighbor_decision = evaluate_capsule_admission(
+                neighbor,
+                query_tokens=query_tokens,
+                index_tokens=neighbor_index,
+                alias_matched=neighbor_ref in alias_ref_keys,
+                explicit_pins=explicit_pins,
+                governed_graph=True,
+                envelope_mode=envelope_mode,
+                pond_profile=neighbor.get("pond_profile", {}),
+            )
+            admission_by_capsule[neighbor["capsule_id"]] = neighbor_decision
+            if enforce_enabled and not neighbor_decision.get("admitted"):
+                continue
             selected_capsules.setdefault(neighbor["capsule_id"], neighbor)
             included_links.append(link)
             added += 1
@@ -966,7 +1031,7 @@ def build_retrieval_bundle(
         }
     )
     deduped_links = {link["link_id"]: link for link in included_links}
-    return {
+    bundle = {
         "query": query,
         "seed_capsules": seeds,
         "related_capsules": related_capsules,
@@ -976,7 +1041,17 @@ def build_retrieval_bundle(
         "alias_hits": alias_hits,
         "anchor_pond": anchor_pond,
         "include_cross_pond": include_cross_pond,
+        "envelope_mode": str(envelope_mode or "open").strip().lower(),
     }
+    if shadow_enabled or enforce_enabled:
+        return apply_fail_empty_gate(
+            bundle,
+            admission_decisions=list(admission_by_capsule.values()),
+            enforce=enforce_enabled,
+            shadow=shadow_enabled,
+            envelope_mode=envelope_mode,
+        )
+    return bundle
 
 
 def build_knowledge_layer(root: Path, ensure_dependencies: bool = True) -> Dict:

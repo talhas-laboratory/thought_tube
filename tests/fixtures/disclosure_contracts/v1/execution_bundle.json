@@ -1,0 +1,42 @@
+{
+  "contract_version": "1.0",
+  "bundle_id": "bundle-cae015-001",
+  "request_id": "req-cae015-aperture",
+  "orientation": {
+    "topic": "disclosure contracts",
+    "purpose": "orient grant evidence receipt separation",
+    "posture": "implementation",
+    "max_tokens": 120
+  },
+  "steering_constraints": [
+    "Honor effective grant only",
+    "Do not infer permission from retrieved evidence"
+  ],
+  "evidence_blocks": [
+    {
+      "contract_version": "1.0",
+      "block_id": "block-cae015-001",
+      "bounded_text": "Disclosure contracts separate execution bundles from audit receipts.",
+      "token_estimate": 14,
+      "source_span": {
+        "source_ref": "fixture:cae015-pin",
+        "chunk_id": "chunk-cae015-001",
+        "start_offset": 0,
+        "end_offset": 72
+      },
+      "inclusion_reason": "explicit_pin",
+      "sensitivity": "internal",
+      "branch_id": "branch-main",
+      "scope_id": "scope-stage-a",
+      "content_hash": "sha256:7b8f9c0d1e2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c",
+      "provenance_ref": "prov-cae015-block"
+    }
+  ],
+  "provenance_refs": ["prov-cae015-block"],
+  "budget_summary": {
+    "token_budget": 1200,
+    "orientation_tokens": 42,
+    "evidence_tokens": 14,
+    "remaining_tokens": 1144
+  }
+}

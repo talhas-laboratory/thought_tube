@@ -7,6 +7,14 @@ Git-tracked working spaces for long design threads. These are continuity project
 
 | Workspace ID | Status | Entry | Manifest |
 |--------------|--------|-------|----------|
+| `shape-intelligence-normalization` | Active — deterministic information normalization | [`shape-intelligence-normalization/README.md`](./shape-intelligence-normalization/README.md) | [`manifest.json`](./shape-intelligence-normalization/manifest.json) |
+| `shape-intelligence-evidence` | Active — bounded evidence assembly | [`shape-intelligence-evidence/README.md`](./shape-intelligence-evidence/README.md) | [`manifest.json`](./shape-intelligence-evidence/manifest.json) |
+| `shape-intelligence-interpretation` | Active — provisional Shape proposal intelligence | [`shape-intelligence-interpretation/README.md`](./shape-intelligence-interpretation/README.md) | [`manifest.json`](./shape-intelligence-interpretation/manifest.json) |
+| `shape-intelligence-critique` | Active — independent critique and synthesis | [`shape-intelligence-critique/README.md`](./shape-intelligence-critique/README.md) | [`manifest.json`](./shape-intelligence-critique/manifest.json) |
+| `shape-intelligence-governance` | Active — deterministic candidate validation and operations | [`shape-intelligence-governance/README.md`](./shape-intelligence-governance/README.md) | [`manifest.json`](./shape-intelligence-governance/manifest.json) |
+| `shape-intelligence-evaluation-promotion` | Active — evaluation and governed promotion | [`shape-intelligence-evaluation-promotion/README.md`](./shape-intelligence-evaluation-promotion/README.md) | [`manifest.json`](./shape-intelligence-evaluation-promotion/manifest.json) |
+| `shape-intelligence-population` | Active — governed interpretative Shape-candidate population | [`shape-intelligence-population/README.md`](./shape-intelligence-population/README.md) | [`manifest.json`](./shape-intelligence-population/manifest.json) |
+| `cognitive-aperture-exceptional` | Active — good→exceptional disclosure/aperture hardening | [`cognitive-aperture-exceptional/README.md`](./cognitive-aperture-exceptional/README.md) | [`manifest.json`](./cognitive-aperture-exceptional/manifest.json) |
 | `holodeck-productization` | Active — local-first product discovery | [`holodeck-productization/README.md`](./holodeck-productization/README.md) | [`manifest.json`](./holodeck-productization/manifest.json) |
 | `unified-framework-synthesis` | Active — canonical foundation and schema lock | [`unified-framework-synthesis/README.md`](./unified-framework-synthesis/README.md) | [`manifest.json`](./unified-framework-synthesis/manifest.json) |
 | `metaphysical-kernel-ontology` | Active — kernel contract lock | [`metaphysical-kernel-ontology/README.md`](./metaphysical-kernel-ontology/README.md) | [`manifest.json`](./metaphysical-kernel-ontology/manifest.json) |

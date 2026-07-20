@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from .knowledge_layer import build_retrieval_bundle
 from .models import ContextState, ControlPacket
@@ -34,6 +35,20 @@ PUBLIC_API = (
     "build_session_envelope",
     "build_frame_spec",
     "build_frame_bundle",
+    "assemble_frame_bundle",
+    "split_frame_assembly",
+    "build_frame_audit",
+    "execution_audit_isolation_enabled",
+    "build_effective_grant_from_context",
+    "effective_layers_to_bridge_layers",
+    "effective_grant_normalization_enabled",
+    "deterministic_budget_enforcement_enabled",
+    "orient_first_compose_enabled",
+    "disclosure_service_enabled",
+    "inspect_disclosure_receipt",
+    "list_disclosure_receipts",
+    "inspect_aperture_operator_view",
+    "active_state_continuity_enabled",
 )
 __all__ = list(PUBLIC_API)
 
@@ -52,6 +67,8 @@ def _apply_note_agent_overrides(
     resolved_budget: Dict[str, Any],
     attributes: Dict[str, Any],
     retrieval_mode: str,
+    *,
+    orient_first_enabled: bool = False,
 ) -> tuple[Dict[str, Any], str, Dict[str, Any] | None]:
     note_agent_state = dict(attributes.get("note_agent", {}) or {})
     if not note_agent_state:
@@ -72,6 +89,22 @@ def _apply_note_agent_overrides(
         next_budget["neighbor_limit"] = int(retrieval_policy.get("neighbor_limit", 0) or 0)
 
     next_mode = _note_agent_retrieval_mode(note_agent_state)
+    if orient_first_enabled:
+        from .orient_first_compose import authorize_second_pass_widen
+
+        authorized, reason = authorize_second_pass_widen(
+            base_mode=retrieval_mode,
+            proposed_mode=next_mode,
+            caller_hints=caller_hints,
+        )
+        if not authorized:
+            blocked_state = {
+                **note_agent_state,
+                "widen_blocked": True,
+                "widen_block_reason": reason,
+            }
+            return resolved_budget, retrieval_mode, blocked_state
+
     next_budget["use_global"] = next_mode != "session_only"
     return next_budget, next_mode, note_agent_state
 
@@ -978,6 +1011,99 @@ def build_session_envelope(
     }
 
 
+_BRIDGE_LAYER_TO_GRANT = {
+    "session": "session",
+    "workspace": "workspace",
+    "user": "user",
+    "global": "governed_global",
+}
+_GRANT_LAYER_TO_BRIDGE = {
+    "session": "session",
+    "workspace": "workspace",
+    "user": "user",
+    "governed_global": "global",
+    "explicit_pin": "session",
+    "ephemeral_turn": "session",
+}
+
+
+def effective_grant_normalization_enabled(root: Path | None) -> bool:
+    if root is None:
+        return True
+    try:
+        from .bridge_controller import load_bridge_config
+
+        return bool(load_bridge_config(root).get("effective_grant_normalization_v1", True))
+    except Exception:
+        return True
+
+
+def build_effective_grant_from_context(
+    context_state: Dict[str, Any],
+    policy: Dict[str, Any] | None,
+    session_envelope: Dict[str, Any],
+):
+    from .disclosure_contracts import RequestedGrant, normalize_effective_grant
+
+    state = dict(context_state)
+    policy_payload = dict(policy or {})
+    mode = str(
+        policy_payload.get("envelope_mode")
+        or session_envelope.get("mode", "bounded")
+        or "bounded"
+    )
+    include_layers = [str(value) for value in policy_payload.get("include_layers", []) or [] if str(value).strip()]
+    exclude_layers = [str(value) for value in policy_payload.get("exclude_layers", []) or [] if str(value).strip()]
+    exclude_layers.extend(
+        str(value) for value in session_envelope.get("explicit_excludes", []) or [] if str(value).strip()
+    )
+    default_layers = _default_allowed_layers_for_envelope(mode)
+    requested_layers = [_BRIDGE_LAYER_TO_GRANT.get(layer, layer) for layer in (include_layers or default_layers)]
+    explicit_denials = [_BRIDGE_LAYER_TO_GRANT.get(layer, layer) for layer in exclude_layers]
+    attributes = dict(state.get("attributes", {}) or {})
+    policy_specified = "token_budget" in policy_payload
+    depth_mode = str(state.get("depth_mode", "focused") or "focused")
+    from .disclosure_budget_allocator import resolve_token_budget
+
+    requested = RequestedGrant(
+        grant_id=make_id("grant"),
+        request_id=str(state.get("request_id", "")),
+        envelope=mode,
+        requested_layers=requested_layers,
+        requested_refs=[str(value) for value in state.get("source_refs", []) or [] if str(value).strip()],
+        dimensions=[],
+        shape_maturity="candidate",
+        token_budget=resolve_token_budget(
+            int(policy_payload.get("token_budget", 0) or 0),
+            depth_mode=depth_mode,
+            policy_specified=policy_specified,
+        ),
+        persistence_mode=str(session_envelope.get("persistence_mode", "gated") or "gated"),
+        explicit_pins=[str(value) for value in attributes.get("explicit_pins", []) or [] if str(value).strip()],
+        explicit_denials=list(dict.fromkeys(explicit_denials)),
+        cross_ocean=bool(policy_payload.get("cross_ocean")) if "cross_ocean" in policy_payload else None,
+    )
+    workspace_layers = ["session", "workspace", "user", "governed_global"] if state.get("active_workspace_id") else None
+    grant = normalize_effective_grant(requested, workspace_layers=workspace_layers)
+    grant_dict = grant.to_dict()
+    grant_dict["token_budget_specified"] = policy_specified
+    from .disclosure_contracts import EffectiveGrant
+
+    return EffectiveGrant.from_dict(grant_dict)
+
+
+def effective_layers_to_bridge_layers(grant, available_layers: List[str]) -> List[str]:
+    available = set(available_layers)
+    bridge_layers: List[str] = []
+    for layer in grant.effective_layers:
+        bridge_layer = _GRANT_LAYER_TO_BRIDGE.get(layer, layer)
+        if bridge_layer in available and bridge_layer not in bridge_layers:
+            bridge_layers.append(bridge_layer)
+    if "session" in available and "session" not in bridge_layers:
+        bridge_layers.insert(0, "session")
+    return bridge_layers
+
+
 def build_frame_spec(
     context_state: Dict[str, Any],
     *,
@@ -1067,7 +1193,45 @@ def build_frame_spec(
     }
 
 
-def build_frame_bundle(
+def deterministic_budget_enforcement_enabled(root: Path) -> bool:
+    try:
+        from .disclosure_budget_allocator import deterministic_budget_enforcement_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return True
+
+
+def orient_first_compose_enabled(root: Path) -> bool:
+    try:
+        from .orient_first_compose import orient_first_compose_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return True
+
+
+def disclosure_service_enabled(root: Path) -> bool:
+    try:
+        from .disclosure_service import disclosure_service_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return False
+
+
+def execution_audit_isolation_enabled(root: Path | None) -> bool:
+    if root is None:
+        return True
+    try:
+        from .bridge_controller import load_bridge_config
+
+        return bool(load_bridge_config(root).get("execution_audit_isolation_v1", True))
+    except Exception:
+        return True
+
+
+def assemble_frame_bundle(
     context_state: Dict[str, Any],
     *,
     frame_spec: Dict[str, Any],
@@ -1205,11 +1369,128 @@ def build_frame_bundle(
     }
 
 
-def get_context_bundle(
+def split_frame_assembly(assembly: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    included_blocks = []
+    for row in assembly.get("included_blocks", []) or []:
+        clean = {key: value for key, value in dict(row).items() if key != "disclosure_state"}
+        included_blocks.append(clean)
+
+    suppressed_blocks = [dict(row) for row in assembly.get("suppressed_blocks", []) or []]
+    rejected_selectors = [dict(row) for row in assembly.get("rejected_selectors", []) or []]
+    included_refs: List[str] = []
+    for row in included_blocks:
+        source_ref = str(row.get("source_ref", "")).strip()
+        if source_ref and source_ref not in included_refs:
+            included_refs.append(source_ref)
+
+    audit_id = make_id("frame-audit")
+    execution_bundle = {
+        key: value
+        for key, value in assembly.items()
+        if key not in {"suppressed_blocks", "provenance_summary", "assembly_metrics"}
+    }
+    execution_bundle["included_blocks"] = included_blocks
+    execution_bundle["frame_audit_id"] = audit_id
+    execution_bundle["provenance_summary"] = {
+        "source_refs": included_refs,
+        "included_layer_count": len(included_blocks),
+    }
+    execution_bundle["assembly_metrics"] = {
+        **dict(assembly.get("assembly_metrics", {}) or {}),
+        "suppressed_block_count": 0,
+        "estimated_token_cost": sum(int(row.get("token_estimate", 0) or 0) for row in included_blocks),
+    }
+
+    frame_audit = {
+        "audit_id": audit_id,
+        "frame_id": assembly.get("frame_id", ""),
+        "request_id": assembly.get("request_id", ""),
+        "session_id": assembly.get("session_id", ""),
+        "workspace_id": assembly.get("workspace_id", ""),
+        "envelope_mode": assembly.get("envelope_mode", ""),
+        "assembly_status": assembly.get("assembly_status", ""),
+        "omitted_blocks": [
+            {
+                "block_id": row.get("block_id", ""),
+                "layer": row.get("layer", ""),
+                "reason_code": "layer_not_disclosed",
+                "summary": row.get("summary", ""),
+                "source_ref": row.get("source_ref", ""),
+                "disclosure_state": row.get("disclosure_state", "suppressed"),
+            }
+            for row in suppressed_blocks
+        ],
+        "suppressed_blocks": suppressed_blocks,
+        "rejected_selectors": rejected_selectors,
+        "provenance_summary": dict(assembly.get("provenance_summary", {}) or {}),
+        "assembly_metrics": dict(assembly.get("assembly_metrics", {}) or {}),
+    }
+    return execution_bundle, frame_audit
+
+
+def build_frame_audit(
+    context_state: Dict[str, Any],
+    *,
+    frame_spec: Dict[str, Any],
+    envelope: Dict[str, Any],
+    disclosed_layers: List[str],
+    session_rows: List[Dict[str, Any]],
+    workspace_layer: Dict[str, Any],
+    user_patterns: List[Dict[str, Any]],
+    bridge_state: Dict[str, Any],
+    retrieval_bundle: Dict[str, Any],
+) -> Dict[str, Any]:
+    assembly = assemble_frame_bundle(
+        context_state,
+        frame_spec=frame_spec,
+        envelope=envelope,
+        disclosed_layers=disclosed_layers,
+        session_rows=session_rows,
+        workspace_layer=workspace_layer,
+        user_patterns=user_patterns,
+        bridge_state=bridge_state,
+        retrieval_bundle=retrieval_bundle,
+    )
+    _, frame_audit = split_frame_assembly(assembly)
+    return frame_audit
+
+
+def build_frame_bundle(
+    context_state: Dict[str, Any],
+    *,
+    frame_spec: Dict[str, Any],
+    envelope: Dict[str, Any],
+    disclosed_layers: List[str],
+    session_rows: List[Dict[str, Any]],
+    workspace_layer: Dict[str, Any],
+    user_patterns: List[Dict[str, Any]],
+    bridge_state: Dict[str, Any],
+    retrieval_bundle: Dict[str, Any],
+    root: Path | None = None,
+) -> Dict[str, Any]:
+    assembly = assemble_frame_bundle(
+        context_state,
+        frame_spec=frame_spec,
+        envelope=envelope,
+        disclosed_layers=disclosed_layers,
+        session_rows=session_rows,
+        workspace_layer=workspace_layer,
+        user_patterns=user_patterns,
+        bridge_state=bridge_state,
+        retrieval_bundle=retrieval_bundle,
+    )
+    if execution_audit_isolation_enabled(root):
+        execution_bundle, _ = split_frame_assembly(assembly)
+        return execution_bundle
+    return assembly
+
+
+def _assemble_bridge_context_bundle_impl(
     root: Path,
     context_state: Dict[str, Any],
     *,
     budget: Dict[str, Any] | None = None,
+    candidate_search: Any | None = None,
 ) -> Dict[str, Any]:
     ensure_reasoning_runtime(root)
     state = bind_workspace(root, context_state)
@@ -1258,6 +1539,7 @@ def get_context_bundle(
         resolved_budget,
         attributes,
         retrieval_mode,
+        orient_first_enabled=orient_first_compose_enabled(root),
     )
     if retrieval_mode == CONTEXT_MODE_SESSION_ONLY:
         resolved_budget["use_global"] = False
@@ -1312,32 +1594,114 @@ def get_context_bundle(
         include_cross_pond = bool(note_retrieval_policy.get("cross_ocean"))
     else:
         include_cross_pond = bool(policy.get("cross_ocean")) if policy else state.get("depth_mode") == "deep"
-    if resolved_budget["use_global"] and state.get("active_topic"):
-        retrieval_bundle = build_retrieval_bundle(
-            root,
-            state["active_topic"],
-            limit=int(resolved_budget["retrieval_limit"]),
-            neighbor_limit=int(resolved_budget["neighbor_limit"]),
-            include_cross_pond=include_cross_pond,
-        )
 
     session_envelope = build_session_envelope(state, policy=policy)
+    if resolved_budget["use_global"] and state.get("active_topic"):
+        if candidate_search is not None:
+            retrieval_bundle = candidate_search.build_retrieval_bundle(
+                root,
+                state["active_topic"],
+                limit=int(resolved_budget["retrieval_limit"]),
+                neighbor_limit=int(resolved_budget["neighbor_limit"]),
+                include_cross_pond=include_cross_pond,
+            )
+        else:
+            retrieval_bundle = build_retrieval_bundle(
+                root,
+                state["active_topic"],
+                limit=int(resolved_budget["retrieval_limit"]),
+                neighbor_limit=int(resolved_budget["neighbor_limit"]),
+                include_cross_pond=include_cross_pond,
+            )
 
-    layer_names = ["session"]
+    orient_first_enabled = orient_first_compose_enabled(root)
+    from .library_tracker import CHAT_CONVERTER_SEED_CORPUS_REVISION
+    from .orient_first_compose import build_active_state_snapshot, load_orient_first_config
+
+    orient_config = load_orient_first_config(root)
+    active_state_snapshot = build_active_state_snapshot(
+        state,
+        {
+            "request_id": state.get("request_id", ""),
+            "active_topic": state.get("active_topic", ""),
+            "user_goal": state.get("user_goal", ""),
+            "reasoning_posture": state.get("reasoning_posture", ""),
+            "object_scope": state.get("object_scope", "same_main"),
+        },
+        workspace_layer=workspace_layer,
+        session_envelope=session_envelope,
+        corpus_revision=CHAT_CONVERTER_SEED_CORPUS_REVISION,
+    )
+
+    available_layers = ["session"]
     if workspace_layer:
-        layer_names.append("workspace")
+        available_layers.append("workspace")
     if user_patterns or bridge_state.get("personalization") or bridge_state.get("presentation", {}).get("current_mode"):
-        layer_names.append("user")
+        available_layers.append("user")
     if retrieval_bundle.get("count"):
-        layer_names.append("global")
+        available_layers.append("global")
     if note_retrieval_policy.get("include_layers"):
         allowed_layers = {str(value) for value in note_retrieval_policy.get("include_layers", []) or []}
-        layer_names = [layer for layer in layer_names if layer in allowed_layers]
+        available_layers = [layer for layer in available_layers if layer in allowed_layers]
     if note_retrieval_policy.get("exclude_layers"):
         blocked_layers = {str(value) for value in note_retrieval_policy.get("exclude_layers", []) or []}
-        layer_names = [layer for layer in layer_names if layer not in blocked_layers]
-    layer_names = _apply_layer_policy(layer_names, policy)
-    layer_names = _apply_session_envelope_to_layers(layer_names, session_envelope)
+        available_layers = [layer for layer in available_layers if layer not in blocked_layers]
+
+    effective_grant = build_effective_grant_from_context(state, policy, session_envelope)
+    active_state_transition: Dict[str, Any] = {}
+    active_state_continuity_on = False
+    try:
+        from .active_state_continuity import active_state_continuity_enabled, apply_active_state_continuity
+
+        active_state_continuity_on = active_state_continuity_enabled(root)
+        if active_state_continuity_on:
+            active_state_snapshot, active_state_transition = apply_active_state_continuity(
+                root,
+                active_state_snapshot,
+                effective_grant=effective_grant.to_dict(),
+                session_envelope=session_envelope,
+                surface="bridge",
+                context_state=state,
+            )
+    except Exception:
+        active_state_transition = {}
+    if effective_grant_normalization_enabled(root):
+        layer_names = effective_layers_to_bridge_layers(effective_grant, available_layers)
+    else:
+        layer_names = list(available_layers)
+        layer_names = _apply_layer_policy(layer_names, policy)
+        layer_names = _apply_session_envelope_to_layers(layer_names, session_envelope)
+
+    widen_grant_id = str(
+        (attributes.get("caller_hints", {}) or {}).get("second_pass_widen_grant_id")
+        or (attributes.get("caller_hints", {}) or {}).get("widen_grant_id")
+        or ""
+    ).strip()
+    if (
+        widen_grant_id
+        and note_agent_state
+        and not note_agent_state.get("widen_blocked")
+        and "global" in note_retrieval_policy.get("include_layers", [])
+        and retrieval_bundle.get("count")
+    ):
+        if "global" not in layer_names and "global" in available_layers:
+            layer_names.append("global")
+        if "governed_global" not in effective_grant.effective_layers:
+            effective_grant = replace(
+                effective_grant,
+                effective_layers=[*effective_grant.effective_layers, "governed_global"],
+                narrowing_reasons=[
+                    *list(effective_grant.narrowing_reasons),
+                    {
+                        "code": "second_pass_widen_grant",
+                        "field": "effective_layers",
+                        "requested": list(effective_grant.effective_layers),
+                        "effective": [*effective_grant.effective_layers, "governed_global"],
+                        "reason": f"Explicit second-pass widen grant {widen_grant_id}",
+                    },
+                ],
+            )
+
     state["bundle_layers"] = layer_names
     frame_spec = build_frame_spec(
         state,
@@ -1349,7 +1713,7 @@ def get_context_bundle(
         bridge_state=bridge_state,
         retrieval_bundle=retrieval_bundle,
     )
-    frame_bundle = build_frame_bundle(
+    frame_assembly = assemble_frame_bundle(
         state,
         frame_spec=frame_spec,
         envelope=session_envelope,
@@ -1360,6 +1724,46 @@ def get_context_bundle(
         bridge_state=bridge_state,
         retrieval_bundle=retrieval_bundle,
     )
+    budget_audit: Dict[str, Any] = {}
+    if deterministic_budget_enforcement_enabled(root):
+        from .disclosure_budget_allocator import apply_frame_budget_to_assembly
+
+        budget_audit = apply_frame_budget_to_assembly(
+            frame_assembly,
+            context_state=state,
+            effective_grant=effective_grant.to_dict(),
+            root=root,
+            corpus_revision=CHAT_CONVERTER_SEED_CORPUS_REVISION,
+            session_event_count=len(session_rows),
+        )
+    if execution_audit_isolation_enabled(root):
+        frame_bundle, frame_audit = split_frame_assembly(frame_assembly)
+    else:
+        frame_bundle = frame_assembly
+        frame_audit = {}
+    if budget_audit:
+        dropped_blocks = list(budget_audit.get("dropped_blocks", []) or [])
+        if dropped_blocks:
+            frame_audit.setdefault("omitted_blocks", [])
+            frame_audit["omitted_blocks"].extend(
+                {
+                    "block_id": row.get("block_id", ""),
+                    "layer": row.get("layer", ""),
+                    "reason_code": "budget_insufficient",
+                    "summary": row.get("summary", ""),
+                    "source_ref": row.get("source_ref", ""),
+                    "disclosure_state": "dropped",
+                }
+                for row in dropped_blocks
+            )
+        frame_audit["drop_ledger"] = list(budget_audit.get("drop_ledger", []) or [])
+        frame_audit["budget_ledger"] = dict(budget_audit.get("budget_ledger", {}) or {})
+        frame_audit["budget_summary"] = dict(budget_audit.get("budget_summary", {}) or {})
+        frame_audit["budget_policy_hash"] = str(budget_audit.get("policy_hash", "") or "")
+        frame_bundle["budget_summary"] = dict(budget_audit.get("budget_summary", {}) or {})
+        frame_bundle["result_status"] = str(budget_audit.get("result_status", "") or frame_bundle.get("result_status", "disclosed"))
+        if "drop_ledger" in frame_bundle:
+            del frame_bundle["drop_ledger"]
 
     bundle = {
         "context_state": state,
@@ -1369,6 +1773,8 @@ def get_context_bundle(
         "session_envelope": session_envelope,
         "frame_spec": frame_spec,
         "frame_bundle": frame_bundle,
+        "frame_audit": frame_audit,
+        "effective_grant": effective_grant.to_dict(),
         "session_local": session_rows if "session" in layer_names else [],
         "workspace_local": workspace_layer if "workspace" in layer_names else {},
         "user_local": {
@@ -1387,14 +1793,103 @@ def get_context_bundle(
             "anchor_pond": "",
             "include_cross_pond": False,
         },
+        "active_state_snapshot": active_state_snapshot,
+        "active_state_transition": active_state_transition,
+        "active_state_continuity_v1": active_state_continuity_on,
+        "orient_first_compose_v1": orient_first_enabled,
+        "orientation_max_chars": int(orient_config.get("orientation_max_chars", 480) or 480),
     }
     if policy:
         bundle["context_policy"] = policy
+    bundle["execution_audit_isolation_v1"] = execution_audit_isolation_enabled(root)
+    bundle["deterministic_budget_enforcement_v1"] = deterministic_budget_enforcement_enabled(root)
+    bundle["orient_first_compose_v1"] = orient_first_enabled
+    if budget_audit:
+        bundle["budget_audit"] = {
+            "result_status": budget_audit.get("result_status", ""),
+            "budget_ledger": dict(budget_audit.get("budget_ledger", {}) or {}),
+            "drop_ledger": list(budget_audit.get("drop_ledger", []) or []),
+            "estimator_version": budget_audit.get("estimator_version", ""),
+            "reservation_version": budget_audit.get("reservation_version", ""),
+        }
+        bundle["result_status"] = str(budget_audit.get("result_status", "") or "disclosed")
 
     pending = state.get("attributes", {}).get("pending_switch_event")
     if pending:
         pending["retrieval_sources"] = list(retrieval_bundle.get("source_refs", []))
     return bundle
+
+
+def get_context_bundle(
+    root: Path,
+    context_state: Dict[str, Any],
+    *,
+    budget: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    if disclosure_service_enabled(root):
+        from .bridge_disclosure_adapter import disclose_for_bridge
+
+        return disclose_for_bridge(root, context_state, budget=budget)
+    bundle = _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
+    bundle["disclosure_receipt"] = _record_bridge_disclosure_receipt(root, bundle)
+    return bundle
+
+
+def _record_bridge_disclosure_receipt(root: Path, bundle: Dict[str, Any]) -> Dict[str, Any]:
+    from .disclosure_receipts import record_bridge_context_receipt
+
+    return record_bridge_context_receipt(root, bundle)
+
+
+def inspect_disclosure_receipt(root: Path, receipt_id: str) -> Dict[str, Any]:
+    from .disclosure_receipts import inspect_disclosure_receipt as _inspect
+
+    return _inspect(root, receipt_id)
+
+
+def list_disclosure_receipts(
+    root: Path,
+    *,
+    request_id: str = "",
+    surface: str = "",
+    workspace_id: str = "",
+    limit: int = 20,
+) -> List[Dict[str, Any]]:
+    from .disclosure_receipts import list_disclosure_receipts as _list
+
+    return _list(
+        root,
+        request_id=request_id,
+        surface=surface,
+        workspace_id=workspace_id,
+        limit=limit,
+    )
+
+
+def inspect_aperture_operator_view(
+    root: Path,
+    *,
+    surface: str = "",
+    corpus_revision: str = "",
+    receipt_limit: int | None = None,
+) -> Dict[str, Any]:
+    from .aperture_operator_metrics import inspect_operator_view
+
+    return inspect_operator_view(
+        root,
+        surface=surface,
+        corpus_revision=corpus_revision,
+        receipt_limit=receipt_limit,
+    )
+
+
+def active_state_continuity_enabled(root: Path) -> bool:
+    try:
+        from .active_state_continuity import active_state_continuity_enabled as _enabled
+
+        return bool(_enabled(root))
+    except Exception:
+        return False
 
 
 def record_context_switch(root: Path, event: Dict[str, Any]) -> Dict[str, Any]:

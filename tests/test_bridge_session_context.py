@@ -123,7 +123,7 @@ class BridgeSessionContextTestCase(unittest.TestCase):
             "session_id": "session-ctx-005",
             "surface": "thought_chat",
             "raw_text": "I think this pattern connects to earlier notes. What does it suggest?",
-            "caller_hints": {"workspace_id": "thought:thought-005", "thought_id": "thought-005"},
+            "caller_hints": {"workspace_id": "thought:thought-005", "thought_id": "thought-005", "second_pass_widen_grant_id": "grant-widen-005"},
             "domain_hints": [],
             "source_refs": [],
         }

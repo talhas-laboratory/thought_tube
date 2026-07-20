@@ -21,7 +21,41 @@
     "fallback": "heuristic",
     "emit_heuristic_preview": true,
     "execution_mode": "agent",
+    "execution_audit_isolation_v1": true,
+    "effective_grant_normalization_v1": true,
+    "deterministic_budget_enforcement_v1": true,
+    "orient_first_compose_v1": true,
+    "disclosure_service_v1": false,
     "openclaw_mode": "auto"
+  },
+  "knowledge": {
+    "fail_empty_admission_shadow_v1": true,
+    "fail_empty_admission_enforce_v1": true
+  },
+  "disclosure": {
+    "estimator_version": "1.0",
+    "reservation_version": "1.0",
+    "orientation_max_chars": 480,
+    "budget_reservations": {
+      "system_tokens": 120,
+      "answer_tokens": 256,
+      "orientation_max_tokens": 120
+    },
+    "persistent_receipts_v1": false,
+    "receipts": {
+      "persistent_receipts_v1": false,
+      "max_entries": 500,
+      "retention_days": 30
+    },
+    "active_state": {
+      "continuity_v1": false,
+      "max_transitions": 200
+    }
+  },
+  "holodeck": {
+    "disclosure_service_v1": false,
+    "contextualization_retrieval_limit": 6,
+    "contextualization_neighbor_limit": 4
   },
   "self_improvement": {
     "enabled": false,

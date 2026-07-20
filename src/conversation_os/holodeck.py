@@ -520,8 +520,13 @@ def _score_matched_terms(text_terms: set[str], seed_terms: list[str], *, layer_p
     return score, matched
 
 
-def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bundle: dict, artifacts: list[dict], max_source_refs: int) -> tuple[list[dict], list[str]]:
-    seed_terms = list(seed_bundle.get("combined_terms", []))
+def _collect_workspace_projection_candidates(
+    root: Path,
+    seed_terms: list[str],
+    artifacts: list[dict],
+    *,
+    max_source_refs: int,
+) -> tuple[list[dict], list[str]]:
     candidates: list[dict] = []
     consulted_layers: list[str] = []
     seen_source_refs: set[str] = set()
@@ -592,12 +597,18 @@ def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bu
                 }
             )
 
-    consulted_layers.append("meta_layer")
+    return candidates, consulted_layers
+
+
+def _collect_legacy_meta_layer_candidates(root: Path, seed_terms: list[str]) -> tuple[list[dict], list[str]]:
+    """Legacy Holodeck term-matching scorer; isolated when disclosure_service_v1 is enabled."""
+    candidates: list[dict] = []
+    consulted_layers = ["meta_layer"]
     for row in load_meta_records(root, kinds=["guardrail", "direction", "shared_primitive", "question"]):
         text = " ".join([row.get("label", ""), row.get("summary", "")])
         score, matched = _score_matched_terms(set(_normalized_context_terms(text)), seed_terms, layer_priority=4)
         if matched:
-            append_candidate(
+            candidates.append(
                 {
                     "candidate_kind": "knowledge",
                     "source_layer": f"meta_{row.get('kind', 'meta')}",
@@ -610,7 +621,39 @@ def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bu
                     "meta_kind": row.get("kind", ""),
                 }
             )
+    return candidates, consulted_layers
 
+
+def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bundle: dict, artifacts: list[dict], max_source_refs: int) -> tuple[list[dict], list[str]]:
+    seed_terms = list(seed_bundle.get("combined_terms", []))
+    candidates, consulted_layers = _collect_workspace_projection_candidates(
+        root,
+        seed_terms,
+        artifacts,
+        max_source_refs=max_source_refs,
+    )
+
+    try:
+        from .holodeck_disclosure_adapter import (
+            collect_disclosure_knowledge_candidates,
+            holodeck_disclosure_service_enabled,
+        )
+
+        disclosure_enabled = holodeck_disclosure_service_enabled(root)
+    except Exception:
+        disclosure_enabled = False
+
+    if disclosure_enabled:
+        knowledge_candidates, knowledge_layers = collect_disclosure_knowledge_candidates(
+            root,
+            seed_bundle,
+            max_source_refs=max_source_refs,
+        )
+    else:
+        knowledge_candidates, knowledge_layers = _collect_legacy_meta_layer_candidates(root, seed_terms)
+
+    candidates.extend(knowledge_candidates)
+    consulted_layers.extend(knowledge_layers)
     candidates.sort(key=lambda item: (-item.get("score", 0), -float(item.get("confidence", 0)), item.get("title", "")))
     return candidates[: max_source_refs * 4], consulted_layers
 
@@ -4362,6 +4405,51 @@ def holodeck_artifacts(root: Path, args: argparse.Namespace) -> dict:
         "artifact_counts": _count_by(artifacts, "artifact_kind"),
         "artifacts": artifacts,
     }
+
+
+def holodeck_load_active_state_continuity(root: Path, workspace_id: str) -> dict | None:
+    from .active_state_continuity import load_latest_snapshot_for_workspace
+
+    return load_latest_snapshot_for_workspace(root, workspace_id)
+
+
+def holodeck_list_disclosure_receipts(
+    root: Path,
+    *,
+    workspace_id: str = "",
+    limit: int = 20,
+) -> list[dict]:
+    from .disclosure_receipts import list_disclosure_receipts
+
+    return list_disclosure_receipts(
+        root,
+        surface="holodeck",
+        workspace_id=workspace_id,
+        limit=limit,
+    )
+
+
+def holodeck_inspect_disclosure_receipt(root: Path, receipt_id: str) -> dict:
+    from .disclosure_receipts import inspect_disclosure_receipt
+
+    return inspect_disclosure_receipt(root, receipt_id)
+
+
+def holodeck_inspect_aperture_operator_view(
+    root: Path,
+    *,
+    surface: str = "",
+    corpus_revision: str = "",
+    receipt_limit: int | None = None,
+) -> dict:
+    from .aperture_operator_metrics import inspect_operator_view
+
+    return inspect_operator_view(
+        root,
+        surface=surface,
+        corpus_revision=corpus_revision,
+        receipt_limit=receipt_limit,
+    )
 
 
 def holodeck_contextualize(root: Path, args: argparse.Namespace) -> dict:
