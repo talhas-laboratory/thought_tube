@@ -1,0 +1,39 @@
+{
+  "module_id": "kernel.shape_population.evidence",
+  "path": "src/conversation_os/shape_population/evidence.py",
+  "layer": "kernel",
+  "owner": "Deterministic build_evidence_packet assembly.",
+  "purpose": "Deterministic build_evidence_packet assembly.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "build_evidence_packet"
+  ],
+  "contains": [
+    "Deterministic build_evidence_packet assembly."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_evidence.py"
+  ]
+}

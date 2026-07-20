@@ -1,0 +1,28 @@
+{
+  "module_id": "kernel.shape_population.worker",
+  "path": "src/conversation_os/shape_population/worker.py",
+  "layer": "kernel",
+  "owner": "Shape Intelligence population package (src/conversation_os/shape_population/worker.py).",
+  "purpose": "Executable worker loop and CLI for claiming and processing Shape population jobs.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "build_worker",
+    "run_worker",
+    "main"
+  ],
+  "contains": [
+    "build_worker",
+    "run_worker",
+    "main"
+  ],
+  "depends_on": [
+    "kernel.shape_population"
+  ],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Added during PR35 production-path remediation."
+}

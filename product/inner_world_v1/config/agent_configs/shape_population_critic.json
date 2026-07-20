@@ -1,0 +1,25 @@
+{
+  "agent_id": "shape_population_critic",
+  "contract_version": "1.0.0",
+  "domain": "shape_intelligence_population",
+  "role": "critic",
+  "allowed_tools": [
+    "find_comparison_candidates",
+    "submit_evaluation"
+  ],
+  "output_schema_version": "1.0.0",
+  "prompt_version": "shape-critic-v1",
+  "model_policy": "strict_json_critique",
+  "thinking_level": "high",
+  "timeout_seconds": 120,
+  "forbidden_actions": [
+    "shell",
+    "filesystem",
+    "network",
+    "registry_write",
+    "promotion",
+    "apply_promotion",
+    "request_promotion"
+  ],
+  "instructions_summary": "Shapes are interpretive multidimensional semantic objects. Cite only packet-bound evidence. Never invent authority, IDs, or promotion."
+}

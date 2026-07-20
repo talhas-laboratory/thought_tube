@@ -1,0 +1,28 @@
+{
+  "module_id": "kernel.shape_population.vault_bridge",
+  "path": "src/conversation_os/shape_population/vault_bridge.py",
+  "layer": "kernel",
+  "owner": "Shape Intelligence population package (src/conversation_os/shape_population/vault_bridge.py).",
+  "purpose": "Reconstruct vault source text into Shape normalize_source requests after ingest enqueue.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "reconstruct_vault_source_text",
+    "source_request_from_vault",
+    "merge_job_payload_with_vault"
+  ],
+  "contains": [
+    "reconstruct_vault_source_text",
+    "source_request_from_vault",
+    "merge_job_payload_with_vault"
+  ],
+  "depends_on": [
+    "kernel.shape_population"
+  ],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Added during PR35 production-path remediation."
+}

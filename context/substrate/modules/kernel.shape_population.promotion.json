@@ -1,0 +1,42 @@
+{
+  "module_id": "kernel.shape_population.promotion",
+  "path": "src/conversation_os/shape_population/promotion.py",
+  "layer": "kernel",
+  "owner": "Privileged request_promotion and apply_promotion operations.",
+  "purpose": "Privileged request_promotion and apply_promotion operations.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "request_promotion",
+    "apply_promotion",
+    "rollback_promotion",
+    "record_human_approval"
+  ],
+  "contains": [
+    "Privileged request_promotion and apply_promotion operations."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_promotion.py"
+  ]
+}

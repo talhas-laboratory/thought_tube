@@ -1,0 +1,22 @@
+{
+  "module_id": "baseline.tools.run-shape-population-worker",
+  "path": "tools/run_shape_population_worker.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/run_shape_population_worker.py`.",
+  "purpose": "CLI entrypoint for the Shape population asynchronous worker.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "main"
+  ],
+  "contains": [
+    "main"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Thin wrapper around conversation_os.shape_population.worker."
+}

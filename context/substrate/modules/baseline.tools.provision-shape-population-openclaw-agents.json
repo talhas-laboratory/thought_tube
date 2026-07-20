@@ -1,0 +1,26 @@
+{
+  "module_id": "baseline.tools.provision-shape-population-openclaw-agents",
+  "path": "tools/provision_shape_population_openclaw_agents.py",
+  "layer": "tooling",
+  "owner": "Baseline ownership record for `tools/provision_shape_population_openclaw_agents.py`.",
+  "purpose": "Provision least-privilege OpenClaw agent config receipts for Shape population roles.",
+  "status": "active",
+  "version": "0.1.0",
+  "public_api": [
+    "main",
+    "provision_shape_population_agents",
+    "ROLE_AGENTS"
+  ],
+  "contains": [
+    "main",
+    "provision_shape_population_agents",
+    "ROLE_AGENTS"
+  ],
+  "depends_on": [],
+  "feeds_into": [],
+  "inputs": [],
+  "outputs": [],
+  "state_owned": [],
+  "surfaces_using": [],
+  "notes": "Baseline registry entry for Shape population OpenClaw provisioning tool."
+}
