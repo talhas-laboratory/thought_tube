@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-critique -->
-<!-- canonical_revision: 3522507024c67ef75b89bd79db9e6131c71bd0c094cfdaefb11d562786a77130 -->
+<!-- canonical_revision: 62a29bd3610c729fb21623034aabb6d140f8ca5fea67bbda9831b99e21b0eb99 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T11:33:24+00:00 -->
+<!-- generated_at: 2026-07-20T11:42:45+00:00 -->
 
 # Workspace continuity: shape-intelligence-critique
 
