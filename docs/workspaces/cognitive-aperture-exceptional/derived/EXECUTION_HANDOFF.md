@@ -2,7 +2,7 @@
 
 ## Fresh-agent boot
 
-1. Read `AGENT_BOOT.md`, `GAP_MAP.md`, ADR-002, this file, then the selected leaf packet.
+1. Read `AGENT_BOOT.md`, `GAP_MAP.md`, `REMEDIATION_GAP_OVERVIEW.md`, ADR-002, this file, then the selected leaf packet.
 2. Query live coordination; never trust a projected `Status:` alone.
 3. Refresh the overview and pass the engineering guard using only the task's listed paths.
 4. Run the task's baseline command before editing; record exact output and the corpus revision.
@@ -41,3 +41,5 @@ python tools/conversation_os.py inner-world library-status
 ```
 
 For every task, add a focused pytest command, expected positive and negative result, fixture revision/hash, changed paths, flag/rollback operation, and residual risk to the live task before review. A task without those fields is not ready to claim.
+
+The post-implementation audit found release-blocking gaps despite the projected `done` states. Treat `REMEDIATION_GAP_OVERVIEW.md` as the remediation specification and query live coordination before changing any task status.
