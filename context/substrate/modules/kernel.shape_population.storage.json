@@ -1,0 +1,40 @@
+{
+  "module_id": "kernel.shape_population.storage",
+  "path": "src/conversation_os/shape_population/storage.py",
+  "layer": "kernel",
+  "owner": "Transactional provisional candidate and receipt persistence.",
+  "purpose": "Transactional provisional candidate and receipt persistence.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "PopulationStore",
+    "shape_population_dir"
+  ],
+  "contains": [
+    "Transactional provisional candidate and receipt persistence."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_governance.py"
+  ]
+}

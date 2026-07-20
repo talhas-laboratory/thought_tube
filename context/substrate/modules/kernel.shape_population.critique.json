@@ -1,0 +1,41 @@
+{
+  "module_id": "kernel.shape_population.critique",
+  "path": "src/conversation_os/shape_population/critique.py",
+  "layer": "kernel",
+  "owner": "find_comparison_candidates and submit_evaluation tools.",
+  "purpose": "find_comparison_candidates and submit_evaluation tools.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "find_comparison_candidates",
+    "submit_evaluation",
+    "critic_tool_surface"
+  ],
+  "contains": [
+    "find_comparison_candidates and submit_evaluation tools."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_critique.py"
+  ]
+}

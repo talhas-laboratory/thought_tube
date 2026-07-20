@@ -1,0 +1,30 @@
+{
+  "packet_id": "pkt-8ae6cbe1fe7790523b91",
+  "title": "Causal mechanism A",
+  "statement": "A produces B inside boundary C.",
+  "boundary": "Applies only when C holds.",
+  "mechanism": "A -> B",
+  "dimensions": [
+    "causality"
+  ],
+  "evidence_refs": [
+    {
+      "source_id": "9f4e23a813ec4e415c62c72d",
+      "segment_id": "20b75736a25c7d44846a1f12",
+      "char_start": 0,
+      "char_end": 40,
+      "text_sha256": "936a48792d0b2912557983d2261a3c4568c1a42ca93a33203fa027ed34725f6d"
+    }
+  ],
+  "counter_hypotheses": [
+    "B may be independent of A"
+  ],
+  "uncertainty": "medium",
+  "recommended_disposition": "proposed",
+  "agent_identity": "shape.proposer",
+  "model_version": "stub-1",
+  "prompt_version": "prop-1",
+  "tool_contract_version": "1.0.0",
+  "run_id": "run-proposer-1",
+  "idempotency_key": "cand-key-1"
+}
