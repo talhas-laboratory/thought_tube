@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -187,7 +188,7 @@ def _bridge_behaviors_dir(root: Path) -> Path:
 def load_bridge_behavior_specs(root: Path) -> Dict[str, Dict[str, Any]]:
     behavior_dir = _bridge_behaviors_dir(root)
     if not behavior_dir.exists():
-        return dict(BRIDGE_BEHAVIOR_RULES)
+        return copy.deepcopy(BRIDGE_BEHAVIOR_RULES)
 
     specs: Dict[str, Dict[str, Any]] = {}
     for path in sorted(behavior_dir.glob("*.json")):
@@ -202,7 +203,7 @@ def load_bridge_behavior_specs(root: Path) -> Dict[str, Dict[str, Any]]:
         specs[behavior_id] = normalized
 
     if not specs:
-        return dict(BRIDGE_BEHAVIOR_RULES)
+        return copy.deepcopy(BRIDGE_BEHAVIOR_RULES)
     return specs
 
 

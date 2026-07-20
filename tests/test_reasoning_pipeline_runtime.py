@@ -7,6 +7,7 @@ from pathlib import Path
 
 from conversation_os.active_field import build_active_field
 from conversation_os.cli import build_parser, reasoning_run
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.models import (
     ActiveFieldState,
     ContextState,
@@ -284,6 +285,7 @@ class ReasoningRuntimeBridgeAndFieldTestCase(unittest.TestCase):
                     "attributes": {"domain": "runtime"},
                 },
             )
+            publish_corpus_catalog_snapshot(root)
             request = ReasoningRequest(
                 request_id="req-bridge-002",
                 session_id="session-bridge-002",
@@ -354,6 +356,7 @@ class ReasoningRuntimeBridgeAndFieldTestCase(unittest.TestCase):
                     "attributes": {"domain": "runtime"},
                 },
             )
+            publish_corpus_catalog_snapshot(root)
             request = ReasoningRequest(
                 request_id="req-field-001",
                 session_id="session-field-001",
