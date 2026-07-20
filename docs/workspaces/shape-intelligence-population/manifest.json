@@ -8,6 +8,7 @@
   "success_condition": "New content is processed asynchronously into provenance-backed, schema-valid provisional Shape candidates that are independently critiqued, deterministically validated, evaluated, and promoted only by a designated canonical authority.",
   "artifact_roots": [
     "docs/workspaces/shape-intelligence-population/",
+    "docs/workspaces/shape-intelligence-population/derived/TOOL_BOUNDARIES.md",
     "docs/workspaces/cognitive-aperture-exceptional/derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md",
     "docs/workspaces/cognitive-aperture-exceptional/derived/REMEDIATION_GAP_OVERVIEW.md",
     "docs/workspaces/unified-framework-synthesis/",

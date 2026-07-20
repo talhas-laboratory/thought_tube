@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-normalization -->
-<!-- canonical_revision: 0ee819a6f4adc5763832f3cc76974b1bf19b8eb815c51032d8c05c0db1ec5a8e -->
+<!-- canonical_revision: 564a9026be908023b53d8c16dab3253fac4d48ea808734e9eb135aa1b5ee4fe4 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T11:25:02+00:00 -->
+<!-- generated_at: 2026-07-20T11:33:22+00:00 -->
 
 # Workspace continuity: shape-intelligence-normalization
 

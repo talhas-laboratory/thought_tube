@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-population -->
-<!-- canonical_revision: 304b8ed8c2b9c3d162ffd2063e9e59864dfb32facc03cf606e836f767f70f03f -->
+<!-- canonical_revision: fcf5a9e85dc65db0e93ec4c68e9443df328c7a8a8d2d2ef8b6397ca0d0b02481 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T10:13:06+00:00 -->
+<!-- generated_at: 2026-07-20T11:33:41+00:00 -->
 
 # Workspace continuity: shape-intelligence-population
 

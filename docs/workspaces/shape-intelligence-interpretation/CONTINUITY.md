@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-interpretation -->
-<!-- canonical_revision: e241ff29036bf06b114383e61c9a7aa7e2d06b9fa20c2a20017ee090b5579006 -->
+<!-- canonical_revision: 24d2c44362b29dbd2f792ea5cca789ad9b22f27defc0852b71bfb1300ba5239e -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T11:25:02+00:00 -->
+<!-- generated_at: 2026-07-20T11:33:23+00:00 -->
 
 # Workspace continuity: shape-intelligence-interpretation
 

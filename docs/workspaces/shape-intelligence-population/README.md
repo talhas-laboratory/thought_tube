@@ -28,7 +28,9 @@ Three restricted identities operate only on bounded, injection-safe evidence pac
 2. **Critic**: tests for unsupported abstraction, duplication, missed negative evidence, overbroad scope, and contamination.
 3. **Synthesizer**: reconciles the proposal and critique into accepted, rejected, or needs-review candidate records; it never promotes canon.
 
-The deterministic control plane owns input admission/redaction; source and segment identity; schema and evidence-span validation; versioning; idempotency; retry and cost limits; candidate persistence; dedupe; telemetry; and promotion-queue routing.
+The deterministic control plane owns automatic normalization and evidence assembly before intelligence, plus validation, transactional persistence, receipts, idempotency, budgets, and policy enforcement afterward. Similarity is consulted only after intelligence has formed a candidate.
+
+The first population identities receive exactly three tools: `submit_candidate`, `find_comparison_candidates`, and `submit_evaluation`. Promotion is a separate privileged surface. See [Tool Boundaries](derived/TOOL_BOUNDARIES.md).
 
 ## Hard boundaries
 

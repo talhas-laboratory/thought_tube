@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-evidence -->
-<!-- canonical_revision: ce683a63acb46bb92ac4a224cd724ab988a9f5305407511d05b0c31cc2a47b9d -->
+<!-- canonical_revision: eb158c8c76703dfddc19bf57cfee43b41e750860f0f3358ca3414a3405ea59ce -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T11:25:02+00:00 -->
+<!-- generated_at: 2026-07-20T11:33:23+00:00 -->
 
 # Workspace continuity: shape-intelligence-evidence
 
