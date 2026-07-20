@@ -493,6 +493,20 @@ def _resolve_workspace_source_ref(root: Path, source_ref: str) -> Path | None:
     return resolved if resolved.exists() else None
 
 
+def _relative_workspace_path(root: Path, path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(root.resolve()))
+    except ValueError:
+        return f"external:{path.resolve()}"
+
+
+def _workspace_source_ref_display(root: Path, path: Path, explicit_ref: str = "") -> str:
+    explicit = str(explicit_ref or "").strip()
+    if explicit:
+        return explicit
+    return _relative_workspace_path(root, path)
+
+
 def _candidate_snippet(text: str, matched_terms: list[str], limit: int = 220) -> str:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     lower_terms = set(matched_terms)
@@ -569,7 +583,7 @@ def _collect_workspace_projection_candidates(
                 {
                     "candidate_kind": "context",
                     "source_layer": "artifact_doc",
-                    "source_ref": artifact.get("source_ref", str(path.relative_to(root))),
+                    "source_ref": _workspace_source_ref_display(root, path, str(artifact.get("source_ref", "") or "")),
                     "title": artifact.get("title", "") or _doc_heading(path),
                     "statement": _candidate_snippet(text, matched),
                     "matched_terms": matched,
@@ -588,7 +602,7 @@ def _collect_workspace_projection_candidates(
                 {
                     "candidate_kind": "context",
                     "source_layer": "plan_doc",
-                    "source_ref": str(path.relative_to(root)),
+                    "source_ref": _workspace_source_ref_display(root, path),
                     "title": _doc_heading(path),
                     "statement": _candidate_snippet(text, matched),
                     "matched_terms": matched,
