@@ -10,12 +10,38 @@ from conversation_os.shape_population.candidate_submission import submit_candida
 from conversation_os.shape_population.contracts import AuthorizationError, ValidationError
 from conversation_os.shape_population.critique import critic_tool_surface, find_comparison_candidates, submit_evaluation
 from conversation_os.shape_population.evidence import build_evidence_packet
+from conversation_os.shape_population.execution_context import ExecutionContext
 from conversation_os.shape_population.identities import CRITIC_IDENTITY, PROPOSER_IDENTITY, SYNTHESIZER_IDENTITY
 from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.promotion import apply_promotion
 from conversation_os.shape_population.storage import PopulationStore
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "shape_population" / "critique"
+
+
+def _context() -> ExecutionContext:
+    return ExecutionContext(
+        principal_id=PROPOSER_IDENTITY,
+        principal_kind="agent",
+        authenticated_by="unit-test",
+        capabilities=("shape.evidence.inquire",),
+    )
+
+
+def _refs(packet) -> list[dict]:
+    return [
+        {
+            "packet_id": packet.packet_id,
+            "block_id": block.block_id,
+            "source_id": block.source_id,
+            "segment_id": block.segment_id,
+            "char_start": block.char_start,
+            "char_end": block.char_end,
+            "text_sha256": block.text_sha256,
+            "normalization_version": block.normalization_version,
+        }
+        for block in packet.blocks
+    ]
 
 
 def _submit(store: PopulationStore, text: str, key: str, title: str) -> dict:
@@ -26,17 +52,9 @@ def _submit(store: PopulationStore, text: str, key: str, title: str) -> dict:
             "evidence_inquiry": {"question": "shape?", "requested_by": PROPOSER_IDENTITY},
         },
         store=store,
+        context=_context(),
     )
-    refs = [
-        {
-            "source_id": seg.source_id,
-            "segment_id": seg.segment_id,
-            "char_start": seg.char_start,
-            "char_end": seg.char_end,
-            "text_sha256": seg.text_sha256,
-        }
-        for seg in normalized.segments
-    ]
+    refs = _refs(packet)
     return submit_candidate(
         {
             "packet_id": packet.packet_id,
@@ -73,7 +91,7 @@ def test_comparison_precondition_and_vocabulary(store: PopulationStore) -> None:
     b = _submit(store, "Feedback loop amplifies noise.\n", "b", "Feedback loop noise")
     _submit(store, "Completely unrelated astronomy claim.\n", "c", "Astronomy")
     result = find_comparison_candidates(a["candidate_id"], store=store, limit=5)
-    assert result["authoritative_equivalence"] is False
+    assert "authoritative_equivalence" not in result
     assert len(result["neighbors"]) >= 1
     for neighbor in result["neighbors"]:
         assert neighbor["relation_hint"] in {
@@ -82,7 +100,7 @@ def test_comparison_precondition_and_vocabulary(store: PopulationStore) -> None:
             "possibly_conflicting",
             "possibly_distinct",
         }
-        assert neighbor["authoritative_equivalence"] is False
+        assert "authoritative_equivalence" not in neighbor
 
 
 def test_distinct_identity_and_no_canonical_tool(store: PopulationStore) -> None:
@@ -178,4 +196,4 @@ def test_false_merge_split_safe_ambiguous(store: PopulationStore) -> None:
         store=store,
     )
     assert store.get_candidate(left["candidate_id"])["candidate_id"] != right["candidate_id"]
-    assert comparison["authoritative_equivalence"] is False
+    assert "authoritative_equivalence" not in comparison

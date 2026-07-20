@@ -10,11 +10,37 @@ import pytest
 from conversation_os.shape_population.candidate_submission import proposer_tool_surface, submit_candidate
 from conversation_os.shape_population.contracts import AuthorizationError, ValidationError
 from conversation_os.shape_population.evidence import build_evidence_packet
+from conversation_os.shape_population.execution_context import ExecutionContext
 from conversation_os.shape_population.identities import CRITIC_IDENTITY, PROPOSER_IDENTITY
 from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.storage import PopulationStore
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "shape_population" / "interpretation"
+
+
+def _context() -> ExecutionContext:
+    return ExecutionContext(
+        principal_id=PROPOSER_IDENTITY,
+        principal_kind="agent",
+        authenticated_by="unit-test",
+        capabilities=("shape.evidence.inquire",),
+    )
+
+
+def _refs(packet) -> list[dict]:
+    return [
+        {
+            "packet_id": packet.packet_id,
+            "block_id": block.block_id,
+            "source_id": block.source_id,
+            "segment_id": block.segment_id,
+            "char_start": block.char_start,
+            "char_end": block.char_end,
+            "text_sha256": block.text_sha256,
+            "normalization_version": block.normalization_version,
+        }
+        for block in packet.blocks
+    ]
 
 
 def _seed(store: PopulationStore, text: str = "Mechanism A causes outcome B within boundary C.\n") -> dict:
@@ -28,17 +54,9 @@ def _seed(store: PopulationStore, text: str = "Mechanism A causes outcome B with
             },
         },
         store=store,
+        context=_context(),
     )
-    refs = [
-        {
-            "source_id": seg.source_id,
-            "segment_id": seg.segment_id,
-            "char_start": seg.char_start,
-            "char_end": seg.char_end,
-            "text_sha256": seg.text_sha256,
-        }
-        for seg in normalized.segments
-    ]
+    refs = _refs(packet)
     return {"packet": packet, "refs": refs}
 
 

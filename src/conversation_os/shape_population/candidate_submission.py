@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, Mapping, Optional
 
 from conversation_os.shape_population.governance import atomic_submit_candidate
+from conversation_os.shape_population.execution_context import CAP_CANDIDATE_SUBMIT, ExecutionContext
 from conversation_os.shape_population.identities import PROPOSER_IDENTITY, assert_tool_allowed, population_tool_surface
 from conversation_os.shape_population.storage import PopulationStore
 
@@ -30,15 +31,25 @@ def submit_candidate(
     payload: Mapping[str, Any],
     *,
     store: PopulationStore,
+    context: Optional[ExecutionContext] = None,
     timing_ms: int = 0,
     retry_count: int = 0,
     cost_units: float = 0.0,
 ) -> Dict[str, Any]:
     """Agent tool: submit an evidence-grounded provisional interpretation."""
-    identity = str(payload.get("agent_identity") or PROPOSER_IDENTITY)
+    if context is not None:
+        context.require_capability(CAP_CANDIDATE_SUBMIT)
+        identity = context.principal_id
+    else:
+        identity = str(payload.get("agent_identity") or PROPOSER_IDENTITY)
     assert_tool_allowed(identity, "submit_candidate")
     body = dict(payload)
     body["agent_identity"] = identity
+    if context is not None:
+        body["model_version"] = context.model_id
+        body["prompt_version"] = context.prompt_version
+        body["tool_contract_version"] = context.tool_contract_version
+        body["run_id"] = context.run_id
     return atomic_submit_candidate(
         store,
         body,

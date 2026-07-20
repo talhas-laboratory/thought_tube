@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from conversation_os.source_content_store import SourceContentStore
 from conversation_os.shape_population.normalization import NORMALIZATION_VERSION, normalize_source
 from conversation_os.shape_population.storage import PopulationStore
 
@@ -58,6 +59,23 @@ def test_exact_reconstruction_and_stable_ids(store: PopulationStore) -> None:
     assert first.content_sha256 == second.content_sha256
     assert [seg.segment_id for seg in first.segments] == [seg.segment_id for seg in second.segments]
     assert first.normalization_version == NORMALIZATION_VERSION
+
+
+def test_content_store_and_reference_only_persistence(tmp_path: Path) -> None:
+    store = PopulationStore(tmp_path)
+    content_store = SourceContentStore(tmp_path)
+    text = "Line one.\nLine two.\n"
+    normalized = normalize_source(
+        {"content": text, "modality": "plain_text"},
+        store=store,
+        content_store=content_store,
+    )
+    assert content_store.get_bytes(normalized.content_sha256) == text.encode("utf-8")
+    assert normalized.reconstructed_text() == text
+    persisted = store.get_source(normalized.source_id)
+    assert persisted is not None
+    assert all((segment.get("text") or "") == "" for segment in persisted["segments"])
+    assert all(segment.get("text_ref", {}).get("content_sha256") == normalized.content_sha256 for segment in persisted["segments"])
 
 
 def test_markdown_transcript_structure_paths(store: PopulationStore) -> None:
@@ -132,9 +150,9 @@ def test_redaction_provenance_retention(store: PopulationStore) -> None:
 
 def test_large_input_budget(store: PopulationStore) -> None:
     text = (FIXTURE_DIR / "large.txt").read_text(encoding="utf-8")
-    ok = normalize_source({"content": text, "modality": "plain_text", "max_chars": 50_000}, store=store)
+    ok = normalize_source({"content": text, "modality": "plain_text", "max_source_bytes": 50_000}, store=store)
     assert not ok.rejected
     assert len(ok.segments) <= 1000
-    rejected = normalize_source({"content": text, "modality": "plain_text", "max_chars": 10}, store=store)
+    rejected = normalize_source({"content": text, "modality": "plain_text", "max_source_bytes": 10}, store=store)
     assert rejected.rejected
-    assert "max_chars" in rejected.rejection_reason
+    assert "max_source_bytes" in rejected.rejection_reason

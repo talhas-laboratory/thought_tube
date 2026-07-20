@@ -7,9 +7,11 @@ from pathlib import Path
 import pytest
 
 from conversation_os.shape_population.candidate_submission import submit_candidate
+from conversation_os.shape_population.canonical_port import LocalRecordingCanonicalPort
 from conversation_os.shape_population.contracts import AuthorizationError, ForbiddenTransitionError, ValidationError
 from conversation_os.shape_population.critique import submit_evaluation
 from conversation_os.shape_population.evidence import build_evidence_packet
+from conversation_os.shape_population.execution_context import ExecutionContext
 from conversation_os.shape_population.identities import (
     CRITIC_IDENTITY,
     EVALUATOR_IDENTITY,
@@ -28,6 +30,31 @@ from conversation_os.shape_population.storage import PopulationStore
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "shape_population" / "promotion"
 
 
+def _context() -> ExecutionContext:
+    return ExecutionContext(
+        principal_id=PROPOSER_IDENTITY,
+        principal_kind="agent",
+        authenticated_by="unit-test",
+        capabilities=("shape.evidence.inquire",),
+    )
+
+
+def _refs(packet) -> list[dict]:
+    return [
+        {
+            "packet_id": packet.packet_id,
+            "block_id": block.block_id,
+            "source_id": block.source_id,
+            "segment_id": block.segment_id,
+            "char_start": block.char_start,
+            "char_end": block.char_end,
+            "text_sha256": block.text_sha256,
+            "normalization_version": block.normalization_version,
+        }
+        for block in packet.blocks
+    ]
+
+
 def _recommended_candidate(store: PopulationStore, key: str = "prom-1") -> tuple[dict, dict]:
     normalized = normalize_source(
         {"content": "Strong grounded mechanism with clear boundary.\n", "modality": "plain_text"},
@@ -39,17 +66,9 @@ def _recommended_candidate(store: PopulationStore, key: str = "prom-1") -> tuple
             "evidence_inquiry": {"question": "promote?", "requested_by": PROPOSER_IDENTITY},
         },
         store=store,
+        context=_context(),
     )
-    refs = [
-        {
-            "source_id": seg.source_id,
-            "segment_id": seg.segment_id,
-            "char_start": seg.char_start,
-            "char_end": seg.char_end,
-            "text_sha256": seg.text_sha256,
-        }
-        for seg in normalized.segments
-    ]
+    refs = _refs(packet)
     candidate = submit_candidate(
         {
             "packet_id": packet.packet_id,
@@ -165,11 +184,18 @@ def test_apply_promotion_and_rollback(store: PopulationStore) -> None:
         store=store,
         idempotency_key="prom-apply-1",
     )
-    applied = apply_promotion(
+    record_human_approval(
         requested["request"]["request_id"],
         store=store,
         approval_identity=HUMAN_APPROVER_ROLE,
         approval_reason="Looks solid",
+    )
+    port = LocalRecordingCanonicalPort()
+    applied = apply_promotion(
+        requested["request"]["request_id"],
+        store=store,
+        approval_identity=HUMAN_APPROVER_ROLE,
+        canonical_port=port,
     )
     assert applied["candidate"]["status"] == "canonical"
     assert store.get_canonical_projection(candidate["candidate_id"]) is not None
@@ -194,6 +220,7 @@ def test_apply_promotion_and_rollback(store: PopulationStore) -> None:
         candidate["candidate_id"],
         store=store,
         authority_identity=HUMAN_APPROVER_ROLE,
+        canonical_port=port,
         reason="revert",
     )
     assert rolled["projection"] is None
@@ -228,6 +255,7 @@ def test_unauthorized_and_missing_evidence(store: PopulationStore) -> None:
             "evidence_inquiry": {"question": "q", "requested_by": PROPOSER_IDENTITY},
         },
         store=store,
+        context=_context(),
     )
     proposed = submit_candidate(
         {
@@ -239,11 +267,7 @@ def test_unauthorized_and_missing_evidence(store: PopulationStore) -> None:
             "dimensions": ["d"],
             "evidence_refs": [
                 {
-                    "source_id": normalized.segments[0].source_id,
-                    "segment_id": normalized.segments[0].segment_id,
-                    "char_start": normalized.segments[0].char_start,
-                    "char_end": normalized.segments[0].char_end,
-                    "text_sha256": normalized.segments[0].text_sha256,
+                    **_refs(packet)[0],
                 }
             ],
             "counter_hypotheses": ["a"],

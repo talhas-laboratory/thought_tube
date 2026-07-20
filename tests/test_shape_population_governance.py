@@ -9,10 +9,36 @@ import pytest
 from conversation_os.shape_population.candidate_submission import submit_candidate
 from conversation_os.shape_population.contracts import ForbiddenTransitionError, IdempotencyConflictError, ValidationError
 from conversation_os.shape_population.evidence import build_evidence_packet
+from conversation_os.shape_population.execution_context import ExecutionContext
 from conversation_os.shape_population.governance import atomic_submit_candidate, transition_candidate
 from conversation_os.shape_population.identities import PROPOSER_IDENTITY
 from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.storage import PopulationStore
+
+
+def _context() -> ExecutionContext:
+    return ExecutionContext(
+        principal_id=PROPOSER_IDENTITY,
+        principal_kind="agent",
+        authenticated_by="unit-test",
+        capabilities=("shape.evidence.inquire",),
+    )
+
+
+def _refs(packet) -> list[dict]:
+    return [
+        {
+            "packet_id": packet.packet_id,
+            "block_id": block.block_id,
+            "source_id": block.source_id,
+            "segment_id": block.segment_id,
+            "char_start": block.char_start,
+            "char_end": block.char_end,
+            "text_sha256": block.text_sha256,
+            "normalization_version": block.normalization_version,
+        }
+        for block in packet.blocks
+    ]
 
 
 def _seed_payload(store: PopulationStore, key: str = "gov-1") -> dict:
@@ -23,17 +49,9 @@ def _seed_payload(store: PopulationStore, key: str = "gov-1") -> dict:
             "evidence_inquiry": {"question": "q", "requested_by": PROPOSER_IDENTITY},
         },
         store=store,
+        context=_context(),
     )
-    refs = [
-        {
-            "source_id": seg.source_id,
-            "segment_id": seg.segment_id,
-            "char_start": seg.char_start,
-            "char_end": seg.char_end,
-            "text_sha256": seg.text_sha256,
-        }
-        for seg in normalized.segments
-    ]
+    refs = _refs(packet)
     return {
         "packet_id": packet.packet_id,
         "title": "Gov candidate",

@@ -3,11 +3,13 @@ from __future__ import annotations
 import hashlib
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Sequence, Tuple
 
 from .models import ChunkRecord, SourceRegistryEntry
 from .runtime_layout import product_runtime_dir
 from .storage import ensure_dir, read_jsonl, utc_now, write_jsonl
+
+PostIngestHook = Callable[..., Any]
 
 
 MODULE_ID = "kernel.ingest.vault_ingest"
@@ -565,6 +567,35 @@ def _build_source_and_chunk_entries(
     return registry_entry, chunk_entries
 
 
+def _run_post_ingest_hooks(
+    root: Path,
+    *,
+    source_id: str,
+    hooks: Sequence[PostIngestHook] | None,
+) -> Dict[str, Any]:
+    """Invoke generic post-ingest adapters. Failures are recorded, never raised."""
+    receipts: List[Dict[str, Any]] = []
+    for index, hook in enumerate(hooks or ()):
+        try:
+            result = hook(root, source_id=source_id)
+            receipts.append(
+                {
+                    "hook_index": index,
+                    "ok": True,
+                    "result": result if isinstance(result, dict) else {"value": result},
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 - ingest must remain successful
+            receipts.append(
+                {
+                    "hook_index": index,
+                    "ok": False,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            )
+    return {"hook_count": len(hooks or ()), "receipts": receipts}
+
+
 def ingest_text_content(
     root: Path,
     *,
@@ -575,6 +606,7 @@ def ingest_text_content(
     source_family: str | None = None,
     sensitivity_tier: str | None = None,
     metadata: Dict | None = None,
+    post_ingest_hooks: Sequence[PostIngestHook] | None = None,
 ) -> Dict:
     source_rows = load_source_registry_raw(root)
     chunk_rows = load_chunk_index_raw(root)
@@ -591,12 +623,15 @@ def ingest_text_content(
     source_rows = _replace_by_key(source_rows, "source_id", {source_id}, [registry_entry])
     chunk_rows = _replace_by_key(chunk_rows, "source_id", {source_id}, chunk_entries)
     write_vault_files(root, source_rows, chunk_rows)
+    # Generic async adapters only — no Shape-specific branching here.
+    post_ingest = _run_post_ingest_hooks(root, source_id=source_id, hooks=post_ingest_hooks)
     return {
         "source_id": source_id,
         "seeded_count": len(chunk_entries),
         "total_count": len(chunk_rows),
         "source_registry_path": str(_source_registry_path(root)),
         "chunk_index_path": str(_chunk_index_path(root)),
+        "post_ingest": post_ingest,
     }
 
 

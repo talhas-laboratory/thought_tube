@@ -19,6 +19,7 @@ from conversation_os.shape_population.contracts import (
     ValidationError,
     fingerprint_payload,
 )
+from conversation_os.shape_population.evidence import validate_evidence_ref_against_packet
 from conversation_os.shape_population.identities import (
     CRITIC_IDENTITY,
     PROPOSER_IDENTITY,
@@ -46,24 +47,8 @@ DEFAULT_RETRY_CAP = 3
 DEFAULT_COST_CAP = 100.0
 
 
-def _resolve_evidence_ref(store: PopulationStore, ref: Mapping[str, Any]) -> None:
-    segment_id = str(ref.get("segment_id") or "")
-    source_id = str(ref.get("source_id") or "")
-    if not segment_id:
-        raise ValidationError("evidence_ref.segment_id is required")
-    segment = store.get_segment(segment_id)
-    if segment is None:
-        raise ValidationError(f"evidence segment missing: {segment_id}")
-    if source_id and segment.get("source_id") != source_id:
-        raise ValidationError(f"evidence source mismatch for {segment_id}")
-    expected_digest = str(ref.get("text_sha256") or "")
-    if expected_digest and expected_digest != segment.get("text_sha256"):
-        raise ValidationError(f"evidence digest mismatch for {segment_id}")
-    char_start = ref.get("char_start")
-    char_end = ref.get("char_end")
-    if char_start is not None and char_end is not None:
-        if int(char_start) < int(segment["char_start"]) or int(char_end) > int(segment["char_end"]):
-            raise ValidationError(f"evidence span outside segment for {segment_id}")
+def _resolve_evidence_ref(store: PopulationStore, packet_id: str, ref: Mapping[str, Any]) -> None:
+    validate_evidence_ref_against_packet(store, packet_id, ref)
 
 
 def validate_candidate(store: PopulationStore, payload: CandidatePayload, *, policy_version: str = CANDIDATE_SCHEMA_VERSION) -> None:
@@ -77,7 +62,7 @@ def validate_candidate(store: PopulationStore, payload: CandidatePayload, *, pol
     if not policy_version:
         raise ValidationError("policy_version required")
     for ref in payload.evidence_refs:
-        _resolve_evidence_ref(store, ref)
+        _resolve_evidence_ref(store, payload.packet_id, ref)
     # No semantic adjudication here.
 
 
@@ -123,8 +108,9 @@ def validate_evaluation(store: PopulationStore, payload: EvaluationPayload) -> C
         raise ValidationError(f"unknown candidate: {payload.candidate_id}")
     if row.get("agent_identity") == payload.agent_identity and row.get("run_id") and row.get("run_id") == payload.run_id:
         raise ValidationError("critic identity/run must be distinct from proposer run")
+    packet_id = str(row.get("packet_id") or "")
     for ref in payload.evidence_refs:
-        _resolve_evidence_ref(store, ref)
+        _resolve_evidence_ref(store, packet_id, ref)
     return CandidateRecord(**{k: row[k] for k in CandidateRecord.__dataclass_fields__ if k in row})
 
 

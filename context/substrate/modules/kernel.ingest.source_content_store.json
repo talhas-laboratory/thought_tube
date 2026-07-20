@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.ingest.source_content_store",
+  "path": "src/conversation_os/source_content_store.py",
+  "layer": "kernel",
+  "owner": "Content-addressed immutable source byte store.",
+  "purpose": "Persist raw uploaded content exactly once under SHA-256 with atomic commit and restart-safe dedupe.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["MODULE_ID", "CONTRACT_VERSION"],
+  "contains": ["content addressed blobs"],
+  "depends_on": ["kernel.foundation.storage"],
+  "feeds_into": ["kernel.shape_population", "kernel.ingest.vault_ingest"],
+  "inputs": ["raw bytes"],
+  "outputs": ["content digest pointers"],
+  "state_owned": ["product/inner_world_v1/data/source_content"],
+  "surfaces_using": ["inner_world_v1"],
+  "test_targets": ["tests/test_source_content_store.py"]
+}

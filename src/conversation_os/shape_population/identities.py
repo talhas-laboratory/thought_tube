@@ -78,7 +78,7 @@ _IDENTITIES: Dict[str, IdentityContract] = {
     EVALUATOR_IDENTITY: IdentityContract(
         identity_id=EVALUATOR_IDENTITY,
         role="evaluator",
-        allowed_tools=frozenset({"request_promotion", "submit_evaluation", "find_comparison_candidates"}),
+        allowed_tools=frozenset({"request_promotion"}),
         model_policy="strict_json_evaluation",
     ),
     HUMAN_APPROVER_ROLE: IdentityContract(

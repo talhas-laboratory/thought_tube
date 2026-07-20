@@ -134,6 +134,8 @@ class SegmentRecord:
     text_sha256: str
     byte_start: Optional[int] = None
     byte_end: Optional[int] = None
+    source_content_sha256: str = ""
+    normalization_version: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -180,13 +182,21 @@ class EvidenceBlock:
     segment_id: str
     char_start: int
     char_end: int
-    text: str
     structure_path: str
     ordinal: int
+    text_sha256: str = ""
+    byte_start: Optional[int] = None
+    byte_end: Optional[int] = None
+    source_content_sha256: str = ""
+    normalization_version: str = ""
+    text: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
+        payload = asdict(self)
+        if not payload.get("text"):
+            payload.pop("text", None)
         return {
-            **asdict(self),
+            **payload,
             "envelope": "quoted_data",
             "instruction_authority": False,
         }
@@ -203,6 +213,7 @@ class EvidencePacket:
     corpus_revision: str
     safe: bool = True
     empty_reason: str = ""
+    packet_fingerprint: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -215,6 +226,7 @@ class EvidencePacket:
             "corpus_revision": self.corpus_revision,
             "safe": self.safe,
             "empty_reason": self.empty_reason,
+            "packet_fingerprint": self.packet_fingerprint,
             "injection_safe_envelope": True,
         }
 
