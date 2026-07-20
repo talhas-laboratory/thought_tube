@@ -1,0 +1,14 @@
+{
+  "contract_version": "1.0",
+  "statuses": [
+    "disclosed",
+    "empty_no_positive_match",
+    "empty_grant_excludes_all",
+    "abstained_dependency_not_ready",
+    "abstained_stale_index",
+    "abstained_invalid_policy",
+    "abstained_insufficient_budget",
+    "denied_visibility",
+    "failed_internal"
+  ]
+}

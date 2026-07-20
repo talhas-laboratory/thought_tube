@@ -1,0 +1,55 @@
+{
+  "contract_version": "1.0",
+  "receipt_id": "receipt-cae015-disclosed",
+  "request_id": "req-cae015-aperture",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "requested_grant": {
+    "grant_id": "grant-req-cae015",
+    "envelope": "bounded",
+    "requested_layers": ["session", "workspace", "user"],
+    "explicit_denials": ["user"]
+  },
+  "effective_grant": {
+    "grant_id": "grant-req-cae015",
+    "envelope": "bounded",
+    "effective_layers": ["session", "workspace", "explicit_pin"]
+  },
+  "candidate_decisions": [
+    {
+      "candidate_id": "cand-cae015-001",
+      "decision": "admitted",
+      "admission_signals": ["explicit_pin", "structural_shape_legacy"]
+    }
+  ],
+  "included_block_ids": ["block-cae015-001"],
+  "omitted_block_ids": ["block-cae015-dropped"],
+  "omission_reasons": [
+    {
+      "block_id": "block-cae015-dropped",
+      "code": "budget_insufficient",
+      "reason": "Required whole block could not fit remaining evidence budget"
+    }
+  ],
+  "budget_ledger": {
+    "token_budget": 1200,
+    "orientation_tokens": 42,
+    "evidence_tokens": 14,
+    "dropped_tokens": 96
+  },
+  "policy_hashes": {
+    "effective_grant": "sha256:grant-hash-cae015",
+    "envelope_defaults": "sha256:envelope-bounded-v1"
+  },
+  "surface": "bridge",
+  "result_status": "disclosed",
+  "retention_mode": "normal_policy",
+  "content_hashes": [],
+  "metrics": {
+    "candidate_count": 1,
+    "included_block_count": 1
+  },
+  "sensitive_text_included": false,
+  "provenance": {
+    "recorded_at": "2026-07-19T15:00:00+00:00"
+  }
+}

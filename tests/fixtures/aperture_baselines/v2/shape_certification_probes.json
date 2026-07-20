@@ -1,0 +1,75 @@
+{
+  "schema_version": "2.0",
+  "baseline_suite_id": "chat_converter_seed_v2_shape_certification",
+  "parent_suite_id": "chat_converter_seed_v1_service",
+  "fixture_revision": "cae-shape-cert-v2-2026-07-20",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "thresholds": {
+    "lexical_recall_at_1": 0.5,
+    "shape_recall_at_1": 0.5,
+    "shape_beats_lexical_rate": 0.5,
+    "anti_match_precision": 1.0,
+    "candidate_upgrade_rate": 0.0,
+    "abstention_correctness_rate": 1.0,
+    "latency_ms_p95": 750,
+    "max_catalog_lookup_ms": 50,
+    "max_bytes_resolved": 65536
+  },
+  "probes": [
+    {
+      "probe_id": "positive-shape-assisted-recall",
+      "category": "positive",
+      "query": "signal dilution accumulation hierarchy private cognitive layer",
+      "preferred_source_slug": "shape-retrieval",
+      "expected_verdict": "pass",
+      "branch_id": "branch-shape-001",
+      "scope_id": "scope-shape-001",
+      "top_k": 3
+    },
+    {
+      "probe_id": "near-neighbour-distractor-harm",
+      "category": "near_neighbour",
+      "query": "accumulation hierarchy confusion noise attention ranking",
+      "preferred_source_slug": "shape-retrieval",
+      "distractor_source_slug": "distractor-fixture",
+      "expected_verdict": "known_failure",
+      "mode": "lexical",
+      "top_k": 3,
+      "notes": "Lexical near-neighbour regression guard from CAE-006A"
+    },
+    {
+      "probe_id": "negative-unrelated-query",
+      "category": "negative",
+      "query": "quantum gardening unrelated topic",
+      "expected_verdict": "no_hits",
+      "top_k": 3
+    },
+    {
+      "probe_id": "cross-branch-scope-mismatch",
+      "category": "cross_branch",
+      "query": "signal dilution accumulation hierarchy",
+      "preferred_source_slug": "shape-retrieval",
+      "branch_id": "branch-other",
+      "scope_id": "scope-other",
+      "expected_verdict": "abstained_or_empty",
+      "top_k": 3
+    },
+    {
+      "probe_id": "anti-match-false-analogy",
+      "category": "anti_match",
+      "query": "hidden route maze confusion receiver delayed goal",
+      "rejected_capsule_id": "capsule-maze-analogy",
+      "expected_verdict": "pass",
+      "branch_id": "branch-shape-001",
+      "scope_id": "scope-shape-001",
+      "top_k": 6
+    },
+    {
+      "probe_id": "resource-latency-and-catalog",
+      "category": "resource",
+      "query": "signal dilution accumulation hierarchy",
+      "iterations": 3
+    }
+  ]
+}

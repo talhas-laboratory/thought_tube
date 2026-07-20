@@ -22,6 +22,7 @@ from .chat_backends import (
     stage_openclaw_agent_model,
 )
 from .mobile_capture_compose import compose_mobile_capture_insertion
+from .reasoning_bridge import inspect_aperture_operator_view
 from .product_inner_world import (
     append_mobile_capture,
     build_mobile_feed,
@@ -3187,6 +3188,17 @@ def make_miniapp_handler(
             if api_path in {"/state", "/runtime-overview"}:
                 state = get_runtime_overview(root)
                 self._send_json(state)
+                return
+            if api_path == "/aperture/operator-view":
+                query = parse_qs(parsed.query)
+                self._send_json(
+                    inspect_aperture_operator_view(
+                        root,
+                        surface=(query.get("surface") or [""])[0],
+                        corpus_revision=(query.get("corpus_revision") or [""])[0],
+                        receipt_limit=int((query.get("receipt_limit") or ["0"])[0] or "0") or None,
+                    )
+                )
                 return
             if api_path == "/world-studio/worlds":
                 self._send_json(worldstudio_list_worlds(root))

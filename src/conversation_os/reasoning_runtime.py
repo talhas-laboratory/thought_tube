@@ -86,6 +86,8 @@ def inspect_reasoning_request(root: Path, request_id: str) -> Dict[str, Any]:
         "session_envelope": dict(context_bundle.get("session_envelope", {}) or {}),
         "frame_spec": dict(context_bundle.get("frame_spec", {}) or {}),
         "frame_bundle": dict(context_bundle.get("frame_bundle", {}) or {}),
+        "frame_audit": dict(context_bundle.get("frame_audit", {}) or {}),
+        "execution_audit_isolation_v1": bool(context_bundle.get("execution_audit_isolation_v1", True)),
         "control_packets": control_packets,
         "active_field": active_field,
         "retrieval_summary": retrieval_summary,
