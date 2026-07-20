@@ -114,9 +114,9 @@ class DisclosurePorts:
 
 class _InnerWorldCorpusCatalog:
     def build_corpus_catalog(self, root: Path, *, corpus_id: str = "local_runtime") -> Dict[str, Any]:
-        from .library_tracker import build_corpus_catalog
+        from .corpus_catalog_snapshot import load_corpus_catalog_for_request
 
-        return build_corpus_catalog(root, corpus_id=corpus_id)
+        return load_corpus_catalog_for_request(root, corpus_id=corpus_id)
 
 
 class _InnerWorldCandidateSearch:

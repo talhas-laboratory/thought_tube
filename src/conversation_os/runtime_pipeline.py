@@ -762,6 +762,10 @@ def execute_runtime_pipeline(
             active_component_id=None,
             options=options,
         )
+        if run_status in {"completed", "completed_with_warnings"}:
+            from .corpus_catalog_snapshot import publish_corpus_catalog_snapshot
+
+            publish_corpus_catalog_snapshot(root)
         return {
             "config": loaded,
             "last_run": last_run,

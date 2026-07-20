@@ -873,9 +873,9 @@ def build_retrieval_bundle(
         enforce_anti_match = bool(shape_search.get("enforce_anti_match"))
 
     if enforce_enabled:
-        from .library_tracker import build_corpus_catalog
+        from .corpus_catalog_snapshot import load_corpus_catalog_for_request
 
-        catalog = build_corpus_catalog(root)
+        catalog = load_corpus_catalog_for_request(root)
         readiness = str(catalog.get("readiness_state", "") or "")
         if readiness == "stale":
             return empty_bundle | {"result_status": "abstained_stale_index"}
