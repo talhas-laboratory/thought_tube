@@ -826,6 +826,7 @@ def build_retrieval_bundle(
     include_cross_pond: bool = False,
     envelope_mode: str = "open",
     explicit_pins: List[str] | None = None,
+    shape_search: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     empty_bundle = {
         "query": query,
@@ -841,6 +842,35 @@ def build_retrieval_bundle(
     }
     shadow_enabled = fail_empty_admission_shadow_enabled(root)
     enforce_enabled = fail_empty_admission_enforce_enabled(root)
+
+    shape_context: Dict[str, Any] = {"result_status": "disabled"}
+    shape_decisions_by_capsule: Dict[str, Dict[str, Any]] = {}
+    from .shape_candidate_retrieval import (
+        build_shape_query,
+        enrich_capsule_admission_with_shape,
+        apply_shape_ranking_adjustment,
+        read_shape_retrieval_context,
+        shape_anti_match_enforcement_enabled,
+        shape_candidate_search_enabled,
+    )
+
+    shape_search_enabled = shape_candidate_search_enabled(root)
+    if shape_search is not None and "enabled" in shape_search:
+        shape_search_enabled = bool(shape_search.get("enabled"))
+    if shape_search_enabled:
+        shape_query = build_shape_query(
+            query,
+            branch_id=str((shape_search or {}).get("branch_id", "") or ""),
+            scope_id=str((shape_search or {}).get("scope_id", "") or ""),
+            source_refs=list((shape_search or {}).get("source_refs", []) or []),
+            maturity_ceiling=str((shape_search or {}).get("maturity_ceiling", "candidate") or "candidate"),
+        )
+        shape_context = read_shape_retrieval_context(root, shape_query)
+        shape_context["branch_id"] = shape_query.branch_id
+        shape_context["scope_id"] = shape_query.scope_id
+    enforce_anti_match = shape_anti_match_enforcement_enabled(root)
+    if shape_search is not None and "enforce_anti_match" in shape_search:
+        enforce_anti_match = bool(shape_search.get("enforce_anti_match"))
 
     if enforce_enabled:
         from .library_tracker import build_corpus_catalog
@@ -905,10 +935,23 @@ def build_retrieval_bundle(
             pond_profile=capsule.get("pond_profile", {}),
         )
         admission_by_capsule[capsule["capsule_id"]] = decision
+        shape_decision = enrich_capsule_admission_with_shape(
+            capsule,
+            decision,
+            shape_context=shape_context,
+            orientation_tokens=query_tokens,
+            enforce_anti_match=enforce_anti_match,
+        )
+        if shape_decision is not None:
+            shape_decisions_by_capsule[capsule["capsule_id"]] = shape_decision.to_dict()
         ranking_score = compute_ranking_score(
             capsule,
             ranking_features=decision["ranking_features"],
             type_weight=type_weight,
+        )
+        ranking_score = apply_shape_ranking_adjustment(
+            ranking_score,
+            shape_decisions_by_capsule.get(capsule["capsule_id"]),
         )
         if ref_key in alias_ref_keys:
             ranking_score = round(ranking_score + 7.5, 3)
@@ -991,7 +1034,26 @@ def build_retrieval_bundle(
                 envelope_mode=envelope_mode,
                 pond_profile=neighbor.get("pond_profile", {}),
             )
+            neighbor_shape = enrich_capsule_admission_with_shape(
+                neighbor,
+                neighbor_decision,
+                shape_context=shape_context,
+                orientation_tokens=query_tokens,
+                enforce_anti_match=enforce_anti_match,
+            )
+            if neighbor_shape is not None:
+                shape_decisions_by_capsule[neighbor["capsule_id"]] = neighbor_shape.to_dict()
             admission_by_capsule[neighbor["capsule_id"]] = neighbor_decision
+            if neighbor_decision.get("admitted"):
+                neighbor_score = compute_ranking_score(
+                    neighbor,
+                    ranking_features=neighbor_decision["ranking_features"],
+                    type_weight=type_weight,
+                )
+                scores[neighbor["capsule_id"]] = apply_shape_ranking_adjustment(
+                    neighbor_score,
+                    shape_decisions_by_capsule.get(neighbor["capsule_id"]),
+                )
             if enforce_enabled and not neighbor_decision.get("admitted"):
                 continue
             selected_capsules.setdefault(neighbor["capsule_id"], neighbor)
@@ -1043,6 +1105,14 @@ def build_retrieval_bundle(
         "include_cross_pond": include_cross_pond,
         "envelope_mode": str(envelope_mode or "open").strip().lower(),
     }
+    if shape_context.get("result_status") not in {"", "disabled"}:
+        bundle["shape_retrieval"] = {
+            "result_status": shape_context.get("result_status", ""),
+            "readiness_state": shape_context.get("readiness_state", ""),
+            "expansion_count": int(shape_context.get("expansion_count", 0) or 0),
+            "resolved_bytes": int(shape_context.get("resolved_bytes", 0) or 0),
+            "decision_count": len(shape_decisions_by_capsule),
+        }
     if shadow_enabled or enforce_enabled:
         return apply_fail_empty_gate(
             bundle,
