@@ -10,7 +10,7 @@ Evaluation is intelligence-led: it assesses evidence grounding, explanatory cohe
 
 ## Promotion state machine
 
-`recommended → promotion_requested → human_approved | human_rejected → canonical | rejected`. `apply_promotion` requires a human approval record and creates immutable canonical projection and receipt. The evaluator cannot approve its own request; no population agent may apply promotion.
+`recommended → promotion_requested → human approval event | human rejection event`. Only `apply_promotion`, after a valid immutable human approval event, moves the candidate to `canonical`; a rejection event leaves it non-canonical. The evaluator cannot approve its own request; no population agent may apply promotion.
 
 ## Fixtures and tests
 

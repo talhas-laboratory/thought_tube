@@ -9,7 +9,7 @@ The system needs nine underlying capabilities, but it does **not** need nine age
 These operations are mandatory pipeline behavior and cannot be bypassed or invoked selectively by population agents:
 
 - `normalize_source` — lossless structural normalization with stable provenance and offsets.
-- `build_evidence_packet` — bounded, injection-safe evidence assembly before intelligence runs.
+- `build_evidence_packet` — deterministic, bounded, injection-safe execution of an evidence inquiry selected by intelligence or an authorized caller.
 - candidate validation — schema, evidence-reference, status, and policy enforcement after intelligent output.
 - candidate persistence — transactional versioning and storage after validation.
 - job receipts — automatic provenance, model/prompt/tool version, retry, budget, and outcome recording.
@@ -34,7 +34,8 @@ Population identities cannot call either promotion operation.
 ```text
 raw input
 → normalize_source [automatic]
-→ build_evidence_packet [automatic]
+→ intelligence/authorized caller forms evidence inquiry
+→ build_evidence_packet [automatic deterministic execution]
 → proposer: submit_candidate
 → validate + persist + receipt [automatic, atomic]
 → critic: find_comparison_candidates
