@@ -1092,6 +1092,38 @@ def build_effective_grant_from_context(
     return EffectiveGrant.from_dict(grant_dict)
 
 
+def _grant_governed_search_allowed(
+    effective_grant: Any,
+    *,
+    resolved_budget: Dict[str, Any],
+    active_topic: str,
+) -> bool:
+    if not str(active_topic or "").strip():
+        return False
+    if not resolved_budget.get("use_global"):
+        return False
+    if str(getattr(effective_grant, "envelope", "") or "").strip().lower() == "incognito":
+        return False
+    layers = set(getattr(effective_grant, "effective_layers", []) or [])
+    if "governed_global" in layers:
+        return True
+    if "explicit_pin" in layers and list(getattr(effective_grant, "explicit_pins", []) or []):
+        return True
+    return False
+
+
+def _grant_governed_search_kwargs(
+    effective_grant: Any,
+    *,
+    include_cross_pond: bool,
+) -> Dict[str, Any]:
+    return {
+        "envelope_mode": str(getattr(effective_grant, "envelope", "") or "bounded"),
+        "explicit_pins": list(getattr(effective_grant, "explicit_pins", []) or []),
+        "include_cross_pond": bool(include_cross_pond),
+    }
+
+
 def effective_layers_to_bridge_layers(grant, available_layers: List[str]) -> List[str]:
     available = set(available_layers)
     bridge_layers: List[str] = []
@@ -1590,28 +1622,36 @@ def _assemble_bridge_context_bundle_impl(
         if note_agent_state
         else {}
     )
+    session_envelope = build_session_envelope(state, policy=policy)
+    effective_grant = build_effective_grant_from_context(state, policy, session_envelope)
+
     if note_retrieval_policy:
         include_cross_pond = bool(note_retrieval_policy.get("cross_ocean"))
     else:
-        include_cross_pond = bool(policy.get("cross_ocean")) if policy else state.get("depth_mode") == "deep"
+        include_cross_pond = bool(effective_grant.cross_ocean)
 
-    session_envelope = build_session_envelope(state, policy=policy)
-    if resolved_budget["use_global"] and state.get("active_topic"):
+    search_kwargs = _grant_governed_search_kwargs(effective_grant, include_cross_pond=include_cross_pond)
+    active_topic = str(state.get("active_topic", "") or "")
+    if _grant_governed_search_allowed(
+        effective_grant,
+        resolved_budget=resolved_budget,
+        active_topic=active_topic,
+    ):
         if candidate_search is not None:
             retrieval_bundle = candidate_search.build_retrieval_bundle(
                 root,
-                state["active_topic"],
+                active_topic,
                 limit=int(resolved_budget["retrieval_limit"]),
                 neighbor_limit=int(resolved_budget["neighbor_limit"]),
-                include_cross_pond=include_cross_pond,
+                **search_kwargs,
             )
         else:
             retrieval_bundle = build_retrieval_bundle(
                 root,
-                state["active_topic"],
+                active_topic,
                 limit=int(resolved_budget["retrieval_limit"]),
                 neighbor_limit=int(resolved_budget["neighbor_limit"]),
-                include_cross_pond=include_cross_pond,
+                **search_kwargs,
             )
 
     orient_first_enabled = orient_first_compose_enabled(root)
@@ -1638,7 +1678,7 @@ def _assemble_bridge_context_bundle_impl(
         available_layers.append("workspace")
     if user_patterns or bridge_state.get("personalization") or bridge_state.get("presentation", {}).get("current_mode"):
         available_layers.append("user")
-    if retrieval_bundle.get("count"):
+    if retrieval_bundle.get("count") and "governed_global" in set(effective_grant.effective_layers or []):
         available_layers.append("global")
     if note_retrieval_policy.get("include_layers"):
         allowed_layers = {str(value) for value in note_retrieval_policy.get("include_layers", []) or []}
@@ -1647,7 +1687,6 @@ def _assemble_bridge_context_bundle_impl(
         blocked_layers = {str(value) for value in note_retrieval_policy.get("exclude_layers", []) or []}
         available_layers = [layer for layer in available_layers if layer not in blocked_layers]
 
-    effective_grant = build_effective_grant_from_context(state, policy, session_envelope)
     active_state_transition: Dict[str, Any] = {}
     active_state_continuity_on = False
     try:

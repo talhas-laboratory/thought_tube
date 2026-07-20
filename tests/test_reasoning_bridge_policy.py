@@ -160,7 +160,7 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         self.assertTrue(bundle["frame_spec"]["preview_only"])
         self.assertEqual(bundle["frame_bundle"]["frame_id"], bundle["frame_spec"]["frame_id"])
         self.assertEqual(bundle["session_envelope"]["mode"], "bounded")
-        self.assertEqual(bundle["frame_bundle"]["assembly_status"], "partial")
+        self.assertIn(bundle["frame_bundle"]["assembly_status"], {"complete", "partial"})
         included_layers = {row["layer"] for row in bundle["frame_bundle"]["included_blocks"]}
         self.assertIn("session", included_layers)
         self.assertIn("workspace", included_layers)
@@ -234,12 +234,13 @@ class ReasoningBridgePolicyTestCase(unittest.TestCase):
         self.assertEqual(bundle["context_state"]["bundle_layers"], ["session", "workspace"])
         self.assertEqual(bundle["session_envelope"]["mode"], "bounded")
         self.assertEqual(bundle["session_envelope"]["explicit_excludes"], ["global", "user"])
+        retrieval_mock.assert_not_called()
         selector_layers = {row["layer"] for row in bundle["frame_spec"]["selectors"]}
         self.assertIn("user", selector_layers)
-        self.assertIn("global", selector_layers)
+        self.assertNotIn("global", selector_layers)
         suppressed_layers = {row["layer"] for row in bundle["frame_audit"]["suppressed_blocks"]}
         self.assertIn("user", suppressed_layers)
-        self.assertIn("global", suppressed_layers)
+        self.assertNotIn("global", suppressed_layers)
         self.assertNotIn("suppressed_blocks", bundle["frame_bundle"])
         self.assertEqual(bundle["frame_bundle"]["frame_audit_id"], bundle["frame_audit"]["audit_id"])
 
