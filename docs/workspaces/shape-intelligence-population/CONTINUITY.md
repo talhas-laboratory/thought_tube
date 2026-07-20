@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-population -->
-<!-- canonical_revision: 03014a86ba925f9f87c2f90141566cef24f93b1bca5049cb033e4694c96988cd -->
+<!-- canonical_revision: 312d364ad1cf24371f5d75007a0374e11f0f8dd5ee7ede90984928ece5f01a80 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T11:51:58+00:00 -->
+<!-- generated_at: 2026-07-20T12:30:30+00:00 -->
 
 # Workspace continuity: shape-intelligence-population
 
@@ -18,7 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
-- none
+- Implementation complete in code; live task completion blocked on missing_verification gate despite verify calls.
 
 ## Reasoning
 
@@ -26,4 +26,5 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
-- none
+- pytest tests/test_shape_population_*.py
+- tests/test_shape_population_*.py
