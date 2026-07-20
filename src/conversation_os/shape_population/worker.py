@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from conversation_os.source_content_store import SourceContentStore
-from conversation_os.shape_population.model_gateway import ShapeModelGateway, StubModelClient
+from conversation_os.shape_population.model_gateway import OpenClawModelClient, ShapeModelGateway, StubModelClient
 from conversation_os.shape_population.orchestrator import ShapePopulationOrchestrator, enqueue_after_ingest
 from conversation_os.shape_population.storage import ShapePopulationStore
 from conversation_os.storage import repo_root_from
@@ -36,9 +36,9 @@ def build_worker(
     store = ShapePopulationStore(root_path)
     content_store = SourceContentStore(root_path)
     if gateway is None:
-        # Production deployments inject a real model client; default is fail-closed stub.
+        # Production default: a dedicated OpenClaw identity. Tests inject a stub.
         gateway = ShapeModelGateway(
-            StubModelClient([]),
+            OpenClawModelClient(cwd=str(root_path)),
             content_store=content_store,
             store=store,
         )

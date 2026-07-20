@@ -13,6 +13,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from conversation_os.chat_backends import ensure_bridge_openclaw_agent  # noqa: E402
 from conversation_os.storage import ensure_dir, repo_root_from  # noqa: E402
 
 ROLE_AGENTS = (
@@ -21,13 +22,14 @@ ROLE_AGENTS = (
     "shape_population_synthesizer",
     "shape_population_evaluator",
 )
+WORKER_AGENT = "shape_population_worker"
 
 
 def _config_dir(root: Path) -> Path:
     return root / "product" / "inner_world_v1" / "config" / "agent_configs"
 
 
-def provision_shape_population_agents(root: Path) -> dict:
+def provision_shape_population_agents(root: Path, *, workspace: str = "", model: str = "") -> dict:
     config_dir = _config_dir(root)
     ensure_dir(config_dir)
     provisioned = []
@@ -53,20 +55,26 @@ def provision_shape_population_agents(root: Path) -> dict:
                 "prompt_version": payload.get("prompt_version"),
             }
         )
+    worker = ensure_bridge_openclaw_agent(
+        root, agent_id=WORKER_AGENT, model_id=model, workspace=workspace
+    )
     return {
         "ok": not missing,
         "provisioned": provisioned,
         "missing": missing,
-        "note": "Configs are least-privilege identity contracts; gateway/runtime binding remains separate.",
+        "worker": {**worker, "authority": "broad operational; no human approval or canonical apply/rollback"},
+        "note": "Role configs govern outputs; the worker identity is live-bound to OpenClaw.",
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--workspace", default="")
+    parser.add_argument("--model", default="")
     args = parser.parse_args()
     root = repo_root_from(ROOT)
-    result = provision_shape_population_agents(root)
+    result = provision_shape_population_agents(root, workspace=args.workspace, model=args.model)
     if args.json:
         print(json.dumps(result, indent=2))
     else:

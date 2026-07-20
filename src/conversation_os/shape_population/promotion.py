@@ -129,6 +129,8 @@ def request_promotion(
     if candidate.get("status") != "recommended":
         raise ForbiddenTransitionError("promotion request requires recommended status")
 
+    # Phase 1 is local and durable. Do not hold a SQLite write transaction while
+    # invoking the external canonical system.
     with store.transaction():
         current = store.get_candidate(candidate_id)
         if current is None or current.get("status") != "recommended":
@@ -278,45 +280,38 @@ def apply_promotion(
         if evaluation is None:
             raise ValidationError("evaluation missing")
 
-        applying = dict(request)
-        applying["status"] = "applying"
-        store.put_promotion(applying)
-
         projection = canonical_port.prepare(request, candidate, evaluation, approval, context=context)
         validation = canonical_port.validate(projection, context=context)
         if not validation.get("valid"):
-            applying["status"] = "approved"
-            store.put_promotion(applying)
             raise ValidationError(
                 f"canonical projection validation failed: {validation.get('status') or 'invalid'}"
             )
         canonical_key = idempotency_key or f"canonical-apply:{request_id}:{candidate['candidate_id']}"
-        canonical_receipt = canonical_port.apply(projection, idempotency_key=canonical_key, context=context)
-        if not canonical_receipt.get("applied"):
-            applying["status"] = "approved"
-            store.put_promotion(applying)
-            return {
-                "candidate": candidate,
-                "projection": None,
-                "approval": approval,
-                "canonical_receipt": canonical_receipt,
-                "validation": validation,
-                "replayed": False,
-            }
-        read_back = canonical_port.read_back(str(canonical_receipt.get("canonical_id") or ""), context=context)
-        if read_back.get("status") != "available" or not _projection_parity(projection, read_back):
-            # Do not mark local candidate canonical without confirmed read-back parity.
-            rollback = getattr(canonical_port, "rollback", None)
-            if callable(rollback):
-                rollback(
-                    str(canonical_receipt.get("canonical_id") or ""),
-                    reason="read_back_parity_failed",
-                    idempotency_key=f"canonical-rollback-parity:{request_id}",
-                    context=context,
-                )
-            applying["status"] = "approved"
-            store.put_promotion(applying)
-            raise ValidationError("canonical read-back parity failed")
+        attempt = store.prepare_canonical_apply_attempt(request_id, candidate["candidate_id"], projection, canonical_key)
+        applying = dict(request)
+        applying["status"] = "applying"
+        store.put_promotion(applying)
+
+    # Phase 2 is externally idempotent. A restart can call this again with the
+    # persisted key and projection, then complete Phase 3.
+    canonical_receipt = canonical_port.apply(projection, idempotency_key=attempt["idempotency_key"], context=context)
+    if not canonical_receipt.get("applied"):
+        store.finish_canonical_apply_attempt(request_id, state="failed", last_error=str(canonical_receipt.get("status") or "not_applied"))
+        applying["status"] = "approved"
+        store.put_promotion(applying)
+        return {"candidate": candidate, "projection": None, "approval": approval, "canonical_receipt": canonical_receipt, "validation": validation, "replayed": False}
+    read_back = canonical_port.read_back(str(canonical_receipt.get("canonical_id") or ""), context=context)
+    if read_back.get("status") != "available" or not _projection_parity(projection, read_back):
+        rollback = getattr(canonical_port, "rollback", None)
+        if callable(rollback):
+            rollback(str(canonical_receipt.get("canonical_id") or ""), reason="read_back_parity_failed", idempotency_key=f"canonical-rollback-parity:{request_id}", context=context)
+        store.finish_canonical_apply_attempt(request_id, state="failed", canonical_id=str(canonical_receipt.get("canonical_id") or ""), last_error="read_back_parity_failed")
+        applying["status"] = "approved"
+        store.put_promotion(applying)
+        raise ValidationError("canonical read-back parity failed")
+
+    # Phase 3 commits the local receipt only after verified read-back.
+    with store.transaction():
         now = store.now()
         candidate = dict(candidate)
         candidate["status"] = "canonical"
@@ -330,6 +325,7 @@ def apply_promotion(
             "validation": validation,
         }
         store.put_canonical_projection(candidate["candidate_id"], stored_projection)
+        store.finish_canonical_apply_attempt(request_id, state="applied", canonical_id=str(canonical_receipt.get("canonical_id") or ""))
         request = dict(request)
         request["status"] = "applied"
         store.put_promotion(request)

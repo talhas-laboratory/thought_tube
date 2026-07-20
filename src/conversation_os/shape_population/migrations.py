@@ -9,7 +9,7 @@ from typing import Iterable
 
 MODULE_ID = "kernel.shape_population.migrations"
 CONTRACT_VERSION = "1.1.0"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
@@ -315,9 +315,37 @@ CREATE TABLE comparison_sets (
 CREATE INDEX ix_comparison_sets_candidate ON comparison_sets(candidate_id, created_at);
 """
 
+SCHEMA_V3_SQL = """
+-- Canonical receipts are an audit ledger. They are never rewritten or erased.
+CREATE TRIGGER trg_canonical_projection_receipts_immutable_update
+BEFORE UPDATE ON canonical_projection_receipts
+BEGIN
+    SELECT RAISE(ABORT, 'canonical_projection_receipts are immutable');
+END;
+
+CREATE TRIGGER trg_canonical_projection_receipts_immutable_delete
+BEFORE DELETE ON canonical_projection_receipts
+BEGIN
+    SELECT RAISE(ABORT, 'canonical_projection_receipts are immutable');
+END;
+
+CREATE TABLE canonical_apply_attempts (
+    request_id TEXT PRIMARY KEY REFERENCES promotion_requests(request_id) ON DELETE RESTRICT,
+    candidate_id TEXT NOT NULL REFERENCES candidates(candidate_id) ON DELETE RESTRICT,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    projection_json TEXT NOT NULL,
+    state TEXT NOT NULL CHECK (state IN ('prepared', 'applied', 'failed')),
+    canonical_id TEXT NOT NULL DEFAULT '',
+    last_error TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(version=1, name="shape_population_schema_v1", sql=SCHEMA_V1_SQL),
     Migration(version=2, name="shape_population_comparison_sets_v2", sql=SCHEMA_V2_SQL),
+    Migration(version=3, name="shape_population_canonical_ledger_v3", sql=SCHEMA_V3_SQL),
 )
 
 

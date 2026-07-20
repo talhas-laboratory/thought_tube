@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import math
+import subprocess
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Protocol, Sequence
 
@@ -30,6 +32,7 @@ PUBLIC_API = (
     "ModelClient",
     "ShapeModelGateway",
     "StubModelClient",
+    "OpenClawModelClient",
     "ROLE_IDENTITIES",
     "ROLE_OUTPUT_FIELDS",
 )
@@ -146,6 +149,41 @@ class StubModelClient:
         if not self.responses:
             raise TimeoutError("stub response queue exhausted")
         return self.responses.pop(0)
+
+
+@dataclass
+class OpenClawModelClient:
+    """Model transport bound to a dedicated OpenClaw agent identity."""
+
+    agent_id: str = "shape_population_worker"
+    thinking: str = "high"
+    cwd: str = ""
+
+    def complete(self, messages: Sequence[Message], *, tools: Sequence[str], timeout: float) -> str:
+        message = json.dumps({"messages": [dict(item) for item in messages], "allowed_tools": list(tools)}, ensure_ascii=False)
+        completed = subprocess.run(
+            ["openclaw", "agent", "--session-id", f"shape-population-{uuid.uuid4().hex}", "--agent", self.agent_id,
+             "--message", message, "--thinking", self.thinking, "--json"],
+            cwd=self.cwd or None, capture_output=True, text=True, timeout=timeout, check=False,
+        )
+        if completed.returncode != 0:
+            raise TimeoutError(completed.stderr.strip() or completed.stdout.strip() or "OpenClaw model call failed")
+        raw = completed.stdout.strip()
+        if not raw:
+            raise TimeoutError("OpenClaw returned an empty response")
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            return raw
+        result = payload.get("result") if isinstance(payload.get("result"), dict) else {}
+        for value in (payload.get("reply"), result.get("reply"), result.get("text"), payload.get("text")):
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        payloads = result.get("payloads") if isinstance(result.get("payloads"), list) else []
+        for item in payloads:
+            if isinstance(item, Mapping) and isinstance(item.get("text"), str) and item["text"].strip():
+                return item["text"].strip()
+        raise TimeoutError("OpenClaw response did not contain model text")
 
 
 def _role(role: str) -> str:

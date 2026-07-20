@@ -778,9 +778,6 @@ class ShapePopulationStore:
                     canonical_result_json, idempotency_key, created_at
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
-                ON CONFLICT(receipt_id) DO UPDATE SET
-                    canonical_result_json = excluded.canonical_result_json,
-                    canonical_id = excluded.canonical_id
                 """,
                 (
                     str(receipt.get("receipt_id") or self.new_id("canon")),
@@ -810,15 +807,7 @@ class ShapePopulationStore:
         return None if row is None else self._canonical_receipt_from_row(row)
 
     def remove_canonical_projection_receipt(self, key: str) -> None:
-        self._write(
-            lambda conn: conn.execute(
-                """
-                DELETE FROM canonical_projection_receipts
-                WHERE receipt_id = ? OR request_id = ? OR candidate_id = ?
-                """,
-                (key, key, key),
-            )
-        )
+        raise RuntimeError("canonical projection receipts are append-only and cannot be removed")
 
     def put_canonical_projection(self, candidate_id: str, projection: Mapping[str, Any]) -> None:
         receipt = {
@@ -872,9 +861,51 @@ class ShapePopulationStore:
         return tombstone
 
     def remove_canonical_projection(self, candidate_id: str) -> None:
-        """Deprecated destructive helper. Prefer put_canonical_rollback_tombstone."""
+        """Deprecated destructive helper retained only to fail closed."""
 
         self.remove_canonical_projection_receipt(candidate_id)
+
+    def prepare_canonical_apply_attempt(
+        self, request_id: str, candidate_id: str, projection: Mapping[str, Any], idempotency_key: str
+    ) -> dict[str, Any]:
+        """Durably record apply intent before any external canonical write."""
+        payload = _json_dumps(_drop_raw_text(dict(projection)))
+        def write(conn: sqlite3.Connection) -> dict[str, Any]:
+            row = conn.execute("SELECT * FROM canonical_apply_attempts WHERE request_id = ?", (request_id,)).fetchone()
+            if row is None:
+                conn.execute(
+                    """INSERT INTO canonical_apply_attempts
+                    (request_id, candidate_id, idempotency_key, projection_json, state, updated_at)
+                    VALUES (?, ?, ?, ?, 'prepared', ?)""",
+                    (request_id, candidate_id, idempotency_key, payload, self.now()),
+                )
+            else:
+                if str(row["idempotency_key"]) != idempotency_key or str(row["projection_json"]) != payload:
+                    raise ValueError("canonical apply attempt idempotency conflict")
+            return self._canonical_apply_attempt_from_row(
+                conn.execute("SELECT * FROM canonical_apply_attempts WHERE request_id = ?", (request_id,)).fetchone()
+            )
+        return self._write(write)
+
+    def get_canonical_apply_attempt(self, request_id: str) -> Optional[dict[str, Any]]:
+        with self._read_conn() as conn:
+            row = conn.execute("SELECT * FROM canonical_apply_attempts WHERE request_id = ?", (request_id,)).fetchone()
+        return None if row is None else self._canonical_apply_attempt_from_row(row)
+
+    def finish_canonical_apply_attempt(self, request_id: str, *, state: str, canonical_id: str = "", last_error: str = "") -> None:
+        if state not in {"applied", "failed"}:
+            raise ValueError("canonical apply attempt must finish as applied or failed")
+        self._write(lambda conn: conn.execute(
+            "UPDATE canonical_apply_attempts SET state = ?, canonical_id = ?, last_error = ?, updated_at = ? WHERE request_id = ?",
+            (state, canonical_id, last_error, self.now(), request_id),
+        ))
+
+    @staticmethod
+    def _canonical_apply_attempt_from_row(row: sqlite3.Row) -> dict[str, Any]:
+        return {"request_id": str(row["request_id"]), "candidate_id": str(row["candidate_id"]),
+                "idempotency_key": str(row["idempotency_key"]), "projection": _json_loads(row["projection_json"], {}),
+                "state": str(row["state"]), "canonical_id": str(row["canonical_id"]),
+                "last_error": str(row["last_error"]), "created_at": str(row["created_at"]), "updated_at": str(row["updated_at"])}
 
     def enqueue_job(
         self,
