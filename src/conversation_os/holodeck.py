@@ -624,6 +624,40 @@ def _collect_legacy_meta_layer_candidates(root: Path, seed_terms: list[str]) -> 
     return candidates, consulted_layers
 
 
+def _holodeck_disclosure_service_requested(root: Path) -> bool:
+    runtime = read_json(root / "product" / "inner_world_v1" / "config" / "runtime.json", default={}) or {}
+    holodeck = runtime.get("holodeck", {}) or {}
+    disclosure = runtime.get("disclosure", {}) or {}
+    return bool(
+        holodeck.get(
+            "disclosure_service_v1",
+            disclosure.get("holodeck_disclosure_service_v1", False),
+        )
+    )
+
+
+def _collect_holodeck_knowledge_candidates(
+    root: Path,
+    seed_bundle: dict,
+    seed_terms: list[str],
+    *,
+    max_source_refs: int,
+) -> tuple[list[dict], list[str]]:
+    if not _holodeck_disclosure_service_requested(root):
+        return _collect_legacy_meta_layer_candidates(root, seed_terms)
+
+    try:
+        from .holodeck_disclosure_adapter import collect_disclosure_knowledge_candidates
+
+        return collect_disclosure_knowledge_candidates(
+            root,
+            seed_bundle,
+            max_source_refs=max_source_refs,
+        )
+    except Exception:
+        return [], ["disclosure_service", "abstained_dependency_not_ready"]
+
+
 def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bundle: dict, artifacts: list[dict], max_source_refs: int) -> tuple[list[dict], list[str]]:
     seed_terms = list(seed_bundle.get("combined_terms", []))
     candidates, consulted_layers = _collect_workspace_projection_candidates(
@@ -633,24 +667,12 @@ def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bu
         max_source_refs=max_source_refs,
     )
 
-    try:
-        from .holodeck_disclosure_adapter import (
-            collect_disclosure_knowledge_candidates,
-            holodeck_disclosure_service_enabled,
-        )
-
-        disclosure_enabled = holodeck_disclosure_service_enabled(root)
-    except Exception:
-        disclosure_enabled = False
-
-    if disclosure_enabled:
-        knowledge_candidates, knowledge_layers = collect_disclosure_knowledge_candidates(
-            root,
-            seed_bundle,
-            max_source_refs=max_source_refs,
-        )
-    else:
-        knowledge_candidates, knowledge_layers = _collect_legacy_meta_layer_candidates(root, seed_terms)
+    knowledge_candidates, knowledge_layers = _collect_holodeck_knowledge_candidates(
+        root,
+        seed_bundle,
+        seed_terms,
+        max_source_refs=max_source_refs,
+    )
 
     candidates.extend(knowledge_candidates)
     consulted_layers.extend(knowledge_layers)
