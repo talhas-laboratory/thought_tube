@@ -1,3 +1,3 @@
 # Gates
 
-Done requires every exit condition and evidence item in `derived/REMEDIATION_PACKET.md`, including post-candidate ranked retrieval, bounded provenance, independent identities, disagreement continuity, retrieval/semantic metrics, focused pytest evidence, full-suite impact, and explicit index limits.
+Done requires implementation-packet acceptance criteria, focused pytest evidence, full-suite impact check, receipt of changed paths, and no residual policy ambiguity.

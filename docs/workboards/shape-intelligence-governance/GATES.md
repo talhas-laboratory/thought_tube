@@ -1,3 +1,3 @@
 # Gates
 
-Done requires every exit condition and evidence item in `derived/REMEDIATION_PACKET.md`, including SQLite migration parity, transactions, capability enforcement, crash and multiprocess recovery, terminal transitions, backup/restore, focused pytest evidence, and full-suite impact.
+Done requires implementation-packet acceptance criteria, focused pytest evidence, full-suite impact check, receipt of changed paths, and no residual policy ambiguity.

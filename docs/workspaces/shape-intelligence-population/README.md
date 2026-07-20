@@ -1,9 +1,5 @@
 # Shape Intelligence Population
 
-## Implementation authority
-
-Begin with [REMEDIATION_IMPLEMENTATION_PLAN.md](derived/REMEDIATION_IMPLEMENTATION_PLAN.md). It is the authoritative, ordered remediation blueprint produced after the implementation audit. The earlier foundations and tool-boundary documents remain design context; where they are less specific, the remediation plan controls execution.
-
 This workspace builds the intelligence layer that populates the knowledge ocean with **provisional Shape candidates** when new content arrives. It is separate from `cognitive-aperture-exceptional`, which owns bounded retrieval and disclosure.
 
 ## Core decision
