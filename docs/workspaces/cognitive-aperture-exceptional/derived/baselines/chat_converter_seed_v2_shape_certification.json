@@ -1,0 +1,157 @@
+{
+  "schema_version": "2.0",
+  "baseline_suite_id": "chat_converter_seed_v2_shape_certification",
+  "parent_suite_id": "chat_converter_seed_v1_service",
+  "fixture_revision": "cae-shape-cert-v2-2026-07-20",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "recorded_at": "2026-07-20T00:00:00+00:00",
+  "harness_version": "2.0",
+  "aperture_harness_version": "1.0",
+  "generation_marker": "fba17b1900819869521c22b5483d9f2d",
+  "thresholds": {
+    "lexical_recall_at_1": 0.5,
+    "shape_recall_at_1": 0.5,
+    "shape_beats_lexical_rate": 0.5,
+    "anti_match_precision": 1.0,
+    "candidate_upgrade_rate": 0.0,
+    "abstention_correctness_rate": 1.0,
+    "latency_ms_p95": 750,
+    "max_catalog_lookup_ms": 50,
+    "max_bytes_resolved": 65536
+  },
+  "metrics": {
+    "lexical_recall_at_1": 0.75,
+    "shape_recall_at_1": 0.5,
+    "shape_beats_lexical_rate": 0.0,
+    "anti_match_precision": 1.0,
+    "candidate_upgrade_rate": 0.0,
+    "abstention_correctness_rate": 0.0,
+    "latency_ms_p95": 1.901,
+    "catalog_lookup_ms_p95": 0.172,
+    "max_bytes_resolved": 338
+  },
+  "summary": {
+    "probe_count": 6,
+    "pass_count": 3,
+    "known_failure_count": 1,
+    "service_certified": false,
+    "notes": "Corpus-backed Shape certification v2; near-neighbour distractor preserved as known_failure; service_certified false until cross-branch abstention and shape_beats_lexical thresholds pass"
+  },
+  "threshold_check": {
+    "passed": false,
+    "checks": {
+      "lexical_recall_at_1": true,
+      "shape_recall_at_1": true,
+      "shape_beats_lexical_rate": false,
+      "anti_match_precision": true,
+      "candidate_upgrade_rate": true,
+      "abstention_correctness_rate": false,
+      "latency_ms_p95": true,
+      "max_catalog_lookup_ms": true,
+      "max_bytes_resolved": true
+    }
+  },
+  "observed_results": [
+    {
+      "probe_id": "positive-shape-assisted-recall",
+      "category": "positive",
+      "verdict": "pass",
+      "lexical_recall_at_k": 1.0,
+      "shape_recall_at_k": 1.0,
+      "shape_beats_lexical": false,
+      "modes": {
+        "lexical": {
+          "ranked_source_slugs": [
+            "shape-retrieval",
+            "distractor-fixture"
+          ],
+          "structural_beats_distractor": true
+        },
+        "shape_assisted": {
+          "ranked_source_slugs": [
+            "shape-retrieval",
+            "distractor-fixture"
+          ],
+          "structural_beats_distractor": true
+        }
+      }
+    },
+    {
+      "probe_id": "near-neighbour-distractor-harm",
+      "category": "near_neighbour",
+      "verdict": "known_failure",
+      "lexical_recall_at_k": 1.0,
+      "shape_recall_at_k": 0.0,
+      "shape_beats_lexical": false,
+      "modes": {
+        "lexical": {
+          "ranked_source_slugs": [
+            "distractor-fixture",
+            "shape-retrieval",
+            "maze"
+          ],
+          "structural_beats_distractor": false
+        }
+      }
+    },
+    {
+      "probe_id": "negative-unrelated-query",
+      "category": "negative",
+      "verdict": "no_hits",
+      "lexical_recall_at_k": 0.0,
+      "shape_recall_at_k": 0.0,
+      "shape_beats_lexical": false,
+      "modes": {
+        "lexical": {
+          "ranked_source_slugs": [],
+          "structural_beats_distractor": false
+        },
+        "shape_assisted": {
+          "ranked_source_slugs": [
+            "shape-retrieval"
+          ],
+          "structural_beats_distractor": false
+        }
+      }
+    },
+    {
+      "probe_id": "cross-branch-scope-mismatch",
+      "category": "cross_branch",
+      "verdict": "fail",
+      "lexical_recall_at_k": 1.0,
+      "shape_recall_at_k": 1.0,
+      "shape_beats_lexical": false,
+      "modes": {
+        "lexical": {
+          "ranked_source_slugs": [
+            "shape-retrieval",
+            "distractor-fixture"
+          ],
+          "structural_beats_distractor": true
+        },
+        "shape_assisted": {
+          "ranked_source_slugs": [
+            "shape-retrieval",
+            "distractor-fixture"
+          ],
+          "structural_beats_distractor": true
+        }
+      }
+    },
+    {
+      "probe_id": "anti-match-false-analogy",
+      "category": "anti_match",
+      "verdict": "pass",
+      "anti_match_precision": 1.0
+    },
+    {
+      "probe_id": "resource-latency-and-catalog",
+      "category": "resource",
+      "verdict": "pass",
+      "latency_ms_p95": 1.559,
+      "catalog_lookup_ms_p95": 0.172,
+      "max_bytes_resolved": 232
+    }
+  ]
+}
