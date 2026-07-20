@@ -98,8 +98,8 @@
       "rollout": {
         "bridge": "enforced",
         "holodeck": "enforced",
-        "feed": "legacy",
-        "task_pack": "legacy"
+        "feed": "enforced",
+        "task_pack": "enforced"
       }
     },
     "active_state": {
@@ -133,12 +133,12 @@
     "contextualization_neighbor_limit": 4
   },
   "feed": {
-    "disclosure_service_v1": false,
+    "disclosure_service_v1": true,
     "evidence_retrieval_limit": 8,
     "evidence_neighbor_limit": 4
   },
   "task_pack": {
-    "disclosure_service_v1": false,
+    "disclosure_service_v1": true,
     "max_evidence_blocks": 4,
     "evidence_retrieval_limit": 6,
     "evidence_neighbor_limit": 4
