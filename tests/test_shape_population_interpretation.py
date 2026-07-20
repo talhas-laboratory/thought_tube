@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -10,7 +9,7 @@ import pytest
 from conversation_os.shape_population.candidate_submission import proposer_tool_surface, submit_candidate
 from conversation_os.shape_population.contracts import AuthorizationError, ValidationError
 from conversation_os.shape_population.evidence import build_evidence_packet
-from conversation_os.shape_population.execution_context import ExecutionContext
+from conversation_os.shape_population.execution_context import CAP_CANDIDATE_SUBMIT, CAP_EVIDENCE_INQUIRE, agent_context
 from conversation_os.shape_population.identities import CRITIC_IDENTITY, PROPOSER_IDENTITY
 from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.storage import PopulationStore
@@ -18,12 +17,17 @@ from conversation_os.shape_population.storage import PopulationStore
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "shape_population" / "interpretation"
 
 
-def _context() -> ExecutionContext:
-    return ExecutionContext(
-        principal_id=PROPOSER_IDENTITY,
-        principal_kind="agent",
-        authenticated_by="unit-test",
-        capabilities=("shape.evidence.inquire",),
+def _inq_context():
+    return agent_context(PROPOSER_IDENTITY, capabilities=(CAP_EVIDENCE_INQUIRE,))
+
+
+def _submit_context(*, run_id: str = "run-proposer-1"):
+    return agent_context(
+        PROPOSER_IDENTITY,
+        capabilities=(CAP_CANDIDATE_SUBMIT,),
+        run_id=run_id,
+        model_id="stub-1",
+        prompt_version="prop-1",
     )
 
 
@@ -54,7 +58,7 @@ def _seed(store: PopulationStore, text: str = "Mechanism A causes outcome B with
             },
         },
         store=store,
-        context=_context(),
+        context=_inq_context(),
     )
     refs = _refs(packet)
     return {"packet": packet, "refs": refs}
@@ -72,11 +76,6 @@ def _payload(packet_id: str, refs: list, **overrides) -> dict:
         "counter_hypotheses": ["B may be independent of A"],
         "uncertainty": "medium",
         "recommended_disposition": "proposed",
-        "agent_identity": PROPOSER_IDENTITY,
-        "model_version": "stub-1",
-        "prompt_version": "prop-1",
-        "tool_contract_version": "1.0.0",
-        "run_id": "run-proposer-1",
         "idempotency_key": "cand-key-1",
     }
     body.update(overrides)
@@ -97,7 +96,8 @@ def test_only_submit_candidate_exposed(store: PopulationStore) -> None:
 
 def test_submit_assigns_immutable_id_and_rejects_canonical(store: PopulationStore) -> None:
     seeded = _seed(store)
-    result = submit_candidate(_payload(seeded["packet"].packet_id, seeded["refs"]), store=store)
+    ctx = _submit_context()
+    result = submit_candidate(_payload(seeded["packet"].packet_id, seeded["refs"]), store=store, context=ctx)
     candidate = result["candidate"]
     assert candidate["candidate_id"].startswith("cand-")
     assert candidate["status"] == "proposed"
@@ -106,6 +106,7 @@ def test_submit_assigns_immutable_id_and_rejects_canonical(store: PopulationStor
         submit_candidate(
             _payload(seeded["packet"].packet_id, seeded["refs"], status="canonical", idempotency_key="x2"),
             store=store,
+            context=_submit_context(run_id="run-x2"),
         )
     with pytest.raises(ValidationError):
         submit_candidate(
@@ -116,61 +117,70 @@ def test_submit_assigns_immutable_id_and_rejects_canonical(store: PopulationStor
                 idempotency_key="x3",
             ),
             store=store,
+            context=_submit_context(run_id="run-x3"),
         )
 
 
 def test_invalid_schema_and_missing_evidence_rejected(store: PopulationStore) -> None:
     seeded = _seed(store)
     with pytest.raises(ValidationError):
-        submit_candidate({"packet_id": seeded["packet"].packet_id}, store=store)
+        submit_candidate({"packet_id": seeded["packet"].packet_id}, store=store, context=_submit_context(run_id="bad-1"))
     with pytest.raises(ValidationError):
         submit_candidate(
             _payload(seeded["packet"].packet_id, [{"segment_id": "missing"}], idempotency_key="bad-ref"),
             store=store,
+            context=_submit_context(run_id="bad-2"),
         )
 
 
-def test_wrong_identity_forbidden(store: PopulationStore) -> None:
+def test_model_payload_cannot_select_identity(store: PopulationStore) -> None:
     seeded = _seed(store)
-    with pytest.raises((AuthorizationError, ValidationError)):
-        submit_candidate(
-            _payload(
-                seeded["packet"].packet_id,
-                seeded["refs"],
-                agent_identity=CRITIC_IDENTITY,
-                idempotency_key="wrong-id",
-            ),
-            store=store,
-        )
+    # Spoofed identity in payload is ignored; authenticated context wins.
+    result = submit_candidate(
+        _payload(
+            seeded["packet"].packet_id,
+            seeded["refs"],
+            agent_identity=CRITIC_IDENTITY,
+            idempotency_key="wrong-id",
+        ),
+        store=store,
+        context=_submit_context(run_id="trusted"),
+    )
+    assert result["candidate"]["agent_identity"] == PROPOSER_IDENTITY
+
+
+def test_missing_context_rejected(store: PopulationStore) -> None:
+    seeded = _seed(store)
+    with pytest.raises(TypeError):
+        submit_candidate(_payload(seeded["packet"].packet_id, seeded["refs"]), store=store)  # type: ignore[call-arg]
 
 
 def test_idempotent_replay_and_retry_cap(store: PopulationStore) -> None:
     seeded = _seed(store)
     payload = _payload(seeded["packet"].packet_id, seeded["refs"])
-    first = submit_candidate(payload, store=store)
-    second = submit_candidate(payload, store=store)
+    ctx = _submit_context()
+    first = submit_candidate(payload, store=store, context=ctx)
+    second = submit_candidate(payload, store=store, context=ctx)
     assert second["replayed"] is True
     assert second["candidate"]["candidate_id"] == first["candidate"]["candidate_id"]
     with pytest.raises(ValidationError):
-        submit_candidate({**payload, "idempotency_key": "retry-cap"}, store=store, retry_count=99)
+        submit_candidate(
+            {**payload, "idempotency_key": "retry-cap"},
+            store=store,
+            context=_submit_context(run_id="retry"),
+            retry_count=99,
+        )
 
 
 def test_golden_semantic_fields_present(store: PopulationStore) -> None:
     """Golden case: grounded packet requires evidence/counter-hypothesis/uncertainty."""
     seeded = _seed(store, "Grounded evidence about feedback loops.\n")
-    (FIXTURE_DIR / "grounded.json").write_text(
-        json.dumps(_payload(seeded["packet"].packet_id, seeded["refs"]), indent=2) + "\n",
-        encoding="utf-8",
+    result = submit_candidate(
+        _payload(seeded["packet"].packet_id, seeded["refs"], idempotency_key="golden"),
+        store=store,
+        context=_submit_context(run_id="golden"),
     )
-    result = submit_candidate(_payload(seeded["packet"].packet_id, seeded["refs"], idempotency_key="golden"), store=store)
     candidate = result["candidate"]
     assert candidate["evidence_refs"]
     assert candidate["counter_hypotheses"]
     assert candidate["uncertainty"]
-    # Evaluator rubric placeholder — intelligence judges support; deterministic path only checks presence.
-    rubric = {
-        "grounding": "fields_present",
-        "uncertainty_calibration": candidate["uncertainty"],
-        "non_deterministic_quality": True,
-    }
-    assert rubric["grounding"] == "fields_present"

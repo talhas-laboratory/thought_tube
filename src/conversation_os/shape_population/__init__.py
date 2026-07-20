@@ -40,9 +40,10 @@ from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.orchestrator import ShapePopulationOrchestrator, enqueue_after_ingest
 from conversation_os.shape_population.promotion import apply_promotion, request_promotion, rollback_promotion
 from conversation_os.shape_population.storage import PopulationStore, ShapePopulationStore
+from conversation_os.shape_population.worker import build_worker, run_worker
 
 MODULE_ID = "kernel.shape_population"
-CONTRACT_VERSION = "1.1.0"
+CONTRACT_VERSION = "1.2.0"
 
 PUBLIC_API = (
     "MODULE_ID",
@@ -82,5 +83,7 @@ PUBLIC_API = (
     "proposer_tool_surface",
     "critic_tool_surface",
     "population_tool_surface",
+    "build_worker",
+    "run_worker",
 )
 __all__ = list(PUBLIC_API)

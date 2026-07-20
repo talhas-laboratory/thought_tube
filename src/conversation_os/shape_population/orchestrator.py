@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping
 
+from conversation_os.source_content_store import SourceContentStore
 from conversation_os.shape_population.candidate_submission import submit_candidate
 from conversation_os.shape_population.comparison import find_neighbors
 from conversation_os.shape_population.contracts import ShapePopulationError, ValidationError
@@ -28,9 +30,10 @@ from conversation_os.shape_population.model_gateway import ShapeModelGateway
 from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.promotion import request_promotion
 from conversation_os.shape_population.storage import PopulationStore
+from conversation_os.shape_population.vault_bridge import merge_job_payload_with_vault, source_request_from_vault
 
 MODULE_ID = "kernel.shape_population.orchestrator"
-CONTRACT_VERSION = "1.0.0"
+CONTRACT_VERSION = "1.1.0"
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
@@ -40,20 +43,47 @@ PUBLIC_API = (
 __all__ = list(PUBLIC_API)
 
 
-def enqueue_after_ingest(source_id: str, *, store: PopulationStore) -> dict[str, Any]:
-    """Idempotently enqueue worker-side Shape intelligence after source ingest commits."""
+def enqueue_after_ingest(
+    source_id: str,
+    *,
+    store: PopulationStore,
+    vault_root: Path | str | None = None,
+    evaluate: bool = False,
+    payload: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Idempotently enqueue worker-side Shape intelligence after source ingest commits.
 
-    return store.enqueue_job(source_id=source_id, payload={"source_id": source_id, "enqueued_by": "post_ingest_hook"})
+    ``source_id`` is the vault source identity. The worker reconstructs content from the
+    vault and normalizes it into a Shape source before intelligence runs.
+    """
+
+    body = merge_job_payload_with_vault(payload, vault_source_id=source_id, vault_root=vault_root)
+    if evaluate:
+        body["evaluate"] = True
+    if vault_root is None and hasattr(store, "root"):
+        body.setdefault("vault_root", str(Path(store.root)))
+    return store.enqueue_job(source_id=source_id, payload=body)
 
 
 @dataclass
 class ShapePopulationOrchestrator:
     store: PopulationStore
     gateway: ShapeModelGateway
+    content_store: SourceContentStore | None = None
+    vault_root: Path | str | None = None
     lease_owner: str = "shape-population-worker"
     lease_seconds: int = 300
     max_attempts: int = 3
     comparison_limit: int = 5
+
+    def __post_init__(self) -> None:
+        if self.content_store is None:
+            root = Path(self.vault_root) if self.vault_root is not None else Path(self.store.root)
+            self.content_store = SourceContentStore(root)
+        if getattr(self.gateway, "content_store", None) is None:
+            self.gateway.content_store = self.content_store
+        if getattr(self.gateway, "store", None) is None:
+            self.gateway.store = self.store
 
     def claim_next_job(self) -> dict[str, Any] | None:
         return self.store.claim_job(lease_owner=self.lease_owner, lease_seconds=self.lease_seconds)
@@ -80,51 +110,85 @@ class ShapePopulationOrchestrator:
                 return finish(str(job["job_id"]), "dead_letter", str(exc), {"error": str(exc)}, self.lease_owner)
         return result
 
-    def _source_segments(self, source_id: str) -> list[str]:
+    def _source_segments(self, source_id: str) -> list[dict[str, Any]]:
         source = self.store.get_source(source_id)
         if source is None:
             raise ValidationError(f"unknown source: {source_id}")
-        return [str(segment["segment_id"]) for segment in (source.get("segments") or [])]
+        return [dict(segment) for segment in (source.get("segments") or [])]
+
+    def _resolve_vault_root(self, payload: Mapping[str, Any]) -> Path:
+        if payload.get("vault_root"):
+            return Path(str(payload["vault_root"]))
+        if self.vault_root is not None:
+            return Path(self.vault_root)
+        return Path(self.store.root)
 
     def _ensure_source_normalized(self, job: Mapping[str, Any]) -> str:
         payload = dict(job.get("payload") or {})
-        source_id = str(job.get("source_id") or payload.get("source_id") or "")
-        if not source_id and payload.get("source_request"):
-            normalized = normalize_source(dict(payload["source_request"]), store=self.store)
+        vault_source_id = str(
+            payload.get("vault_source_id") or job.get("source_id") or payload.get("source_id") or ""
+        ).strip()
+        shape_source_id = str(payload.get("shape_source_id") or "").strip()
+        if shape_source_id and self.store.get_source(shape_source_id) is not None:
+            return shape_source_id
+
+        if payload.get("source_request") and isinstance(payload.get("source_request"), Mapping):
+            normalized = normalize_source(
+                dict(payload["source_request"]),
+                store=self.store,
+                content_store=self.content_store,
+            )
             if normalized.rejected:
                 raise ValidationError(f"source normalization rejected: {normalized.rejection_reason}")
-            source_id = normalized.source_id
-        if not source_id:
+            return normalized.source_id
+
+        if vault_source_id and self.store.get_source(vault_source_id) is not None:
+            return vault_source_id
+
+        if not vault_source_id:
             raise ValidationError("population job missing source_id")
-        if self.store.get_source(source_id) is None:
-            source_request = payload.get("source_request")
-            if not isinstance(source_request, Mapping):
-                raise ValidationError(f"source {source_id} is not normalized")
-            normalized = normalize_source(source_request, store=self.store)
-            if normalized.rejected:
-                raise ValidationError(f"source normalization rejected: {normalized.rejection_reason}")
-            source_id = normalized.source_id
-        return source_id
+
+        vault_root = self._resolve_vault_root(payload)
+        source_request = source_request_from_vault(vault_root, vault_source_id)
+        normalized = normalize_source(
+            source_request,
+            store=self.store,
+            content_store=self.content_store,
+        )
+        if normalized.rejected:
+            raise ValidationError(f"source normalization rejected: {normalized.rejection_reason}")
+        return normalized.source_id
 
     def _packet_for_source(self, source_id: str, *, run_id: str) -> dict[str, Any]:
         context = agent_context(
             PROPOSER_IDENTITY,
             capabilities=(CAP_EVIDENCE_INQUIRE,),
             run_id=run_id,
-            model_id="deterministic-evidence",
-            prompt_version=CONTRACT_VERSION,
+            model_id="shape-inquiry",
+            prompt_version=self.gateway.prompt_version,
         )
+        segments = self._source_segments(source_id)
+        inquiry = self.gateway.plan_inquiry(
+            source_id=source_id,
+            segments=segments,
+            context=context,
+        )
+        segment_ids = [str(item) for item in (inquiry.get("segment_ids") or [])]
+        if not segment_ids:
+            segment_ids = [str(segment["segment_id"]) for segment in segments]
         packet = build_evidence_packet(
             {
-                "segment_ids": self._source_segments(source_id),
+                "segment_ids": segment_ids,
                 "evidence_inquiry": {
-                    "question": "What provisional Shapes are supported by this source?",
-                    "anchors": [source_id],
-                    "scope": "declared_segments",
+                    "question": str(inquiry.get("question") or "").strip()
+                    or "What provisional Shapes are supported by this source?",
+                    "anchors": [str(item) for item in (inquiry.get("anchors") or [source_id])],
+                    "scope": str(inquiry.get("scope") or "declared_segments"),
                 },
             },
             store=self.store,
             context=context,
+            content_store=self.content_store,
         )
         return packet.to_dict()
 
@@ -137,12 +201,16 @@ class ShapePopulationOrchestrator:
             packet = self._packet_for_source(source_id, run_id=f"{job_id}:evidence")
             proposer_context = agent_context(
                 PROPOSER_IDENTITY,
-                capabilities=(CAP_CANDIDATE_SUBMIT,),
+                capabilities=(CAP_CANDIDATE_SUBMIT, CAP_EVIDENCE_INQUIRE),
                 run_id=f"{job_id}:proposer",
                 model_id="shape-proposer",
                 prompt_version=self.gateway.prompt_version,
             )
             proposal = self.gateway.propose(evidence_packet=packet, context=proposer_context)
+            proposal = {
+                **proposal,
+                "packet_id": packet["packet_id"],
+            }
             submitted = submit_candidate(proposal, store=self.store, context=proposer_context)
             candidate = submitted["candidate"]
 
@@ -217,6 +285,7 @@ class ShapePopulationOrchestrator:
                     )
 
             result = {
+                "vault_source_id": str((job.get("payload") or {}).get("vault_source_id") or job.get("source_id") or ""),
                 "source_id": source_id,
                 "packet_id": packet["packet_id"],
                 "candidate_id": candidate["candidate_id"],

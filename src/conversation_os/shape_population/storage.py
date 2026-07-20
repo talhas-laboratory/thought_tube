@@ -703,6 +703,57 @@ class ShapePopulationStore:
     def put_approval(self, approval: Mapping[str, Any]) -> None:
         self.put_human_decision(approval)
 
+    def put_comparison_set(self, comparison_set: Mapping[str, Any]) -> None:
+        def write(conn: sqlite3.Connection) -> None:
+            version = str(comparison_set.get("comparison_set_version") or "")
+            candidate_id = str(comparison_set.get("candidate_id") or "")
+            if not version or not candidate_id:
+                raise ValueError("comparison_set requires candidate_id and comparison_set_version")
+            conn.execute(
+                """
+                INSERT INTO comparison_sets (
+                    comparison_set_version, candidate_id, policy_version,
+                    retriever_profile_json, neighbors_json, payload_json
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(comparison_set_version) DO UPDATE SET
+                    candidate_id = excluded.candidate_id,
+                    policy_version = excluded.policy_version,
+                    retriever_profile_json = excluded.retriever_profile_json,
+                    neighbors_json = excluded.neighbors_json,
+                    payload_json = excluded.payload_json
+                """,
+                (
+                    version,
+                    candidate_id,
+                    str(comparison_set.get("policy_version") or ""),
+                    _json_dumps(comparison_set.get("retriever_profile") or {}),
+                    _json_dumps(comparison_set.get("neighbors") or []),
+                    _json_dumps(dict(comparison_set)),
+                ),
+            )
+
+        self._write(write)
+
+    def get_comparison_set(self, comparison_set_version: str) -> Optional[dict[str, Any]]:
+        with self._read_conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM comparison_sets WHERE comparison_set_version = ?",
+                (comparison_set_version,),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = _json_loads(row["payload_json"], {})
+        if isinstance(payload, dict) and payload:
+            return payload
+        return {
+            "comparison_set_version": str(row["comparison_set_version"]),
+            "candidate_id": str(row["candidate_id"]),
+            "policy_version": str(row["policy_version"]),
+            "retriever_profile": _json_loads(row["retriever_profile_json"], {}),
+            "neighbors": _json_loads(row["neighbors_json"], []),
+        }
+
     def get_approval_for_request(self, request_id: str) -> Optional[dict[str, Any]]:
         event = self.get_human_decision(request_id)
         if event is None or event.get("decision") != "approved":

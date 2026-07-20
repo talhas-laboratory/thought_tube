@@ -9,7 +9,7 @@ import pytest
 from conversation_os.shape_population.candidate_submission import submit_candidate
 from conversation_os.shape_population.contracts import ForbiddenTransitionError, IdempotencyConflictError, ValidationError
 from conversation_os.shape_population.evidence import build_evidence_packet
-from conversation_os.shape_population.execution_context import ExecutionContext
+from conversation_os.shape_population.execution_context import CAP_CANDIDATE_SUBMIT, ExecutionContext, agent_context
 from conversation_os.shape_population.governance import atomic_submit_candidate, transition_candidate
 from conversation_os.shape_population.identities import PROPOSER_IDENTITY
 from conversation_os.shape_population.normalization import normalize_source
@@ -40,6 +40,16 @@ def _refs(packet) -> list[dict]:
         for block in packet.blocks
     ]
 
+
+
+def _submit_ctx(run_id: str = "r1"):
+    return agent_context(
+        PROPOSER_IDENTITY,
+        capabilities=(CAP_CANDIDATE_SUBMIT,),
+        run_id=run_id,
+        model_id="stub",
+        prompt_version="p",
+    )
 
 def _seed_payload(store: PopulationStore, key: str = "gov-1") -> dict:
     normalized = normalize_source({"content": "Evidence line for governance.\n", "modality": "plain_text"}, store=store)
@@ -92,28 +102,28 @@ def test_invalid_schema_and_evidence_fail_closed(store: PopulationStore) -> None
 
 def test_idempotent_replay_and_conflict(store: PopulationStore) -> None:
     payload = _seed_payload(store, "idem-1")
-    first = submit_candidate(payload, store=store)
-    second = submit_candidate(payload, store=store)
+    first = submit_candidate(payload, store=store, context=_submit_ctx())
+    second = submit_candidate(payload, store=store, context=_submit_ctx())
     assert second["replayed"] is True
     assert second["receipt"]["receipt_id"] == first["receipt"]["receipt_id"]
     conflict = dict(payload)
     conflict["title"] = "Changed"
     with pytest.raises(IdempotencyConflictError):
-        submit_candidate(conflict, store=store)
+        submit_candidate(conflict, store=store, context=_submit_ctx(run_id="conflict"))
 
 
 def test_transaction_rollback_on_receipt_path(store: PopulationStore) -> None:
     payload = _seed_payload(store, "rollback-1")
     # Force failure after validation by using absurd cost cap.
     with pytest.raises(ValidationError):
-        submit_candidate(payload, store=store, cost_units=10_000)
+        submit_candidate(payload, store=store, context=_submit_ctx(run_id="cost"), cost_units=10_000)
     assert store.get_idempotency(payload["idempotency_key"]) is None
     assert store.list_candidates() == []
 
 
 def test_forbidden_transition_and_no_canon_side_effect(store: PopulationStore) -> None:
     payload = _seed_payload(store, "trans-1")
-    candidate = submit_candidate(payload, store=store)["candidate"]
+    candidate = submit_candidate(payload, store=store, context=_submit_ctx())["candidate"]
     with pytest.raises(ForbiddenTransitionError):
         transition_candidate(store, candidate["candidate_id"], "canonical")
     assert store.get_canonical_projection(candidate["candidate_id"]) is None
@@ -125,7 +135,7 @@ def test_forbidden_transition_and_no_canon_side_effect(store: PopulationStore) -
 
 def test_receipt_privacy_and_audit_reconstruction(store: PopulationStore) -> None:
     payload = _seed_payload(store, "priv-1")
-    result = submit_candidate(payload, store=store)
+    result = submit_candidate(payload, store=store, context=_submit_ctx())
     receipt = result["receipt"]
     assert "raw_text" not in (receipt.get("provenance") or {})
     assert "source_text" not in (receipt.get("provenance") or {})
@@ -136,7 +146,7 @@ def test_receipt_privacy_and_audit_reconstruction(store: PopulationStore) -> Non
 
 def test_concurrent_duplicate_submission(store: PopulationStore) -> None:
     payload = _seed_payload(store, "dup-1")
-    a = submit_candidate(payload, store=store)
-    b = submit_candidate(payload, store=store)
+    a = submit_candidate(payload, store=store, context=_submit_ctx())
+    b = submit_candidate(payload, store=store, context=_submit_ctx())
     assert a["candidate"]["candidate_id"] == b["candidate"]["candidate_id"]
     assert len(store.list_candidates()) == 1

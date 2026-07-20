@@ -7,7 +7,9 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Protocol, Sequence
 
+from conversation_os.source_content_store import SourceContentStore
 from conversation_os.shape_population.contracts import ValidationError
+from conversation_os.shape_population.evidence import materialize_packet_text
 from conversation_os.shape_population.execution_context import ExecutionContext
 from conversation_os.shape_population.identities import (
     CRITIC_IDENTITY,
@@ -16,9 +18,10 @@ from conversation_os.shape_population.identities import (
     SYNTHESIZER_IDENTITY,
     get_identity,
 )
+from conversation_os.shape_population.storage import PopulationStore
 
 MODULE_ID = "kernel.shape_population.model_gateway"
-CONTRACT_VERSION = "1.0.0"
+CONTRACT_VERSION = "1.1.0"
 DEFAULT_TIMEOUT_SECONDS = 45.0
 DEFAULT_REPAIR_ATTEMPTS = 1
 PUBLIC_API = (
@@ -39,6 +42,7 @@ ROLE_IDENTITIES: dict[str, str] = {
     "critic": CRITIC_IDENTITY,
     "synthesizer": SYNTHESIZER_IDENTITY,
     "evaluator": EVALUATOR_IDENTITY,
+    "inquiry": PROPOSER_IDENTITY,
 }
 
 TRUSTED_RUNTIME_FIELDS = frozenset(
@@ -67,6 +71,7 @@ TRUSTED_RUNTIME_FIELDS = frozenset(
 )
 
 ROLE_OUTPUT_FIELDS: dict[str, frozenset[str]] = {
+    "inquiry": frozenset({"question", "segment_ids", "anchors", "scope"}),
     "proposer": frozenset(
         {
             "packet_id",
@@ -198,7 +203,7 @@ def _validate_fields(role: str, payload: Mapping[str, Any]) -> dict[str, Any]:
     return dict(payload)
 
 
-def _evidence_blocks(evidence_packet: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _evidence_block_refs(evidence_packet: Mapping[str, Any]) -> list[dict[str, Any]]:
     blocks: list[dict[str, Any]] = []
     for block in evidence_packet.get("blocks") or []:
         if not isinstance(block, Mapping):
@@ -214,7 +219,6 @@ def _evidence_blocks(evidence_packet: Mapping[str, Any]) -> list[dict[str, Any]]
                 "char_end",
                 "text_sha256",
                 "instruction_authority",
-                "text",
             )
             if key in block
         }
@@ -222,6 +226,23 @@ def _evidence_blocks(evidence_packet: Mapping[str, Any]) -> list[dict[str, Any]]
         retained["instruction_authority"] = False
         blocks.append(retained)
     return blocks
+
+
+def _segment_structure(segments: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    structured: list[dict[str, Any]] = []
+    for segment in segments:
+        structured.append(
+            {
+                "segment_id": segment.get("segment_id"),
+                "source_id": segment.get("source_id"),
+                "ordinal": segment.get("ordinal"),
+                "structure_path": segment.get("structure_path"),
+                "char_start": segment.get("char_start"),
+                "char_end": segment.get("char_end"),
+                "text_sha256": segment.get("text_sha256"),
+            }
+        )
+    return structured
 
 
 class ShapeModelGateway:
@@ -234,6 +255,8 @@ class ShapeModelGateway:
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
         repair_attempts: int = DEFAULT_REPAIR_ATTEMPTS,
         prompt_version: str = CONTRACT_VERSION,
+        content_store: SourceContentStore | None = None,
+        store: PopulationStore | None = None,
     ):
         if repair_attempts < 0:
             raise ValidationError("repair_attempts must be non-negative")
@@ -241,10 +264,57 @@ class ShapeModelGateway:
         self.timeout = float(timeout)
         self.repair_attempts = int(repair_attempts)
         self.prompt_version = prompt_version
+        self.content_store = content_store
+        self.store = store
 
     def allowed_tools_for_role(self, role: str) -> list[str]:
+        if _role(role) == "inquiry":
+            return []
         identity = get_identity(ROLE_IDENTITIES[_role(role)])
         return sorted(identity.allowed_tools)
+
+    def _materialized_source_data(self, evidence_packet: Mapping[str, Any] | None) -> dict[str, Any]:
+        packet = dict(evidence_packet or {})
+        if not packet:
+            return {
+                "SOURCE_DATA_BLOCKS": [],
+                "SOURCE_DATA_MATERIALIZED": "",
+                "source_data_instruction_authority": False,
+            }
+        if self.content_store is not None and self.store is not None and packet.get("blocks"):
+            materialized = materialize_packet_text(packet, self.content_store, self.store)
+            return {
+                "SOURCE_DATA_BLOCKS": _evidence_block_refs(packet),
+                "SOURCE_DATA_MATERIALIZED": materialized,
+                "source_data_instruction_authority": False,
+            }
+        blocks: list[dict[str, Any]] = []
+        for block in packet.get("blocks") or []:
+            if not isinstance(block, Mapping):
+                continue
+            retained = {
+                key: block.get(key)
+                for key in (
+                    "packet_id",
+                    "block_id",
+                    "source_id",
+                    "segment_id",
+                    "char_start",
+                    "char_end",
+                    "text_sha256",
+                    "instruction_authority",
+                    "text",
+                )
+                if key in block
+            }
+            retained.setdefault("packet_id", packet.get("packet_id"))
+            retained["instruction_authority"] = False
+            blocks.append(retained)
+        return {
+            "SOURCE_DATA_BLOCKS": blocks,
+            "SOURCE_DATA_MATERIALIZED": "",
+            "source_data_instruction_authority": False,
+        }
 
     def build_messages(
         self,
@@ -273,7 +343,7 @@ class ShapeModelGateway:
                     "prompt_version": self.prompt_version,
                     "role": normalized_role,
                     "allowed_output_fields": sorted(ROLE_OUTPUT_FIELDS[normalized_role]),
-                    "allowed_tools": sorted(identity.allowed_tools),
+                    "allowed_tools": self.allowed_tools_for_role(normalized_role),
                     "trusted_context": {
                         "principal_id": context.principal_id,
                         "run_id": context.run_id,
@@ -289,9 +359,8 @@ class ShapeModelGateway:
             "content": json.dumps(
                 {
                     "task": task,
-                    "SOURCE_DATA_BLOCKS": _evidence_blocks(evidence_packet or {}),
+                    **self._materialized_source_data(evidence_packet),
                     "prior_artifacts": dict(prior or {}),
-                    "source_data_instruction_authority": False,
                 },
                 sort_keys=True,
                 ensure_ascii=False,
@@ -342,6 +411,49 @@ class ShapeModelGateway:
                 if attempt >= self.repair_attempts:
                     raise ValidationError(f"model gateway failed after {attempt + 1} attempt(s): {last_error}") from exc
         raise ValidationError("model gateway failed")
+
+    def plan_inquiry(
+        self,
+        *,
+        source_id: str,
+        segments: Sequence[Mapping[str, Any]],
+        context: ExecutionContext,
+        task: str = "",
+    ) -> dict[str, Any]:
+        """Intelligence-led bounded evidence inquiry before deterministic packet assembly."""
+
+        structure = _segment_structure(segments)
+        default = {
+            "question": "What provisional Shapes are supported by this source?",
+            "segment_ids": [str(item.get("segment_id") or "") for item in structure if item.get("segment_id")],
+            "anchors": [source_id],
+            "scope": "declared_segments",
+        }
+        if not structure:
+            return default
+        try:
+            planned = self.invoke(
+                "inquiry",
+                evidence_packet=None,
+                context=context,
+                task=task
+                or "Select a bounded evidence inquiry for provisional Shape formation. Choose only declared segment_ids.",
+                prior={"source_id": source_id, "segments": structure},
+            )
+        except (TimeoutError, ValidationError):
+            return default
+        segment_ids = [str(item) for item in (planned.get("segment_ids") or []) if str(item)]
+        allowed = {str(item.get("segment_id") or "") for item in structure}
+        segment_ids = [item for item in segment_ids if item in allowed] or default["segment_ids"]
+        question = str(planned.get("question") or "").strip() or default["question"]
+        anchors = [str(item) for item in (planned.get("anchors") or []) if str(item)] or [source_id]
+        scope = str(planned.get("scope") or "declared_segments")
+        return {
+            "question": question,
+            "segment_ids": segment_ids,
+            "anchors": anchors,
+            "scope": scope,
+        }
 
     def propose(self, *, evidence_packet: Mapping[str, Any], context: ExecutionContext, task: str = "") -> dict[str, Any]:
         return self.invoke("proposer", evidence_packet=evidence_packet, context=context, task=task)

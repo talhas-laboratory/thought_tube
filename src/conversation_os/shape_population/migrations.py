@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from typing import Iterable
 
 MODULE_ID = "kernel.shape_population.migrations"
-CONTRACT_VERSION = "1.0.0"
-SCHEMA_VERSION = 1
+CONTRACT_VERSION = "1.1.0"
+SCHEMA_VERSION = 2
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
@@ -301,8 +301,23 @@ BEGIN
 END;
 """
 
+SCHEMA_V2_SQL = """
+CREATE TABLE comparison_sets (
+    comparison_set_version TEXT PRIMARY KEY,
+    candidate_id TEXT NOT NULL REFERENCES candidates(candidate_id) ON DELETE CASCADE,
+    policy_version TEXT NOT NULL CHECK (length(policy_version) > 0),
+    retriever_profile_json TEXT NOT NULL DEFAULT '{}',
+    neighbors_json TEXT NOT NULL DEFAULT '[]',
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX ix_comparison_sets_candidate ON comparison_sets(candidate_id, created_at);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(version=1, name="shape_population_schema_v1", sql=SCHEMA_V1_SQL),
+    Migration(version=2, name="shape_population_comparison_sets_v2", sql=SCHEMA_V2_SQL),
 )
 
 

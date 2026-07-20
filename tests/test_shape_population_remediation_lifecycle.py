@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 
-from conversation_os.shape_population.orchestrator import enqueue_after_ingest
+from conversation_os.shape_population.model_gateway import ShapeModelGateway, StubModelClient
+from conversation_os.shape_population.orchestrator import ShapePopulationOrchestrator, enqueue_after_ingest
 from conversation_os.shape_population.storage import ShapePopulationStore
+from conversation_os.shape_population.worker import run_worker
 from conversation_os.source_content_store import SourceContentStore
 from conversation_os.vault_ingest import ingest_text_content
 
@@ -21,7 +24,7 @@ def test_post_ingest_hook_enqueues_without_blocking(root: Path) -> None:
     store = ShapePopulationStore(root)
 
     def hook(path: Path, *, source_id: str):
-        return enqueue_after_ingest(source_id, store=store)
+        return enqueue_after_ingest(source_id, store=store, vault_root=path)
 
     result = ingest_text_content(
         root,
@@ -33,6 +36,9 @@ def test_post_ingest_hook_enqueues_without_blocking(root: Path) -> None:
     assert result["source_id"]
     assert result["post_ingest"]["hook_count"] == 1
     assert result["post_ingest"]["receipts"][0]["ok"] is True
+    job = result["post_ingest"]["receipts"][0]["result"]
+    assert job["state"] == "queued"
+    assert job["payload"]["vault_source_id"] == result["source_id"]
 
     def boom(path: Path, *, source_id: str):
         raise RuntimeError("worker down")
@@ -59,6 +65,200 @@ def test_content_store_dedupe_and_source_bytes_once(root: Path) -> None:
     blob_dir = root / "product" / "inner_world_v1" / "data" / "source_content"
     files = [p for p in blob_dir.rglob("*") if p.is_file() and p.suffix != ".json"]
     assert len(files) == 1
+
+
+def _proposal_for_packet(packet: dict) -> dict:
+    block = packet["blocks"][0]
+    return {
+        "packet_id": packet["packet_id"],
+        "title": "Boundary mechanism",
+        "statement": "A mechanism appears when boundary B holds.",
+        "boundary": "boundary B",
+        "mechanism": "appearance under B",
+        "dimensions": ["causality"],
+        "evidence_refs": [
+            {
+                "packet_id": packet["packet_id"],
+                "block_id": block["block_id"],
+                "source_id": block["source_id"],
+                "segment_id": block["segment_id"],
+                "char_start": block["char_start"],
+                "char_end": block["char_end"],
+                "text_sha256": block["text_sha256"],
+            }
+        ],
+        "counter_hypotheses": ["coincidence"],
+        "uncertainty": "medium",
+        "recommended_disposition": "proposed",
+    }
+
+
+def test_ingest_enqueue_process_job_materializes_evidence_text(root: Path) -> None:
+    store = ShapePopulationStore(root)
+    content_store = SourceContentStore(root)
+    source_text = "A mechanism appears when boundary B holds.\n"
+
+    def hook(path: Path, *, source_id: str):
+        return enqueue_after_ingest(source_id, store=store, vault_root=path)
+
+    ingested = ingest_text_content(
+        root,
+        title="Worker source",
+        content=source_text,
+        source_ref="manual://worker-1",
+        post_ingest_hooks=[hook],
+    )
+    vault_source_id = ingested["source_id"]
+
+    # Queue stub responses: inquiry, propose, critique, synthesize.
+    inquiry = {
+        "question": "What mechanism is bounded by B?",
+        "segment_ids": [],
+        "anchors": [vault_source_id],
+        "scope": "declared_segments",
+    }
+    # proposal packet_id filled by orchestrator after inquiry; stub returns without packet_id first —
+    # gateway requires packet_id for proposer. Use a client that inspects the last user message.
+    class PacketAwareStub:
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+            self._phase = 0
+
+        def complete(self, messages, *, tools, timeout):
+            self.calls.append({"messages": list(messages), "tools": list(tools), "timeout": timeout})
+            user = json.loads(messages[2]["content"])
+            if self._phase == 0:
+                self._phase += 1
+                # Fill segment_ids from prior structure if empty in planned response later.
+                segments = (user.get("prior_artifacts") or {}).get("segments") or []
+                payload = dict(inquiry)
+                payload["segment_ids"] = [str(item["segment_id"]) for item in segments]
+                return json.dumps(payload)
+            if self._phase == 1:
+                self._phase += 1
+                packet = {
+                    "packet_id": "pending",
+                    "blocks": [],
+                }
+                # Evidence is materialized into SOURCE_DATA_MATERIALIZED
+                materialized = user.get("SOURCE_DATA_MATERIALIZED") or ""
+                assert "SOURCE_DATA_BLOCKS_JSON" in materialized
+                assert "mechanism appears when boundary B holds" in materialized.lower() or "mechanism" in materialized.lower()
+                # Reconstruct packet id from blocks refs
+                blocks = user.get("SOURCE_DATA_BLOCKS") or []
+                packet_id = blocks[0]["packet_id"] if blocks else "pkt"
+                proposal = _proposal_for_packet(
+                    {
+                        "packet_id": packet_id,
+                        "blocks": [
+                            {
+                                **blocks[0],
+                                "text_sha256": blocks[0]["text_sha256"],
+                            }
+                        ],
+                    }
+                )
+                return json.dumps(proposal)
+            if self._phase == 2:
+                self._phase += 1
+                candidate = (user.get("prior_artifacts") or {}).get("candidate") or {}
+                return json.dumps(
+                    {
+                        "candidate_id": candidate.get("candidate_id"),
+                        "disposition": "under_review",
+                        "critique": "Needs synthesis.",
+                        "evidence_refs": candidate.get("evidence_refs") or [],
+                        "uncertainty": "medium",
+                        "relationship_findings": [],
+                    }
+                )
+            candidate = (user.get("prior_artifacts") or {}).get("candidate") or {}
+            return json.dumps(
+                {
+                    "candidate_id": candidate.get("candidate_id"),
+                    "disposition": "recommended",
+                    "critique": "Grounded.",
+                    "evidence_refs": candidate.get("evidence_refs") or [],
+                    "uncertainty": "low",
+                    "relationship_findings": [],
+                }
+            )
+
+    client = PacketAwareStub()
+    gateway = ShapeModelGateway(client, content_store=content_store, store=store, repair_attempts=0)
+    orchestrator = ShapePopulationOrchestrator(
+        store=store,
+        gateway=gateway,
+        content_store=content_store,
+        vault_root=root,
+    )
+    outcome = orchestrator.run_once()
+    assert outcome is not None
+    assert outcome["state"] == "completed"
+    assert outcome["result"]["vault_source_id"] == vault_source_id
+    assert outcome["result"]["candidate_id"]
+    assert outcome["result"]["comparison_set_version"]
+    assert store.get_comparison_set(outcome["result"]["comparison_set_version"]) is not None
+    assert store.get_source(outcome["result"]["source_id"]) is not None
+    assert len(client.calls) >= 3
+    propose_user = json.loads(client.calls[1]["messages"][2]["content"])
+    assert propose_user["SOURCE_DATA_MATERIALIZED"]
+    assert "quoted source data" in propose_user["SOURCE_DATA_MATERIALIZED"].lower() or "SOURCE_DATA_BLOCKS_JSON" in propose_user["SOURCE_DATA_MATERIALIZED"]
+
+
+def test_worker_cli_processes_queued_job(root: Path) -> None:
+    store = ShapePopulationStore(root)
+    content_store = SourceContentStore(root)
+
+    def hook(path: Path, *, source_id: str):
+        return enqueue_after_ingest(source_id, store=store, vault_root=path)
+
+    ingest_text_content(
+        root,
+        title="CLI source",
+        content="CLI mechanism under boundary.\n",
+        source_ref="manual://cli-1",
+        post_ingest_hooks=[hook],
+    )
+
+    class SimpleStub:
+        def __init__(self) -> None:
+            self.n = 0
+
+        def complete(self, messages, *, tools, timeout):
+            user = json.loads(messages[2]["content"])
+            self.n += 1
+            if self.n == 1:
+                segments = (user.get("prior_artifacts") or {}).get("segments") or []
+                return json.dumps(
+                    {
+                        "question": "What shape?",
+                        "segment_ids": [str(item["segment_id"]) for item in segments],
+                        "anchors": ["cli"],
+                        "scope": "declared_segments",
+                    }
+                )
+            if self.n == 2:
+                blocks = user.get("SOURCE_DATA_BLOCKS") or []
+                packet_id = blocks[0]["packet_id"]
+                return json.dumps(_proposal_for_packet({"packet_id": packet_id, "blocks": blocks}))
+            candidate = (user.get("prior_artifacts") or {}).get("candidate") or {}
+            disposition = "under_review" if self.n == 3 else "recommended"
+            return json.dumps(
+                {
+                    "candidate_id": candidate.get("candidate_id"),
+                    "disposition": disposition,
+                    "critique": "ok",
+                    "evidence_refs": candidate.get("evidence_refs") or [],
+                    "uncertainty": "low",
+                    "relationship_findings": [],
+                }
+            )
+
+    gateway = ShapeModelGateway(SimpleStub(), content_store=content_store, store=store, repair_attempts=0)
+    result = run_worker(root, limit=1, gateway=gateway)
+    assert result["processed"] == 1
+    assert result["results"][0]["state"] == "completed"
 
 
 def test_rejected_promotion_is_terminal(root: Path) -> None:
@@ -122,7 +322,7 @@ def test_rejected_promotion_is_terminal(root: Path) -> None:
             "idempotency_key": "term-1",
         },
         store=store,
-        context=agent_context(PROPOSER_IDENTITY, capabilities={"shape.candidate.submit"}),
+        context=agent_context(PROPOSER_IDENTITY, capabilities={"shape.candidate.submit"}, run_id="t1", model_id="m", prompt_version="p"),
     )["candidate"]
     evaluation = submit_evaluation(
         {
@@ -138,6 +338,9 @@ def test_rejected_promotion_is_terminal(root: Path) -> None:
         context=agent_context(
             CRITIC_IDENTITY,
             capabilities={"shape.evaluation.submit", "shape.comparison.read"},
+            run_id="t2",
+            model_id="m",
+            prompt_version="p",
         ),
     )["evaluation"]
     requested = request_promotion(
@@ -146,14 +349,13 @@ def test_rejected_promotion_is_terminal(root: Path) -> None:
         "ready",
         refs,
         store=store,
-        context=agent_context(EVALUATOR_IDENTITY, capabilities={"shape.promotion.request"}),
+        context=agent_context(EVALUATOR_IDENTITY, capabilities={"shape.promotion.request"}, run_id="t3", model_id="m", prompt_version="p"),
         idempotency_key="term-prom",
     )
     request_id = requested["request"]["request_id"]
     record_human_decision(
         request_id,
         store=store,
-        approval_identity=HUMAN_APPROVER_ROLE,
         approval_reason="not ready",
         decision="rejected",
         context=human_context(HUMAN_APPROVER_ROLE, capabilities={"shape.promotion.approve"}),
@@ -162,7 +364,6 @@ def test_rejected_promotion_is_terminal(root: Path) -> None:
         record_human_decision(
             request_id,
             store=store,
-            approval_identity=HUMAN_APPROVER_ROLE,
             approval_reason="flip flop",
             decision="approved",
             context=human_context(HUMAN_APPROVER_ROLE, capabilities={"shape.promotion.approve"}),
@@ -171,7 +372,6 @@ def test_rejected_promotion_is_terminal(root: Path) -> None:
         apply_promotion(
             request_id,
             store=store,
-            approval_identity=HUMAN_APPROVER_ROLE,
             context=human_context(
                 "shape.canonical_authority",
                 capabilities={"shape.promotion.apply", "shape.promotion.approve"},
