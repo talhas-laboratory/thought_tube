@@ -47,7 +47,9 @@ def load_holodeck_disclosure_config(root: Path) -> Dict[str, Any]:
 
 
 def holodeck_disclosure_service_enabled(root: Path) -> bool:
-    return bool(load_holodeck_disclosure_config(root)["disclosure_service_v1"])
+    from .disclosure_rollout import resolve_surface_rollout_mode
+
+    return resolve_surface_rollout_mode(root, "holodeck") != "legacy"
 
 
 def build_contextualization_query(seed_bundle: Mapping[str, Any]) -> str:

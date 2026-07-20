@@ -639,15 +639,9 @@ def _collect_legacy_meta_layer_candidates(root: Path, seed_terms: list[str]) -> 
 
 
 def _holodeck_disclosure_service_requested(root: Path) -> bool:
-    runtime = read_json(root / "product" / "inner_world_v1" / "config" / "runtime.json", default={}) or {}
-    holodeck = runtime.get("holodeck", {}) or {}
-    disclosure = runtime.get("disclosure", {}) or {}
-    return bool(
-        holodeck.get(
-            "disclosure_service_v1",
-            disclosure.get("holodeck_disclosure_service_v1", False),
-        )
-    )
+    from .disclosure_rollout import resolve_surface_rollout_mode
+
+    return resolve_surface_rollout_mode(root, "holodeck") != "legacy"
 
 
 def _collect_holodeck_knowledge_candidates(
@@ -657,19 +651,65 @@ def _collect_holodeck_knowledge_candidates(
     *,
     max_source_refs: int,
 ) -> tuple[list[dict], list[str]]:
-    if not _holodeck_disclosure_service_requested(root):
+    from .disclosure_rollout import (
+        compare_holodeck_knowledge_subsets,
+        record_rollout_shadow_receipt,
+        resolve_execution_path,
+    )
+
+    cohort_key = str(seed_bundle.get("workspace_id", "") or "")
+    execution_path = resolve_execution_path(root, "holodeck", cohort_key=cohort_key)
+
+    if execution_path == "legacy":
         return _collect_legacy_meta_layer_candidates(root, seed_terms)
 
+    if execution_path == "shared":
+        try:
+            from .holodeck_disclosure_adapter import collect_disclosure_knowledge_candidates
+
+            return collect_disclosure_knowledge_candidates(
+                root,
+                seed_bundle,
+                max_source_refs=max_source_refs,
+            )
+        except Exception:
+            return [], ["disclosure_service", "abstained_dependency_not_ready"]
+
+    legacy_candidates, legacy_layers = _collect_legacy_meta_layer_candidates(root, seed_terms)
     try:
         from .holodeck_disclosure_adapter import collect_disclosure_knowledge_candidates
 
-        return collect_disclosure_knowledge_candidates(
+        shared_candidates, shared_layers = collect_disclosure_knowledge_candidates(
             root,
             seed_bundle,
             max_source_refs=max_source_refs,
         )
-    except Exception:
-        return [], ["disclosure_service", "abstained_dependency_not_ready"]
+        comparison = compare_holodeck_knowledge_subsets(legacy_candidates, shared_candidates)
+        record_rollout_shadow_receipt(
+            root,
+            {
+                "surface": "holodeck",
+                "mode": "shadow",
+                **comparison,
+                "shared_layers": shared_layers,
+                "legacy_layers": legacy_layers,
+            },
+            surface="holodeck",
+            cohort_key=cohort_key,
+        )
+    except Exception as exc:
+        record_rollout_shadow_receipt(
+            root,
+            {
+                "surface": "holodeck",
+                "mode": "shadow",
+                "parity_match": False,
+                "shared_error": type(exc).__name__,
+            },
+            surface="holodeck",
+            cohort_key=cohort_key,
+        )
+    return legacy_candidates, legacy_layers
 
 
 def _collect_contextualization_candidates(root: Path, workspace_id: str, seed_bundle: dict, artifacts: list[dict], max_source_refs: int) -> tuple[list[dict], list[str]]:

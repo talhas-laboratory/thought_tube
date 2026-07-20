@@ -1244,12 +1244,9 @@ def orient_first_compose_enabled(root: Path) -> bool:
 
 
 def disclosure_service_enabled(root: Path) -> bool:
-    try:
-        from .disclosure_service import disclosure_service_enabled as _enabled
+    from .disclosure_rollout import resolve_surface_rollout_mode
 
-        return bool(_enabled(root))
-    except Exception:
-        return False
+    return resolve_surface_rollout_mode(root, "bridge") != "legacy"
 
 
 def execution_audit_isolation_enabled(root: Path | None) -> bool:
@@ -1865,13 +1862,58 @@ def get_context_bundle(
     *,
     budget: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    if disclosure_service_enabled(root):
+    from .disclosure_rollout import (
+        compare_bridge_rollout_bundles,
+        record_rollout_shadow_receipt,
+        resolve_execution_path,
+        resolve_surface_rollout_mode,
+    )
+
+    cohort_key = str(
+        context_state.get("request_id", "")
+        or context_state.get("context_id", "")
+        or ""
+    )
+    execution_path = resolve_execution_path(root, "bridge", cohort_key=cohort_key)
+    rollout_mode = resolve_surface_rollout_mode(root, "bridge")
+
+    if execution_path == "shared":
         from .bridge_disclosure_adapter import disclose_for_bridge
 
-        return disclose_for_bridge(root, context_state, budget=budget)
-    bundle = _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
-    bundle["disclosure_receipt"] = _record_bridge_disclosure_receipt(root, bundle)
-    return bundle
+        bundle = disclose_for_bridge(root, context_state, budget=budget)
+        bundle["disclosure_rollout_mode"] = rollout_mode
+        return bundle
+
+    legacy_bundle = _assemble_bridge_context_bundle_impl(root, context_state, budget=budget)
+    legacy_bundle["disclosure_receipt"] = _record_bridge_disclosure_receipt(root, legacy_bundle)
+    legacy_bundle["disclosure_rollout_mode"] = rollout_mode
+
+    if execution_path == "shadow":
+        try:
+            from .bridge_disclosure_adapter import disclose_for_bridge
+
+            shared_bundle = disclose_for_bridge(root, context_state, budget=budget)
+            comparison = compare_bridge_rollout_bundles(legacy_bundle, shared_bundle)
+            shadow_record = {
+                "surface": "bridge",
+                "mode": "shadow",
+                **comparison,
+            }
+            legacy_bundle["disclosure_rollout_shadow"] = shadow_record
+            record_rollout_shadow_receipt(
+                root,
+                shadow_record,
+                surface="bridge",
+                cohort_key=cohort_key,
+            )
+        except Exception as exc:
+            legacy_bundle["disclosure_rollout_shadow"] = {
+                "surface": "bridge",
+                "mode": "shadow",
+                "parity_match": False,
+                "shared_error": type(exc).__name__,
+            }
+    return legacy_bundle
 
 
 def _record_bridge_disclosure_receipt(root: Path, bundle: Dict[str, Any]) -> Dict[str, Any]:

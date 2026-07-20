@@ -45,7 +45,9 @@ def load_disclosure_service_config(root: Path) -> Dict[str, Any]:
 
 
 def disclosure_service_enabled(root: Path) -> bool:
-    return bool(load_disclosure_service_config(root)["disclosure_service_v1"])
+    from .disclosure_rollout import resolve_surface_rollout_mode
+
+    return resolve_surface_rollout_mode(root, "bridge") != "legacy"
 
 
 class DisclosureService:

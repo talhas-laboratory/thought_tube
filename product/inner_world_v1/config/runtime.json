@@ -104,6 +104,12 @@
       "operator_metrics_v1": false,
       "receipt_limit": 500
     },
+    "rollout": {
+      "bridge": "enforced",
+      "holodeck": "enforced",
+      "canary_percent": 0,
+      "canary_salt": "cae-release-v1"
+    },
     "bounded_view": {
       "epistemic_backend_v1": false,
       "max_nodes": 8,
@@ -111,7 +117,8 @@
     }
   },
   "holodeck": {
-    "disclosure_service_v1": false,
+    "disclosure_rollout_v1": "enforced",
+    "disclosure_service_v1": true,
     "contextualization_retrieval_limit": 6,
     "contextualization_neighbor_limit": 4
   },
@@ -139,7 +146,8 @@
     "effective_grant_normalization_v1": true,
     "deterministic_budget_enforcement_v1": true,
     "orient_first_compose_v1": true,
-    "disclosure_service_v1": false,
+    "disclosure_rollout_v1": "enforced",
+    "disclosure_service_v1": true,
     "openclaw_mode": "auto",
     "tracking": {
       "require_active_session": true,

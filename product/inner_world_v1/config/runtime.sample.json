@@ -25,6 +25,7 @@
     "effective_grant_normalization_v1": true,
     "deterministic_budget_enforcement_v1": true,
     "orient_first_compose_v1": true,
+    "disclosure_rollout_v1": "legacy",
     "disclosure_service_v1": false,
     "openclaw_mode": "auto"
   },
@@ -50,9 +51,16 @@
     "active_state": {
       "continuity_v1": false,
       "max_transitions": 200
+    },
+    "rollout": {
+      "bridge": "legacy",
+      "holodeck": "legacy",
+      "canary_percent": 0,
+      "canary_salt": "cae-disclosure-v1"
     }
   },
   "holodeck": {
+    "disclosure_rollout_v1": "legacy",
     "disclosure_service_v1": false,
     "contextualization_retrieval_limit": 6,
     "contextualization_neighbor_limit": 4
