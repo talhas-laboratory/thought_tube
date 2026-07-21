@@ -21,6 +21,7 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     validate_role_assignment_contract,
     validate_influence_assessment_contract,
     validate_role_influence_bundle_contract,
+    validate_shape_contract,
 )
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime, run_vertical_slice
 
@@ -410,6 +411,14 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         self.assertNotEqual(roles[0]["scope_id"], roles[1]["scope_id"])
         self.assertNotEqual(roles[0]["temporal_scope"], roles[1]["temporal_scope"])
         self.assertEqual(validate_role_influence_bundle_contract(roles, fixture["influence_assessments"]), [])
+
+    def test_shape_contract_includes_relations_projection_and_signature(self) -> None:
+        core={"record_type":"shape_core","id":"core","focal_ref":"referent:forest","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov","relation_refs":["rel:one"]}
+        view={"record_type":"shape_view","id":"view","shape_core_id":"core","semantic_address":{"dimension":"functional"},"abstraction_contract":"roles only","relation_refs":["rel:one"],"projection":{"nodes":["forest"],"edges":["rel:one"],"groups":["forest"]},"comparison_signature":{"role_relation_summary":["regulator->stabilizes"]}}
+        record={"record_type":"shape_record","id":"record","shape_core_id":"core","shape_view_id":"view","input_refs":["role:one"],"derivation_method":"manual","provenance_id":"prov","reproducibility":"interpretative"}
+        composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["record"],"coupling_refs":["rel:one"],"provenance_id":"prov"}
+        for payload,kind in ((core,"shape_core"),(view,"shape_view"),(record,"shape_record"),(composite,"composite_shape")):
+            self.assertEqual(validate_shape_contract(payload,kind), [])
 
 
 if __name__ == "__main__":

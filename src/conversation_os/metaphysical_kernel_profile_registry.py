@@ -32,6 +32,8 @@ COMPOSITION_PROFILE_ID = "profile:composition"
 COMPOSITION_PROFILE_VERSION = "1.0.0"
 ROLE_ASSIGNMENT_PROFILE_ID = "profile:role_assignment"
 ROLE_ASSIGNMENT_PROFILE_VERSION = "1.0.0"
+SHAPE_PROFILE_ID = "profile:shape"
+SHAPE_PROFILE_VERSION = "1.0.0"
 
 PROFILE_INVARIANT_CHECKS = {
     "no_claim_without_branch_membership": "Every claim must have matching BranchMembership",
@@ -182,6 +184,25 @@ def validate_role_influence_bundle_contract(roles: Sequence[Mapping[str, Any]], 
         elif any(str(assessment.get(k, "")) != str(role.get(k, "")) for k in ("scope_id", "temporal_scope", "branch_id")):
             errors.append("influence assessment scope, time, or branch conflicts with role assignment")
     return sorted(set(errors))
+
+
+def validate_shape_contract(payload: Mapping[str, Any], kind: str) -> List[str]:
+    errors=[]
+    if payload.get("record_type") != kind: errors.append(f"shape record_type must be {kind}")
+    required={"shape_core":("id","focal_ref","scope_id","branch_id","provenance_id","relation_refs"),"shape_view":("id","shape_core_id","semantic_address","abstraction_contract","relation_refs","projection"),"shape_record":("id","shape_core_id","shape_view_id","input_refs","derivation_method","provenance_id","reproducibility"),"composite_shape":("id","dimensional_shape_refs","coupling_refs","provenance_id")}[kind]
+    for name in required:
+        if payload.get(name) in (None,"",[]): errors.append(f"{kind} {name} is required")
+    if kind=="shape_record" and payload.get("reproducibility") not in {"reproducible","interpretative"}: errors.append("shape_record reproducibility is invalid")
+    if kind=="shape_view":
+        projection=payload.get("projection",{})
+        if not isinstance(projection,dict) or any(not projection.get(k) for k in ("nodes","edges","groups")): errors.append("shape_view projection requires nodes, edges, and groups")
+        signature=payload.get("comparison_signature",{})
+        if not isinstance(signature,dict) or not signature.get("role_relation_summary"): errors.append("shape_view comparison_signature requires role_relation_summary")
+    return errors
+
+
+def build_shape_profile_v1(*, envelope_id: str, provenance_id: str) -> ProfileDefinition:
+    return ProfileDefinition(envelope=KernelRecordEnvelope(id=envelope_id,record_kind="profile_definition",type_id=SHAPE_PROFILE_ID,created_at=utc_now(),created_by="service:profile_registry",provenance_id=provenance_id,maturity_status="structured",epistemic_status="not_applicable",governance_status="review_required"),profile_id=SHAPE_PROFILE_ID,profile_version=SHAPE_PROFILE_VERSION,purpose="Represent bounded relational Shapes, their views, derived records, and composite couplings.",kernel_records_used=["referent","scope","relation_instance","provenance","model_branch","branch_membership"],profile_record_types=["shape_core","shape_view","shape_record","dimensional_shape","composite_shape"],profile_dependencies=[ROLE_ASSIGNMENT_PROFILE_ID],invariants=["shape_views_preserve_relation_refs","composite_shapes_declare_couplings","comparison_signatures_are_candidate_aids"],steward="service:profile_registry")
 
 
 def validate_quality_instance_contract(payload: Mapping[str, Any]) -> List[str]:
@@ -652,6 +673,12 @@ class ProfileRegistry:
         fragment = self.runtime.capture_source_fragment(content_pointer="memory://foundation/role-assignment-profile-bootstrap", author_or_origin="service:profile_registry", integrity_hash="sha256:role-assignment-profile-bootstrap", source_kind="import")
         return self.register(build_role_assignment_profile_v1(envelope_id=make_id("profile"), provenance_id=str(fragment["envelope"]["provenance_id"])))
 
+    def bootstrap_shape_profile(self) -> Dict[str, Any]:
+        if self.get_profile(SHAPE_PROFILE_ID): return self.get_profile(SHAPE_PROFILE_ID).to_dict()  # type: ignore[union-attr]
+        if not self.get_profile(ROLE_ASSIGNMENT_PROFILE_ID): self.bootstrap_role_assignment_profile()
+        fragment=self.runtime.capture_source_fragment(content_pointer="memory://foundation/shape-profile-bootstrap",author_or_origin="service:profile_registry",integrity_hash="sha256:shape-profile-bootstrap",source_kind="import")
+        return self.register(build_shape_profile_v1(envelope_id=make_id("profile"),provenance_id=str(fragment["envelope"]["provenance_id"])))
+
     def bind_application(
         self,
         *,
@@ -849,6 +876,8 @@ __all__ = [
     "COMPOSITION_PROFILE_VERSION",
     "ROLE_ASSIGNMENT_PROFILE_ID",
     "ROLE_ASSIGNMENT_PROFILE_VERSION",
+    "SHAPE_PROFILE_ID",
+    "SHAPE_PROFILE_VERSION",
     "ProfileRegistryError",
     "ApplicationProfileBinding",
     "ProfileUpgradeReport",
@@ -861,6 +890,7 @@ __all__ = [
     "build_quality_instance_profile_v1",
     "build_composition_profile_v1",
     "build_role_assignment_profile_v1",
+    "build_shape_profile_v1",
     "validate_quality_instance_contract",
     "validate_quality_refinement_contract",
     "validate_system_boundary_contract",
@@ -869,6 +899,7 @@ __all__ = [
     "validate_role_assignment_contract",
     "validate_influence_assessment_contract",
     "validate_role_influence_bundle_contract",
+    "validate_shape_contract",
     "parse_semver",
     "compare_semver",
     "load_profile_definition",
