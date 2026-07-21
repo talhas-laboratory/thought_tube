@@ -1,6 +1,6 @@
 # UMF-SHAPE-001-QUALITY-INSTANCE-REFINEMENT: Model QualityInstance and refinement lineage
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 
