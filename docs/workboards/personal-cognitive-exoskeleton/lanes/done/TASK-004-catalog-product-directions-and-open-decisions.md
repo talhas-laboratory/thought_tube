@@ -1,6 +1,6 @@
 # TASK-004-catalog-product-directions-and-open-decisions: Catalog product directions and open decisions
 
-Status: in-progress
+Status: done
 Owner: unassigned
 Current gate: not_required
 
