@@ -111,6 +111,7 @@
       {"id": "handoff", "path": "derived/handoff.md", "title": "Foundation handoff"},
       {"id": "foundation-build-plan", "path": "derived/foundation-build-plan.md", "title": "Foundation build plan"},
       {"id": "program-workspace-hierarchy", "path": "derived/program-workspace-hierarchy-plan.md", "title": "Program workspace hierarchy plan"},
+      {"id": "ten-out-of-ten-gap-program", "path": "derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md", "title": "Ten-out-of-ten system gap program"},
       {"id": "framework-obligation-coverage-seed", "path": "derived/framework-obligation-coverage-seed.json", "title": "Framework obligation coverage seed"}
     ]
   },
