@@ -1,0 +1,58 @@
+{
+  "fixture_id": "profile-quality-instance-v1-0-0",
+  "profile_id": "profile:quality_instance",
+  "profile_version": "1.0.0",
+  "purpose": "Represent a quality of a specific bearer with bounded scope, provenance, and an optional reification lineage.",
+  "kernel_records_used": [
+    "referent",
+    "scope",
+    "claim",
+    "state",
+    "relation_instance",
+    "provenance",
+    "model_branch",
+    "branch_membership",
+    "state_commitment"
+  ],
+  "profile_record_types": ["quality_instance", "quality_refinement"],
+  "profile_dependencies": [],
+  "invariants": [
+    "quality_instance_requires_grounding",
+    "quality_refinement_preserves_lineage",
+    "no_claim_without_branch_membership",
+    "no_state_without_state_commitment"
+  ],
+  "steward": "service:profile_registry",
+  "quality_instances": [
+    {
+      "record_type": "quality_instance",
+      "id": "quality-instance:immune-response-observed",
+      "bearer_referent_id": "referent:forest-ecosystem",
+      "quality_definition_id": "type:immune-response",
+      "scope_id": "scope:seasonal-forest",
+      "branch_id": "branch:field-observation",
+      "provenance_id": "provenance:field-observation",
+      "basis_kind": "claim",
+      "basis_record_id": "claim:immune-response-observed"
+    },
+    {
+      "record_type": "quality_instance",
+      "id": "quality-instance:immune-response-simulation",
+      "bearer_referent_id": "referent:forest-ecosystem",
+      "quality_definition_id": "type:immune-response",
+      "scope_id": "scope:simulated-drought",
+      "branch_id": "branch:drought-scenario",
+      "provenance_id": "provenance:scenario-model",
+      "basis_kind": "state",
+      "basis_record_id": "state:immune-response-simulated"
+    }
+  ],
+  "quality_refinement": {
+    "record_type": "quality_refinement",
+    "id": "quality-refinement:immune-response-to-mycorrhizal-network",
+    "source_quality_instance_id": "quality-instance:immune-response-observed",
+    "relation_instance_id": "relation:refines-to",
+    "relation_type": "refines_to",
+    "reified_referent_id": "referent:mycorrhizal-network"
+  }
+}
