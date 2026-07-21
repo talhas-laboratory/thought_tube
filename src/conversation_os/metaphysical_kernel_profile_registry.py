@@ -26,12 +26,16 @@ FRAMEWORK_SECTION = "§4.3"
 
 FIELD_FORMATION_PROFILE_ID = "profile:field_formation"
 FIELD_FORMATION_PROFILE_VERSION = "1.0.0"
+QUALITY_INSTANCE_PROFILE_ID = "profile:quality_instance"
+QUALITY_INSTANCE_PROFILE_VERSION = "1.0.0"
 
 PROFILE_INVARIANT_CHECKS = {
     "no_claim_without_branch_membership": "Every claim must have matching BranchMembership",
     "no_state_without_state_commitment": "Adopted state requires StateCommitment",
     "hold_preserves_source_without_forcing_differentiation": "Held material must remain source_fragment or held maturity",
     "formation_requires_coherence_basis": "Formation records must declare coherence_basis",
+    "quality_instance_requires_grounding": "QualityInstance requires bearer, quality definition, scope, provenance, and a claim or committed state basis",
+    "quality_refinement_preserves_lineage": "Quality refinement must preserve the source quality instance, relation, and reified referent",
 }
 
 
@@ -65,6 +69,76 @@ class ProfileUpgradeReport:
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class QualityInstanceContract:
+    """Contract-only Shape profile record; persistence follows a later task."""
+
+    record_id: str
+    bearer_referent_id: str
+    quality_definition_id: str
+    scope_id: str
+    branch_id: str
+    provenance_id: str
+    basis_kind: str
+    basis_record_id: str
+
+
+@dataclass(frozen=True)
+class QualityRefinementContract:
+    """Optional lineage record for reifying a quality as a separate referent."""
+
+    record_id: str
+    source_quality_instance_id: str
+    relation_instance_id: str
+    relation_type: str
+    reified_referent_id: str
+
+
+def validate_quality_instance_contract(payload: Mapping[str, Any]) -> List[str]:
+    """Validate the contract for a profile-level quality instance.
+
+    This deliberately validates a portable profile record, not a new kernel
+    record.  The later Shape persistence task will decide how these contracts
+    are stored and queried.
+    """
+    errors: List[str] = []
+    if str(payload.get("record_type", "")) != "quality_instance":
+        errors.append("quality instance record_type must be quality_instance")
+    for field_name in (
+        "id",
+        "bearer_referent_id",
+        "quality_definition_id",
+        "scope_id",
+        "branch_id",
+        "provenance_id",
+        "basis_record_id",
+    ):
+        if not str(payload.get(field_name, "")):
+            errors.append(f"quality instance {field_name} is required")
+    if str(payload.get("basis_kind", "")) not in {"claim", "state"}:
+        errors.append("quality instance basis_kind must be claim or state")
+    return errors
+
+
+def validate_quality_refinement_contract(payload: Mapping[str, Any]) -> List[str]:
+    """Validate optional reification lineage without making it mandatory."""
+    errors: List[str] = []
+    if str(payload.get("record_type", "")) != "quality_refinement":
+        errors.append("quality refinement record_type must be quality_refinement")
+    for field_name in (
+        "id",
+        "source_quality_instance_id",
+        "relation_instance_id",
+        "relation_type",
+        "reified_referent_id",
+    ):
+        if not str(payload.get(field_name, "")):
+            errors.append(f"quality refinement {field_name} is required")
+    if str(payload.get("relation_type", "")) not in {"refines_to", "reified_as"}:
+        errors.append("quality refinement relation_type must be refines_to or reified_as")
+    return errors
 
 
 def parse_semver(version: str) -> Tuple[int, int, int]:
@@ -129,6 +203,50 @@ def build_field_formation_profile_v1(*, envelope_id: str, provenance_id: str) ->
       steward="service:profile_registry",
       forbidden_kernel_redefinitions=[],
   )
+
+
+def build_quality_instance_profile_v1(*, envelope_id: str, provenance_id: str) -> ProfileDefinition:
+    """Built-in QualityInstance contract profile for the Shape program."""
+    return ProfileDefinition(
+        envelope=KernelRecordEnvelope(
+            id=envelope_id,
+            record_kind="profile_definition",
+            type_id=QUALITY_INSTANCE_PROFILE_ID,
+            created_at=utc_now(),
+            created_by="service:profile_registry",
+            provenance_id=provenance_id,
+            maturity_status="structured",
+            epistemic_status="not_applicable",
+            governance_status="review_required",
+        ),
+        profile_id=QUALITY_INSTANCE_PROFILE_ID,
+        profile_version=QUALITY_INSTANCE_PROFILE_VERSION,
+        purpose=(
+            "Represent a quality of a specific bearer under bounded scope and provenance, "
+            "with optional explicit lineage when it is reified as a referent."
+        ),
+        kernel_records_used=[
+            "referent",
+            "scope",
+            "claim",
+            "state",
+            "relation_instance",
+            "provenance",
+            "model_branch",
+            "branch_membership",
+            "state_commitment",
+        ],
+        profile_record_types=["quality_instance", "quality_refinement"],
+        profile_dependencies=[],
+        invariants=[
+            "quality_instance_requires_grounding",
+            "quality_refinement_preserves_lineage",
+            "no_claim_without_branch_membership",
+            "no_state_without_state_commitment",
+        ],
+        steward="service:profile_registry",
+        forbidden_kernel_redefinitions=[],
+    )
 
 
 class ProfileRegistry:
@@ -235,6 +353,22 @@ class ProfileRegistry:
         profile = build_field_formation_profile_v1(
             envelope_id=make_id("profile"),
             provenance_id=provenance_id,
+        )
+        return self.register(profile)
+
+    def bootstrap_quality_instance_profile(self) -> Dict[str, Any]:
+        if self.get_profile(QUALITY_INSTANCE_PROFILE_ID):
+            existing = self.get_profile(QUALITY_INSTANCE_PROFILE_ID)
+            return existing.to_dict() if existing else {}
+        fragment = self.runtime.capture_source_fragment(
+            content_pointer="memory://foundation/quality-instance-profile-bootstrap",
+            author_or_origin="service:profile_registry",
+            integrity_hash="sha256:quality-instance-profile-bootstrap",
+            source_kind="import",
+        )
+        profile = build_quality_instance_profile_v1(
+            envelope_id=make_id("profile"),
+            provenance_id=str(fragment["envelope"]["provenance_id"]),
         )
         return self.register(profile)
 
@@ -429,11 +563,18 @@ __all__ = [
     "CONTRACT_VERSION",
     "FIELD_FORMATION_PROFILE_ID",
     "FIELD_FORMATION_PROFILE_VERSION",
+    "QUALITY_INSTANCE_PROFILE_ID",
+    "QUALITY_INSTANCE_PROFILE_VERSION",
     "ProfileRegistryError",
     "ApplicationProfileBinding",
     "ProfileUpgradeReport",
+    "QualityInstanceContract",
+    "QualityRefinementContract",
     "ProfileRegistry",
     "build_field_formation_profile_v1",
+    "build_quality_instance_profile_v1",
+    "validate_quality_instance_contract",
+    "validate_quality_refinement_contract",
     "parse_semver",
     "compare_semver",
     "load_profile_definition",

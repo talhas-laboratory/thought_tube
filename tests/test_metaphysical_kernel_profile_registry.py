@@ -10,7 +10,10 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     FIELD_FORMATION_PROFILE_ID,
     ProfileRegistry,
     ProfileRegistryError,
+    QUALITY_INSTANCE_PROFILE_ID,
     build_field_formation_profile_v1,
+    validate_quality_instance_contract,
+    validate_quality_refinement_contract,
 )
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime, run_vertical_slice
 
@@ -223,6 +226,72 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         self.assertEqual(profile.profile_id, metadata["profile_id"])
         self.assertEqual(profile.profile_version, metadata["profile_version"])
         self.assertEqual(profile.profile_record_types, metadata["profile_record_types"])
+
+    def test_bootstrap_registers_quality_instance_profile(self) -> None:
+        profile = self.registry.bootstrap_quality_instance_profile()
+        self.assertEqual(profile["profile_id"], QUALITY_INSTANCE_PROFILE_ID)
+        self.assertEqual(profile["profile_record_types"], ["quality_instance", "quality_refinement"])
+        self.assertIn("relation_instance", profile["kernel_records_used"])
+        self.assertNotIn("type_definition", profile["kernel_records_used"])
+
+    def test_quality_instance_contract_requires_grounded_basis(self) -> None:
+        valid = {
+            "record_type": "quality_instance",
+            "id": "quality-instance:clarity",
+            "bearer_referent_id": "referent:organism",
+            "quality_definition_id": "type:clarity",
+            "scope_id": "scope:present",
+            "branch_id": "branch:main",
+            "provenance_id": "provenance:observation",
+            "basis_kind": "claim",
+            "basis_record_id": "claim:clarity",
+        }
+        self.assertEqual(validate_quality_instance_contract(valid), [])
+        invalid = dict(valid)
+        invalid["basis_kind"] = "value"
+        invalid["bearer_referent_id"] = ""
+        errors = validate_quality_instance_contract(invalid)
+        self.assertTrue(any("basis_kind" in error for error in errors))
+        self.assertTrue(any("bearer_referent_id" in error for error in errors))
+
+    def test_optional_quality_refinement_contract_preserves_lineage(self) -> None:
+        refinement = {
+            "record_type": "quality_refinement",
+            "id": "quality-refinement:clarity-to-subsystem",
+            "source_quality_instance_id": "quality-instance:clarity",
+            "relation_instance_id": "relation:refines-to",
+            "relation_type": "refines_to",
+            "reified_referent_id": "referent:clarity-subsystem",
+        }
+        self.assertEqual(validate_quality_refinement_contract(refinement), [])
+        broken = dict(refinement)
+        broken["relation_instance_id"] = ""
+        self.assertTrue(any("relation_instance_id" in error for error in validate_quality_refinement_contract(broken)))
+
+    def test_quality_instance_fixture_matches_contracts(self) -> None:
+        metadata = json.loads(
+            (FIXTURES_DIR / "profile_quality_instance_v1_0_0.json").read_text(encoding="utf-8")
+        )
+        profile = self.registry.bootstrap_quality_instance_profile()
+        for key in (
+            "profile_id",
+            "profile_version",
+            "kernel_records_used",
+            "profile_record_types",
+            "profile_dependencies",
+            "invariants",
+            "steward",
+        ):
+            self.assertEqual(profile[key], metadata[key])
+        instances = metadata["quality_instances"]
+        self.assertEqual(len(instances), 2)
+        self.assertEqual(instances[0]["quality_definition_id"], instances[1]["quality_definition_id"])
+        self.assertNotEqual(instances[0]["scope_id"], instances[1]["scope_id"])
+        self.assertNotEqual(instances[0]["branch_id"], instances[1]["branch_id"])
+        self.assertNotEqual(instances[0]["basis_kind"], instances[1]["basis_kind"])
+        for instance in instances:
+            self.assertEqual(validate_quality_instance_contract(instance), [])
+        self.assertEqual(validate_quality_refinement_contract(metadata["quality_refinement"]), [])
 
 
 if __name__ == "__main__":
