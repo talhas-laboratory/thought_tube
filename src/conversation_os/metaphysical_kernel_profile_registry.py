@@ -28,6 +28,8 @@ FIELD_FORMATION_PROFILE_ID = "profile:field_formation"
 FIELD_FORMATION_PROFILE_VERSION = "1.0.0"
 QUALITY_INSTANCE_PROFILE_ID = "profile:quality_instance"
 QUALITY_INSTANCE_PROFILE_VERSION = "1.0.0"
+COMPOSITION_PROFILE_ID = "profile:composition"
+COMPOSITION_PROFILE_VERSION = "1.0.0"
 
 PROFILE_INVARIANT_CHECKS = {
     "no_claim_without_branch_membership": "Every claim must have matching BranchMembership",
@@ -36,6 +38,8 @@ PROFILE_INVARIANT_CHECKS = {
     "formation_requires_coherence_basis": "Formation records must declare coherence_basis",
     "quality_instance_requires_grounding": "QualityInstance requires bearer, quality definition, scope, provenance, and a claim or committed state basis",
     "quality_refinement_preserves_lineage": "Quality refinement must preserve the source quality instance, relation, and reified referent",
+    "composition_assertion_is_bounded": "Composition assertion requires a declared kind, boundary, scope, branch, provenance, and relation",
+    "system_boundary_preserves_identity_rule": "System boundary requires an explicit boundary and identity rule",
 }
 
 
@@ -96,6 +100,36 @@ class QualityRefinementContract:
     reified_referent_id: str
 
 
+@dataclass(frozen=True)
+class SystemBoundaryContract:
+    """A bounded whole at a declared resolution; not necessarily a physical boundary."""
+
+    record_id: str
+    whole_referent_id: str
+    boundary_rule: str
+    identity_rule: str
+    scale: str
+    scope_id: str
+    branch_id: str
+    provenance_id: str
+
+
+@dataclass(frozen=True)
+class CompositionAssertionContract:
+    """One scoped claim that a constituent composes a declared whole in one way."""
+
+    record_id: str
+    whole_referent_id: str
+    constituent_referent_id: str
+    composition_kind: str
+    boundary_id: str
+    scope_id: str
+    branch_id: str
+    provenance_id: str
+    relation_instance_id: str
+    source_quality_instance_id: str = ""
+
+
 def validate_quality_instance_contract(payload: Mapping[str, Any]) -> List[str]:
     """Validate the contract for a profile-level quality instance.
 
@@ -139,6 +173,121 @@ def validate_quality_refinement_contract(payload: Mapping[str, Any]) -> List[str
     if str(payload.get("relation_type", "")) not in {"refines_to", "reified_as"}:
         errors.append("quality refinement relation_type must be refines_to or reified_as")
     return errors
+
+
+def validate_system_boundary_contract(payload: Mapping[str, Any]) -> List[str]:
+    """Validate a whole's boundary and identity rule at one resolution."""
+    errors: List[str] = []
+    if str(payload.get("record_type", "")) != "system_boundary":
+        errors.append("system boundary record_type must be system_boundary")
+    for field_name in (
+        "id",
+        "whole_referent_id",
+        "boundary_rule",
+        "identity_rule",
+        "scale",
+        "scope_id",
+        "branch_id",
+        "provenance_id",
+    ):
+        if not str(payload.get(field_name, "")):
+            errors.append(f"system boundary {field_name} is required")
+    if str(payload.get("boundary_rule", "")) not in {
+        "material",
+        "functional",
+        "organizational",
+        "semantic",
+        "unresolved",
+    }:
+        errors.append("system boundary boundary_rule is invalid")
+    if str(payload.get("identity_rule", "")) not in {
+        "whole_preserved",
+        "contextual",
+        "unresolved",
+    }:
+        errors.append("system boundary identity_rule is invalid")
+    return errors
+
+
+def validate_composition_assertion_contract(payload: Mapping[str, Any]) -> List[str]:
+    """Validate a composition assertion without inferring causal or role semantics."""
+    errors: List[str] = []
+    if str(payload.get("record_type", "")) != "composition_assertion":
+        errors.append("composition assertion record_type must be composition_assertion")
+    for field_name in (
+        "id",
+        "whole_referent_id",
+        "constituent_referent_id",
+        "composition_kind",
+        "boundary_id",
+        "scope_id",
+        "branch_id",
+        "provenance_id",
+        "relation_instance_id",
+    ):
+        if not str(payload.get(field_name, "")):
+            errors.append(f"composition assertion {field_name} is required")
+    if str(payload.get("composition_kind", "")) not in {
+        "material_part",
+        "functional_component",
+        "membership",
+        "social_constitution",
+    }:
+        errors.append("composition assertion composition_kind is invalid")
+    if str(payload.get("whole_referent_id", "")) == str(payload.get("constituent_referent_id", "")):
+        errors.append("composition assertion cannot make a referent its own constituent")
+    return errors
+
+
+def validate_composition_bundle_contract(
+    boundaries: Sequence[Mapping[str, Any]],
+    assertions: Sequence[Mapping[str, Any]],
+) -> List[str]:
+    """Validate cross-record composition consistency and containment cycles."""
+    errors: List[str] = []
+    boundary_index: Dict[str, Mapping[str, Any]] = {}
+    for boundary in boundaries:
+        errors.extend(validate_system_boundary_contract(boundary))
+        boundary_id = str(boundary.get("id", ""))
+        if boundary_id:
+            if boundary_id in boundary_index:
+                errors.append(f"duplicate system boundary id: {boundary_id}")
+            boundary_index[boundary_id] = boundary
+
+    graph: Dict[str, List[str]] = {}
+    for assertion in assertions:
+        errors.extend(validate_composition_assertion_contract(assertion))
+        boundary = boundary_index.get(str(assertion.get("boundary_id", "")))
+        if boundary is None:
+            errors.append("composition assertion references unknown boundary")
+            continue
+        for shared_field in ("whole_referent_id", "scope_id", "branch_id", "provenance_id"):
+            if str(assertion.get(shared_field, "")) != str(boundary.get(shared_field, "")):
+                errors.append(f"composition assertion {shared_field} conflicts with system boundary")
+        whole = str(assertion.get("whole_referent_id", ""))
+        constituent = str(assertion.get("constituent_referent_id", ""))
+        if whole and constituent:
+            graph.setdefault(whole, []).append(constituent)
+
+    visiting: Set[str] = set()
+    visited: Set[str] = set()
+
+    def visit(node: str) -> bool:
+        if node in visiting:
+            return True
+        if node in visited:
+            return False
+        visiting.add(node)
+        for child in graph.get(node, []):
+            if visit(child):
+                return True
+        visiting.remove(node)
+        visited.add(node)
+        return False
+
+    if any(visit(node) for node in graph):
+        errors.append("composition bundle contains a containment cycle")
+    return sorted(set(errors))
 
 
 def parse_semver(version: str) -> Tuple[int, int, int]:
@@ -243,6 +392,45 @@ def build_quality_instance_profile_v1(*, envelope_id: str, provenance_id: str) -
             "quality_refinement_preserves_lineage",
             "no_claim_without_branch_membership",
             "no_state_without_state_commitment",
+        ],
+        steward="service:profile_registry",
+        forbidden_kernel_redefinitions=[],
+    )
+
+
+def build_composition_profile_v1(*, envelope_id: str, provenance_id: str) -> ProfileDefinition:
+    """Built-in composition contract profile for bounded and recursive systems."""
+    return ProfileDefinition(
+        envelope=KernelRecordEnvelope(
+            id=envelope_id,
+            record_kind="profile_definition",
+            type_id=COMPOSITION_PROFILE_ID,
+            created_at=utc_now(),
+            created_by="service:profile_registry",
+            provenance_id=provenance_id,
+            maturity_status="structured",
+            epistemic_status="not_applicable",
+            governance_status="review_required",
+        ),
+        profile_id=COMPOSITION_PROFILE_ID,
+        profile_version=COMPOSITION_PROFILE_VERSION,
+        purpose=(
+            "Represent bounded whole-constituent composition at a declared resolution "
+            "without inferring causation, ownership, or role."
+        ),
+        kernel_records_used=[
+            "referent",
+            "scope",
+            "relation_instance",
+            "provenance",
+            "model_branch",
+            "branch_membership",
+        ],
+        profile_record_types=["system_boundary", "composition_assertion"],
+        profile_dependencies=[QUALITY_INSTANCE_PROFILE_ID],
+        invariants=[
+            "composition_assertion_is_bounded",
+            "system_boundary_preserves_identity_rule",
         ],
         steward="service:profile_registry",
         forbidden_kernel_redefinitions=[],
@@ -367,6 +555,24 @@ class ProfileRegistry:
             source_kind="import",
         )
         profile = build_quality_instance_profile_v1(
+            envelope_id=make_id("profile"),
+            provenance_id=str(fragment["envelope"]["provenance_id"]),
+        )
+        return self.register(profile)
+
+    def bootstrap_composition_profile(self) -> Dict[str, Any]:
+        if self.get_profile(COMPOSITION_PROFILE_ID):
+            existing = self.get_profile(COMPOSITION_PROFILE_ID)
+            return existing.to_dict() if existing else {}
+        if not self.get_profile(QUALITY_INSTANCE_PROFILE_ID):
+            self.bootstrap_quality_instance_profile()
+        fragment = self.runtime.capture_source_fragment(
+            content_pointer="memory://foundation/composition-profile-bootstrap",
+            author_or_origin="service:profile_registry",
+            integrity_hash="sha256:composition-profile-bootstrap",
+            source_kind="import",
+        )
+        profile = build_composition_profile_v1(
             envelope_id=make_id("profile"),
             provenance_id=str(fragment["envelope"]["provenance_id"]),
         )
@@ -565,16 +771,24 @@ __all__ = [
     "FIELD_FORMATION_PROFILE_VERSION",
     "QUALITY_INSTANCE_PROFILE_ID",
     "QUALITY_INSTANCE_PROFILE_VERSION",
+    "COMPOSITION_PROFILE_ID",
+    "COMPOSITION_PROFILE_VERSION",
     "ProfileRegistryError",
     "ApplicationProfileBinding",
     "ProfileUpgradeReport",
     "QualityInstanceContract",
     "QualityRefinementContract",
+    "SystemBoundaryContract",
+    "CompositionAssertionContract",
     "ProfileRegistry",
     "build_field_formation_profile_v1",
     "build_quality_instance_profile_v1",
+    "build_composition_profile_v1",
     "validate_quality_instance_contract",
     "validate_quality_refinement_contract",
+    "validate_system_boundary_contract",
+    "validate_composition_assertion_contract",
+    "validate_composition_bundle_contract",
     "parse_semver",
     "compare_semver",
     "load_profile_definition",
