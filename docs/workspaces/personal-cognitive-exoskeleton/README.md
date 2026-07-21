@@ -40,11 +40,12 @@ Inspectable result, user correction, and conservative learning
 
 ## Read first
 
-1. [Lens source](sources/PERSONAL_COGNITIVE_EXOSKELETON_LENS.md)
-2. [Unified Framework source](../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)
-3. [Ten-out-of-ten gap program](../unified-framework-synthesis/derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md)
-4. [Workspace protocol](../WORKSPACE-AGENT-PROTOCOL.md)
-5. [Sync contract](derived/sync-contract.md)
+1. [Product idea catalog](derived/PRODUCT_IDEA_CATALOG.md) — all discussed product directions, shared capabilities, risks, and open decisions
+2. [Lens source](sources/PERSONAL_COGNITIVE_EXOSKELETON_LENS.md) — canonical reasoning-system and creative-transduction model
+3. [Unified Framework source](../unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md)
+4. [Ten-out-of-ten gap program](../unified-framework-synthesis/derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md)
+5. [Workspace protocol](../WORKSPACE-AGENT-PROTOCOL.md)
+6. [Sync contract](derived/sync-contract.md)
 
 ## Agent boot
 
