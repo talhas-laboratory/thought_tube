@@ -7,6 +7,7 @@ from pathlib import Path
 
 from conversation_os.metaphysical_kernel import KernelRecordEnvelope, ProfileDefinition
 from conversation_os.metaphysical_kernel_profile_registry import (
+    COMPOSITION_PROFILE_ID,
     FIELD_FORMATION_PROFILE_ID,
     ProfileRegistry,
     ProfileRegistryError,
@@ -14,6 +15,9 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     build_field_formation_profile_v1,
     validate_quality_instance_contract,
     validate_quality_refinement_contract,
+    validate_composition_bundle_contract,
+    validate_composition_assertion_contract,
+    validate_system_boundary_contract,
 )
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime, run_vertical_slice
 
@@ -292,6 +296,99 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         for instance in instances:
             self.assertEqual(validate_quality_instance_contract(instance), [])
         self.assertEqual(validate_quality_refinement_contract(metadata["quality_refinement"]), [])
+
+    def test_bootstrap_registers_composition_profile_after_quality_profile(self) -> None:
+        profile = self.registry.bootstrap_composition_profile()
+        self.assertEqual(profile["profile_id"], COMPOSITION_PROFILE_ID)
+        self.assertEqual(profile["profile_record_types"], ["system_boundary", "composition_assertion"])
+        self.assertEqual(profile["profile_dependencies"], [QUALITY_INSTANCE_PROFILE_ID])
+        self.assertIsNotNone(self.registry.get_profile(QUALITY_INSTANCE_PROFILE_ID))
+
+    def test_composition_contract_requires_bounded_non_self_relation(self) -> None:
+        boundary = {
+            "record_type": "system_boundary",
+            "id": "boundary:forest-functional",
+            "whole_referent_id": "referent:forest",
+            "boundary_rule": "functional",
+            "identity_rule": "whole_preserved",
+            "scale": "ecosystem",
+            "scope_id": "scope:seasonal-forest",
+            "branch_id": "branch:field-observation",
+            "provenance_id": "provenance:field-observation",
+        }
+        assertion = {
+            "record_type": "composition_assertion",
+            "id": "composition:forest-mycorrhiza",
+            "whole_referent_id": "referent:forest",
+            "constituent_referent_id": "referent:mycorrhizal-network",
+            "composition_kind": "functional_component",
+            "boundary_id": boundary["id"],
+            "scope_id": boundary["scope_id"],
+            "branch_id": boundary["branch_id"],
+            "provenance_id": boundary["provenance_id"],
+            "relation_instance_id": "relation:forest-mycorrhiza",
+            "source_quality_instance_id": "quality-instance:immune-response-observed",
+        }
+        self.assertEqual(validate_system_boundary_contract(boundary), [])
+        self.assertEqual(validate_composition_assertion_contract(assertion), [])
+        invalid = dict(assertion)
+        invalid["constituent_referent_id"] = invalid["whole_referent_id"]
+        self.assertTrue(any("own constituent" in error for error in validate_composition_assertion_contract(invalid)))
+
+    def test_composition_fixture_supports_multiple_kinds_and_recursive_systemhood(self) -> None:
+        metadata = json.loads(
+            (FIXTURES_DIR / "profile_composition_v1_0_0.json").read_text(encoding="utf-8")
+        )
+        profile = self.registry.bootstrap_composition_profile()
+        for key in ("profile_id", "profile_version", "kernel_records_used", "profile_record_types", "profile_dependencies", "invariants", "steward"):
+            self.assertEqual(profile[key], metadata[key])
+        for boundary in metadata["system_boundaries"]:
+            self.assertEqual(validate_system_boundary_contract(boundary), [])
+        for assertion in metadata["composition_assertions"]:
+            self.assertEqual(validate_composition_assertion_contract(assertion), [])
+        self.assertEqual(
+            validate_composition_bundle_contract(
+                metadata["system_boundaries"], metadata["composition_assertions"]
+            ),
+            [],
+        )
+        self.assertEqual(
+            {assertion["composition_kind"] for assertion in metadata["composition_assertions"]},
+            {"material_part", "functional_component", "membership", "social_constitution"},
+        )
+        self.assertTrue(any(boundary["whole_referent_id"] == "referent:mycorrhizal-network" for boundary in metadata["system_boundaries"]))
+        self.assertTrue(any(assertion.get("source_quality_instance_id") for assertion in metadata["composition_assertions"]))
+
+    def test_composition_bundle_rejects_cycles_and_boundary_mismatches(self) -> None:
+        boundaries = [
+            {
+                "record_type": "system_boundary", "id": "boundary:a", "whole_referent_id": "referent:a",
+                "boundary_rule": "functional", "identity_rule": "whole_preserved", "scale": "system",
+                "scope_id": "scope:one", "branch_id": "branch:one", "provenance_id": "provenance:one",
+            },
+            {
+                "record_type": "system_boundary", "id": "boundary:b", "whole_referent_id": "referent:b",
+                "boundary_rule": "functional", "identity_rule": "whole_preserved", "scale": "subsystem",
+                "scope_id": "scope:one", "branch_id": "branch:one", "provenance_id": "provenance:one",
+            },
+        ]
+        assertions = [
+            {
+                "record_type": "composition_assertion", "id": "composition:a-b", "whole_referent_id": "referent:a",
+                "constituent_referent_id": "referent:b", "composition_kind": "functional_component",
+                "boundary_id": "boundary:a", "scope_id": "scope:one", "branch_id": "branch:one",
+                "provenance_id": "provenance:one", "relation_instance_id": "relation:a-b",
+            },
+            {
+                "record_type": "composition_assertion", "id": "composition:b-a", "whole_referent_id": "referent:b",
+                "constituent_referent_id": "referent:a", "composition_kind": "functional_component",
+                "boundary_id": "boundary:b", "scope_id": "scope:wrong", "branch_id": "branch:one",
+                "provenance_id": "provenance:one", "relation_instance_id": "relation:b-a",
+            },
+        ]
+        errors = validate_composition_bundle_contract(boundaries, assertions)
+        self.assertTrue(any("cycle" in error for error in errors))
+        self.assertTrue(any("scope" in error for error in errors))
 
 
 if __name__ == "__main__":
