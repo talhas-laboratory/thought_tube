@@ -18,6 +18,9 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     validate_composition_bundle_contract,
     validate_composition_assertion_contract,
     validate_system_boundary_contract,
+    validate_role_assignment_contract,
+    validate_influence_assessment_contract,
+    validate_role_influence_bundle_contract,
 )
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime, run_vertical_slice
 
@@ -389,6 +392,24 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         errors = validate_composition_bundle_contract(boundaries, assertions)
         self.assertTrue(any("cycle" in error for error in errors))
         self.assertTrue(any("scope" in error for error in errors))
+
+    def test_role_and_weighted_influence_contracts(self) -> None:
+        role = {"record_type":"role_assignment","id":"role:network","participant_ref":"referent:network","host_ref":"referent:forest","role_type":"regulator","mechanism":"nutrient-signaling","scope_id":"scope:forest","temporal_scope":"seasonal","branch_id":"branch:observed","provenance_id":"provenance:field"}
+        assessment = {"record_type":"influence_assessment","id":"influence:network","role_assignment_id":"role:network","target_ref":"quality:resilience","direction":"stabilizes","mechanism":"nutrient-signaling","assessment_basis":"estimated","uncertainty":"interval","confidence":0.8,"scope_id":"scope:forest","temporal_scope":"seasonal","branch_id":"branch:observed","provenance_id":"provenance:field","magnitude":0.4,"magnitude_scale":"normalized","magnitude_unit":"unitless"}
+        self.assertEqual(validate_role_assignment_contract(role), [])
+        self.assertEqual(validate_influence_assessment_contract(assessment), [])
+        self.assertEqual(validate_role_influence_bundle_contract([role], [assessment]), [])
+        broken = dict(assessment); broken["magnitude_unit"] = ""
+        self.assertTrue(any("magnitude_unit" in e for e in validate_influence_assessment_contract(broken)))
+
+    def test_role_fixture_preserves_identity_across_time_and_scope(self) -> None:
+        fixture = json.loads((FIXTURES_DIR / "profile_role_assignment_v1_0_0.json").read_text())
+        roles = fixture["role_assignments"]
+        self.assertEqual(roles[0]["participant_ref"], roles[1]["participant_ref"])
+        self.assertEqual(roles[0]["host_ref"], roles[1]["host_ref"])
+        self.assertNotEqual(roles[0]["scope_id"], roles[1]["scope_id"])
+        self.assertNotEqual(roles[0]["temporal_scope"], roles[1]["temporal_scope"])
+        self.assertEqual(validate_role_influence_bundle_contract(roles, fixture["influence_assessments"]), [])
 
 
 if __name__ == "__main__":

@@ -30,6 +30,8 @@ QUALITY_INSTANCE_PROFILE_ID = "profile:quality_instance"
 QUALITY_INSTANCE_PROFILE_VERSION = "1.0.0"
 COMPOSITION_PROFILE_ID = "profile:composition"
 COMPOSITION_PROFILE_VERSION = "1.0.0"
+ROLE_ASSIGNMENT_PROFILE_ID = "profile:role_assignment"
+ROLE_ASSIGNMENT_PROFILE_VERSION = "1.0.0"
 
 PROFILE_INVARIANT_CHECKS = {
     "no_claim_without_branch_membership": "Every claim must have matching BranchMembership",
@@ -40,6 +42,8 @@ PROFILE_INVARIANT_CHECKS = {
     "quality_refinement_preserves_lineage": "Quality refinement must preserve the source quality instance, relation, and reified referent",
     "composition_assertion_is_bounded": "Composition assertion requires a declared kind, boundary, scope, branch, provenance, and relation",
     "system_boundary_preserves_identity_rule": "System boundary requires an explicit boundary and identity rule",
+    "role_assignment_is_contextual": "Role assignment requires participant, host, role, mechanism, scope, time, branch, and provenance",
+    "influence_assessment_is_evidence_bound": "Influence assessment requires a declared basis, uncertainty, confidence, and provenance",
 }
 
 
@@ -128,6 +132,56 @@ class CompositionAssertionContract:
     provenance_id: str
     relation_instance_id: str
     source_quality_instance_id: str = ""
+
+
+def validate_role_assignment_contract(payload: Mapping[str, Any]) -> List[str]:
+    errors: List[str] = []
+    if str(payload.get("record_type", "")) != "role_assignment":
+        errors.append("role assignment record_type must be role_assignment")
+    for name in ("id", "participant_ref", "host_ref", "role_type", "mechanism", "scope_id", "temporal_scope", "branch_id", "provenance_id"):
+        if not str(payload.get(name, "")):
+            errors.append(f"role assignment {name} is required")
+    if str(payload.get("participant_ref", "")) == str(payload.get("host_ref", "")):
+        errors.append("role assignment participant and host must be distinct")
+    return errors
+
+
+def validate_influence_assessment_contract(payload: Mapping[str, Any]) -> List[str]:
+    errors: List[str] = []
+    if str(payload.get("record_type", "")) != "influence_assessment":
+        errors.append("influence assessment record_type must be influence_assessment")
+    for name in ("id", "role_assignment_id", "target_ref", "direction", "mechanism", "assessment_basis", "uncertainty", "confidence", "scope_id", "temporal_scope", "branch_id", "provenance_id"):
+        if payload.get(name) in (None, ""):
+            errors.append(f"influence assessment {name} is required")
+    if str(payload.get("direction", "")) not in {"enables", "constrains", "amplifies", "dampens", "stabilizes", "destabilizes", "transforms"}:
+        errors.append("influence assessment direction is invalid")
+    if str(payload.get("assessment_basis", "")) not in {"measured", "estimated", "model_derived", "expert_judged", "qualitative"}:
+        errors.append("influence assessment assessment_basis is invalid")
+    confidence = payload.get("confidence")
+    if not isinstance(confidence, (int, float)) or not 0 <= confidence <= 1:
+        errors.append("influence assessment confidence must be between 0 and 1")
+    if "magnitude" in payload:
+        if not isinstance(payload["magnitude"], (int, float)):
+            errors.append("influence assessment magnitude must be numeric")
+        for name in ("magnitude_scale", "magnitude_unit"):
+            if not str(payload.get(name, "")):
+                errors.append(f"influence assessment {name} is required with magnitude")
+    return errors
+
+
+def validate_role_influence_bundle_contract(roles: Sequence[Mapping[str, Any]], assessments: Sequence[Mapping[str, Any]]) -> List[str]:
+    errors: List[str] = []
+    role_index = {str(item.get("id", "")): item for item in roles}
+    for role in roles:
+        errors.extend(validate_role_assignment_contract(role))
+    for assessment in assessments:
+        errors.extend(validate_influence_assessment_contract(assessment))
+        role = role_index.get(str(assessment.get("role_assignment_id", "")))
+        if role is None:
+            errors.append("influence assessment references unknown role assignment")
+        elif any(str(assessment.get(k, "")) != str(role.get(k, "")) for k in ("scope_id", "temporal_scope", "branch_id")):
+            errors.append("influence assessment scope, time, or branch conflicts with role assignment")
+    return sorted(set(errors))
 
 
 def validate_quality_instance_contract(payload: Mapping[str, Any]) -> List[str]:
@@ -437,6 +491,18 @@ def build_composition_profile_v1(*, envelope_id: str, provenance_id: str) -> Pro
     )
 
 
+def build_role_assignment_profile_v1(*, envelope_id: str, provenance_id: str) -> ProfileDefinition:
+    return ProfileDefinition(
+        envelope=KernelRecordEnvelope(id=envelope_id, record_kind="profile_definition", type_id=ROLE_ASSIGNMENT_PROFILE_ID, created_at=utc_now(), created_by="service:profile_registry", provenance_id=provenance_id, maturity_status="structured", epistemic_status="not_applicable", governance_status="review_required"),
+        profile_id=ROLE_ASSIGNMENT_PROFILE_ID, profile_version=ROLE_ASSIGNMENT_PROFILE_VERSION,
+        purpose="Represent contextual, time-bound participant roles and evidence-bound influence assessments without treating either as intrinsic properties.",
+        kernel_records_used=["referent", "scope", "relation_instance", "provenance", "model_branch", "branch_membership"],
+        profile_record_types=["role_assignment", "influence_assessment"],
+        profile_dependencies=[COMPOSITION_PROFILE_ID],
+        invariants=["role_assignment_is_contextual", "influence_assessment_is_evidence_bound"], steward="service:profile_registry",
+    )
+
+
 class ProfileRegistry:
     """Versioned profile registry with dependency validation and conformance."""
 
@@ -577,6 +643,14 @@ class ProfileRegistry:
             provenance_id=str(fragment["envelope"]["provenance_id"]),
         )
         return self.register(profile)
+
+    def bootstrap_role_assignment_profile(self) -> Dict[str, Any]:
+        if self.get_profile(ROLE_ASSIGNMENT_PROFILE_ID):
+            return self.get_profile(ROLE_ASSIGNMENT_PROFILE_ID).to_dict()  # type: ignore[union-attr]
+        if not self.get_profile(COMPOSITION_PROFILE_ID):
+            self.bootstrap_composition_profile()
+        fragment = self.runtime.capture_source_fragment(content_pointer="memory://foundation/role-assignment-profile-bootstrap", author_or_origin="service:profile_registry", integrity_hash="sha256:role-assignment-profile-bootstrap", source_kind="import")
+        return self.register(build_role_assignment_profile_v1(envelope_id=make_id("profile"), provenance_id=str(fragment["envelope"]["provenance_id"])))
 
     def bind_application(
         self,
@@ -773,6 +847,8 @@ __all__ = [
     "QUALITY_INSTANCE_PROFILE_VERSION",
     "COMPOSITION_PROFILE_ID",
     "COMPOSITION_PROFILE_VERSION",
+    "ROLE_ASSIGNMENT_PROFILE_ID",
+    "ROLE_ASSIGNMENT_PROFILE_VERSION",
     "ProfileRegistryError",
     "ApplicationProfileBinding",
     "ProfileUpgradeReport",
@@ -784,11 +860,15 @@ __all__ = [
     "build_field_formation_profile_v1",
     "build_quality_instance_profile_v1",
     "build_composition_profile_v1",
+    "build_role_assignment_profile_v1",
     "validate_quality_instance_contract",
     "validate_quality_refinement_contract",
     "validate_system_boundary_contract",
     "validate_composition_assertion_contract",
     "validate_composition_bundle_contract",
+    "validate_role_assignment_contract",
+    "validate_influence_assessment_contract",
+    "validate_role_influence_bundle_contract",
     "parse_semver",
     "compare_semver",
     "load_profile_definition",
