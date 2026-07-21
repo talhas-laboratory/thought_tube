@@ -22,6 +22,8 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     validate_influence_assessment_contract,
     validate_role_influence_bundle_contract,
     validate_shape_contract,
+    validate_cybernetic_contract,
+    validate_cybernetic_bundle_contract,
 )
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime, run_vertical_slice
 
@@ -419,6 +421,67 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["record"],"coupling_refs":["rel:one"],"provenance_id":"prov"}
         for payload,kind in ((core,"shape_core"),(view,"shape_view"),(record,"shape_record"),(composite,"composite_shape")):
             self.assertEqual(validate_shape_contract(payload,kind), [])
+
+    def _cybernetic_records(self) -> list[dict]:
+        context = {"scope_id": "scope:forest", "temporal_scope": "seasonal", "branch_id": "branch:observed", "provenance_id": "provenance:field"}
+        return [
+            {"record_type": "state_variable", "id": "variable:resilience", "target_ref": "quality:resilience", "value_type": "number", "value_domain": "normalized_index", "unit": "index", "observation_basis": "canopy-survey", "sampling_interval": "P7D", "epistemic_status": "estimated", "lower_bound": 0.0, "upper_bound": 1.0, **context},
+            {"record_type": "signal", "id": "signal:nutrient", "source_ref": "referent:network", "target_ref": "variable:resilience", "payload_type": "nutrient_access", "payload_unit": "index", "mechanism": "mycorrhizal_transfer", "delay": "P1D", "epistemic_status": "hypothesized", **context},
+            {"record_type": "setpoint", "id": "setpoint:resilience", "variable_ref": "variable:resilience", "target_range": "[0.6,1.0]", "priority": 1, **context},
+            {"record_type": "regulator", "id": "regulator:network", "controller_ref": "referent:network", "observed_variable_refs": ["variable:resilience"], "action_channel_refs": ["signal:nutrient"], "setpoint_refs": ["setpoint:resilience"], "policy_ref": "policy:local-response", "authority_scope": "scope:forest", **context},
+            {"record_type": "feedback_loop", "id": "loop:resource-compensation", "variable_refs": ["variable:resilience"], "signal_refs": ["signal:nutrient"], "regulator_refs": ["regulator:network"], "polarity": "negative", "mechanism": "resource compensation", "constraint_ref": "constraint:water", "oscillation_risk": "medium", **context},
+            {"record_type": "disturbance", "id": "disturbance:drought", "target_variable_refs": ["variable:resilience"], "mechanism": "water deficit", "magnitude_basis": "rainfall anomaly", **context},
+            {"record_type": "viability_condition", "id": "viability:resilience", "variable_ref": "variable:resilience", "threshold_or_range": "[0.4,1.0]", "recovery_condition": "three consecutive adequate-water intervals", "failure_interpretation": "loss of canopy function", **context},
+            {"record_type": "dynamic_model_extension", "id": "extension:resilience", "shape_ref": "shape:forest-regulation", "input_variable_refs": ["variable:resilience"], "output_variable_refs": ["variable:resilience"], "timing_model_ref": "timing:daily", "uncertainty_model_ref": "uncertainty:interval", "execution_status": "approved", "equation_refs": ["equation:one"], "update_rule_refs": ["rule:one"], "compiler_ref": "compiler:future", "validation_ref": "validation:scenario-set", "approval_ref": "approval:human", "provenance_id": "provenance:field"},
+        ]
+
+    def test_cybernetics_bundle_describes_closed_regulation_without_simulating(self) -> None:
+        rows = self._cybernetic_records()
+        for row in rows:
+            self.assertEqual(validate_cybernetic_contract(row, row["record_type"]), [])
+        self.assertEqual(validate_cybernetic_bundle_contract(rows), [])
+
+    def test_cybernetics_fixture_matches_registered_contract(self) -> None:
+        fixture = json.loads((FIXTURES_DIR / "profile_cybernetics_v1_0_0.json").read_text())
+        profile = self.registry.bootstrap_cybernetics_profile()
+        for key in ("profile_id", "profile_version", "kernel_records_used", "profile_record_types", "profile_dependencies", "invariants", "steward"):
+            self.assertEqual(profile[key], fixture[key])
+
+    def test_cybernetics_bundle_rejects_open_loops_unit_conflicts_and_unapproved_execution(self) -> None:
+        rows = self._cybernetic_records()
+        rows[1]["payload_unit"] = "mg"
+        rows[1]["delay"] = "-1"
+        rows[3]["action_channel_refs"] = ["signal:missing"]
+        rows[-1].pop("approval_ref")
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("delay" in error for error in errors))
+        self.assertTrue(any("unknown signal" in error for error in errors))
+        self.assertTrue(any("closed observation-action" in error for error in errors))
+        self.assertTrue(any("approval_ref" in error for error in errors))
+
+    def test_cybernetics_bundle_rejects_context_drift_and_conflicting_setpoints(self) -> None:
+        rows = self._cybernetic_records()
+        second_setpoint = dict(rows[2])
+        second_setpoint["id"] = "setpoint:resilience-conflict"
+        second_setpoint["target_range"] = "[0.1,0.3]"
+        rows.append(second_setpoint)
+        rows[1]["branch_id"] = "branch:simulated"
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("branch_id conflicts" in error for error in errors))
+        self.assertTrue(any("setpoints conflict" in error for error in errors))
+
+    def test_cybernetics_bundle_reports_invalid_setpoint_priority_without_crashing(self) -> None:
+        rows = self._cybernetic_records()
+        rows[2]["priority"] = "urgent"
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("priority" in error for error in errors))
+
+    def test_cybernetics_bundle_rejects_regulator_context_drift_from_observation_and_goal(self) -> None:
+        rows = self._cybernetic_records()
+        rows[3]["branch_id"] = "branch:simulated"
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("regulator:network branch_id conflicts with state_variable" in error for error in errors))
+        self.assertTrue(any("regulator:network branch_id conflicts with setpoint" in error for error in errors))
 
 
 if __name__ == "__main__":
