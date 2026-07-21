@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 06609405ad50a43cf2e6681e959bb16ade4c038ef298f3b065d13d39864c1739 -->
+<!-- canonical_revision: 11b9551494df84b0ebef3e69f76b492954501f8a254ef4ba8c6aa893e4c3c56f -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-15T06:23:25+00:00 -->
+<!-- generated_at: 2026-07-21T14:49:32+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -14,7 +14,7 @@ Select a task to receive a recommended next action.
 
 - id: ``
 - status: ``
-- title: 
+- title: _none_
 
 ## Recent runs
 
