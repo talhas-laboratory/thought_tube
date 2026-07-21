@@ -1,6 +1,6 @@
 # UMF-SHAPE-002-COMPOSITION-RECURSIVE-SYSTEMHOOD: Model composition, boundaries, and recursive systemhood
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 
