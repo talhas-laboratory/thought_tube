@@ -2216,17 +2216,22 @@ def _bubble_candidate_pairs(root: Path, limit: int = 36) -> List[Dict]:
     return candidates[:limit]
 
 
-def _select_contextual_candidate_pairs(root: Path, limit: int = 36) -> List[Dict]:
+def _select_contextual_candidate_pairs(
+    root: Path,
+    limit: int = 36,
+    domain_overlays: List[str] | None = None,
+) -> List[Dict]:
     contextual = _bubble_candidate_pairs(root, limit=limit)
     meta_to_bubbles, bubbles = _bubble_membership_maps(root)
     seen = {
         tuple(sorted([row["left"]["meta_id"], row["right"]["meta_id"]]))
         for row in contextual
     }
-    for row in select_candidate_pairs(root, limit=max(limit * 2, 24)):
+
+    def _append_pair(row: Dict) -> None:
         pair_key = tuple(sorted([row["left"]["meta_id"], row["right"]["meta_id"]]))
         if pair_key in seen:
-            continue
+            return
         seen.add(pair_key)
         left_bubbles = meta_to_bubbles.get(row["left"]["meta_id"], [])
         right_bubbles = meta_to_bubbles.get(row["right"]["meta_id"], [])
@@ -2249,6 +2254,35 @@ def _select_contextual_candidate_pairs(root: Path, limit: int = 36) -> List[Dict
             elif right_bubble:
                 row["bubble_context"] = _bubble_context_payload(right_bubble)
         contextual.append(row)
+
+    from .feed_disclosure_adapter import (
+        collect_feed_evidence_pairs,
+        feed_disclosure_service_enabled,
+        record_feed_disclosure_receipt,
+    )
+
+    if feed_disclosure_service_enabled(root):
+        disclosure_pairs, retrieval_bundle, _layers = collect_feed_evidence_pairs(
+            root,
+            limit=max(limit * 2, 24),
+            domain_overlays=domain_overlays,
+        )
+        effective_grant = disclosure_pairs[0].get("disclosure_grant") if disclosure_pairs else None
+        if effective_grant is None:
+            from .feed_disclosure_adapter import build_feed_effective_grant
+
+            effective_grant = build_feed_effective_grant(root, domain_overlays).to_dict()
+        record_feed_disclosure_receipt(
+            root,
+            retrieval_bundle=retrieval_bundle,
+            effective_grant=effective_grant,
+            pair_count=len(disclosure_pairs),
+        )
+        for row in disclosure_pairs:
+            _append_pair(row)
+    else:
+        for row in select_candidate_pairs(root, limit=max(limit * 2, 24)):
+            _append_pair(row)
     contextual.sort(key=lambda item: (-item["score"], item["edge_kind"], item["left"]["label"]))
     return contextual[:limit]
 
@@ -2275,6 +2309,8 @@ def _candidate_packet(pair: Dict) -> Dict:
             "evidence_texts": evidence_texts,
             "shared_terms": pair.get("shared_tokens", []),
             "bubble_context": pair.get("bubble_context"),
+            "disclosure_provenance": pair.get("disclosure_provenance"),
+            "disclosure_grant": pair.get("disclosure_grant"),
         },
     }
 
@@ -2342,7 +2378,7 @@ def _promotion_row(packet: Dict, judgment: Dict) -> Dict:
         next_action = "Hold the two sides together a little longer before letting this settle into a surfaced thought."
     else:
         next_action = "Leave this out of the feed for now and wait until it either sharpens or fades."
-    return {
+    row = {
         "packet_id": packet_id,
         "insight_id": insight_id,
         "left_label": left["label"],
@@ -2369,6 +2405,11 @@ def _promotion_row(packet: Dict, judgment: Dict) -> Dict:
         "primary_bubble_label": bubble_context.get("label", ""),
         "related_bubble_ids": bubble_context.get("related_bubble_ids", []),
     }
+    if packet["connection"].get("disclosure_provenance"):
+        row["disclosure_provenance"] = packet["connection"]["disclosure_provenance"]
+    if packet["connection"].get("disclosure_grant"):
+        row["disclosure_grant"] = packet["connection"]["disclosure_grant"]
+    return row
 
 
 def _write_batch_exports(root: Path, surfaced: List[Dict]) -> None:
@@ -2414,7 +2455,11 @@ def generate_daily_batch(
             "context_bubbles_progress": runtime_guard.get("context_bubbles_progress", {}),
         }
     policy_snapshot = load_policy_snapshot(root)
-    candidate_pairs = _select_contextual_candidate_pairs(root, limit=max(limit * 8, 24))
+    candidate_pairs = _select_contextual_candidate_pairs(
+        root,
+        limit=max(limit * 8, 24),
+        domain_overlays=domain_overlays,
+    )
     promotion_rows = []
     review_rows = []
     for pair in candidate_pairs:

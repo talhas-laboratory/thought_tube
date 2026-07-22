@@ -264,6 +264,11 @@
         "title": "Ten-out-of-ten system gap program"
       },
       {
+        "id": "t10-00-reconciliation-matrix",
+        "path": "derived/T10-00-RECONCILIATION-MATRIX.md",
+        "title": "T10-00 reconciliation matrix"
+      },
+      {
         "id": "framework-obligation-coverage-seed",
         "path": "derived/framework-obligation-coverage-seed.json",
         "title": "Framework obligation coverage seed"

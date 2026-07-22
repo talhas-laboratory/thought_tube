@@ -1,0 +1,18 @@
+{
+  "contract_version": "1.0",
+  "block_id": "block-cae015-001",
+  "bounded_text": "Disclosure contracts separate execution bundles from audit receipts.",
+  "token_estimate": 14,
+  "source_span": {
+    "source_ref": "fixture:cae015-pin",
+    "chunk_id": "chunk-cae015-001",
+    "start_offset": 0,
+    "end_offset": 72
+  },
+  "inclusion_reason": "explicit_pin",
+  "sensitivity": "internal",
+  "branch_id": "branch-main",
+  "scope_id": "scope-stage-a",
+  "content_hash": "sha256:7b8f9c0d1e2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c",
+  "provenance_ref": "prov-cae015-block"
+}

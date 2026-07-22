@@ -1,0 +1,15 @@
+{
+  "contract_version": "1.0",
+  "request_id": "req-cae015-aperture",
+  "surface": "bridge",
+  "user_turn": "What neighborhood should I inspect for disclosure contract work?",
+  "session_id": "session-cae015",
+  "workspace_id": "cognitive-aperture-exceptional",
+  "explicit_pins": ["fixture:cae015-pin"],
+  "requested_depth": "focused",
+  "caller_capabilities": ["read_local_continuity"],
+  "provenance": {
+    "caller": "tests/fixtures/disclosure_contracts/v1",
+    "recorded_at": "2026-07-19T15:00:00+00:00"
+  }
+}

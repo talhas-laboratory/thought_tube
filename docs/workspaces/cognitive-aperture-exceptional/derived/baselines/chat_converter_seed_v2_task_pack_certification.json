@@ -1,0 +1,135 @@
+{
+  "schema_version": "2.0",
+  "baseline_suite_id": "chat_converter_seed_v2_task_pack_certification",
+  "parent_suite_id": "chat_converter_seed_v2_shape_certification",
+  "fixture_revision": "cae-task-pack-cert-v2-2026-07-20",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "recorded_at": "2026-07-20T00:00:00+00:00",
+  "harness_version": "2.0",
+  "aperture_harness_version": "1.0",
+  "generation_marker": "0c1980897467f728a83763e1ca582016",
+  "thresholds": {
+    "positive_overlap_rate": 1.0,
+    "bridge_parity_rate": 1.0,
+    "negative_zero_block_rate": 1.0,
+    "narrative_preservation_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "latency_ms_p95": 750,
+    "max_catalog_lookup_ms": 50,
+    "max_bytes_resolved": 65536
+  },
+  "metrics": {
+    "positive_overlap_rate": 1.0,
+    "bridge_parity_rate": 1.0,
+    "negative_zero_block_rate": 1.0,
+    "narrative_preservation_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "latency_ms_p95": 3.326,
+    "catalog_lookup_ms_p95": 0.177,
+    "max_bytes_resolved": 93
+  },
+  "summary": {
+    "probe_count": 7,
+    "pass_count": 6,
+    "known_failure_count": 0,
+    "service_certified": true,
+    "notes": "Corpus-backed task-pack certification v2; bridge parity and narrative preservation verified on seed corpus"
+  },
+  "threshold_check": {
+    "passed": true,
+    "checks": {
+      "positive_overlap_rate": true,
+      "bridge_parity_rate": true,
+      "negative_zero_block_rate": true,
+      "narrative_preservation_rate": true,
+      "abstention_correctness_rate": true,
+      "latency_ms_p95": true,
+      "max_catalog_lookup_ms": true,
+      "max_bytes_resolved": true
+    }
+  },
+  "observed_results": [
+    {
+      "probe_id": "positive-bounded-evidence-overlap",
+      "category": "positive",
+      "expected_verdict": "pass",
+      "verdict": "pass",
+      "count": 1,
+      "has_query_overlap": true,
+      "preferred_source_hit": true,
+      "source_refs": [
+        "fixture:research-insight.md"
+      ],
+      "latency_ms": 3.326,
+      "bytes_resolved": 93
+    },
+    {
+      "probe_id": "bridge-parity-research-query",
+      "category": "bridge_parity",
+      "expected_verdict": "pass",
+      "verdict": "pass",
+      "task_pack_source_refs": [
+        "fixture:research-insight.md"
+      ],
+      "bridge_source_refs": [
+        "fixture:research-insight.md"
+      ],
+      "parity_ok": true,
+      "latency_ms": 3.293,
+      "bytes_resolved": 93
+    },
+    {
+      "probe_id": "negative-unrelated-no-filler",
+      "category": "negative",
+      "expected_verdict": "no_hits",
+      "verdict": "no_hits",
+      "count": 0,
+      "zero_blocks": true,
+      "latency_ms": 1.599,
+      "bytes_resolved": 0
+    },
+    {
+      "probe_id": "narrative-preservation-with-evidence",
+      "category": "narrative_preservation",
+      "expected_verdict": "pass",
+      "verdict": "pass",
+      "preserved_narrative": true,
+      "bounded_evidence_present": true,
+      "expect_bounded_evidence": true,
+      "latency_ms": 1.624,
+      "bytes_resolved": 93
+    },
+    {
+      "probe_id": "narrative-preservation-empty-evidence",
+      "category": "narrative_preservation",
+      "expected_verdict": "pass",
+      "verdict": "pass",
+      "preserved_narrative": true,
+      "bounded_evidence_present": false,
+      "expect_bounded_evidence": false,
+      "latency_ms": 1.639,
+      "bytes_resolved": 0
+    },
+    {
+      "probe_id": "abstention-missing-catalog-snapshot",
+      "category": "abstention",
+      "expected_verdict": "pass",
+      "verdict": "pass",
+      "count": 0,
+      "result_status": "abstained_stale_index",
+      "abstained_empty": true,
+      "latency_ms": 1.163,
+      "bytes_resolved": 0
+    },
+    {
+      "probe_id": "resource-latency-and-catalog",
+      "category": "resource",
+      "verdict": "pass",
+      "latency_ms_p95": 1.696,
+      "catalog_lookup_ms_p95": 0.177,
+      "max_bytes_resolved": 93,
+      "iterations": 3
+    }
+  ]
+}

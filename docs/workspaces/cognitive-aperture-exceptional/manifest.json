@@ -1,0 +1,68 @@
+{
+  "workspace_id": "cognitive-aperture-exceptional",
+  "label": "Cognitive Aperture Exceptional",
+  "status": "active",
+  "maturation_stage": "architecture_lock",
+  "goal": "Build a reliable, lightweight, modular disclosure service over the private Inner World.",
+  "purpose": "Coordinate orient \u2192 grant \u2192 evidence \u2192 receipt without owning ingestion, canonical Shape formation, embeddings, or source truth.",
+  "success_condition": "Bridge and Holodeck share one versioned disclosure contract that fails empty, enforces grants and budgets, preserves Shape/provenance status, isolates execution from audit, meets performance limits, and emits reconstructible receipts.",
+  "artifact_roots": [
+    "docs/plans/2026-07-19-cognitive-aperture-modular-disclosure-design.md",
+    "docs/workspaces/cognitive-aperture-exceptional/",
+    "docs/workspaces/cognitive-aperture-exceptional/derived/REMEDIATION_GAP_OVERVIEW.md",
+    "docs/workspaces/cognitive-aperture-exceptional/derived/OPENCLAW_SHAPE_INTELLIGENCE_READINESS.md",
+    "docs/workboards/cognitive-aperture-exceptional/",
+    "src/conversation_os/knowledge_layer.py",
+    "src/conversation_os/reasoning_bridge.py",
+    "src/conversation_os/chat_backends.py",
+    "src/conversation_os/models.py",
+    "src/conversation_os/holodeck.py",
+    "src/conversation_os/library_tracker.py",
+    "src/conversation_os/runtime_pipeline.py",
+    "src/conversation_os/shape_projection_reader.py",
+    "src/conversation_os/disclosure_contracts.py",
+    "src/conversation_os/aperture_baseline_harness.py",
+    "tests/test_conversation_os.py",
+    "tests/test_shape_projection_reader.py",
+    "tests/test_disclosure_contracts.py",
+    "tests/test_aperture_baseline_harness.py",
+    "tests/test_execution_audit_isolation.py",
+    "tests/test_effective_grant_envelope.py",
+    "tests/fixtures/disclosure_contracts/v1",
+    "tests/fixtures/aperture_baselines/v1",
+    "docs/workspaces/cognitive-aperture-exceptional/derived/baselines"
+  ],
+  "external_dependencies": [
+    "library/runtime corpus readiness",
+    "Unified Metaphysical Framework Shape and Semantic Addressing profile",
+    "legacy meta_layer provisional Shape adapter",
+    "canonical branch, scope, provenance, and bounded-view kernel"
+  ],
+  "objectives": [
+    "Lock modular ownership and versioned disclosure contracts.",
+    "Require explicit corpus and Shape readiness before quality claims.",
+    "Close suppression leakage, fail-open admission, overlapping envelopes, and dead budgets.",
+    "Adopt one disclosure service through Bridge and Holodeck adapters.",
+    "Publish neighborhood quality, Shape alignment, privacy, budget, and performance evidence."
+  ],
+  "scope_out": [
+    "Source ingestion and chunking implementation.",
+    "Canonical Shape derivation or promotion.",
+    "Embedding provider or vector database selection.",
+    "Hosted multi-tenant SaaS.",
+    "Activation steering or learned reranking for reliable v1.",
+    "World Studio canon semantics redesign.",
+    "Treating Inner World structures as literal model residual-stream geometry."
+  ],
+  "domains": [
+    "product",
+    "structure",
+    "research",
+    "bridge"
+  ],
+  "holodeck_workspace_id": "cognitive-aperture-exceptional",
+  "workboard": "docs/workboards/cognitive-aperture-exceptional/README.md",
+  "continuity_projection": "docs/workspaces/cognitive-aperture-exceptional/CONTINUITY.md",
+  "semantic_authority": "docs/workspaces/cognitive-aperture-exceptional/derived/GAP_MAP.md",
+  "linked_session_ids": []
+}

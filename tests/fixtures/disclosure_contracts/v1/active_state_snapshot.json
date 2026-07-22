@@ -1,0 +1,20 @@
+{
+  "contract_version": "1.0",
+  "snapshot_id": "snap-cae015-state",
+  "request_id": "req-cae015-aperture",
+  "topic": "disclosure contracts",
+  "purpose": "orient grant evidence receipt separation",
+  "object_scope": "same_main",
+  "object_id": "object-cae015-contracts",
+  "tension": "speed vs safety",
+  "posture": "implementation",
+  "lens": "modular boundary",
+  "branch_id": "branch-main",
+  "scope_id": "scope-stage-a",
+  "source_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "derived_from": ["session-cae015", "workspace-cognitive-aperture-exceptional"],
+  "provenance": {
+    "derived_from_authorized_only": true,
+    "recorded_at": "2026-07-19T15:00:00+00:00"
+  }
+}
