@@ -1,6 +1,6 @@
 # UMF-T10-14-FIRST-BENCHMARK: T10-14 First comparative quality benchmark
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

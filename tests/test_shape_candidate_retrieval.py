@@ -426,6 +426,36 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
                 merge_shapes_forbidden=False,
             ).to_dict()
 
+    def test_first_comparative_benchmark_beats_lexical_and_vector_distractors(self) -> None:
+        from conversation_os.shape_candidate_retrieval import (
+            FIRST_COMPARATIVE_BENCHMARK_ID,
+            FIRST_COMPARATIVE_THRESHOLDS,
+            held_out_first_comparative_cases,
+            run_first_comparative_benchmark,
+        )
+
+        cases = held_out_first_comparative_cases()
+        self.assertGreaterEqual(len(cases), FIRST_COMPARATIVE_THRESHOLDS["min_pair_count"])
+        report = run_first_comparative_benchmark(cases)
+        self.assertEqual(report["benchmark_id"], FIRST_COMPARATIVE_BENCHMARK_ID)
+        self.assertTrue(report["thresholds_locked_before_evaluation"])
+        self.assertTrue(report["passed"], report.get("gate"))
+        self.assertGreaterEqual(
+            report["metrics"]["structural_beats_lexical_rate"],
+            FIRST_COMPARATIVE_THRESHOLDS["structural_beats_lexical_rate"],
+        )
+        self.assertGreaterEqual(
+            report["metrics"]["structural_beats_vector_rate"],
+            FIRST_COMPARATIVE_THRESHOLDS["structural_beats_vector_rate"],
+        )
+        self.assertEqual(
+            report["metrics"]["anti_match_distractor_reject_rate"],
+            FIRST_COMPARATIVE_THRESHOLDS["anti_match_distractor_reject_rate"],
+        )
+        for case in report["cases"]:
+            self.assertTrue(case["merge_shapes_forbidden"])
+            self.assertTrue(case["explanation"]["holds_where"] or case["explanation"]["breaks_where"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -80,6 +80,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-09-TEMPORAL-REVISION.md`](./derived/T10-09-TEMPORAL-REVISION.md) | Wave 2 T10-09 evidence | Content-addressed corpus epoch, stale projection rules, and contradiction surfacing |
 | [`derived/T10-06-PATTERN-ANTIMATCH.md`](./derived/T10-06-PATTERN-ANTIMATCH.md) | Wave 3 T10-06 evidence | Pattern derivation + separated candidate/membership/AntiMatch/transfer records; merge forbidden |
 | [`derived/T10-07-SHAPE-RETRIEVAL.md`](./derived/T10-07-SHAPE-RETRIEVAL.md) | Wave 3 T10-07 evidence | Typed shape_retrieval always present; focused audit failures green |
+| [`derived/T10-14-FIRST-COMPARATIVE-BENCHMARK.md`](./derived/T10-14-FIRST-COMPARATIVE-BENCHMARK.md) | Wave 3 T10-14 evidence | First structural-vs-lexical/vector comparative benchmark; thresholds locked pre-eval |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

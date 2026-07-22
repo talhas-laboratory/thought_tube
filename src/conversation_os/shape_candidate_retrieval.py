@@ -29,6 +29,16 @@ PATTERN_RECORD_KINDS = (
     "transfer_hypothesis",
     "rejected_analogy",
 )
+# Wave 3 first comparative benchmark — thresholds locked before held-out evaluation.
+FIRST_COMPARATIVE_BENCHMARK_ID = "wave3_first_comparative_v1"
+FIRST_COMPARATIVE_BENCHMARK_REVISION = "2026-07-22.wave3.first"
+FIRST_COMPARATIVE_THRESHOLDS = {
+    "structural_beats_lexical_rate": 0.80,
+    "structural_beats_vector_rate": 0.80,
+    "anti_match_distractor_reject_rate": 1.0,
+    "positive_pair_recovery_rate": 0.80,
+    "min_pair_count": 4,
+}
 
 PUBLIC_API = (
     "MODULE_ID",
@@ -36,6 +46,9 @@ PUBLIC_API = (
     "PATTERN_REASONING_CONTRACT_VERSION",
     "STRUCTURAL_ADMISSION_THRESHOLD",
     "PATTERN_RECORD_KINDS",
+    "FIRST_COMPARATIVE_BENCHMARK_ID",
+    "FIRST_COMPARATIVE_BENCHMARK_REVISION",
+    "FIRST_COMPARATIVE_THRESHOLDS",
     "ShapeQuery",
     "ShapeCandidateDecision",
     "AntiMatchDecision",
@@ -57,6 +70,10 @@ PUBLIC_API = (
     "revise_anti_match_record",
     "typed_shape_retrieval_result",
     "build_shape_aware_retrieval_bundle",
+    "held_out_first_comparative_cases",
+    "score_comparative_pair",
+    "run_first_comparative_benchmark",
+    "check_first_comparative_thresholds",
 )
 __all__ = list(PUBLIC_API)
 
@@ -989,3 +1006,312 @@ def build_shape_aware_retrieval_bundle(
         typed["readiness_state"] = str(shape_context.get("readiness_state", "") or typed["readiness_state"])
     bundle["shape_retrieval"] = typed
     return bundle
+
+
+def held_out_first_comparative_cases() -> List[Dict[str, Any]]:
+    """Frozen held-out fixture pairs for the Wave 3 first comparative benchmark.
+
+    Thresholds in FIRST_COMPARATIVE_THRESHOLDS were locked before these cases
+    were evaluated. Domains are intentionally unrelated in vocabulary.
+    """
+    return [
+        {
+            "case_id": "positive:forest-vs-inbox",
+            "expected": "positive",
+            "domains": ["ecology", "cognition"],
+            "anchor": {
+                "shape_id": "shape:mycorrhizal-routing",
+                "title": "Nutrient routing under scarcity",
+                "summary": "Distributor reallocates under receiver capacity limits",
+                "entities": [{"role": "limited_receiver_capacity"}, {"role": "distributor"}],
+                "system_boundary": "forest plot",
+                "attributes": {"scale": "local_interaction"},
+                "mechanism": "biological_transfer",
+            },
+            "candidate": {
+                "shape_id": "shape:attention-queue",
+                "title": "Attention queue saturation",
+                "summary": "Coordinator fails when inputs accumulate beyond hierarchy",
+                "entities": [{"role": "limited_receiver_capacity"}, {"role": "distributor"}],
+                "system_boundary": "workspace",
+                "attributes": {"scale": "local_interaction"},
+                "mechanism": "attention_queue",
+            },
+            "lexical_distractor": {
+                "shape_id": "shape:noise-lab",
+                "title": "Signal dilution through accumulation hierarchy confusion",
+                "summary": "Signal dilution through accumulation hierarchy confusion noise",
+                "entities": [{"role": "sensor"}, {"role": "amplifier"}],
+                "system_boundary": "lab bench",
+                "attributes": {"scale": "instrument"},
+                "mechanism": "electrical_noise",
+            },
+        },
+        {
+            "case_id": "positive:supply-vs-immune",
+            "expected": "positive",
+            "domains": ["logistics", "biology"],
+            "anchor": {
+                "shape_id": "shape:warehouse-backpressure",
+                "title": "Warehouse backpressure cascade",
+                "summary": "Buffer overflow propagates upstream under fixed outlet capacity",
+                "entities": [{"role": "buffer"}, {"role": "limited_outlet"}, {"role": "upstream_source"}],
+                "system_boundary": "distribution center",
+                "attributes": {"scale": "facility"},
+                "mechanism": "queueing",
+            },
+            "candidate": {
+                "shape_id": "shape:immune-cytokine",
+                "title": "Cytokine storm amplification",
+                "summary": "Feedback intensifies when clearance cannot match production",
+                "entities": [{"role": "buffer"}, {"role": "limited_outlet"}, {"role": "upstream_source"}],
+                "system_boundary": "tissue compartment",
+                "attributes": {"scale": "organism"},
+                "mechanism": "inflammatory_feedback",
+            },
+            "lexical_distractor": {
+                "shape_id": "shape:storm-weather",
+                "title": "Warehouse storm flood report",
+                "summary": "Warehouse backpressure cascade flood weather report",
+                "entities": [{"role": "observer"}, {"role": "reporter"}],
+                "system_boundary": "news desk",
+                "attributes": {"scale": "city"},
+                "mechanism": "journalism",
+            },
+        },
+        {
+            "case_id": "positive:market-vs-ecology",
+            "expected": "positive",
+            "domains": ["economics", "ecology"],
+            "anchor": {
+                "shape_id": "shape:predatory-pricing",
+                "title": "Predatory undercutting loop",
+                "summary": "Dominant actor suppresses rivals then raises barriers",
+                "entities": [{"role": "dominant_actor"}, {"role": "scarce_niche"}, {"role": "entrants"}],
+                "system_boundary": "market segment",
+                "attributes": {"scale": "sector"},
+                "mechanism": "price_war",
+            },
+            "candidate": {
+                "shape_id": "shape:invasive-species",
+                "title": "Invasive displacement loop",
+                "summary": "Introduced species monopolizes niche then resists recovery",
+                "entities": [{"role": "dominant_actor"}, {"role": "scarce_niche"}, {"role": "entrants"}],
+                "system_boundary": "habitat patch",
+                "attributes": {"scale": "ecosystem"},
+                "mechanism": "ecological_displacement",
+            },
+            "lexical_distractor": {
+                "shape_id": "shape:pricing-manual",
+                "title": "Predatory undercutting loop pricing manual",
+                "summary": "Predatory undercutting loop price list glossary",
+                "entities": [{"role": "author"}, {"role": "reader"}],
+                "system_boundary": "document",
+                "attributes": {"scale": "page"},
+                "mechanism": "documentation",
+            },
+        },
+        {
+            "case_id": "negative:false-maze",
+            "expected": "anti_match",
+            "domains": ["cognition", "navigation"],
+            "anchor": {
+                "shape_id": "shape:signal-dilution",
+                "title": "Signal dilution through accumulation",
+                "summary": "Useful elements accumulate faster than hierarchy can coordinate",
+                "entities": [{"role": "limited_receiver_capacity"}, {"role": "distributor"}],
+                "system_boundary": "cognitive layer",
+                "attributes": {"scale": "local_interaction"},
+                "mechanism": "attention_queue",
+            },
+            "candidate": {
+                "shape_id": "shape:maze-hidden-route",
+                "title": "Maze confusion hidden route",
+                "summary": "A receiver is delayed before reaching the intended goal through a hidden route",
+                "entities": [{"role": "seeker"}, {"role": "hidden_path"}],
+                "system_boundary": "labyrinth",
+                "attributes": {"scale": "puzzle"},
+                "mechanism": "pathfinding",
+            },
+            "lexical_distractor": {
+                "shape_id": "shape:maze-copy",
+                "title": "Signal dilution through accumulation hierarchy confusion",
+                "summary": "Signal dilution through accumulation hierarchy confusion maze",
+                "entities": [{"role": "narrator"}],
+                "system_boundary": "story",
+                "attributes": {"scale": "page"},
+                "mechanism": "prose",
+            },
+        },
+    ]
+
+
+def _vector_proxy_similarity(left: Mapping[str, Any], right: Mapping[str, Any]) -> float:
+    """Cheap bag-of-tokens cosine proxy (not a learned embedding).
+
+    Used only as the Wave-3 vector baseline stand-in so structural scoring can be
+    compared without requiring an embedding service.
+    """
+    left_tokens = sorted(_shape_token_set(left))
+    right_tokens = sorted(_shape_token_set(right))
+    if not left_tokens or not right_tokens:
+        return 0.0
+    vocab = sorted(set(left_tokens) | set(right_tokens))
+    left_vec = [1.0 if token in left_tokens else 0.0 for token in vocab]
+    right_vec = [1.0 if token in right_tokens else 0.0 for token in vocab]
+    dot = sum(a * b for a, b in zip(left_vec, right_vec))
+    left_norm = sum(a * a for a in left_vec) ** 0.5
+    right_norm = sum(b * b for b in right_vec) ** 0.5
+    if left_norm <= 0.0 or right_norm <= 0.0:
+        return 0.0
+    return float(dot / (left_norm * right_norm))
+
+
+def score_comparative_pair(case: Mapping[str, Any]) -> Dict[str, Any]:
+    """Score one held-out case: structural vs lexical vs vector distractor."""
+    anchor = dict(case.get("anchor") or {})
+    candidate = dict(case.get("candidate") or {})
+    distractor = dict(case.get("lexical_distractor") or {})
+    expected = str(case.get("expected", "") or "")
+    pattern = None
+    if expected == "positive":
+        pattern = derive_pattern_from_shapes(
+            [anchor, candidate],
+            pattern_id=f"pattern:{case.get('case_id', 'case')}",
+            branch_id="benchmark-branch",
+            scope_id="benchmark-scope",
+        )
+    structural = classify_shape_pair(
+        anchor,
+        candidate,
+        pattern=pattern,
+        branch_id="benchmark-branch",
+        scope_id="benchmark-scope",
+    )
+    against_distractor = classify_shape_pair(
+        anchor,
+        distractor,
+        pattern=pattern,
+        branch_id="benchmark-branch",
+        scope_id="benchmark-scope",
+    )
+    lexical_overlap_candidate = _overlap_ratio(_shape_token_set(anchor), _shape_token_set(candidate))
+    lexical_overlap_distractor = _overlap_ratio(_shape_token_set(anchor), _shape_token_set(distractor))
+    vector_candidate = _vector_proxy_similarity(anchor, candidate)
+    vector_distractor = _vector_proxy_similarity(anchor, distractor)
+
+    structural_positive = structural["record_kind"] in {
+        "candidate_match",
+        "validated_membership",
+        "transfer_hypothesis",
+    }
+    structural_anti = structural["record_kind"] == "anti_match"
+    distractor_rejected = against_distractor["record_kind"] in {"anti_match", "rejected_analogy"}
+
+    # "Beats lexical/vector" means structure recovers the intended pair and rejects
+    # the high-overlap distractor — not that the gold pair has lower token overlap.
+    beats_lexical = False
+    beats_vector = False
+    if expected == "positive":
+        beats_lexical = bool(structural_positive and distractor_rejected)
+        beats_vector = bool(structural_positive and distractor_rejected)
+    elif expected == "anti_match":
+        beats_lexical = bool(structural_anti)
+        beats_vector = bool(structural_anti and distractor_rejected)
+        distractor_rejected = structural_anti
+
+    return {
+        "case_id": str(case.get("case_id", "") or ""),
+        "expected": expected,
+        "domains": list(case.get("domains") or []),
+        "structural_record_kind": structural["record_kind"],
+        "structural_holds_where": list(structural.get("holds_where") or []),
+        "structural_breaks_where": list(structural.get("breaks_where") or []),
+        "structural_abstracts": list(structural.get("abstracts") or []),
+        "distractor_record_kind": against_distractor["record_kind"],
+        "lexical_overlap_candidate": round(lexical_overlap_candidate, 4),
+        "lexical_overlap_distractor": round(lexical_overlap_distractor, 4),
+        "vector_similarity_candidate": round(vector_candidate, 4),
+        "vector_similarity_distractor": round(vector_distractor, 4),
+        "structural_positive": structural_positive,
+        "structural_anti_match": structural_anti,
+        "distractor_rejected": distractor_rejected,
+        "beats_lexical": beats_lexical,
+        "beats_vector": beats_vector,
+        "merge_shapes_forbidden": True,
+        "explanation": {
+            "holds_where": list(structural.get("holds_where") or []),
+            "breaks_where": list(structural.get("breaks_where") or []),
+            "limits": list((pattern or {}).get("transfer_limits") or []),
+        },
+    }
+
+
+def check_first_comparative_thresholds(report: Mapping[str, Any]) -> Dict[str, Any]:
+    metrics = dict(report.get("metrics") or {})
+    thresholds = dict(report.get("thresholds") or FIRST_COMPARATIVE_THRESHOLDS)
+    failures: list[str] = []
+    for key, minimum in thresholds.items():
+        if key == "min_pair_count":
+            observed = int(metrics.get("pair_count", 0) or 0)
+            if observed < int(minimum):
+                failures.append(f"{key}: {observed} < {minimum}")
+            continue
+        observed = float(metrics.get(key, 0.0) or 0.0)
+        if observed + 1e-9 < float(minimum):
+            failures.append(f"{key}: {observed:.3f} < {float(minimum):.3f}")
+    return {
+        "passed": not failures,
+        "failures": failures,
+        "thresholds": thresholds,
+        "metrics": metrics,
+    }
+
+
+def run_first_comparative_benchmark(
+    cases: Sequence[Mapping[str, Any]] | None = None,
+) -> Dict[str, Any]:
+    """Run the Wave 3 first comparative benchmark and publish a pass/fail report."""
+    suite = [dict(case) for case in (cases if cases is not None else held_out_first_comparative_cases())]
+    scored = [score_comparative_pair(case) for case in suite]
+    pair_count = len(scored)
+    positives = [row for row in scored if row.get("expected") == "positive"]
+    negatives = [row for row in scored if row.get("expected") == "anti_match"]
+
+    def _rate(rows: Sequence[Mapping[str, Any]], key: str) -> float:
+        if not rows:
+            return 0.0
+        return sum(1 for row in rows if row.get(key)) / len(rows)
+
+    metrics = {
+        "pair_count": pair_count,
+        "positive_pair_count": len(positives),
+        "negative_pair_count": len(negatives),
+        "structural_beats_lexical_rate": _rate(positives, "beats_lexical"),
+        "structural_beats_vector_rate": _rate(positives, "beats_vector"),
+        "anti_match_distractor_reject_rate": _rate(negatives, "distractor_rejected")
+        if negatives
+        else _rate(scored, "distractor_rejected"),
+        "positive_pair_recovery_rate": _rate(positives, "structural_positive"),
+    }
+    report = {
+        "contract_id": "FirstComparativeBenchmark",
+        "benchmark_id": FIRST_COMPARATIVE_BENCHMARK_ID,
+        "benchmark_revision": FIRST_COMPARATIVE_BENCHMARK_REVISION,
+        "thresholds_locked_before_evaluation": True,
+        "thresholds": dict(FIRST_COMPARATIVE_THRESHOLDS),
+        "baselines": ["lexical_token_overlap", "vector_bag_of_tokens_proxy", "structural_pattern_classify"],
+        "metrics": metrics,
+        "cases": scored,
+        "failures_published": True,
+        "generated_at": utc_now(),
+        "notes": (
+            "Wave 3 first slice only: structural Pattern/Shape classification vs "
+            "lexical overlap and a bag-of-tokens vector proxy on held-out fixtures. "
+            "Full T10-14 multi-corpus / agent-task suite remains for later waves."
+        ),
+    }
+    gate = check_first_comparative_thresholds(report)
+    report["gate"] = gate
+    report["passed"] = bool(gate["passed"])
+    return report

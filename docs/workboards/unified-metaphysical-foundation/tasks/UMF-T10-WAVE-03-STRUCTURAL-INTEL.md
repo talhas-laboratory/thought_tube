@@ -1,6 +1,6 @@
 # UMF-T10-WAVE-03-STRUCTURAL-INTEL: Wave 3: Pattern/AntiMatch, retrieval repair, first benchmark
 
-Status: in-progress
+Status: review
 Owner: unassigned
 Current gate: not_required
 
