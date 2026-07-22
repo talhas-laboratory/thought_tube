@@ -10,6 +10,7 @@ import conversation_os.meta_layer as meta_layer_module
 import conversation_os.models as models_module
 from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.shape_candidate_retrieval import (
+    CAP_SHAPE_AWARE_SEARCH,
     build_shape_aware_retrieval_bundle,
     build_shape_query,
     evaluate_anti_match,
@@ -150,6 +151,25 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
         )
         publish_corpus_catalog_snapshot(self.root)
 
+    def _shape_auth(self, *, refs: list[str] | None = None) -> dict:
+        return {
+            "authorization": {
+                "principal_id": "shape-search-agent",
+                "principal_kind": "agent",
+                "authenticated_by": "unit-test",
+                "capabilities": [CAP_SHAPE_AWARE_SEARCH],
+            },
+            "effective_grant": {
+                "grant_id": "grant-shape-search",
+                "effective_refs": list(refs or ["fixture:shape-retrieval"]),
+                "explicit_pins": [],
+                "provenance": {
+                    "branch_id": "branch-shape-001",
+                    "scope_id": "scope-shape-001",
+                },
+            },
+        }
+
     def test_shape_assisted_retrieval_promotes_structural_candidate_above_lexical_distractor(self) -> None:
         self._write_capsules()
         query = "signal dilution accumulation hierarchy confusion private cognitive layer"
@@ -164,6 +184,7 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
                 "branch_id": "branch-shape-001",
                 "scope_id": "scope-shape-001",
                 "source_refs": ["fixture:shape-retrieval"],
+                **self._shape_auth(),
             },
         )
         self.assertEqual(bundle["shape_retrieval"]["result_status"], "ready")
@@ -193,10 +214,31 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
                 limit=4,
                 neighbor_limit=0,
                 envelope_mode="open",
-                shape_search={"enabled": True},
+                shape_search={"enabled": True, **self._shape_auth()},
             )
         self.assertEqual(bundle["shape_retrieval"]["result_status"], "abstained_dependency_not_ready")
         self.assertEqual(bundle.get("count", 0), 0)
+
+    def test_shape_aware_retrieval_denies_without_principal_grant_or_content(self) -> None:
+        self._write_capsules()
+        bundle = build_shape_aware_retrieval_bundle(
+            self.root,
+            "signal dilution accumulation hierarchy confusion private cognitive layer",
+            limit=4,
+            neighbor_limit=0,
+            envelope_mode="open",
+            shape_search={
+                "enabled": True,
+                "branch_id": "branch-shape-001",
+                "scope_id": "scope-shape-001",
+                "source_refs": ["fixture:shape-retrieval"],
+            },
+        )
+        self.assertEqual(bundle["result_status"], "denied_visibility")
+        self.assertEqual(bundle["shape_retrieval"]["result_status"], "denied_visibility")
+        self.assertEqual(bundle["shape_retrieval"]["authorization"]["reason_code"], "missing_principal")
+        self.assertEqual(bundle.get("seed_capsules"), [])
+        self.assertNotIn("Private cognitive layer", json.dumps(bundle))
 
     def test_anti_match_hard_rejects_false_analogy_candidate(self) -> None:
         self._write_capsules()
@@ -241,6 +283,7 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
                 "enabled": True,
                 "scope_id": "scope-shape-001",
                 "enforce_anti_match": True,
+                **self._shape_auth(),
             },
         )
         decisions = {

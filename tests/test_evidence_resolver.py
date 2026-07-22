@@ -14,6 +14,7 @@ from conversation_os.evidence_resolver import (
     resolve_frame_blocks,
 )
 from conversation_os.library_tracker import build_corpus_catalog
+from conversation_os.shape_candidate_retrieval import CAP_EVIDENCE_RESOLVE
 from conversation_os.storage import read_jsonl
 from conversation_os.vault_ingest import ingest_text_content
 
@@ -68,6 +69,12 @@ class EvidenceResolverTestCase(unittest.TestCase):
             "effective_layers": ["global"],
             "effective_refs": list(refs or []),
             "token_budget": 1200,
+            "authorization": {
+                "principal_id": "evidence-resolver-agent",
+                "principal_kind": "service",
+                "authenticated_by": "unit-test",
+                "capabilities": [CAP_EVIDENCE_RESOLVE],
+            },
             "provenance": {
                 "branch_id": "branch-evidence",
                 "scope_id": "scope-evidence",
@@ -245,9 +252,41 @@ class EvidenceResolverTestCase(unittest.TestCase):
                         fragment_id=chunk["chunk_id"],
                         content_hash=content_hash,
                         corpus_revision="rev",
+                        source_ref=source["source_ref"],
                     ),
                 }
             ],
-            effective_grant=self._grant(),
+            effective_grant=self._grant(refs=[source["source_ref"]]),
         )
         self.assertEqual(result["resolved_blocks"][0]["resolution_status"], "resolved")
+
+    def test_port_denies_without_authorization_and_does_not_resolve_text(self) -> None:
+        self._ingest_fixture()
+        chunk = self._chunk_row()
+        source = self._source_row()
+        content_hash = __import__("hashlib").sha256(str(chunk["content"]).encode("utf-8")).hexdigest()
+        grant = self._grant(refs=[source["source_ref"]])
+        grant.pop("authorization")
+        ports = build_inner_world_ports()
+        block = {
+            "block_id": "block-port-denied",
+            "evidence_ref": build_evidence_ref(
+                source_id=source["source_id"],
+                fragment_id=chunk["chunk_id"],
+                content_hash=content_hash,
+                corpus_revision="rev",
+                source_ref=source["source_ref"],
+            ),
+        }
+        with mock.patch("conversation_os.evidence_resolver.resolve_frame_blocks") as resolver:
+            result = ports.evidence_resolver.resolve_frame_blocks(
+                self.root,
+                included_blocks=[block],
+                effective_grant=grant,
+            )
+        resolver.assert_not_called()
+        self.assertEqual(result["resolved_blocks"], [])
+        audit = result["resolution_audit"]
+        self.assertEqual(audit["authorization"]["reason_code"], "missing_principal")
+        self.assertEqual(audit["omitted"][0]["reason_code"], "authorization_denied")
+        self.assertNotIn("Resolver fixture content", json.dumps(result))

@@ -20,6 +20,8 @@ from .vault_ingest import tokenize
 MODULE_ID = "kernel.disclosure.shape_candidate_retrieval"
 CONTRACT_VERSION = "1.0"
 PATTERN_REASONING_CONTRACT_VERSION = "1.0"
+CAP_SHAPE_AWARE_SEARCH = "shape.search"
+CAP_EVIDENCE_RESOLVE = "shape.evidence.resolve"
 STRUCTURAL_ADMISSION_THRESHOLD = 0.4
 HARD_REJECT_ANTI_MATCH_PENALTY = 0.5
 PATTERN_RECORD_KINDS = (
@@ -44,6 +46,8 @@ PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "PATTERN_REASONING_CONTRACT_VERSION",
+    "CAP_SHAPE_AWARE_SEARCH",
+    "CAP_EVIDENCE_RESOLVE",
     "STRUCTURAL_ADMISSION_THRESHOLD",
     "PATTERN_RECORD_KINDS",
     "FIRST_COMPARATIVE_BENCHMARK_ID",
@@ -59,6 +63,7 @@ PUBLIC_API = (
     "shape_candidate_search_enabled",
     "shape_anti_match_enforcement_enabled",
     "build_shape_query",
+    "authorize_shape_aware_access",
     "read_shape_retrieval_context",
     "compute_structural_alignment",
     "evaluate_anti_match",
@@ -258,6 +263,136 @@ def build_shape_query(
         maturity_ceiling=str(maturity_ceiling or "candidate").strip() or "candidate",
         orientation_tokens=set(tokenize(query)),
     )
+
+
+def _string_set(values: Iterable[Any]) -> Set[str]:
+    return {str(value or "").strip() for value in values if str(value or "").strip()}
+
+
+def _authorization_denial(reason_code: str, *, required_capability: str, principal_kind: str = "") -> Dict[str, Any]:
+    return {
+        "allowed": False,
+        "reason_code": reason_code,
+        "required_capability": required_capability,
+        "principal_kind": principal_kind,
+    }
+
+
+def authorize_shape_aware_access(
+    *,
+    authorization: Mapping[str, Any] | None,
+    effective_grant: Mapping[str, Any] | None = None,
+    required_capability: str = CAP_SHAPE_AWARE_SEARCH,
+    branch_id: str = "",
+    scope_id: str = "",
+    source_refs: Sequence[str] | None = None,
+    require_ref_grant: bool = False,
+) -> Dict[str, Any]:
+    """Fail-closed authorization gate shared by Shape search and evidence ports."""
+    auth = dict(authorization or {})
+    principal = dict(auth.get("principal", {}) or {})
+    principal_id = str(principal.get("principal_id", "") or auth.get("principal_id", "") or "").strip()
+    principal_kind = str(principal.get("principal_kind", "") or auth.get("principal_kind", "") or "").strip()
+    authenticated_by = str(
+        principal.get("authenticated_by", "") or auth.get("authenticated_by", "") or ""
+    ).strip()
+    if not principal_id or not authenticated_by:
+        return _authorization_denial(
+            "missing_principal",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+
+    capabilities = _string_set(list(principal.get("capabilities", []) or []) + list(auth.get("capabilities", []) or []))
+    if required_capability not in capabilities and "*" not in capabilities:
+        return _authorization_denial(
+            "missing_capability",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+
+    grant = dict(effective_grant or auth.get("effective_grant", {}) or {})
+    if not grant:
+        return _authorization_denial(
+            "missing_grant",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+    grant_id = str(grant.get("grant_id", "") or grant.get("requested_grant_ref", "") or "").strip()
+    allowed_refs = _string_set(list(grant.get("effective_refs", []) or []) + list(grant.get("explicit_pins", []) or []))
+    provenance = dict(grant.get("provenance", {}) or {})
+    grant_branch_id = str(provenance.get("branch_id", "") or "").strip()
+    grant_scope_id = str(provenance.get("scope_id", "") or "").strip()
+    if not grant_id and not allowed_refs and not grant_branch_id and not grant_scope_id:
+        return _authorization_denial(
+            "missing_grant",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+
+    wanted_refs = _string_set(source_refs or [])
+    if require_ref_grant and not allowed_refs:
+        return _authorization_denial(
+            "missing_ref_grant",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+    if wanted_refs and allowed_refs and not wanted_refs.issubset(allowed_refs):
+        return _authorization_denial(
+            "ref_outside_grant",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+
+    requested_branch = str(branch_id or "").strip()
+    requested_scope = str(scope_id or "").strip()
+    if requested_branch and grant_branch_id and requested_branch != grant_branch_id:
+        return _authorization_denial(
+            "branch_mismatch",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+    if requested_scope and grant_scope_id and requested_scope != grant_scope_id:
+        return _authorization_denial(
+            "scope_mismatch",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+    if requested_branch and not grant_branch_id and not allowed_refs:
+        return _authorization_denial(
+            "missing_scope_grant",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+    if requested_scope and not grant_scope_id and not allowed_refs:
+        return _authorization_denial(
+            "missing_scope_grant",
+            required_capability=required_capability,
+            principal_kind=principal_kind,
+        )
+
+    return {
+        "allowed": True,
+        "required_capability": required_capability,
+        "principal_kind": principal_kind,
+        "grant_scope": {
+            "branch_id": grant_branch_id,
+            "scope_id": grant_scope_id,
+            "ref_count": len(allowed_refs),
+        },
+    }
+
+
+def _denied_shape_context(authorization: Mapping[str, Any]) -> Dict[str, Any]:
+    return {
+        "result_status": "denied_visibility",
+        "readiness_state": "authorization_denied",
+        "candidate_projections": [],
+        "anti_match_projections": [],
+        "expansion_count": 0,
+        "resolved_bytes": 0,
+        "authorization": dict(authorization),
+    }
 
 
 def _matches_branch_scope(row: Mapping[str, Any], *, branch_id: str, scope_id: str) -> bool:
@@ -916,7 +1051,7 @@ def typed_shape_retrieval_result(
             pass
         elif not context:
             status = "failed"
-    return {
+    payload = {
         "result_status": status,
         "readiness_state": str(context.get("readiness_state", "") or ""),
         "expansion_count": int(context.get("expansion_count", 0) or 0),
@@ -935,6 +1070,9 @@ def typed_shape_retrieval_result(
             "budget",
         ],
     }
+    if status == "denied_visibility" and context.get("authorization"):
+        payload["authorization"] = dict(context.get("authorization", {}) or {})
+    return payload
 
 
 def build_shape_aware_retrieval_bundle(
@@ -964,6 +1102,23 @@ def build_shape_aware_retrieval_bundle(
 
     shape_context: Dict[str, Any] = {"result_status": "disabled"}
     if shape_enabled:
+        authorization = authorize_shape_aware_access(
+            authorization=dict(shape_search_payload.get("authorization", {}) or {}),
+            effective_grant=dict(shape_search_payload.get("effective_grant", {}) or {}),
+            required_capability=CAP_SHAPE_AWARE_SEARCH,
+            branch_id=str(shape_search_payload.get("branch_id", "") or ""),
+            scope_id=str(shape_search_payload.get("scope_id", "") or ""),
+            source_refs=list(shape_search_payload.get("source_refs", []) or []),
+        )
+        if not authorization["allowed"]:
+            shape_context = _denied_shape_context(authorization)
+            return {
+                "result_status": "denied_visibility",
+                "count": 0,
+                "seed_capsules": [],
+                "shadow_admission": {"decisions": []},
+                "shape_retrieval": typed_shape_retrieval_result(shape_context),
+            }
         shape_query = build_shape_query(
             query,
             branch_id=str(shape_search_payload.get("branch_id", "") or ""),

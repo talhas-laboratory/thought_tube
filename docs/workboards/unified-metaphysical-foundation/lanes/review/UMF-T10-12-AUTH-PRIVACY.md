@@ -1,7 +1,7 @@
 # UMF-T10-12-AUTH-PRIVACY: T10-12 Authorization privacy poisoning
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope

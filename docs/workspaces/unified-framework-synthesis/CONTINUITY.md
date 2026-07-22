@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 0fd99290d51651700611dfe8943743b87cf02f2ddd83cb012f46ba8ce8d8875b -->
+<!-- canonical_revision: 2673dd90a74f24b4a2b60ebfe20b9eda6c1a2892b23ee94dd3ea252d7d40b4ea -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:47:36+00:00 -->
+<!-- generated_at: 2026-07-22T14:54:06+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -33,6 +33,7 @@ Select a task to receive a recommended next action.
 
 ## Reasoning
 
+- T10-12 first slice on retrieval/evidence ports
 - T10-06 Pattern records on retrieval owner
 - T10-05 index contracts on CorpusCatalog
 - T10-04 implementation decision
@@ -43,6 +44,8 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- pytest tests/test_disclosure_service_bridge_parity.py tests/test_disclosure_contracts.py tests/test_disclosure_receipts.py
+- pytest tests/test_shape_candidate_retrieval.py tests/test_evidence_resolver.py
 - tests/test_disclosure_rollout.py+receipt_rollout
 - tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py
@@ -53,5 +56,3 @@ Select a task to receive a recommended next action.
 - pytest tests/test_shape_population_golden_trace.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_promotion.py tests/test_shape_population_remediation_lifecycle.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_canonical_port.py tests/test_shape_population_promotion.py
-- pytest tests/test_shape_projection_reader.py tests/test_shape_authority.py tests/test_shape_population_canonical_port.py tests/test_metaphysical_kernel_application_sdk.py
-- t10-19-release-discipline

@@ -192,6 +192,46 @@ class _InnerWorldEvidenceResolver:
         included_blocks: list[Dict[str, Any]],
         effective_grant: Mapping[str, Any],
     ) -> Dict[str, Any]:
+        from .shape_candidate_retrieval import CAP_EVIDENCE_RESOLVE, authorize_shape_aware_access
+
+        provenance = dict(effective_grant.get("provenance", {}) or {})
+        ref_scope_refs: list[str] = []
+        for block in included_blocks:
+            if not isinstance(block.get("evidence_ref", {}), Mapping):
+                continue
+            evidence_ref = dict(block.get("evidence_ref", {}) or {})
+            for key in ("source_ref", "source_id", "fragment_id"):
+                value = str(evidence_ref.get(key, "") or "").strip()
+                if value:
+                    ref_scope_refs.append(value)
+                    break
+        authorization = authorize_shape_aware_access(
+            authorization=dict(effective_grant.get("authorization", {}) or {}),
+            effective_grant=effective_grant,
+            required_capability=CAP_EVIDENCE_RESOLVE,
+            branch_id=str(provenance.get("branch_id", "") or ""),
+            scope_id=str(provenance.get("scope_id", "") or ""),
+            source_refs=ref_scope_refs,
+            require_ref_grant=True,
+        )
+        if not authorization["allowed"]:
+            return {
+                "resolved_blocks": [],
+                "resolution_audit": {
+                    "enabled": True,
+                    "authorization": authorization,
+                    "omitted": [
+                        {
+                            "block_id": str(block.get("block_id", "") or ""),
+                            "reason_code": "authorization_denied",
+                            "reason": "Evidence resolution denied by authorization policy",
+                        }
+                        for block in included_blocks
+                    ],
+                    "bytes_resolved": 0,
+                    "lookup_count": 0,
+                },
+            }
         from .evidence_resolver import resolve_frame_blocks
 
         return resolve_frame_blocks(
