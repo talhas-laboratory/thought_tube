@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional
 
 from conversation_os.shape_population.migrations import SCHEMA_VERSION, apply_migrations
+from conversation_os.shape_population.contracts import IdempotencyConflictError
 from conversation_os.storage import ensure_dir, make_id, repo_root_from, utc_now
 
 MODULE_ID = "kernel.shape_population.storage"
@@ -62,6 +63,15 @@ def _drop_raw_text(payload: Mapping[str, Any]) -> dict[str, Any]:
     row.pop("source_text", None)
     row.pop("raw_text", None)
     return row
+
+
+def _expected_record_version(payload: Mapping[str, Any]) -> str:
+    return str(
+        payload.get("expected_record_version")
+        or payload.get("expected_version")
+        or payload.get("record_version")
+        or ""
+    )
 
 
 class ShapePopulationStore:
@@ -127,6 +137,33 @@ class ShapePopulationStore:
             conn = self._active_conn()
             assert conn is not None
             return fn(conn)
+
+    def _record_version(
+        self,
+        record_type: str,
+        row: sqlite3.Row,
+        *,
+        id_key: str,
+        version_keys: tuple[str, ...],
+    ) -> str:
+        payload = {"record_type": record_type, id_key: str(row[id_key])}
+        for key in version_keys:
+            payload[key] = None if row[key] is None else str(row[key])
+        return _fingerprint(payload)
+
+    def _assert_current_version(
+        self,
+        *,
+        record_type: str,
+        record_id: str,
+        expected_version: str,
+        current_version: str,
+    ) -> None:
+        if expected_version and expected_version != current_version:
+            raise IdempotencyConflictError(
+                f"stale {record_type} writer for {record_id}: "
+                f"expected_version={expected_version} current_version={current_version}"
+            )
 
     def put_source(self, source: Mapping[str, Any]) -> None:
         def write(conn: sqlite3.Connection) -> None:
@@ -379,7 +416,7 @@ class ShapePopulationStore:
         def write(conn: sqlite3.Connection) -> None:
             candidate_id = str(candidate["candidate_id"])
             previous = conn.execute(
-                "SELECT status FROM candidates WHERE candidate_id = ?",
+                "SELECT * FROM candidates WHERE candidate_id = ?",
                 (candidate_id,),
             ).fetchone()
             status = str(candidate.get("status") or "proposed")
@@ -416,6 +453,22 @@ class ShapePopulationStore:
                 or candidate.get("fingerprint")
                 or _fingerprint([candidate_id, status, semantic, execution])
             )
+            if previous is not None:
+                if (
+                    str(previous["fingerprint"]) == fingerprint
+                    and str(previous["status"]) == status
+                    and str(previous["semantic_payload_json"]) == _json_dumps(semantic)
+                    and str(previous["execution_metadata_json"]) == _json_dumps(execution)
+                ):
+                    return
+                current_version = self._candidate_record_version(previous)
+                expected_version = _expected_record_version(candidate)
+                self._assert_current_version(
+                    record_type="candidate",
+                    record_id=candidate_id,
+                    expected_version=expected_version,
+                    current_version=current_version,
+                )
             now = self.now()
             conn.execute(
                 """
@@ -481,6 +534,27 @@ class ShapePopulationStore:
                 or evaluation.get("fingerprint")
                 or _fingerprint([evaluation.get("evaluation_id"), payload, execution])
             )
+            evaluation_id = str(evaluation["evaluation_id"])
+            previous = conn.execute(
+                "SELECT * FROM evaluations WHERE evaluation_id = ?",
+                (evaluation_id,),
+            ).fetchone()
+            if previous is not None:
+                if (
+                    str(previous["fingerprint"]) == fingerprint
+                    and str(previous["disposition"]) == str(evaluation["disposition"])
+                    and str(previous["payload_json"]) == _json_dumps(payload)
+                    and str(previous["execution_metadata_json"]) == _json_dumps(execution)
+                ):
+                    return
+                current_version = self._evaluation_record_version(previous)
+                expected_version = _expected_record_version(evaluation)
+                self._assert_current_version(
+                    record_type="evaluation",
+                    record_id=evaluation_id,
+                    expected_version=expected_version,
+                    current_version=current_version,
+                )
             conn.execute(
                 """
                 INSERT INTO evaluations (
@@ -497,7 +571,7 @@ class ShapePopulationStore:
                     schema_version = excluded.schema_version
                 """,
                 (
-                    str(evaluation["evaluation_id"]),
+                    evaluation_id,
                     str(evaluation["candidate_id"]),
                     str(evaluation["disposition"]),
                     _json_dumps(payload),
@@ -610,6 +684,32 @@ class ShapePopulationStore:
     def put_promotion(self, request: Mapping[str, Any]) -> None:
         def write(conn: sqlite3.Connection) -> None:
             now = self.now()
+            request_id = str(request["request_id"])
+            previous = conn.execute(
+                "SELECT * FROM promotion_requests WHERE request_id = ?",
+                (request_id,),
+            ).fetchone()
+            fingerprint = str(request.get("content_fingerprint") or request.get("fingerprint") or _fingerprint(request))
+            if previous is not None:
+                if (
+                    str(previous["fingerprint"]) == fingerprint
+                    and str(previous["status"]) == str(request.get("status") or "requested")
+                    and str(previous["candidate_id"]) == str(request["candidate_id"])
+                    and str(previous["evaluation_id"]) == str(request["evaluation_id"])
+                    and str(previous["rationale"]) == str(request.get("rationale") or "")
+                    and str(previous["evidence_refs_json"]) == _json_dumps(request.get("evidence_refs") or [])
+                    and str(previous["requester_principal_id"])
+                    == str(request.get("requester_identity") or request.get("requester_principal_id") or "unknown")
+                ):
+                    return
+                current_version = self._promotion_record_version(previous)
+                expected_version = _expected_record_version(request)
+                self._assert_current_version(
+                    record_type="promotion",
+                    record_id=request_id,
+                    expected_version=expected_version,
+                    current_version=current_version,
+                )
             conn.execute(
                 """
                 INSERT INTO promotion_requests (
@@ -629,14 +729,14 @@ class ShapePopulationStore:
                     updated_at = excluded.updated_at
                 """,
                 (
-                    str(request["request_id"]),
+                    request_id,
                     str(request["candidate_id"]),
                     str(request["evaluation_id"]),
                     str(request.get("status") or "requested"),
                     str(request.get("rationale") or ""),
                     _json_dumps(request.get("evidence_refs") or []),
                     str(request.get("requester_identity") or request.get("requester_principal_id") or "unknown"),
-                    str(request.get("content_fingerprint") or request.get("fingerprint") or _fingerprint(request)),
+                    fingerprint,
                     request.get("created_at"),
                     now,
                     request.get("updated_at"),
@@ -1357,6 +1457,7 @@ class ShapePopulationStore:
             "created_at": str(row["created_at"]),
             "updated_at": str(row["updated_at"]),
             "content_fingerprint": str(row["fingerprint"]),
+            "record_version": self._candidate_record_version(row),
         }
 
     def _evaluation_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
@@ -1371,6 +1472,7 @@ class ShapePopulationStore:
             "schema_version": str(row["schema_version"]),
             "created_at": str(row["created_at"]),
             "content_fingerprint": str(row["fingerprint"]),
+            "record_version": self._evaluation_record_version(row),
         }
 
     def _promotion_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
@@ -1386,7 +1488,56 @@ class ShapePopulationStore:
             "created_at": str(row["created_at"]),
             "updated_at": str(row["updated_at"]),
             "content_fingerprint": str(row["fingerprint"]),
+            "record_version": self._promotion_record_version(row),
         }
+
+    def _candidate_record_version(self, row: sqlite3.Row) -> str:
+        return self._record_version(
+            "candidate",
+            row,
+            id_key="candidate_id",
+            version_keys=(
+                "status",
+                "semantic_payload_json",
+                "execution_metadata_json",
+                "fingerprint",
+                "schema_version",
+                "updated_at",
+            ),
+        )
+
+    def _evaluation_record_version(self, row: sqlite3.Row) -> str:
+        return self._record_version(
+            "evaluation",
+            row,
+            id_key="evaluation_id",
+            version_keys=(
+                "candidate_id",
+                "disposition",
+                "payload_json",
+                "execution_metadata_json",
+                "fingerprint",
+                "schema_version",
+                "created_at",
+            ),
+        )
+
+    def _promotion_record_version(self, row: sqlite3.Row) -> str:
+        return self._record_version(
+            "promotion",
+            row,
+            id_key="request_id",
+            version_keys=(
+                "candidate_id",
+                "evaluation_id",
+                "status",
+                "rationale",
+                "evidence_refs_json",
+                "requester_principal_id",
+                "fingerprint",
+                "updated_at",
+            ),
+        )
 
     def _human_decision_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
         return {

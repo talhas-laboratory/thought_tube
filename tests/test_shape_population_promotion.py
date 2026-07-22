@@ -8,7 +8,12 @@ import pytest
 
 from conversation_os.shape_population.candidate_submission import submit_candidate
 from conversation_os.shape_population.canonical_port import LocalRecordingCanonicalPort
-from conversation_os.shape_population.contracts import AuthorizationError, ForbiddenTransitionError, ValidationError
+from conversation_os.shape_population.contracts import (
+    AuthorizationError,
+    ForbiddenTransitionError,
+    IdempotencyConflictError,
+    ValidationError,
+)
 from conversation_os.shape_population.critique import submit_evaluation
 from conversation_os.shape_population.evidence import build_evidence_packet
 from conversation_os.shape_population.execution_context import (
@@ -200,6 +205,42 @@ def test_human_apply_idempotent_request_and_rejection(store: PopulationStore) ->
     )
     assert store.get_candidate(candidate["candidate_id"])["status"] == "recommended"
     assert store.get_canonical_projection(candidate["candidate_id"]) is None
+
+
+def test_human_decision_replay_and_conflict(store: PopulationStore) -> None:
+    candidate, evaluation = _recommended_candidate(store, "approval-replay")
+    requested = request_promotion(
+        candidate["candidate_id"],
+        evaluation["evaluation_id"],
+        "Ready",
+        candidate["evidence_refs"],
+        store=store,
+        context=_eval_context(),
+        idempotency_key="prom-approval-replay",
+    )
+    first = record_human_approval(
+        requested["request"]["request_id"],
+        store=store,
+        approval_reason="stable approval",
+        context=_human_context(),
+    )
+    second = record_human_approval(
+        requested["request"]["request_id"],
+        store=store,
+        approval_reason="stable approval",
+        context=_human_context(),
+    )
+    assert second.approval_id == first.approval_id
+    assert second.decision == "approved"
+
+    with pytest.raises(IdempotencyConflictError):
+        record_human_approval(
+            requested["request"]["request_id"],
+            store=store,
+            approval_reason="changed approval",
+            decision="rejected",
+            context=_human_context(),
+        )
 
 
 def test_apply_promotion_and_rollback(store: PopulationStore) -> None:

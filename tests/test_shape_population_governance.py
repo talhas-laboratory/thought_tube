@@ -112,6 +112,30 @@ def test_idempotent_replay_and_conflict(store: PopulationStore) -> None:
         submit_candidate(conflict, store=store, context=_submit_ctx(run_id="conflict"))
 
 
+def test_stale_candidate_writer_gets_current_version_conflict(store: PopulationStore) -> None:
+    payload = _seed_payload(store, "stale-1")
+    candidate = submit_candidate(payload, store=store, context=_submit_ctx())["candidate"]
+    stale_writer = dict(store.get_candidate(candidate["candidate_id"]))
+
+    fresh_writer = dict(stale_writer)
+    fresh_writer["boundary"] = "fresh boundary"
+    store.put_candidate(fresh_writer)
+    current = store.get_candidate(candidate["candidate_id"])
+    assert current["status"] == stale_writer["status"]
+    assert current["boundary"] == "fresh boundary"
+    assert current["record_version"] != stale_writer["record_version"]
+
+    stale_writer["boundary"] = "stale boundary"
+    with pytest.raises(IdempotencyConflictError) as exc_info:
+        store.put_candidate(stale_writer)
+    assert current["record_version"] in str(exc_info.value)
+    assert store.get_candidate(candidate["candidate_id"])["boundary"] == "fresh boundary"
+
+    replay = dict(store.get_candidate(candidate["candidate_id"]))
+    store.put_candidate(replay)
+    assert store.get_candidate(candidate["candidate_id"])["record_version"] == replay["record_version"]
+
+
 def test_transaction_rollback_on_receipt_path(store: PopulationStore) -> None:
     payload = _seed_payload(store, "rollback-1")
     # Force failure after validation by using absurd cost cap.

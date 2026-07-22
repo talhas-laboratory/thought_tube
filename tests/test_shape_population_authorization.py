@@ -6,7 +6,7 @@ import pytest
 
 from conversation_os.shape_population.candidate_submission import submit_candidate
 from conversation_os.shape_population.canonical_port import LocalRecordingCanonicalPort
-from conversation_os.shape_population.contracts import AuthorizationError, ForbiddenTransitionError
+from conversation_os.shape_population.contracts import AuthorizationError, ForbiddenTransitionError, IdempotencyConflictError
 from conversation_os.shape_population.critique import find_comparison_candidates, submit_evaluation
 from conversation_os.shape_population.evidence import build_evidence_packet
 from conversation_os.shape_population.execution_context import (
@@ -217,7 +217,7 @@ def test_rejected_then_approved_fails(store: PopulationStore) -> None:
         decision="rejected",
         context=reject_ctx,
     )
-    with pytest.raises(ForbiddenTransitionError):
+    with pytest.raises(IdempotencyConflictError):
         record_human_decision(
             request["request_id"],
             store=store,

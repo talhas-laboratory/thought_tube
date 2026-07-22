@@ -80,6 +80,36 @@ def _projection_parity(projection: Mapping[str, Any], read_back: Mapping[str, An
     return True
 
 
+def _approval_event_from_existing(existing: Mapping[str, Any]) -> HumanApprovalEvent:
+    return HumanApprovalEvent(
+        approval_id=str(existing["approval_id"]),
+        request_id=str(existing["request_id"]),
+        approval_identity=str(existing["approval_identity"]),
+        approval_reason=str(existing["approval_reason"]),
+        decision=str(existing["decision"]),
+        created_at=str(existing["created_at"]),
+        immutable=True,
+    )
+
+
+def _handle_existing_human_decision(
+    existing: Mapping[str, Any] | None,
+    *,
+    decision: str,
+    approval_identity: str,
+    approval_reason: str,
+) -> HumanApprovalEvent | None:
+    if existing is None:
+        return None
+    if (
+        existing.get("decision") == decision
+        and existing.get("approval_identity") == approval_identity
+        and existing.get("approval_reason") == approval_reason
+    ):
+        return _approval_event_from_existing(existing)
+    raise IdempotencyConflictError("promotion request already has a different terminal human decision")
+
+
 def request_promotion(
     candidate_id: str,
     evaluation_id: str,
@@ -183,11 +213,17 @@ def record_human_decision(
     request = store.get_promotion(request_id)
     if request is None:
         raise ValidationError(f"unknown promotion request: {request_id}")
+    existing_decision = store.get_human_decision(request_id)
+    replayed = _handle_existing_human_decision(
+        existing_decision,
+        decision=decision,
+        approval_identity=approval_identity,
+        approval_reason=approval_reason.strip(),
+    )
+    if replayed is not None:
+        return replayed
     if request.get("status") in {"approved", "rejected", "applied"}:
         raise ForbiddenTransitionError(f"promotion request decision is terminal from status {request.get('status')}")
-    existing_decision = store.get_human_decision(request_id)
-    if existing_decision is not None:
-        raise ForbiddenTransitionError("promotion request already has a terminal human decision")
     event = HumanApprovalEvent(
         approval_id=store.new_id("appr"),
         request_id=request_id,
@@ -198,6 +234,15 @@ def record_human_decision(
         immutable=True,
     )
     with store.transaction():
+        existing_decision = store.get_human_decision(request_id)
+        replayed = _handle_existing_human_decision(
+            existing_decision,
+            decision=decision,
+            approval_identity=approval_identity,
+            approval_reason=approval_reason.strip(),
+        )
+        if replayed is not None:
+            return replayed
         store.put_approval(event.to_dict())
         if decision == "rejected":
             candidate = store.get_candidate(request["candidate_id"])
@@ -291,6 +336,7 @@ def apply_promotion(
         applying = dict(request)
         applying["status"] = "applying"
         store.put_promotion(applying)
+        applying = store.get_promotion(request_id) or applying
 
     # Phase 2 is externally idempotent. A restart can call this again with the
     # persisted key and projection, then complete Phase 3.
@@ -326,7 +372,7 @@ def apply_promotion(
         }
         store.put_canonical_projection(candidate["candidate_id"], stored_projection)
         store.finish_canonical_apply_attempt(request_id, state="applied", canonical_id=str(canonical_receipt.get("canonical_id") or ""))
-        request = dict(request)
+        request = dict(store.get_promotion(request_id) or request)
         request["status"] = "applied"
         store.put_promotion(request)
         return {

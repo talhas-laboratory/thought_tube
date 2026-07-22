@@ -83,6 +83,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-14-FIRST-COMPARATIVE-BENCHMARK.md`](./derived/T10-14-FIRST-COMPARATIVE-BENCHMARK.md) | Wave 3 T10-14 evidence | First structural-vs-lexical/vector comparative benchmark; thresholds locked pre-eval |
 | [`derived/T10-08-DISCLOSURE-ACTIVATION.md`](./derived/T10-08-DISCLOSURE-ACTIVATION.md) | Wave 4 T10-08 evidence | Bridge-only disclosure/receipt shadow activation with config-only rollback |
 | [`derived/T10-12-AUTH-PRIVACY.md`](./derived/T10-12-AUTH-PRIVACY.md) | Wave 4 T10-12 evidence | Fail-closed Shape-aware retrieval and evidence-port authorization with audit-only denials |
+| [`derived/T10-13-CONCURRENCY.md`](./derived/T10-13-CONCURRENCY.md) | Wave 4 T10-13 evidence | Shape Population optimistic record versions, stale-writer conflicts, and idempotent human approval replay |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

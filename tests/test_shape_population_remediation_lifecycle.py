@@ -294,7 +294,7 @@ def test_worker_cli_processes_queued_job(root: Path) -> None:
 
 def test_rejected_promotion_is_terminal(root: Path) -> None:
     from conversation_os.shape_population.candidate_submission import submit_candidate
-    from conversation_os.shape_population.contracts import ForbiddenTransitionError
+    from conversation_os.shape_population.contracts import IdempotencyConflictError
     from conversation_os.shape_population.critique import submit_evaluation
     from conversation_os.shape_population.evidence import build_evidence_packet
     from conversation_os.shape_population.execution_context import agent_context, human_context
@@ -391,7 +391,7 @@ def test_rejected_promotion_is_terminal(root: Path) -> None:
         decision="rejected",
         context=human_context(HUMAN_APPROVER_ROLE, capabilities={"shape.promotion.approve"}),
     )
-    with pytest.raises(ForbiddenTransitionError):
+    with pytest.raises(IdempotencyConflictError):
         record_human_decision(
             request_id,
             store=store,
