@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 06bc2777220fed206a8bc5f0d55daa20c8d93e72fc8bdf246b62f53a7853fd7f -->
+<!-- canonical_revision: 240c7c4a9a49a1fbcf1c51d054427e97285308d7300b12307ace6a044e2324ab -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:57:23+00:00 -->
+<!-- generated_at: 2026-07-22T15:05:18+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- Implementation committed and pushed at be212c332a1cc476ce0ed322174c93e7a0bc946f; residuals remain for broader partition/worker-crash/rollback/retraction slices.
 - Focused retrieval/evidence authorization suites passed; task is in review with evidence under derived/T10-12-AUTH-PRIVACY.md.
 - T10-08 Bridge shadow slice complete.
 - T10-14 first benchmark complete.
@@ -29,10 +30,10 @@ Select a task to receive a recommended next action.
 - Hermetic golden pytest passed; evidence pack published.
 - Focused suites passed; task in review. Golden trace is next.
 - Focused suites passed; task in review.
-- Focused verification passed; task moved to review.
 
 ## Reasoning
 
+- T10-13 first concurrency slice
 - T10-12 first slice on retrieval/evidence ports
 - T10-06 Pattern records on retrieval owner
 - T10-05 index contracts on CorpusCatalog
@@ -44,6 +45,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- pytest tests/test_shape_population*.py
 - pytest tests/test_disclosure_service_bridge_parity.py tests/test_disclosure_contracts.py tests/test_disclosure_receipts.py
 - pytest tests/test_shape_candidate_retrieval.py tests/test_evidence_resolver.py
 - tests/test_disclosure_rollout.py+receipt_rollout
@@ -55,4 +57,3 @@ Select a task to receive a recommended next action.
 - tests/test_corpus_catalog_snapshot.py
 - pytest tests/test_shape_population_golden_trace.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_promotion.py tests/test_shape_population_remediation_lifecycle.py
-- pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_canonical_port.py tests/test_shape_population_promotion.py

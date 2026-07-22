@@ -1,6 +1,6 @@
 # UMF-T10-13-CONCURRENCY: T10-13 Multi-agent concurrency conflicts
 
-Status: in-progress
+Status: review
 Owner: cursor-cloud-a790
 Current gate: not_required
 
