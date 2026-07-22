@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 1274e7dc04436ac58a87e7b44aba588e67d11594dbe575eda4652bb940a4788c -->
+<!-- canonical_revision: e5a88ccfd0cabe354145cbb93598d81910aca904dad3748f0eb9b4a41d4b5641 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:24:34+00:00 -->
+<!-- generated_at: 2026-07-22T14:29:09+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- T10-07 retrieval repair complete.
 - T10-06 Pattern/AntiMatch typing complete; residual retrieval bundle failures handed to T10-07.
 - T10-09 temporal/revision complete.
 - T10-05 index contracts implemented and verified.
@@ -29,7 +30,6 @@ Select a task to receive a recommended next action.
 - Repair canonical Shape authority to profile:shape
 - T10-19 in review; Wave 0 complete enough to unlock T10-01.
 - T10-00 baseline in review with suite evidence; handoff to T10-19 and reviewers.
-- Wave 0-1 task set created; handing off for projection publish and T10-00 start.
 
 ## Reasoning
 
@@ -43,6 +43,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py -k pattern
 - tests/test_corpus_catalog_snapshot.py
 - tests/test_corpus_catalog_snapshot.py
@@ -54,4 +55,3 @@ Select a task to receive a recommended next action.
 - t10-19-release-discipline
 - t10-00-same-checkout-suites
 - role_assignment_contracts
-- composition_profile_contracts_after_merge

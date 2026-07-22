@@ -55,6 +55,8 @@ PUBLIC_API = (
     "derive_pattern_from_shapes",
     "classify_shape_pair",
     "revise_anti_match_record",
+    "typed_shape_retrieval_result",
+    "build_shape_aware_retrieval_bundle",
 )
 __all__ = list(PUBLIC_API)
 
@@ -876,3 +878,114 @@ def revise_anti_match_record(
         projection["scope_id"] = revised.get("scope_id", "")
         revised["anti_match_projection"] = projection
     return revised
+
+
+def typed_shape_retrieval_result(
+    shape_context: Mapping[str, Any] | None,
+    *,
+    decision_count: int = 0,
+    catalog: Mapping[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """Normalize Shape retrieval into a typed result envelope (T10-07)."""
+    context = dict(shape_context or {})
+    status = str(context.get("result_status", "") or "").strip() or "failed"
+    if status in {"", "disabled"}:
+        status = "disabled"
+    catalog_state = str((catalog or {}).get("readiness_state", "") or "")
+    catalog_reason = str((catalog or {}).get("abstention_reason", "") or "")
+    # Preserve Shape dependency abstention even when catalog also abstains.
+    if status not in {"ready", "disabled", "empty"} and not status.startswith("abstained"):
+        if status in {"unavailable", "denied", "stale", "failed"}:
+            pass
+        elif not context:
+            status = "failed"
+    return {
+        "result_status": status,
+        "readiness_state": str(context.get("readiness_state", "") or ""),
+        "expansion_count": int(context.get("expansion_count", 0) or 0),
+        "resolved_bytes": int(context.get("resolved_bytes", 0) or 0),
+        "decision_count": int(decision_count or 0),
+        "catalog_readiness_state": catalog_state or None,
+        "catalog_abstention_reason": catalog_reason or None,
+        "order": [
+            "authorization",
+            "catalog_readiness",
+            "shape_dependency",
+            "positive_admission",
+            "ranking",
+            "anti_match",
+            "evidence_resolution",
+            "budget",
+        ],
+    }
+
+
+def build_shape_aware_retrieval_bundle(
+    root: Path,
+    query: str,
+    *,
+    limit: int = 10,
+    neighbor_limit: int = 6,
+    include_cross_pond: bool = False,
+    envelope_mode: str = "open",
+    explicit_pins: Sequence[str] | None = None,
+    shape_search: Mapping[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """Shape-aware retrieval wrapper that never omits typed ``shape_retrieval``.
+
+    Composes catalog readiness with Shape context. Catalog abstention does not
+    drop Shape status. AntiMatch hard exclusion remains enforced by the underlying
+    bundle path when retrieval proceeds.
+    """
+    from .corpus_catalog_snapshot import load_corpus_catalog_for_request
+    from .knowledge_layer import build_retrieval_bundle
+
+    shape_search_payload = dict(shape_search or {})
+    shape_enabled = shape_candidate_search_enabled(root)
+    if "enabled" in shape_search_payload:
+        shape_enabled = bool(shape_search_payload.get("enabled"))
+
+    shape_context: Dict[str, Any] = {"result_status": "disabled"}
+    if shape_enabled:
+        shape_query = build_shape_query(
+            query,
+            branch_id=str(shape_search_payload.get("branch_id", "") or ""),
+            scope_id=str(shape_search_payload.get("scope_id", "") or ""),
+            source_refs=list(shape_search_payload.get("source_refs", []) or []),
+            maturity_ceiling=str(shape_search_payload.get("maturity_ceiling", "candidate") or "candidate"),
+        )
+        shape_context = read_shape_retrieval_context(Path(root), shape_query)
+        shape_context["branch_id"] = shape_query.branch_id
+        shape_context["scope_id"] = shape_query.scope_id
+
+    catalog = load_corpus_catalog_for_request(Path(root))
+    bundle = build_retrieval_bundle(
+        Path(root),
+        query,
+        limit=limit,
+        neighbor_limit=neighbor_limit,
+        include_cross_pond=include_cross_pond,
+        envelope_mode=envelope_mode,
+        explicit_pins=list(explicit_pins or []) or None,
+        shape_search=shape_search_payload if shape_search is not None else {"enabled": shape_enabled},
+    )
+    existing = dict(bundle.get("shape_retrieval") or {})
+    typed = typed_shape_retrieval_result(
+        shape_context,
+        decision_count=int(existing.get("decision_count", 0) or 0),
+        catalog=catalog,
+    )
+    # Prefer already-computed decision_count from the underlying path when present.
+    if existing.get("decision_count") is not None and int(existing.get("decision_count") or 0) > 0:
+        typed["decision_count"] = int(existing["decision_count"])
+    # If underlying path already set a Shape status, keep expansion/readiness from it when richer.
+    if existing.get("expansion_count") is not None and int(existing.get("expansion_count") or 0) >= typed["expansion_count"]:
+        typed["expansion_count"] = int(existing.get("expansion_count") or 0)
+    if existing.get("result_status") and typed["result_status"] in {"disabled", "failed"}:
+        typed["result_status"] = str(existing.get("result_status") or typed["result_status"])
+    # Profile/shape dependency abstention wins for the shape_retrieval envelope.
+    if str(shape_context.get("result_status", "") or "").startswith("abstained"):
+        typed["result_status"] = str(shape_context.get("result_status") or typed["result_status"])
+        typed["readiness_state"] = str(shape_context.get("readiness_state", "") or typed["readiness_state"])
+    bundle["shape_retrieval"] = typed
+    return bundle

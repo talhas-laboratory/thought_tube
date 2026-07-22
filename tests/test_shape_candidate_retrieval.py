@@ -8,14 +8,16 @@ from unittest import mock
 
 import conversation_os.meta_layer as meta_layer_module
 import conversation_os.models as models_module
-from conversation_os.knowledge_layer import build_retrieval_bundle
+from conversation_os.corpus_catalog_snapshot import publish_corpus_catalog_snapshot
 from conversation_os.shape_candidate_retrieval import (
+    build_shape_aware_retrieval_bundle,
     build_shape_query,
     evaluate_anti_match,
     read_shape_retrieval_context,
 )
-from conversation_os.storage import append_jsonl, write_jsonl
+from conversation_os.storage import append_jsonl, read_jsonl, write_json, write_jsonl
 from conversation_os.vault_ingest import ingest_text_content
+from conversation_os.runtime_layout import product_runtime_dir
 
 
 class ShapeCandidateRetrievalTestCase(unittest.TestCase):
@@ -131,11 +133,27 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
                 },
             },
         )
+        data_dir = product_runtime_dir(self.root, "inner_world_v1", "data")
+        sources = read_jsonl(data_dir / "source_registry.jsonl")
+        chunks = read_jsonl(data_dir / "chunk_index.jsonl")
+        for row in sources:
+            row["branch_id"] = "branch-shape-001"
+            row["scope_id"] = "scope-shape-001"
+        for row in chunks:
+            row["branch_id"] = "branch-shape-001"
+            row["scope_id"] = "scope-shape-001"
+        write_jsonl(data_dir / "source_registry.jsonl", sources)
+        write_jsonl(data_dir / "chunk_index.jsonl", chunks)
+        write_jsonl(
+            data_dir / "knowledge_nodes.jsonl",
+            [{"node_id": "kn-shape-retrieval", "label": "fixture", "source_refs": [source_ref]}],
+        )
+        publish_corpus_catalog_snapshot(self.root)
 
     def test_shape_assisted_retrieval_promotes_structural_candidate_above_lexical_distractor(self) -> None:
         self._write_capsules()
         query = "signal dilution accumulation hierarchy confusion private cognitive layer"
-        bundle = build_retrieval_bundle(
+        bundle = build_shape_aware_retrieval_bundle(
             self.root,
             query,
             limit=4,
@@ -169,7 +187,7 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
                 "legacy": {"candidate_projections": [], "anti_match_projections": []},
             },
         ):
-            bundle = build_retrieval_bundle(
+            bundle = build_shape_aware_retrieval_bundle(
                 self.root,
                 "quantum gardening unrelated topic",
                 limit=4,
@@ -211,7 +229,9 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
             anchor_meta_id="meta-shape-correct",
             anti_match_penalty=0.75,
         )
-        bundle = build_retrieval_bundle(
+        # Re-publish after additional capsule/feedback mutations so catalog stays ready.
+        publish_corpus_catalog_snapshot(self.root)
+        bundle = build_shape_aware_retrieval_bundle(
             self.root,
             "hidden route maze confusion receiver delayed goal",
             limit=6,

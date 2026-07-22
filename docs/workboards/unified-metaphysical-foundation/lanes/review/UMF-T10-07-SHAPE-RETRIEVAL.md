@@ -1,6 +1,6 @@
 # UMF-T10-07-SHAPE-RETRIEVAL: T10-07 Shape-aware retrieval repair
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 
