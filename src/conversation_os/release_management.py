@@ -17,9 +17,20 @@ PUBLIC_API = (
     "validate_release_manifest",
     "write_release_manifest",
     "evaluate_release_gates",
+    "evaluate_codebase_freshness_gate",
     "build_rollback_plan",
+    "DEFAULT_WAVE0_RELEASE_CHECKS",
 )
 __all__ = list(PUBLIC_API)
+
+DEFAULT_WAVE0_RELEASE_CHECKS = (
+    "repo_overview_fresh",
+    "module_manifests_complete",
+    "hermetic_unit_suite",
+    "population_focused_suite",
+    "aperture_focused_suite",
+    "shape_profile_deprecation_recorded",
+)
 
 
 def _hash_paths(root: Path, paths: Iterable[str]) -> str:
@@ -213,6 +224,57 @@ def evaluate_release_gates(required_checks: List[str], completed_checks: List[st
         "required_checks": list(required_checks),
         "completed_checks": list(completed_checks),
         "missing_checks": missing,
+    }
+
+
+def evaluate_codebase_freshness_gate(root: Path) -> Dict[str, Any]:
+    """Block release claims when the codebase overview/manifest index is stale or incomplete."""
+
+    from .codebase_overview import validate_codebase_index
+
+    report = validate_codebase_index(root)
+    missing_manifests = int(report.get("missing_manifest_count") or 0)
+    error_count = int(report.get("error_count") or 0)
+    warning_count = int(report.get("warning_count") or 0)
+    fresh = bool(report.get("fresh"))
+    blocked_reasons: List[str] = []
+    if not fresh:
+        blocked_reasons.extend(str(item) for item in report.get("stale_reasons") or [])
+    if missing_manifests:
+        blocked_reasons.append(f"missing_manifests={missing_manifests}")
+    if error_count:
+        blocked_reasons.append(f"manifest_errors={error_count}")
+    if warning_count:
+        blocked_reasons.append(f"manifest_warnings={warning_count}")
+    deprecation = (
+        root
+        / "docs"
+        / "workspaces"
+        / "unified-framework-synthesis"
+        / "derived"
+        / "ADR-SHAPE-PROFILE-ID-DEPRECATION.md"
+    )
+    shape_deprecation_recorded = deprecation.is_file()
+    if not shape_deprecation_recorded:
+        blocked_reasons.append("shape_profile_deprecation_adr_missing")
+    status = "passed" if not blocked_reasons else "blocked"
+    return {
+        "schema_version": "1.0",
+        "status": status,
+        "fresh": fresh,
+        "missing_manifest_count": missing_manifests,
+        "error_count": error_count,
+        "warning_count": warning_count,
+        "shape_profile_deprecation_recorded": shape_deprecation_recorded,
+        "blocked_reasons": blocked_reasons,
+        "recommended_hermetic_command": "pytest -m \"not live\"",
+        "recommended_live_command": "pytest -m live",
+        "default_wave0_checks": list(DEFAULT_WAVE0_RELEASE_CHECKS),
+        "overview_report": {
+            "module_manifest_count": report.get("module_manifest_count"),
+            "newest_source_path": report.get("newest_source_path"),
+            "newest_generated_path": report.get("newest_generated_path"),
+        },
     }
 
 

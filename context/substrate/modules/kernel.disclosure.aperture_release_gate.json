@@ -1,0 +1,53 @@
+{
+  "module_id": "kernel.disclosure.aperture_release_gate",
+  "path": "src/conversation_os/aperture_release_gate.py",
+  "layer": "kernel",
+  "owner": "Wave 0 imported aperture/disclosure module for `src/conversation_os/aperture_release_gate.py`.",
+  "purpose": "Evaluate focused aperture release gates against approved repository debt baselines.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "GATE_VERSION",
+    "APPROVED_DEBT_BASELINE_RELATIVE",
+    "COGNITIVE_APERTURE_FOCUSED_SUITE",
+    "load_approved_debt_baseline",
+    "run_focused_suite",
+    "evaluate_release_gate",
+    "render_release_gate_summary"
+  ],
+  "contains": [
+    "GATE_VERSION",
+    "APPROVED_DEBT_BASELINE_RELATIVE",
+    "COGNITIVE_APERTURE_FOCUSED_SUITE",
+    "load_approved_debt_baseline",
+    "run_focused_suite",
+    "evaluate_release_gate",
+    "render_release_gate_summary"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "runtime config",
+    "grant",
+    "candidates"
+  ],
+  "outputs": [
+    "disclosure decisions",
+    "receipts",
+    "certification reports"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1",
+    "bridge",
+    "holodeck"
+  ],
+  "test_targets": [
+    "tests/test_aperture_release_gate.py"
+  ],
+  "notes": "Manifest added by UMF-T10-19-RELEASE-DISCIPLINE after T10-00 integration import."
+}

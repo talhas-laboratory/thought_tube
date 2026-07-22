@@ -3,8 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from conversation_os.release_management import (
+    DEFAULT_WAVE0_RELEASE_CHECKS,
     build_release_manifest,
     build_rollback_plan,
+    evaluate_codebase_freshness_gate,
     validate_release_manifest,
 )
 
@@ -54,3 +56,13 @@ def test_build_rollback_plan_targets_previous_release() -> None:
     assert plan["target_release_id"] == "inner-world-old"
     assert plan["status"] == "dry_run"
     assert "restore_manifest" in plan["steps"]
+
+
+def test_evaluate_codebase_freshness_gate_passes_on_current_checkout() -> None:
+    report = evaluate_codebase_freshness_gate(ROOT)
+    assert report["status"] == "passed"
+    assert report["fresh"] is True
+    assert report["missing_manifest_count"] == 0
+    assert report["shape_profile_deprecation_recorded"] is True
+    assert "repo_overview_fresh" in DEFAULT_WAVE0_RELEASE_CHECKS
+    assert report["recommended_hermetic_command"] == 'pytest -m "not live"'

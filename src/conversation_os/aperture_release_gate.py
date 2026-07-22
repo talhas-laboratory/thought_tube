@@ -49,9 +49,10 @@ PUBLIC_API = (
 __all__ = list(PUBLIC_API)
 
 _SUMMARY_RE = re.compile(
-    r"(?P<failed>\d+) failed(?:, (?P<errors>\d+) errors?)?(?:, (?P<skipped>\d+) skipped)?(?:, )?(?P<passed>\d+) passed",
+    r"(?:(?P<failed>\d+) failed(?:, (?P<errors>\d+) errors?)?(?:, (?P<skipped>\d+) skipped)?(?:, )?)?(?P<passed>\d+) passed",
     re.IGNORECASE,
 )
+_PASSED_ONLY_RE = re.compile(r"(?P<passed>\d+) passed", re.IGNORECASE)
 _FAILED_LINE_RE = re.compile(r"^FAILED\s+(?P<node_id>\S+)\s", re.MULTILINE)
 
 
@@ -84,13 +85,16 @@ def _parse_pytest_result(stdout: str, stderr: str, *, returncode: int) -> Dict[s
 
     for line in reversed(combined.splitlines()):
         match = _SUMMARY_RE.search(line)
-        if not match:
-            continue
-        pass_count = int(match.group("passed") or 0)
-        fail_count = int(match.group("failed") or 0)
-        skip_count = int(match.group("skipped") or 0)
-        error_count = int(match.group("errors") or 0)
-        break
+        if match and match.group("passed"):
+            pass_count = int(match.group("passed") or 0)
+            fail_count = int(match.group("failed") or 0)
+            skip_count = int(match.group("skipped") or 0)
+            error_count = int(match.group("errors") or 0)
+            break
+        passed_only = _PASSED_ONLY_RE.search(line)
+        if passed_only:
+            pass_count = int(passed_only.group("passed") or 0)
+            break
 
     if fail_count == 0 and failed_node_ids:
         fail_count = len(failed_node_ids)
@@ -111,7 +115,8 @@ def _parse_pytest_result(stdout: str, stderr: str, *, returncode: int) -> Dict[s
 def _run_pytest(root: Path, targets: Sequence[str]) -> Dict[str, Any]:
     env = dict(os.environ)
     env["PYTHONPATH"] = "src"
-    command = ["pytest", "-q", "--tb=no", *targets]
+    # Clear ini addopts so quiet mode cannot hide the "N passed" summary line.
+    command = ["pytest", "-o", "addopts=", "-q", "--tb=no", *targets]
     result = subprocess.run(
         command,
         cwd=root,

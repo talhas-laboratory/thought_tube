@@ -272,6 +272,11 @@
         "id": "framework-obligation-coverage-seed",
         "path": "derived/framework-obligation-coverage-seed.json",
         "title": "Framework obligation coverage seed"
+      },
+      {
+        "id": "adr-shape-profile-id-deprecation",
+        "path": "derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md",
+        "title": "ADR: deprecate legacy Shape profile id"
       }
     ]
   },

@@ -73,6 +73,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/program-workspace-hierarchy-plan.md`](./derived/program-workspace-hierarchy-plan.md) | Proposed program operating model | Defines the parent workspace, nine child programs, workboards, dependencies, gates, rollup, and rollout |
 | [`derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md`](./derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md) | Current system-level gap authority | Defines the integration, population, retrieval, safety, benchmark, operations, and release work required for a ten-out-of-ten system candidate |
 | [`derived/T10-00-RECONCILIATION-MATRIX.md`](./derived/T10-00-RECONCILIATION-MATRIX.md) | Wave 0 integration authority | Declares merge spine, Population import, overlap dispositions, and same-checkout verification |
+| [`derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md`](./derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md) | Accepted Wave 0 ADR | Deprecates legacy `profile:shape_and_semantic_addressing` in favor of `profile:shape` |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources
