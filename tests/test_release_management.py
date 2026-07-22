@@ -17,7 +17,15 @@ def test_build_release_manifest_contains_expected_artifacts() -> None:
     assert manifest["release_id"] == "test-release"
     assert "runtime_config" in manifest["artifacts"]
     assert "agent_configs" in manifest["artifacts"]
+    assert "shape_population" in manifest["artifacts"]
+    assert "reconciliation_matrix" in manifest["artifacts"]
     assert manifest["gates"]["status"] == "blocked"
+    assert "schema_revision" in manifest["versions"]
+    assert "benchmark_revision" in manifest["versions"]
+    assert manifest["source"]["integration_spine"].startswith("origin/cursor/shape-intelligence-remediation-pass")
+    assert manifest["source"]["population_import"].startswith(
+        "origin/codex/shape-population-production-hardening"
+    )
 
 
 def test_release_manifest_validation_requires_rollback_plan() -> None:
@@ -25,6 +33,16 @@ def test_release_manifest_validation_requires_rollback_plan() -> None:
     manifest["rollback"]["plan_path"] = ""
     errors = validate_release_manifest(manifest)
     assert "rollback plan path is required" in errors
+
+
+def test_release_manifest_validation_requires_version_slots_and_integration_refs() -> None:
+    manifest = build_release_manifest(ROOT, release_id="test-release")
+    assert validate_release_manifest(manifest) == []
+    del manifest["versions"]["corpus_revision"]
+    manifest["source"]["integration_spine"] = ""
+    errors = validate_release_manifest(manifest)
+    assert "versions.corpus_revision is required" in errors
+    assert "source.integration_spine is required" in errors
 
 
 def test_build_rollback_plan_targets_previous_release() -> None:
