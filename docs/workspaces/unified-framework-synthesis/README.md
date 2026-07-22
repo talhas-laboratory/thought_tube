@@ -90,6 +90,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-11-OUTCOME-LEARNING.md`](./derived/T10-11-OUTCOME-LEARNING.md) | Wave 5 T10-11 evidence | Offline outcome-learning policy proposals with safety/minority regression blocks and no runtime mutation |
 | [`derived/T10-15-SCALE-RECOVERY.md`](./derived/T10-15-SCALE-RECOVERY.md) | Wave 5 T10-15 evidence | Shape Population recovery-readiness drill report with RPO/RTO, lineage/access blockers, and no unproven scale claim |
 | [`derived/T10-16-OBSERVABILITY.md`](./derived/T10-16-OBSERVABILITY.md) | Wave 5 T10-16 evidence | Privacy-safe lifecycle observability summary with distinct abstention, stale-index, stuck-job, drift, and infra-failure signals |
+| [`derived/T10-14-FINAL-BENCHMARK.md`](./derived/T10-14-FINAL-BENCHMARK.md) | Wave 5 T10-14 evidence | Final benchmark report reruns Wave 3 metrics and publishes explicit residual gaps without full-certification claims |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

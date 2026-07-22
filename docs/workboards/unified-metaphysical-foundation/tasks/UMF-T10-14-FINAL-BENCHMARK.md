@@ -1,7 +1,7 @@
 # UMF-T10-14-FINAL-BENCHMARK: T10-14 Final Benchmark
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope

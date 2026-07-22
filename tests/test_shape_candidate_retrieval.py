@@ -499,6 +499,29 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
             self.assertTrue(case["merge_shapes_forbidden"])
             self.assertTrue(case["explanation"]["holds_where"] or case["explanation"]["breaks_where"])
 
+    def test_final_comparative_benchmark_report_carries_residual_gaps(self) -> None:
+        from conversation_os.shape_candidate_retrieval import (
+            FINAL_COMPARATIVE_BENCHMARK_ID,
+            FULL_T10_14_REQUIREMENT_GAPS,
+            run_final_comparative_benchmark_report,
+        )
+
+        report = run_final_comparative_benchmark_report()
+        self.assertEqual(report["benchmark_id"], FINAL_COMPARATIVE_BENCHMARK_ID)
+        self.assertEqual(report["status"], "partial_pass_with_residual_gaps")
+        self.assertTrue(report["wave3_first_benchmark"]["passed"])
+        self.assertEqual(
+            report["wave3_first_benchmark"]["metrics"]["structural_beats_lexical_rate"],
+            1.0,
+        )
+        self.assertFalse(report["full_t10_14_certified"])
+        self.assertFalse(report["multi_corpus_claimed"])
+        self.assertFalse(report["multi_gigabyte_scale_claimed"])
+        self.assertFalse(report["expert_adjudication_claimed"])
+        self.assertFalse(report["independent_replication_claimed"])
+        self.assertEqual(set(report["unproven_claims"]), set(FULL_T10_14_REQUIREMENT_GAPS))
+        self.assertTrue(all(row["status"] == "not_proven" for row in report["residual_gaps"]))
+
     def test_outcome_learning_proposes_policy_only_review_candidate(self) -> None:
         from conversation_os.shape_candidate_retrieval import derive_outcome_learning_policy_proposals
 

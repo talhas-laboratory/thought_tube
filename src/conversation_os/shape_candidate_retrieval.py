@@ -41,6 +41,15 @@ FIRST_COMPARATIVE_THRESHOLDS = {
     "positive_pair_recovery_rate": 0.80,
     "min_pair_count": 4,
 }
+FINAL_COMPARATIVE_BENCHMARK_ID = "wave5_final_comparative_report_v1"
+FINAL_COMPARATIVE_BENCHMARK_REVISION = "2026-07-22.wave5.final.first"
+FULL_T10_14_REQUIREMENT_GAPS = (
+    "multi_corpus_factual_temporal_contradiction_continuity_shape_privacy_poisoning_correction",
+    "raw_long_context_bm25_vector_reranker_graphrag_agent_memory_ablation_baselines",
+    "blinded_expert_shape_analogy_adjudication_and_inter_rater_agreement",
+    "precision_recall_ndcg_mrr_calibration_unsupported_claims_task_success_tokens_latency_cost",
+    "fresh_clone_frozen_release_reproduction_and_independent_replication",
+)
 OUTCOME_LEARNING_POLICY_VERSION = "2026-07-22.t10-11.first"
 OUTCOME_LEARNING_SIGNAL_KINDS = (
     "outcome",
@@ -61,6 +70,9 @@ PUBLIC_API = (
     "FIRST_COMPARATIVE_BENCHMARK_ID",
     "FIRST_COMPARATIVE_BENCHMARK_REVISION",
     "FIRST_COMPARATIVE_THRESHOLDS",
+    "FINAL_COMPARATIVE_BENCHMARK_ID",
+    "FINAL_COMPARATIVE_BENCHMARK_REVISION",
+    "FULL_T10_14_REQUIREMENT_GAPS",
     "OUTCOME_LEARNING_POLICY_VERSION",
     "OUTCOME_LEARNING_SIGNAL_KINDS",
     "ShapeQuery",
@@ -89,6 +101,7 @@ PUBLIC_API = (
     "score_comparative_pair",
     "derive_outcome_learning_policy_proposals",
     "run_first_comparative_benchmark",
+    "run_final_comparative_benchmark_report",
     "check_first_comparative_thresholds",
 )
 __all__ = list(PUBLIC_API)
@@ -1614,3 +1627,59 @@ def run_first_comparative_benchmark(
     report["gate"] = gate
     report["passed"] = bool(gate["passed"])
     return report
+
+
+def run_final_comparative_benchmark_report(
+    cases: Sequence[Mapping[str, Any]] | None = None,
+    *,
+    first_report: Mapping[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """Produce the Wave 5 final benchmark report without overstating coverage."""
+
+    first = dict(first_report or run_first_comparative_benchmark(cases))
+    residual_gap_rows = [
+        {
+            "requirement": gap,
+            "status": "not_proven",
+            "reason": "not_exercised_by_wave5_first_final_report",
+        }
+        for gap in FULL_T10_14_REQUIREMENT_GAPS
+    ]
+    wave3_metrics = dict(first.get("metrics") or {})
+    wave3_gate = dict(first.get("gate") or {})
+    final_status = "partial_pass_with_residual_gaps" if first.get("passed") else "blocked"
+    return {
+        "contract_id": "FinalComparativeBenchmarkReport",
+        "benchmark_id": FINAL_COMPARATIVE_BENCHMARK_ID,
+        "benchmark_revision": FINAL_COMPARATIVE_BENCHMARK_REVISION,
+        "generated_at": utc_now(),
+        "status": final_status,
+        "wave3_first_benchmark": {
+            "benchmark_id": first.get("benchmark_id"),
+            "benchmark_revision": first.get("benchmark_revision"),
+            "thresholds": dict(first.get("thresholds") or {}),
+            "metrics": wave3_metrics,
+            "gate": wave3_gate,
+            "passed": bool(first.get("passed")),
+            "case_count": len(list(first.get("cases") or [])),
+            "baselines": list(first.get("baselines") or []),
+        },
+        "achieved_claims": [
+            "structural_pattern_shape_fixture_report_reproduced",
+            "lexical_token_overlap_and_bag_of_tokens_vector_proxy_compared",
+            "anti_match_fixture_rejection_reported",
+        ],
+        "residual_gaps": residual_gap_rows,
+        "unproven_claims": list(FULL_T10_14_REQUIREMENT_GAPS),
+        "full_t10_14_certified": False,
+        "multi_corpus_claimed": False,
+        "multi_gigabyte_scale_claimed": False,
+        "expert_adjudication_claimed": False,
+        "independent_replication_claimed": False,
+        "failures_published": True,
+        "notes": (
+            "Wave 5 first final report only: reruns the existing Wave 3 comparative "
+            "fixture benchmark and publishes explicit residual gaps. It is not a "
+            "full T10-14 certification."
+        ),
+    }
