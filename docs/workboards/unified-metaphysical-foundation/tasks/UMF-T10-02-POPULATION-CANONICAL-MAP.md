@@ -1,6 +1,6 @@
 # UMF-T10-02-POPULATION-CANONICAL-MAP: T10-02: Map Population output into canonical Shape records
 
-Status: backlog
+Status: review
 Owner: population+shape
 Current gate: not_required
 
@@ -42,8 +42,13 @@ Version `PopulationCandidate -> CanonicalShapeProposal` and apply through one tr
 
 ## Verification Evidence
 
-- Not recorded in this projection yet.
+- `pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_canonical_port.py tests/test_shape_population_promotion.py` → **14 passed**
+- Live verify pass recorded for the same focused suite
 
 ## Handoff Notes
 
-- `canonical_port.py` exists on Population remote; wire after T10-00 import.
+- `PopulationCandidate` + `CanonicalShapeProposal` (`CANONICAL_SHAPE_PROPOSAL_VERSION=1.0.0`) in contracts
+- `map_population_candidate_to_proposal` separates facets; label-only relations stay unresolved (`merge_forbidden`)
+- `FoundationCanonicalPort` bootstraps `profile:shape`, validates ShapeCore/ShapeView, applies with versioned owner receipts, idempotent replay, withdrawal stales that projection only
+- `FailClosedCanonicalPort` remains the default in `promotion.py` until T10-03 wires FoundationCanonicalPort into the live apply path
+- Next Wave 1: `UMF-T10-03-LIVE-SHAPE-POPULATION`

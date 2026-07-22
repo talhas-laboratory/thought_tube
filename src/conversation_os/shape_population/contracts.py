@@ -12,6 +12,7 @@ EVIDENCE_POLICY_VERSION = "1.0.0"
 CANDIDATE_SCHEMA_VERSION = "1.0.0"
 EVALUATION_SCHEMA_VERSION = "1.0.0"
 PROMOTION_POLICY_VERSION = "1.0.0"
+CANONICAL_SHAPE_PROPOSAL_VERSION = "1.0.0"
 
 PUBLIC_API = (
     "MODULE_ID",
@@ -21,6 +22,7 @@ PUBLIC_API = (
     "CANDIDATE_SCHEMA_VERSION",
     "EVALUATION_SCHEMA_VERSION",
     "PROMOTION_POLICY_VERSION",
+    "CANONICAL_SHAPE_PROPOSAL_VERSION",
     "CANDIDATE_STATUSES",
     "NON_CANONICAL_STATUSES",
     "COMPARISON_RELATIONS",
@@ -39,6 +41,8 @@ PUBLIC_API = (
     "EvidencePacket",
     "CandidatePayload",
     "CandidateRecord",
+    "PopulationCandidate",
+    "CanonicalShapeProposal",
     "EvaluationPayload",
     "EvaluationRecord",
     "PopulationReceipt",
@@ -495,6 +499,107 @@ class HumanApprovalEvent:
     decision: str
     created_at: str = ""
     immutable: bool = True
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class PopulationCandidate:
+    """Versioned mapping input from a population candidate record or payload."""
+
+    candidate_id: str
+    title: str
+    statement: str
+    boundary: str
+    mechanism: str
+    dimensions: List[str]
+    evidence_refs: List[Dict[str, Any]]
+    counter_hypotheses: List[str]
+    uncertainty: str
+    relations: List[Any] = field(default_factory=list)
+    branch_id: str = ""
+    scope_id: str = ""
+    perspective: str = ""
+    scale: str = ""
+    temporal_scope: str = ""
+    content_fingerprint: str = ""
+    schema_version: str = CANDIDATE_SCHEMA_VERSION
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_mapping(cls, payload: Mapping[str, Any]) -> "PopulationCandidate":
+        evidence_refs = payload.get("evidence_refs") or []
+        dimensions = payload.get("dimensions") or []
+        counter_hypotheses = payload.get("counter_hypotheses") or []
+        if not isinstance(evidence_refs, list):
+            raise ValidationError("evidence_refs must be a list")
+        if not isinstance(dimensions, list):
+            raise ValidationError("dimensions must be a list")
+        if not isinstance(counter_hypotheses, list):
+            raise ValidationError("counter_hypotheses must be a list")
+        return cls(
+            candidate_id=_require_non_empty_str(payload.get("candidate_id"), "candidate_id"),
+            title=_require_non_empty_str(payload.get("title"), "title"),
+            statement=_require_non_empty_str(payload.get("statement"), "statement"),
+            boundary=_require_non_empty_str(payload.get("boundary"), "boundary"),
+            mechanism=_require_non_empty_str(payload.get("mechanism"), "mechanism"),
+            dimensions=[str(item) for item in dimensions],
+            evidence_refs=[dict(item) for item in evidence_refs],
+            counter_hypotheses=[str(item) for item in counter_hypotheses],
+            uncertainty=_require_non_empty_str(payload.get("uncertainty"), "uncertainty"),
+            relations=list(payload.get("relations") or []),
+            branch_id=str(payload.get("branch_id") or ""),
+            scope_id=str(payload.get("scope_id") or ""),
+            perspective=str(payload.get("perspective") or ""),
+            scale=str(payload.get("scale") or ""),
+            temporal_scope=str(payload.get("temporal_scope") or ""),
+            content_fingerprint=str(payload.get("content_fingerprint") or ""),
+            schema_version=str(payload.get("schema_version") or CANDIDATE_SCHEMA_VERSION),
+        )
+
+
+@dataclass
+class CanonicalShapeProposal:
+    """PopulationCandidate mapped into profile:shape proposal facets."""
+
+    proposal_id: str
+    schema_version: str
+    profile_id: str
+    profile_version: str
+    candidate_id: str
+    request_id: str
+    evaluation_id: str
+    approval_id: str
+    observed_referents: List[Dict[str, Any]]
+    unresolved_referents: List[Dict[str, Any]]
+    qualities: List[Dict[str, Any]]
+    claimed_states: List[Dict[str, Any]]
+    relations: List[Dict[str, Any]]
+    participant_roles: List[Dict[str, Any]]
+    boundary: Dict[str, Any]
+    dimensions: List[str]
+    scale: str
+    temporal_scope: str
+    perspective: str
+    composition: List[Dict[str, Any]]
+    influence: List[Dict[str, Any]]
+    mechanisms: List[Dict[str, Any]]
+    constraints: List[Dict[str, Any]]
+    feedback: List[Dict[str, Any]]
+    delays: List[Dict[str, Any]]
+    uncertainty: str
+    counter_hypotheses: List[str]
+    negative_evidence: List[Dict[str, Any]]
+    closed_relation_refs: List[str]
+    shape_core: Dict[str, Any]
+    shape_view: Dict[str, Any]
+    semantic_loss_warnings: List[str] = field(default_factory=list)
+    competing_view: bool = False
+    anti_match_refs: List[Dict[str, Any]] = field(default_factory=list)
+    content_fingerprint: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
