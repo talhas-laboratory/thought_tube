@@ -9,6 +9,7 @@ from conversation_os.metaphysical_kernel import KernelRecordEnvelope, ProfileDef
 from conversation_os.metaphysical_kernel_profile_registry import (
     COMPOSITION_PROFILE_ID,
     FIELD_FORMATION_PROFILE_ID,
+    PATTERN_PROFILE_ID,
     ProfileRegistry,
     ProfileRegistryError,
     QUALITY_INSTANCE_PROFILE_ID,
@@ -23,6 +24,11 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     validate_influence_assessment_contract,
     validate_role_influence_bundle_contract,
     validate_shape_contract,
+    validate_shape_lifecycle_bundle,
+    validate_pattern_contract,
+    validate_anti_match_contract,
+    validate_transfer_assessment_contract,
+    validate_emergent_state_contract,
     validate_cybernetic_contract,
     validate_cybernetic_bundle_contract,
 )
@@ -419,9 +425,53 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         core={"record_type":"shape_core","id":"core","focal_ref":"referent:forest","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov","relation_refs":["rel:one"]}
         view={"record_type":"shape_view","id":"view","shape_core_id":"core","semantic_address":{"dimension":"functional"},"abstraction_contract":"roles only","relation_refs":["rel:one"],"projection":{"nodes":["forest"],"edges":["rel:one"],"groups":["forest"]},"comparison_signature":{"role_relation_summary":["regulator->stabilizes"]}}
         record={"record_type":"shape_record","id":"record","shape_core_id":"core","shape_view_id":"view","input_refs":["role:one"],"derivation_method":"manual","provenance_id":"prov","reproducibility":"interpretative"}
-        composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["record"],"coupling_refs":["rel:one"],"provenance_id":"prov"}
-        for payload,kind in ((core,"shape_core"),(view,"shape_view"),(record,"shape_record"),(composite,"composite_shape")):
+        dimensional={"record_type":"dimensional_shape","id":"dimensional:functional","shape_core_id":"core","dimension_id":"dimension:functional","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov"}
+        composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["dimensional:functional"],"coupling_refs":["rel:one"],"boundary_ref":"boundary:forest","scale":"ecosystem","temporal_scope":"seasonal","branch_id":"branch:one","provenance_id":"prov","coupling_specs":[{"coupling_ref":"rel:one","coupling_kind":"regulatory"}]}
+        for payload,kind in ((core,"shape_core"),(view,"shape_view"),(record,"shape_record"),(dimensional,"dimensional_shape"),(composite,"composite_shape")):
             self.assertEqual(validate_shape_contract(payload,kind), [])
+        self.assertEqual(
+            validate_shape_lifecycle_bundle([core], [view], [record], [composite], dimensional_shapes=[dimensional]),
+            [],
+        )
+
+    def test_shape_lifecycle_bundle_rejects_missing_refs_and_empty_couplings(self) -> None:
+        core={"record_type":"shape_core","id":"core","focal_ref":"referent:forest","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov","relation_refs":["rel:one"]}
+        view={"record_type":"shape_view","id":"view","shape_core_id":"core","semantic_address":{"dimension":"functional"},"abstraction_contract":"roles only","relation_refs":["rel:one"],"projection":{"nodes":["forest"],"edges":["rel:one"],"groups":["forest"]},"comparison_signature":{"role_relation_summary":["regulator->stabilizes"]}}
+        record={"record_type":"shape_record","id":"record","shape_core_id":"core","shape_view_id":"view","input_refs":["role:one"],"derivation_method":"manual","provenance_id":"prov","reproducibility":"interpretative"}
+        composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["dimensional:missing"],"coupling_refs":[],"boundary_ref":"boundary:forest","scale":"ecosystem","temporal_scope":"seasonal","branch_id":"branch:one","provenance_id":"prov","coupling_specs":[{"coupling_ref":"rel:one","coupling_kind":"causal"}]}
+        errors = validate_shape_lifecycle_bundle([core], [view], [record], [composite], dimensional_shapes=[])
+        self.assertTrue(any("coupling_refs" in error for error in errors))
+        self.assertTrue(any("unknown shape_record" in error for error in errors))
+        self.assertTrue(any("coupling_kind" in error for error in errors))
+
+    def test_pattern_profile_fixture_matches_builtin_profile(self) -> None:
+        fixture = json.loads((FIXTURES_DIR / "profile_pattern_v1_0_0.json").read_text())
+        profile = self.registry.bootstrap_pattern_profile()
+        for key in ("profile_id", "profile_version", "kernel_records_used", "profile_record_types", "profile_dependencies", "invariants", "steward"):
+            self.assertEqual(profile[key], fixture[key])
+        self.assertEqual(profile["profile_id"], PATTERN_PROFILE_ID)
+        self.assertIsNotNone(self.registry.get_profile("profile:shape"))
+        self.assertEqual(validate_pattern_contract(fixture["pattern"]), [])
+        self.assertEqual(validate_anti_match_contract(fixture["anti_match"]), [])
+        self.assertEqual(validate_transfer_assessment_contract(fixture["transfer_assessment"]), [])
+
+    def test_pattern_contracts_reject_auto_merge_empty_reasons_and_bad_transferability(self) -> None:
+        pattern = {"record_type":"pattern","id":"pattern:forest-regulation","name":"Regulated resilience","shape_core_refs":["core:forest"],"abstraction_contract":"roles and feedback only","required_invariants":[],"validation_status":"candidate","branch_id":"branch:observed","scope_id":"scope:forest","provenance_id":"prov","merge_shapes_forbidden":False}
+        self.assertTrue(any("merge_shapes_forbidden" in error for error in validate_pattern_contract(pattern)))
+        anti = {"record_type":"anti_match","id":"anti:forest-market","candidate_a":"shape:forest","candidate_b":"shape:market","apparent_similarity":"both self-adjust","rejection_reasons":[],"evaluator_ref":"agent:test","provenance_id":"prov"}
+        self.assertTrue(any("rejection_reasons" in error for error in validate_anti_match_contract(anti)))
+        transfer = {"record_type":"transfer_assessment","id":"transfer:bad","pattern_id":"pattern:forest-regulation","source_shape_ref":"shape:forest","target_shape_ref":"shape:market","transferability":"automatic","mechanism_notes":"not justified","provenance_id":"prov"}
+        self.assertTrue(any("transferability" in error for error in validate_transfer_assessment_contract(transfer)))
+
+    def test_emergent_state_contract_requires_grounding_and_reduction_status(self) -> None:
+        emergent = {"record_type":"emergent_state","id":"emergent:canopy-resilience","emergent_type":"resilience","grounded_in":["shape:forest","shape:network"],"scale_transition":"network-to-ecosystem","emergence_rule":"stabilization across coupled feedback loops","evidence_refs":["evidence:field"],"uncertainty":"medium","reduction_status":"partially_reducible","scope_id":"scope:forest","branch_id":"branch:observed","provenance_id":"prov"}
+        self.assertEqual(validate_emergent_state_contract(emergent), [])
+        broken = dict(emergent)
+        broken["grounded_in"] = []
+        broken["reduction_status"] = "reduced"
+        errors = validate_emergent_state_contract(broken)
+        self.assertTrue(any("grounded_in" in error for error in errors))
+        self.assertTrue(any("reduction_status" in error for error in errors))
 
     def _cybernetic_records(self) -> list[dict]:
         context = {"scope_id": "scope:forest", "temporal_scope": "seasonal", "branch_id": "branch:observed", "provenance_id": "provenance:field"}
@@ -483,6 +533,26 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         errors = validate_cybernetic_bundle_contract(rows)
         self.assertTrue(any("regulator:network branch_id conflicts with state_variable" in error for error in errors))
         self.assertTrue(any("regulator:network branch_id conflicts with setpoint" in error for error in errors))
+
+    def test_cybernetics_bundle_checks_shape_and_claim_qualifiers_when_provided(self) -> None:
+        rows = self._cybernetic_records()
+        rows[0]["claim_ref"] = "claim:resilience"
+        shape = {"id":"shape:forest-regulation","scope_id":"scope:forest","branch_id":"branch:observed"}
+        claim = {"id":"claim:resilience","epistemic_status":"asserted"}
+        self.assertEqual(validate_cybernetic_bundle_contract(rows, shape_records=[shape], claim_records=[claim]), [])
+
+        unknown_shape_rows = self._cybernetic_records()
+        unknown_shape_rows[-1]["shape_ref"] = "shape:missing"
+        errors = validate_cybernetic_bundle_contract(unknown_shape_rows, shape_records=[shape])
+        self.assertTrue(any("unknown shape_ref" in error for error in errors))
+
+        drift_shape = dict(shape)
+        drift_shape["branch_id"] = "branch:simulated"
+        errors = validate_cybernetic_bundle_contract(rows, shape_records=[drift_shape], claim_records=[claim])
+        self.assertTrue(any("branch_id conflicts with shape" in error for error in errors))
+
+        errors = validate_cybernetic_bundle_contract(rows, shape_records=[shape], claim_records=[{"id":"claim:other","epistemic_status":"asserted"}])
+        self.assertTrue(any("unknown claim_ref" in error for error in errors))
 
     def test_compile_cybernetic_bundle_to_executable_ir_is_deterministic_and_pure(self) -> None:
         rows = self._cybernetic_records()

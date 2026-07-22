@@ -82,12 +82,15 @@ PUBLIC_API = (
     "EvidenceBlock",
     "ExecutionBundle",
     "AuditReceipt",
+    "EnvironmentSpecPacket",
     "envelope_defaults",
     "receipt_retention_for_envelope",
     "normalize_effective_grant",
     "validate_execution_bundle",
     "validate_model_bound_payload",
     "validate_audit_receipt",
+    "validate_environment_spec_packet",
+    "build_environment_spec_packet",
     "contract_field_catalog",
 )
 __all__ = list(PUBLIC_API)
@@ -428,6 +431,58 @@ class AuditReceipt:
         return receipt
 
 
+@dataclass
+class EnvironmentSpecPacket:
+    packet_id: str
+    application_id: str
+    actor: str
+    branch_id: str
+    scope_id: str
+    disclosed_tools: List[str]
+    auth_boundaries: Dict[str, Any]
+    rate_limit: Dict[str, Any]
+    timeout_seconds: float
+    cancellation: Dict[str, Any]
+    read_intents: List[str]
+    write_intents: List[str]
+    forbidden_intents: List[str]
+    contract_version: str = "1.0.0"
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(
+        cls,
+        payload: Mapping[str, Any],
+        *,
+        ignore_unknown: bool = True,
+        validate: bool = True,
+    ) -> "EnvironmentSpecPacket":
+        data = _coerce_mapping(payload, "EnvironmentSpecPacket", ignore_unknown=ignore_unknown)
+        packet = cls(
+            packet_id=str(data.get("packet_id", "")),
+            application_id=str(data.get("application_id", "")),
+            actor=str(data.get("actor", "")),
+            branch_id=str(data.get("branch_id", "")),
+            scope_id=str(data.get("scope_id", "")),
+            disclosed_tools=_string_list(data.get("disclosed_tools")),
+            auth_boundaries=dict(data.get("auth_boundaries", {}) or {}),
+            rate_limit=dict(data.get("rate_limit", {}) or {}),
+            timeout_seconds=float(data.get("timeout_seconds", 0) or 0),
+            cancellation=dict(data.get("cancellation", {}) or {}),
+            read_intents=_string_list(data.get("read_intents")),
+            write_intents=_string_list(data.get("write_intents")),
+            forbidden_intents=_string_list(data.get("forbidden_intents")),
+            contract_version=str(data.get("contract_version", "1.0.0") or "1.0.0"),
+            provenance=dict(data.get("provenance", {}) or {}),
+        )
+        if validate:
+            validate_environment_spec_packet(packet.to_dict())
+        return packet
+
+
 def envelope_defaults(envelope: str) -> Dict[str, Any]:
     _validate_envelope(envelope)
     matrix = {
@@ -660,6 +715,96 @@ def validate_audit_receipt(payload: Mapping[str, Any], *, envelope: Optional[str
                 )
 
 
+def validate_environment_spec_packet(payload: Mapping[str, Any]) -> None:
+    data = _coerce_mapping(payload, "EnvironmentSpecPacket")
+    for field_name in ("packet_id", "application_id", "actor", "branch_id", "scope_id"):
+        if not str(data.get(field_name, "") or ""):
+            raise ContractValidationError(
+                "missing_required_field",
+                f"EnvironmentSpecPacket {field_name} is required",
+                "EnvironmentSpecPacket",
+            )
+
+    if not _is_string_list(data.get("disclosed_tools")):
+        raise ContractValidationError(
+            "invalid_disclosed_tools",
+            "EnvironmentSpecPacket disclosed_tools must be a non-empty list of strings",
+            "EnvironmentSpecPacket",
+        )
+
+    auth_boundaries = data.get("auth_boundaries")
+    if not isinstance(auth_boundaries, dict):
+        raise ContractValidationError(
+            "invalid_auth_boundaries",
+            "EnvironmentSpecPacket auth_boundaries must be a mapping",
+            "EnvironmentSpecPacket",
+        )
+    for field_name in ("allowed_intents", "forbidden_intents"):
+        if field_name not in auth_boundaries or not isinstance(auth_boundaries.get(field_name), list):
+            raise ContractValidationError(
+                "invalid_auth_boundaries",
+                f"EnvironmentSpecPacket auth_boundaries.{field_name} must be a list",
+                "EnvironmentSpecPacket",
+            )
+    if auth_boundaries.get("requires_forbidden_intents") and not auth_boundaries.get("forbidden_intents"):
+        raise ContractValidationError(
+            "missing_forbidden_intents",
+            "EnvironmentSpecPacket auth_boundaries.forbidden_intents cannot be empty when required",
+            "EnvironmentSpecPacket",
+        )
+
+    rate_limit = data.get("rate_limit")
+    if not isinstance(rate_limit, dict):
+        raise ContractValidationError(
+            "invalid_rate_limit",
+            "EnvironmentSpecPacket rate_limit must be a mapping",
+            "EnvironmentSpecPacket",
+        )
+    rpm = rate_limit.get("requests_per_minute")
+    if not isinstance(rpm, int) or isinstance(rpm, bool) or rpm < 0:
+        raise ContractValidationError(
+            "invalid_rate_limit",
+            "EnvironmentSpecPacket rate_limit.requests_per_minute must be a non-negative integer",
+            "EnvironmentSpecPacket",
+        )
+
+    timeout = data.get("timeout_seconds")
+    if not isinstance(timeout, (int, float)) or isinstance(timeout, bool) or timeout <= 0:
+        raise ContractValidationError(
+            "invalid_timeout",
+            "EnvironmentSpecPacket timeout_seconds must be greater than zero",
+            "EnvironmentSpecPacket",
+        )
+
+    cancellation = data.get("cancellation")
+    if not isinstance(cancellation, dict):
+        raise ContractValidationError(
+            "invalid_cancellation",
+            "EnvironmentSpecPacket cancellation must be a mapping",
+            "EnvironmentSpecPacket",
+        )
+    if not isinstance(cancellation.get("supported"), bool) or not str(cancellation.get("signal_name", "") or ""):
+        raise ContractValidationError(
+            "invalid_cancellation",
+            "EnvironmentSpecPacket cancellation requires supported bool and signal_name",
+            "EnvironmentSpecPacket",
+        )
+
+    for field_name in ("read_intents", "write_intents", "forbidden_intents"):
+        if field_name not in data or not isinstance(data.get(field_name), list):
+            raise ContractValidationError(
+                "invalid_intents",
+                f"EnvironmentSpecPacket {field_name} must be a list",
+                "EnvironmentSpecPacket",
+            )
+
+
+def build_environment_spec_packet(**kwargs: Any) -> EnvironmentSpecPacket:
+    packet = EnvironmentSpecPacket(**kwargs)
+    validate_environment_spec_packet(packet.to_dict())
+    return packet
+
+
 def contract_field_catalog() -> Dict[str, Any]:
     return {
         "contract_version": CONTRACT_VERSION,
@@ -673,6 +818,7 @@ def contract_field_catalog() -> Dict[str, Any]:
             "EvidenceBlock": _field_spec(EvidenceBlock, provenance=False),
             "ExecutionBundle": _field_spec(ExecutionBundle, provenance=False, forbidden=EXECUTION_BUNDLE_FORBIDDEN_KEYS),
             "AuditReceipt": _field_spec(AuditReceipt, provenance=True),
+            "EnvironmentSpecPacket": _field_spec(EnvironmentSpecPacket, provenance=True),
         },
         "result_statuses": list(RESULT_STATUSES),
         "envelope_defaults": {mode: envelope_defaults(mode) for mode in ENVELOPE_MODES},
@@ -688,7 +834,7 @@ def _field_spec(model: Any, *, provenance: bool, forbidden: Iterable[str] = ()) 
             cardinality = "1"
         elif item.name.endswith("_id") or item.name in {"surface", "user_turn", "envelope", "result_status", "retention_mode"}:
             cardinality = "1"
-        elif item.name.endswith("_refs") or item.name.endswith("_layers") or item.name.endswith("_ids") or item.name.endswith("_signals"):
+        elif item.name.endswith("_refs") or item.name.endswith("_layers") or item.name.endswith("_ids") or item.name.endswith("_signals") or item.name.endswith("_intents") or item.name == "disclosed_tools":
             cardinality = "0..n"
         else:
             cardinality = "0..1" if nullable else "1"
@@ -733,6 +879,7 @@ _MODEL_BY_NAME = {
     "EvidenceBlock": EvidenceBlock,
     "ExecutionBundle": ExecutionBundle,
     "AuditReceipt": AuditReceipt,
+    "EnvironmentSpecPacket": EnvironmentSpecPacket,
 }
 
 
@@ -758,6 +905,10 @@ def _string_list(value: Any) -> List[str]:
     if not value:
         return []
     return [str(item) for item in value]
+
+
+def _is_string_list(value: Any, *, allow_empty: bool = False) -> bool:
+    return isinstance(value, list) and (allow_empty or bool(value)) and all(isinstance(item, str) for item in value)
 
 
 def _optional_str(value: Any) -> Optional[str]:

@@ -1,0 +1,28 @@
+{
+  "packet_id": "envspec-agent-001",
+  "application_id": "app:inner-world",
+  "actor": "agent:profile-registry-test",
+  "branch_id": "branch-main",
+  "scope_id": "scope-stage-a",
+  "disclosed_tools": ["tool:search", "tool:inspect"],
+  "auth_boundaries": {
+    "allowed_intents": ["read_context", "inspect_shape"],
+    "forbidden_intents": ["delete_records", "promote_state"],
+    "requires_forbidden_intents": true
+  },
+  "rate_limit": {
+    "requests_per_minute": 30
+  },
+  "timeout_seconds": 15.0,
+  "cancellation": {
+    "supported": true,
+    "signal_name": "cancel"
+  },
+  "read_intents": ["read_context", "inspect_shape"],
+  "write_intents": ["propose_interpretation"],
+  "forbidden_intents": ["delete_records", "promote_state"],
+  "contract_version": "1.0.0",
+  "provenance": {
+    "source_ref": "fixture:environment-spec"
+  }
+}

@@ -13,14 +13,17 @@ from conversation_os.disclosure_contracts import (
     CandidateRef,
     ContractValidationError,
     EffectiveGrant,
+    EnvironmentSpecPacket,
     EvidenceBlock,
     ExecutionBundle,
     RequestedGrant,
+    build_environment_spec_packet,
     contract_field_catalog,
     envelope_defaults,
     normalize_effective_grant,
     receipt_retention_for_envelope,
     validate_audit_receipt,
+    validate_environment_spec_packet,
     validate_execution_bundle,
 )
 
@@ -42,6 +45,7 @@ class DisclosureContractsTestCase(unittest.TestCase):
             (EvidenceBlock, "evidence_block.json"),
             (ExecutionBundle, "execution_bundle.json"),
             (AuditReceipt, "audit_receipt_disclosed.json"),
+            (EnvironmentSpecPacket, "environment_spec_packet.json"),
         ]
         for model_cls, filename in models:
             payload = _load_fixture(filename)
@@ -52,6 +56,7 @@ class DisclosureContractsTestCase(unittest.TestCase):
         catalog = contract_field_catalog()
         self.assertEqual(catalog["contract_version"], CONTRACT_VERSION)
         self.assertIn("ApertureRequest", catalog["contracts"])
+        self.assertIn("EnvironmentSpecPacket", catalog["contracts"])
         execution_spec = catalog["contracts"]["ExecutionBundle"]
         self.assertIn("forbidden_keys", execution_spec)
         self.assertIn("suppressed", execution_spec["forbidden_keys"])
@@ -135,6 +140,34 @@ class DisclosureContractsTestCase(unittest.TestCase):
     def test_result_status_fixture_matches_contract(self) -> None:
         payload = _load_fixture("result_statuses.json")
         self.assertEqual(set(payload["statuses"]), set(RESULT_STATUSES))
+
+    def test_environment_spec_packet_builds_and_validates(self) -> None:
+        payload = _load_fixture("environment_spec_packet.json")
+        packet = build_environment_spec_packet(**payload)
+        self.assertEqual(packet.to_dict(), payload)
+        restored = EnvironmentSpecPacket.from_dict(payload)
+        self.assertEqual(restored.disclosed_tools, ["tool:search", "tool:inspect"])
+
+    def test_environment_spec_packet_rejects_empty_tools(self) -> None:
+        payload = _load_fixture("environment_spec_packet.json")
+        payload["disclosed_tools"] = []
+        with self.assertRaises(ContractValidationError) as ctx:
+            validate_environment_spec_packet(payload)
+        self.assertEqual(ctx.exception.code, "invalid_disclosed_tools")
+
+    def test_environment_spec_packet_rejects_non_positive_timeout(self) -> None:
+        payload = _load_fixture("environment_spec_packet.json")
+        payload["timeout_seconds"] = 0
+        with self.assertRaises(ContractValidationError) as ctx:
+            validate_environment_spec_packet(payload)
+        self.assertEqual(ctx.exception.code, "invalid_timeout")
+
+    def test_environment_spec_packet_rejects_missing_auth_forbidden_intents(self) -> None:
+        payload = _load_fixture("environment_spec_packet.json")
+        payload["auth_boundaries"].pop("forbidden_intents")
+        with self.assertRaises(ContractValidationError) as ctx:
+            validate_environment_spec_packet(payload)
+        self.assertEqual(ctx.exception.code, "invalid_auth_boundaries")
 
 
 if __name__ == "__main__":

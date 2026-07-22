@@ -34,6 +34,8 @@ ROLE_ASSIGNMENT_PROFILE_ID = "profile:role_assignment"
 ROLE_ASSIGNMENT_PROFILE_VERSION = "1.0.0"
 SHAPE_PROFILE_ID = "profile:shape"
 SHAPE_PROFILE_VERSION = "1.0.0"
+PATTERN_PROFILE_ID = "profile:pattern"
+PATTERN_PROFILE_VERSION = "1.0.0"
 CYBERNETICS_PROFILE_ID = "profile:cybernetics"
 CYBERNETICS_PROFILE_VERSION = "1.0.0"
 CYBERNETIC_COMPILER_ID = "compiler:cybernetic-profile-v1"
@@ -50,6 +52,11 @@ PROFILE_INVARIANT_CHECKS = {
     "system_boundary_preserves_identity_rule": "System boundary requires an explicit boundary and identity rule",
     "role_assignment_is_contextual": "Role assignment requires participant, host, role, mechanism, scope, time, branch, and provenance",
     "influence_assessment_is_evidence_bound": "Influence assessment requires a declared basis, uncertainty, confidence, and provenance",
+    "shape_composites_preserve_lifecycle_context": "Composite shapes require boundary, scale, temporal scope, branch, and explicit coupling context",
+    "patterns_require_declared_shape_cores": "Patterns must reference one or more ShapeCore records instead of merging Shapes",
+    "patterns_forbid_shape_merges": "Pattern validation must preserve merge_shapes_forbidden",
+    "anti_matches_record_rejection_basis": "AntiMatch records must preserve apparent similarity and explicit rejection reasons",
+    "transfer_assessments_are_explicit": "Transfer assessments require declared transferability and mechanism notes",
 }
 
 
@@ -209,17 +216,155 @@ def validate_role_influence_bundle_contract(roles: Sequence[Mapping[str, Any]], 
 
 
 def validate_shape_contract(payload: Mapping[str, Any], kind: str) -> List[str]:
-    errors=[]
-    if payload.get("record_type") != kind: errors.append(f"shape record_type must be {kind}")
-    required={"shape_core":("id","focal_ref","scope_id","branch_id","provenance_id","relation_refs"),"shape_view":("id","shape_core_id","semantic_address","abstraction_contract","relation_refs","projection"),"shape_record":("id","shape_core_id","shape_view_id","input_refs","derivation_method","provenance_id","reproducibility"),"composite_shape":("id","dimensional_shape_refs","coupling_refs","provenance_id")}[kind]
+    errors: List[str] = []
+    if payload.get("record_type") != kind:
+        errors.append(f"shape record_type must be {kind}")
+    required = {
+        "shape_core": ("id", "focal_ref", "scope_id", "branch_id", "provenance_id", "relation_refs"),
+        "shape_view": ("id", "shape_core_id", "semantic_address", "abstraction_contract", "relation_refs", "projection"),
+        "shape_record": ("id", "shape_core_id", "shape_view_id", "input_refs", "derivation_method", "provenance_id", "reproducibility"),
+        "dimensional_shape": ("id", "shape_core_id", "dimension_id", "scope_id", "branch_id", "provenance_id"),
+        "composite_shape": (
+            "id",
+            "dimensional_shape_refs",
+            "coupling_refs",
+            "boundary_ref",
+            "scale",
+            "temporal_scope",
+            "branch_id",
+            "provenance_id",
+        ),
+    }.get(kind)
+    if required is None:
+        return [f"unknown shape record type: {kind}"]
     for name in required:
-        if payload.get(name) in (None,"",[]): errors.append(f"{kind} {name} is required")
-    if kind=="shape_record" and payload.get("reproducibility") not in {"reproducible","interpretative"}: errors.append("shape_record reproducibility is invalid")
-    if kind=="shape_view":
-        projection=payload.get("projection",{})
-        if not isinstance(projection,dict) or any(not projection.get(k) for k in ("nodes","edges","groups")): errors.append("shape_view projection requires nodes, edges, and groups")
-        signature=payload.get("comparison_signature",{})
-        if not isinstance(signature,dict) or not signature.get("role_relation_summary"): errors.append("shape_view comparison_signature requires role_relation_summary")
+        if payload.get(name) in (None, "", []):
+            errors.append(f"{kind} {name} is required")
+    if kind == "shape_record" and payload.get("reproducibility") not in {"reproducible", "interpretative"}:
+        errors.append("shape_record reproducibility is invalid")
+    if kind == "shape_view":
+        projection = payload.get("projection", {})
+        if not isinstance(projection, dict) or any(not projection.get(k) for k in ("nodes", "edges", "groups")):
+            errors.append("shape_view projection requires nodes, edges, and groups")
+        signature = payload.get("comparison_signature", {})
+        if not isinstance(signature, dict) or not signature.get("role_relation_summary"):
+            errors.append("shape_view comparison_signature requires role_relation_summary")
+    if kind == "composite_shape" and "coupling_specs" in payload:
+        specs = payload.get("coupling_specs")
+        if not isinstance(specs, list) or not specs:
+            errors.append("composite_shape coupling_specs must be a non-empty list")
+        else:
+            allowed = {"compositional", "regulatory", "temporal", "informational", "unknown"}
+            for spec in specs:
+                if not isinstance(spec, Mapping):
+                    errors.append("composite_shape coupling_specs entries must be mappings")
+                    continue
+                if not str(spec.get("coupling_ref", "")):
+                    errors.append("composite_shape coupling_spec coupling_ref is required")
+                if spec.get("coupling_kind") not in allowed:
+                    errors.append("composite_shape coupling_spec coupling_kind is invalid")
+    return errors
+
+
+def validate_shape_lifecycle_bundle(
+    cores: Sequence[Mapping[str, Any]],
+    views: Sequence[Mapping[str, Any]],
+    records: Sequence[Mapping[str, Any]],
+    composites: Sequence[Mapping[str, Any]],
+    *,
+    dimensional_shapes: Sequence[Mapping[str, Any]] = (),
+) -> List[str]:
+    errors: List[str] = []
+    core_index = {str(item.get("id", "")): item for item in cores}
+    view_index = {str(item.get("id", "")): item for item in views}
+    record_index = {str(item.get("id", "")): item for item in records}
+    dimensional_index = {str(item.get("id", "")): item for item in dimensional_shapes}
+
+    for core in cores:
+        errors.extend(validate_shape_contract(core, "shape_core"))
+    for view in views:
+        errors.extend(validate_shape_contract(view, "shape_view"))
+        if str(view.get("shape_core_id", "")) not in core_index:
+            errors.append(f"shape_view {view.get('id')} references unknown shape_core")
+    for record in records:
+        errors.extend(validate_shape_contract(record, "shape_record"))
+        if str(record.get("shape_core_id", "")) not in core_index:
+            errors.append(f"shape_record {record.get('id')} references unknown shape_core")
+        if str(record.get("shape_view_id", "")) not in view_index:
+            errors.append(f"shape_record {record.get('id')} references unknown shape_view")
+    for dimensional in dimensional_shapes:
+        errors.extend(validate_shape_contract(dimensional, "dimensional_shape"))
+        if str(dimensional.get("shape_core_id", "")) not in core_index:
+            errors.append(f"dimensional_shape {dimensional.get('id')} references unknown shape_core")
+
+    resolvable_shapes = dimensional_index if dimensional_shapes else record_index
+    target_label = "dimensional_shape" if dimensional_shapes else "shape_record"
+    for composite in composites:
+        errors.extend(validate_shape_contract(composite, "composite_shape"))
+        if not composite.get("coupling_refs"):
+            errors.append(f"composite_shape {composite.get('id')} coupling_refs must be non-empty")
+        for reference in composite.get("dimensional_shape_refs", []) or []:
+            if str(reference) not in resolvable_shapes:
+                errors.append(f"composite_shape {composite.get('id')} references unknown {target_label}: {reference}")
+    return sorted(set(errors))
+
+
+def validate_pattern_contract(payload: Mapping[str, Any]) -> List[str]:
+    errors: List[str] = []
+    if payload.get("record_type") != "pattern":
+        errors.append("pattern record_type must be pattern")
+    for name in ("id", "name", "abstraction_contract", "branch_id", "scope_id", "provenance_id"):
+        if payload.get(name) in (None, ""):
+            errors.append(f"pattern {name} is required")
+    if not isinstance(payload.get("shape_core_refs"), list) or not payload.get("shape_core_refs"):
+        errors.append("pattern shape_core_refs must be a non-empty list")
+    if not isinstance(payload.get("required_invariants"), list):
+        errors.append("pattern required_invariants must be a list")
+    if payload.get("validation_status") not in {"candidate", "validated", "rejected", "abstained"}:
+        errors.append("pattern validation_status is invalid")
+    if payload.get("merge_shapes_forbidden", True) is False:
+        errors.append("pattern merge_shapes_forbidden cannot be false")
+    return errors
+
+
+def validate_anti_match_contract(payload: Mapping[str, Any]) -> List[str]:
+    errors: List[str] = []
+    if payload.get("record_type") != "anti_match":
+        errors.append("anti_match record_type must be anti_match")
+    for name in ("id", "candidate_a", "candidate_b", "apparent_similarity", "evaluator_ref", "provenance_id"):
+        if payload.get(name) in (None, ""):
+            errors.append(f"anti_match {name} is required")
+    if not isinstance(payload.get("rejection_reasons"), list) or not payload.get("rejection_reasons"):
+        errors.append("anti_match rejection_reasons must be a non-empty list")
+    return errors
+
+
+def validate_transfer_assessment_contract(payload: Mapping[str, Any]) -> List[str]:
+    errors: List[str] = []
+    if payload.get("record_type") != "transfer_assessment":
+        errors.append("transfer_assessment record_type must be transfer_assessment")
+    for name in ("id", "pattern_id", "source_shape_ref", "target_shape_ref", "mechanism_notes", "provenance_id"):
+        if payload.get(name) in (None, ""):
+            errors.append(f"transfer_assessment {name} is required")
+    if payload.get("transferability") not in {"transferable", "partial", "not_transferable", "abstain"}:
+        errors.append("transfer_assessment transferability is invalid")
+    return errors
+
+
+def validate_emergent_state_contract(payload: Mapping[str, Any]) -> List[str]:
+    errors: List[str] = []
+    if payload.get("record_type") != "emergent_state":
+        errors.append("emergent_state record_type must be emergent_state")
+    for name in ("id", "scale_transition", "emergence_rule", "uncertainty", "scope_id", "branch_id", "provenance_id"):
+        if payload.get(name) in (None, ""):
+            errors.append(f"emergent_state {name} is required")
+    if not str(payload.get("type") or payload.get("emergent_type") or ""):
+        errors.append("emergent_state type or emergent_type is required")
+    for name in ("grounded_in", "evidence_refs"):
+        if not isinstance(payload.get(name), list) or not payload.get(name):
+            errors.append(f"emergent_state {name} must be a non-empty list")
+    if payload.get("reduction_status") not in {"reducible", "partially_reducible", "irreducible", "unknown"}:
+        errors.append("emergent_state reduction_status is invalid")
     return errors
 
 
@@ -327,7 +472,12 @@ def validate_cybernetic_contract(payload: Mapping[str, Any], kind: str) -> List[
     return errors
 
 
-def validate_cybernetic_bundle_contract(records: Sequence[Mapping[str, Any]]) -> List[str]:
+def validate_cybernetic_bundle_contract(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    shape_records: Optional[Sequence[Mapping[str, Any]]] = None,
+    claim_records: Optional[Sequence[Mapping[str, Any]]] = None,
+) -> List[str]:
     """Validate a cybernetic description as a coherent, bounded system.
 
     References are checked inside the supplied bundle only.  Kernel referents,
@@ -432,6 +582,35 @@ def validate_cybernetic_bundle_contract(records: Sequence[Mapping[str, Any]]) ->
     for extension in by_type.get("dynamic_model_extension", {}).values():
         require_refs(extension, "input_variable_refs", variables, "state_variable")
         require_refs(extension, "output_variable_refs", variables, "state_variable")
+
+    if shape_records is not None:
+        shape_index = {_record_identifier(shape): shape for shape in shape_records if _record_identifier(shape)}
+        for extension in by_type.get("dynamic_model_extension", {}).values():
+            shape_ref = str(extension.get("shape_ref", ""))
+            shape = shape_index.get(shape_ref)
+            if shape is None:
+                errors.append(f"dynamic_model_extension {extension.get('id')} references unknown shape_ref: {shape_ref}")
+                continue
+            context_record = _extension_context_record(extension, variables)
+            for field_name in ("branch_id", "scope_id"):
+                left_value = extension.get(field_name) or (context_record or {}).get(field_name)
+                right_value = shape.get(field_name)
+                if left_value and right_value and str(left_value) != str(right_value):
+                    errors.append(
+                        f"dynamic_model_extension {extension.get('id')} {field_name} conflicts with shape {shape_ref}"
+                    )
+
+    if claim_records is not None:
+        claim_index = {_record_identifier(claim): claim for claim in claim_records if _record_identifier(claim)}
+        allowed_claim_statuses = {"observed", "estimated", "hypothesized", "derived", "asserted"}
+        for claim_id, claim in claim_index.items():
+            status = claim.get("epistemic_status") or dict(claim.get("envelope", {}) or {}).get("epistemic_status")
+            if status is not None and status not in allowed_claim_statuses:
+                errors.append(f"claim {claim_id} epistemic_status is invalid")
+        for variable in variables.values():
+            claim_ref = variable.get("claim_ref")
+            if claim_ref and str(claim_ref) not in claim_index:
+                errors.append(f"state_variable {variable.get('id')} references unknown claim_ref: {claim_ref}")
 
     setpoint_index: Dict[Tuple[str, str, str, str, int], str] = {}
     for setpoint in setpoints.values():
@@ -811,6 +990,27 @@ def _cybernetic_entity_refs(records: Sequence[Mapping[str, Any]]) -> Set[str]:
     return refs
 
 
+def _record_identifier(record: Mapping[str, Any]) -> str:
+    if record.get("id") not in (None, ""):
+        return str(record.get("id"))
+    envelope = record.get("envelope", {})
+    if isinstance(envelope, Mapping):
+        return str(envelope.get("id", "") or "")
+    return ""
+
+
+def _extension_context_record(
+    extension: Mapping[str, Any],
+    variables: Mapping[str, Mapping[str, Any]],
+) -> Optional[Mapping[str, Any]]:
+    for field_name in ("input_variable_refs", "output_variable_refs"):
+        for variable_ref in extension.get(field_name, []) or []:
+            variable = variables.get(str(variable_ref))
+            if variable is not None:
+                return variable
+    return None
+
+
 def _require_same_context(errors: List[str], left: Mapping[str, Any], right: Optional[Mapping[str, Any]], left_label: str, right_label: str) -> None:
     if right is None:
         return
@@ -833,8 +1033,37 @@ def build_cybernetics_profile_v1(*, envelope_id: str, provenance_id: str) -> Pro
     )
 
 
+def build_pattern_profile_v1(*, envelope_id: str, provenance_id: str) -> ProfileDefinition:
+    return ProfileDefinition(
+        envelope=KernelRecordEnvelope(
+            id=envelope_id,
+            record_kind="profile_definition",
+            type_id=PATTERN_PROFILE_ID,
+            created_at=utc_now(),
+            created_by="service:profile_registry",
+            provenance_id=provenance_id,
+            maturity_status="structured",
+            epistemic_status="not_applicable",
+            governance_status="review_required",
+        ),
+        profile_id=PATTERN_PROFILE_ID,
+        profile_version=PATTERN_PROFILE_VERSION,
+        purpose="Represent reusable abstractions over declared Shapes, explicit AntiMatches, and bounded transfer assessments without merging source Shapes.",
+        kernel_records_used=["referent", "scope", "relation_instance", "provenance", "model_branch", "branch_membership"],
+        profile_record_types=["pattern", "anti_match", "transfer_assessment"],
+        profile_dependencies=[SHAPE_PROFILE_ID],
+        invariants=[
+            "patterns_require_declared_shape_cores",
+            "patterns_forbid_shape_merges",
+            "anti_matches_record_rejection_basis",
+            "transfer_assessments_are_explicit",
+        ],
+        steward="service:profile_registry",
+    )
+
+
 def build_shape_profile_v1(*, envelope_id: str, provenance_id: str) -> ProfileDefinition:
-    return ProfileDefinition(envelope=KernelRecordEnvelope(id=envelope_id,record_kind="profile_definition",type_id=SHAPE_PROFILE_ID,created_at=utc_now(),created_by="service:profile_registry",provenance_id=provenance_id,maturity_status="structured",epistemic_status="not_applicable",governance_status="review_required"),profile_id=SHAPE_PROFILE_ID,profile_version=SHAPE_PROFILE_VERSION,purpose="Represent bounded relational Shapes, their views, derived records, and composite couplings.",kernel_records_used=["referent","scope","relation_instance","provenance","model_branch","branch_membership"],profile_record_types=["shape_core","shape_view","shape_record","dimensional_shape","composite_shape"],profile_dependencies=[ROLE_ASSIGNMENT_PROFILE_ID],invariants=["shape_views_preserve_relation_refs","composite_shapes_declare_couplings","comparison_signatures_are_candidate_aids"],steward="service:profile_registry")
+    return ProfileDefinition(envelope=KernelRecordEnvelope(id=envelope_id,record_kind="profile_definition",type_id=SHAPE_PROFILE_ID,created_at=utc_now(),created_by="service:profile_registry",provenance_id=provenance_id,maturity_status="structured",epistemic_status="not_applicable",governance_status="review_required"),profile_id=SHAPE_PROFILE_ID,profile_version=SHAPE_PROFILE_VERSION,purpose="Represent bounded relational Shapes, their views, derived records, and composite couplings.",kernel_records_used=["referent","scope","relation_instance","provenance","model_branch","branch_membership"],profile_record_types=["shape_core","shape_view","shape_record","dimensional_shape","composite_shape"],profile_dependencies=[ROLE_ASSIGNMENT_PROFILE_ID],invariants=["shape_views_preserve_relation_refs","composite_shapes_declare_couplings","shape_composites_preserve_lifecycle_context","comparison_signatures_are_candidate_aids"],steward="service:profile_registry")
 
 
 def validate_quality_instance_contract(payload: Mapping[str, Any]) -> List[str]:
@@ -1311,6 +1540,12 @@ class ProfileRegistry:
         fragment=self.runtime.capture_source_fragment(content_pointer="memory://foundation/shape-profile-bootstrap",author_or_origin="service:profile_registry",integrity_hash="sha256:shape-profile-bootstrap",source_kind="import")
         return self.register(build_shape_profile_v1(envelope_id=make_id("profile"),provenance_id=str(fragment["envelope"]["provenance_id"])))
 
+    def bootstrap_pattern_profile(self) -> Dict[str, Any]:
+        if self.get_profile(PATTERN_PROFILE_ID): return self.get_profile(PATTERN_PROFILE_ID).to_dict()  # type: ignore[union-attr]
+        if not self.get_profile(SHAPE_PROFILE_ID): self.bootstrap_shape_profile()
+        fragment=self.runtime.capture_source_fragment(content_pointer="memory://foundation/pattern-profile-bootstrap",author_or_origin="service:profile_registry",integrity_hash="sha256:pattern-profile-bootstrap",source_kind="import")
+        return self.register(build_pattern_profile_v1(envelope_id=make_id("profile"),provenance_id=str(fragment["envelope"]["provenance_id"])))
+
     def bootstrap_cybernetics_profile(self) -> Dict[str, Any]:
         if self.get_profile(CYBERNETICS_PROFILE_ID): return self.get_profile(CYBERNETICS_PROFILE_ID).to_dict()  # type: ignore[union-attr]
         if not self.get_profile(SHAPE_PROFILE_ID): self.bootstrap_shape_profile()
@@ -1516,6 +1751,8 @@ __all__ = [
     "ROLE_ASSIGNMENT_PROFILE_VERSION",
     "SHAPE_PROFILE_ID",
     "SHAPE_PROFILE_VERSION",
+    "PATTERN_PROFILE_ID",
+    "PATTERN_PROFILE_VERSION",
     "CYBERNETICS_PROFILE_ID",
     "CYBERNETICS_PROFILE_VERSION",
     "CYBERNETIC_COMPILER_ID",
@@ -1534,6 +1771,7 @@ __all__ = [
     "build_composition_profile_v1",
     "build_role_assignment_profile_v1",
     "build_shape_profile_v1",
+    "build_pattern_profile_v1",
     "build_cybernetics_profile_v1",
     "validate_quality_instance_contract",
     "validate_quality_refinement_contract",
@@ -1544,6 +1782,11 @@ __all__ = [
     "validate_influence_assessment_contract",
     "validate_role_influence_bundle_contract",
     "validate_shape_contract",
+    "validate_shape_lifecycle_bundle",
+    "validate_pattern_contract",
+    "validate_anti_match_contract",
+    "validate_transfer_assessment_contract",
+    "validate_emergent_state_contract",
     "validate_cybernetic_contract",
     "validate_cybernetic_bundle_contract",
     "compile_cybernetic_bundle_to_ir",
