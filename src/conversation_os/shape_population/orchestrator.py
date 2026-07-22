@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 from conversation_os.source_content_store import SourceContentStore
 from conversation_os.shape_population.candidate_submission import submit_candidate
@@ -38,12 +38,23 @@ from conversation_os.shape_population.vault_bridge import merge_job_payload_with
 
 MODULE_ID = "kernel.shape_population.orchestrator"
 CONTRACT_VERSION = "1.2.0"
+RECOVERY_READINESS_CONTRACT_VERSION = "2026-07-22.t10-15.first"
+RECOVERY_READINESS_REQUIRED_DRILLS = (
+    "process_restart",
+    "database_restore",
+    "duplicate_delivery",
+    "model_timeout",
+    "stale_index_rebuild",
+)
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
+    "RECOVERY_READINESS_CONTRACT_VERSION",
+    "RECOVERY_READINESS_REQUIRED_DRILLS",
     "ShapePopulationOrchestrator",
     "enqueue_after_ingest",
     "load_shape_population_runtime_config",
+    "build_recovery_readiness_report",
     "build_post_ingest_hook",
     "apply_approved_promotion_live",
 )
@@ -96,6 +107,124 @@ def enqueue_after_ingest(
     if vault_root is None and hasattr(store, "root"):
         body.setdefault("vault_root", str(Path(store.root)))
     return store.enqueue_job(source_id=source_id, payload=body)
+
+
+def _non_negative_int(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _objective_minutes(objectives: Mapping[str, Any], key: str, default: int) -> int:
+    try:
+        return max(0, int(objectives.get(key, default) or default))
+    except (TypeError, ValueError):
+        return default
+
+
+def build_recovery_readiness_report(
+    operator_status: Mapping[str, Any],
+    drill_results: Sequence[Mapping[str, Any]] | None = None,
+    *,
+    scale_tier: str = "current",
+    objectives: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Summarize recovery readiness without asserting unperformed scale results."""
+
+    objectives = dict(objectives or {})
+    drill_rows = [dict(row) for row in list(drill_results or [])]
+    seen_drills = {str(row.get("drill_id", "") or "") for row in drill_rows}
+    required_drills = list(objectives.get("required_drills") or RECOVERY_READINESS_REQUIRED_DRILLS)
+    missing_drills = [drill for drill in required_drills if drill not in seen_drills]
+    rpo_target = _objective_minutes(objectives, "rpo_minutes", 15)
+    rto_target = _objective_minutes(objectives, "rto_minutes", 60)
+    controls = dict(operator_status.get("controls") or {})
+    queued = _non_negative_int(operator_status.get("queued"))
+    claimed = _non_negative_int(operator_status.get("claimed"))
+    retryable = _non_negative_int(operator_status.get("retryable"))
+    queue_depth = queued + claimed + retryable
+    queue_pressure = "normal"
+    if bool(controls.get("paused")) or bool(controls.get("drain")):
+        queue_pressure = "operator_controlled"
+    if retryable > 0 or queue_depth >= _objective_minutes(objectives, "queue_depth_warning", 25):
+        queue_pressure = "degraded"
+
+    failed_drills: list[str] = []
+    objective_failures: list[str] = []
+    unsafe_failures: list[str] = []
+    normalized_drills: list[dict[str, Any]] = []
+    for row in drill_rows:
+        drill_id = str(row.get("drill_id", "") or "")
+        rpo = _non_negative_int(row.get("rpo_minutes"))
+        rto = _non_negative_int(row.get("rto_minutes"))
+        passed = bool(row.get("passed"))
+        lineage_preserved = bool(row.get("lineage_preserved", False))
+        accepted_evidence_lost = bool(row.get("accepted_evidence_lost", False))
+        unreceipted_canon_created = bool(row.get("unreceipted_canon_created", False))
+        access_widened = bool(row.get("access_widened", False))
+        if not passed:
+            failed_drills.append(drill_id)
+        if rpo > rpo_target:
+            objective_failures.append(f"{drill_id}:rpo_minutes")
+        if rto > rto_target:
+            objective_failures.append(f"{drill_id}:rto_minutes")
+        if not lineage_preserved or accepted_evidence_lost or unreceipted_canon_created or access_widened:
+            unsafe_failures.append(drill_id)
+        normalized_drills.append(
+            {
+                "drill_id": drill_id,
+                "passed": passed,
+                "rpo_minutes": rpo,
+                "rto_minutes": rto,
+                "lineage_preserved": lineage_preserved,
+                "accepted_evidence_lost": accepted_evidence_lost,
+                "unreceipted_canon_created": unreceipted_canon_created,
+                "access_widened": access_widened,
+                "evidence_ref": str(row.get("evidence_ref", "") or ""),
+            }
+        )
+
+    blockers = []
+    if missing_drills:
+        blockers.append("missing_required_drills")
+    if failed_drills:
+        blockers.append("failed_recovery_drills")
+    if objective_failures:
+        blockers.append("recovery_objective_missed")
+    if unsafe_failures:
+        blockers.append("lineage_or_access_safety_failure")
+    status = "ready_for_review" if not blockers else "blocked"
+    return {
+        "schema_version": "1.0",
+        "contract_id": "ShapePopulationRecoveryReadiness",
+        "contract_version": RECOVERY_READINESS_CONTRACT_VERSION,
+        "status": status,
+        "scale_tier": str(scale_tier or "current"),
+        "claim_scope": "declared_drill_evidence_only",
+        "multi_gigabyte_scale_claimed": False,
+        "queue": {
+            "queued": queued,
+            "claimed": claimed,
+            "retryable": retryable,
+            "queue_depth": queue_depth,
+            "queue_pressure": queue_pressure,
+            "controls": controls,
+        },
+        "objectives": {"rpo_minutes": rpo_target, "rto_minutes": rto_target},
+        "required_drills": required_drills,
+        "drills": normalized_drills,
+        "missing_drills": missing_drills,
+        "failed_drills": failed_drills,
+        "objective_failures": objective_failures,
+        "unsafe_failures": unsafe_failures,
+        "blockers": blockers,
+        "residual_gaps": [
+            "10x_100x_max_affordable_corpus_benchmarks",
+            "process_kill_machine_restart_low_disk_network_loss_drills",
+            "cost_per_source_candidate_shape_query_agent_task",
+        ],
+    }
 
 
 def build_post_ingest_hook(

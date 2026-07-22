@@ -20,6 +20,7 @@ from conversation_os.shape_population.model_gateway import ShapeModelGateway, St
 from conversation_os.shape_population.normalization import normalize_source
 from conversation_os.shape_population.orchestrator import (
     apply_approved_promotion_live,
+    build_recovery_readiness_report,
     build_post_ingest_hook,
 )
 from conversation_os.shape_population.promotion import record_human_decision, request_promotion
@@ -295,3 +296,79 @@ def test_wave01_golden_source_to_shape_trace(tmp_path: Path):
     assert archive["receipts"]["post_rollback_status"] == "stale"
     assert archive["ids"]["canonical_id"].startswith("canonical:")
     assert archive["versions"]["profile_id"] == "profile:shape"
+
+
+def test_recovery_readiness_report_passes_only_declared_drills() -> None:
+    report = build_recovery_readiness_report(
+        {
+            "queued": 1,
+            "claimed": 0,
+            "retryable": 0,
+            "controls": {"paused": False, "drain": False},
+        },
+        [
+            {
+                "drill_id": "process_restart",
+                "passed": True,
+                "rpo_minutes": 1,
+                "rto_minutes": 5,
+                "lineage_preserved": True,
+                "evidence_ref": "drill://process-restart",
+            },
+            {
+                "drill_id": "database_restore",
+                "passed": True,
+                "rpo_minutes": 2,
+                "rto_minutes": 20,
+                "lineage_preserved": True,
+                "evidence_ref": "drill://database-restore",
+            },
+        ],
+        objectives={
+            "required_drills": ["process_restart", "database_restore"],
+            "rpo_minutes": 5,
+            "rto_minutes": 30,
+        },
+    )
+
+    assert report["status"] == "ready_for_review"
+    assert report["claim_scope"] == "declared_drill_evidence_only"
+    assert report["multi_gigabyte_scale_claimed"] is False
+    assert report["queue"]["queue_pressure"] == "normal"
+    assert report["missing_drills"] == []
+    assert report["blockers"] == []
+
+
+def test_recovery_readiness_report_blocks_unsafe_or_missing_drills() -> None:
+    report = build_recovery_readiness_report(
+        {
+            "queued": 20,
+            "claimed": 6,
+            "retryable": 2,
+            "controls": {"paused": True, "drain": False},
+        },
+        [
+            {
+                "drill_id": "process_restart",
+                "passed": True,
+                "rpo_minutes": 10,
+                "rto_minutes": 90,
+                "lineage_preserved": False,
+                "access_widened": True,
+            }
+        ],
+        objectives={
+            "required_drills": ["process_restart", "database_restore"],
+            "rpo_minutes": 5,
+            "rto_minutes": 30,
+            "queue_depth_warning": 10,
+        },
+    )
+
+    assert report["status"] == "blocked"
+    assert report["queue"]["queue_pressure"] == "degraded"
+    assert report["missing_drills"] == ["database_restore"]
+    assert "process_restart:rpo_minutes" in report["objective_failures"]
+    assert "process_restart:rto_minutes" in report["objective_failures"]
+    assert report["unsafe_failures"] == ["process_restart"]
+    assert "lineage_or_access_safety_failure" in report["blockers"]

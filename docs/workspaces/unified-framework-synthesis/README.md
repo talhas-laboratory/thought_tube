@@ -88,6 +88,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-18-SHAPE-INSPECTOR.md`](./derived/T10-18-SHAPE-INSPECTOR.md) | Wave 4 T10-18 evidence | Bounded Shape inspector separating evidence, interpretation, provenance, authority, and competing views |
 | [`derived/T10-10-CYBERNETIC-COMPILE.md`](./derived/T10-10-CYBERNETIC-COMPILE.md) | Wave 5 T10-10 evidence | Minimal executable cybernetic compilation into deterministic IR with abstention and no runtime side effects |
 | [`derived/T10-11-OUTCOME-LEARNING.md`](./derived/T10-11-OUTCOME-LEARNING.md) | Wave 5 T10-11 evidence | Offline outcome-learning policy proposals with safety/minority regression blocks and no runtime mutation |
+| [`derived/T10-15-SCALE-RECOVERY.md`](./derived/T10-15-SCALE-RECOVERY.md) | Wave 5 T10-15 evidence | Shape Population recovery-readiness drill report with RPO/RTO, lineage/access blockers, and no unproven scale claim |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

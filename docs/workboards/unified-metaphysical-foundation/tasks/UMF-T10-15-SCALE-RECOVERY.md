@@ -1,7 +1,7 @@
 # UMF-T10-15-SCALE-RECOVERY: T10-15 Scale Recovery
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope

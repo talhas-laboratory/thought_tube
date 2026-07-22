@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 14d945bfc4fe30ba3e89faae3654fc02061e433021a84d87e6d1202b56529426 -->
+<!-- canonical_revision: e2dc9320721933c7c119290b4a4dec3f2dbf4fb6f455332de842b3735d379832 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T15:27:32+00:00 -->
+<!-- generated_at: 2026-07-22T15:29:59+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -19,6 +19,7 @@ Select a task to receive a recommended next action.
 ## Recent runs
 
 - Implemented, verified, evidenced, and moved to review.
+- Implemented, verified, evidenced, and moved to review.
 - T10-10 moved to review with verification evidence and residuals documented.
 - Wave 4 parent moved to review after T10-17 and T10-18 reached review.
 - T10-18 first slice committed-ready: focused tests passed and task moved to review.
@@ -29,7 +30,6 @@ Select a task to receive a recommended next action.
 - T10-14 first benchmark complete.
 - T10-07 retrieval repair complete.
 - T10-06 Pattern/AntiMatch typing complete; residual retrieval bundle failures handed to T10-07.
-- T10-09 temporal/revision complete.
 
 ## Reasoning
 
@@ -48,6 +48,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- pytest tests/test_shape_population_golden_trace.py -q
 - pytest tests/test_shape_candidate_retrieval.py -q
 - python3 -m compileall -q src/conversation_os/metaphysical_kernel_profile_registry.py
 - pytest tests/test_metaphysical_kernel_profile_registry.py
@@ -58,5 +59,4 @@ Select a task to receive a recommended next action.
 - pytest tests/test_disclosure_service_bridge_parity.py tests/test_disclosure_contracts.py tests/test_disclosure_receipts.py
 - pytest tests/test_shape_candidate_retrieval.py tests/test_evidence_resolver.py
 - tests/test_disclosure_rollout.py+receipt_rollout
-- tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py
