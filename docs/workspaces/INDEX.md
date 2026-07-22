@@ -20,11 +20,7 @@ Git-tracked working spaces for long design threads. These are continuity project
 | `metaphysical-kernel-ontology` | Active — kernel contract lock | [`metaphysical-kernel-ontology/README.md`](./metaphysical-kernel-ontology/README.md) | [`manifest.json`](./metaphysical-kernel-ontology/manifest.json) |
 | `metaphysical-branch-reasoning` | Active — branch semantic authority | [`metaphysical-branch-reasoning/README.md`](./metaphysical-branch-reasoning/README.md) | [`manifest.json`](./metaphysical-branch-reasoning/manifest.json) |
 | `metaphysical-vocabulary-governance` | Active — vocabulary semantic authority | [`metaphysical-vocabulary-governance/README.md`](./metaphysical-vocabulary-governance/README.md) | [`manifest.json`](./metaphysical-vocabulary-governance/manifest.json) |
-<<<<<<< HEAD
 | `personal-cognitive-exoskeleton` | Active — personal reasoning-system and creative-transduction lens | [`personal-cognitive-exoskeleton/README.md`](./personal-cognitive-exoskeleton/README.md) | [`manifest.json`](./personal-cognitive-exoskeleton/manifest.json) |
-=======
-| `shape-intelligence-population` | Active — provisional Shape candidate population + remediation | [`shape-intelligence-population/README.md`](./shape-intelligence-population/README.md) | [`manifest.json`](./shape-intelligence-population/manifest.json) |
->>>>>>> origin/codex/shape-population-production-hardening
 
 ## Boot sequence
 

@@ -1,14 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: shape-intelligence-population -->
-<<<<<<< HEAD
-<!-- canonical_revision: c76d453a829479c0b29c7f4566f13bad82a7e8b61f13929c9cd0cd431d7b72b7 -->
-<!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-20T14:13:45+00:00 -->
-=======
 <!-- canonical_revision: b0b3e63371a76882f4b4c165f5242ffb553042dd71d46c6a69618b020b6c9041 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
 <!-- generated_at: 2026-07-20T15:17:46+00:00 -->
->>>>>>> origin/codex/shape-population-production-hardening
 
 # Workspace continuity: shape-intelligence-population
 
@@ -24,10 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
-<<<<<<< HEAD
-=======
 - Core remediation across all child packets landed; PR opened for review.
->>>>>>> origin/codex/shape-population-production-hardening
 - Implementation complete in code; live task completion blocked on missing_verification gate despite verify calls.
 
 ## Reasoning
@@ -36,9 +27,6 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
-<<<<<<< HEAD
-=======
 - pytest tests/test_source_content_store.py tests/test_shape_population_*.py
->>>>>>> origin/codex/shape-population-production-hardening
 - pytest tests/test_shape_population_*.py
 - tests/test_shape_population_*.py
