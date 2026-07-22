@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 78ddc848e0f2245b32d942026979b788dc6937ce4be648b088dd9432f20969f4 -->
+<!-- canonical_revision: 0fd99290d51651700611dfe8943743b87cf02f2ddd83cb012f46ba8ce8d8875b -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:40:01+00:00 -->
+<!-- generated_at: 2026-07-22T14:47:36+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- T10-08 Bridge shadow slice complete.
 - T10-14 first benchmark complete.
 - T10-07 retrieval repair complete.
 - T10-06 Pattern/AntiMatch typing complete; residual retrieval bundle failures handed to T10-07.
@@ -29,7 +30,6 @@ Select a task to receive a recommended next action.
 - Focused suites passed; task in review.
 - Focused verification passed; task moved to review.
 - Repair canonical Shape authority to profile:shape
-- T10-19 in review; Wave 0 complete enough to unlock T10-01.
 
 ## Reasoning
 
@@ -43,6 +43,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- tests/test_disclosure_rollout.py+receipt_rollout
 - tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py -k pattern
@@ -54,4 +55,3 @@ Select a task to receive a recommended next action.
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_canonical_port.py tests/test_shape_population_promotion.py
 - pytest tests/test_shape_projection_reader.py tests/test_shape_authority.py tests/test_shape_population_canonical_port.py tests/test_metaphysical_kernel_application_sdk.py
 - t10-19-release-discipline
-- t10-00-same-checkout-suites

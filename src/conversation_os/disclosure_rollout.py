@@ -13,12 +13,15 @@ MODULE_ID = "kernel.disclosure.disclosure_rollout"
 CONTRACT_VERSION = "1.0"
 ROLLOUT_MODES = ("legacy", "shadow", "canary", "enforced")
 PRIMARY_SURFACES = ("bridge", "holodeck")
+# T10-08 first activation: Bridge defaults to shadow unless force-legacy rollback is set.
+T10_08_BRIDGE_SHADOW_ACTIVATION = True
 
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "ROLLOUT_MODES",
     "PRIMARY_SURFACES",
+    "T10_08_BRIDGE_SHADOW_ACTIVATION",
     "load_rollout_settings",
     "resolve_surface_rollout_mode",
     "resolve_execution_path",
@@ -84,6 +87,15 @@ def resolve_surface_rollout_mode(root: Path, surface: str) -> str:
         mode = "enforced" if _legacy_boolean_for_surface(runtime, surface) else "legacy"
     if mode not in ROLLOUT_MODES:
         return "legacy"
+    # T10-08: promote Bridge legacy → shadow unless explicit config rollback.
+    if (
+        T10_08_BRIDGE_SHADOW_ACTIVATION
+        and str(surface or "").strip().lower() == "bridge"
+        and mode == "legacy"
+        and not bool(rollout.get("bridge_force_legacy", False))
+        and not bool(surface_cfg.get("disclosure_force_legacy_v1", False))
+    ):
+        return "shadow"
     return mode
 
 

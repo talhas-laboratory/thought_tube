@@ -12,11 +12,14 @@ from .storage import read_json, utc_now, write_json
 MODULE_ID = "kernel.disclosure.receipt_rollout"
 CONTRACT_VERSION = "1.0"
 RECEIPT_SURFACES = ("bridge", "holodeck", "feed", "task_pack")
+# T10-08: Bridge receipt shadow activates even when release config still says legacy.
+T10_08_BRIDGE_RECEIPT_SHADOW_ACTIVATION = True
 
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "RECEIPT_SURFACES",
+    "T10_08_BRIDGE_RECEIPT_SHADOW_ACTIVATION",
     "load_receipt_rollout_settings",
     "resolve_surface_receipt_rollout_mode",
     "persistent_receipts_enabled_for_surface",
@@ -53,11 +56,13 @@ def load_receipt_rollout_settings(root: Path) -> Dict[str, Any]:
     disclosure = runtime.get("disclosure", {}) or {}
     receipts = disclosure.get("receipts", {}) or {}
     rollout = receipts.get("rollout", {}) or {}
+    bridge_default = "shadow" if T10_08_BRIDGE_RECEIPT_SHADOW_ACTIVATION else "enforced"
     return {
-        "bridge": str(rollout.get("bridge", "enforced") or "enforced").strip().lower(),
+        "bridge": str(rollout.get("bridge", bridge_default) or bridge_default).strip().lower(),
         "holodeck": str(rollout.get("holodeck", "legacy") or "legacy").strip().lower(),
         "feed": str(rollout.get("feed", "legacy") or "legacy").strip().lower(),
         "task_pack": str(rollout.get("task_pack", "legacy") or "legacy").strip().lower(),
+        "bridge_force_legacy": bool(rollout.get("bridge_force_legacy", False)),
     }
 
 
@@ -67,6 +72,13 @@ def resolve_surface_receipt_rollout_mode(root: Path, surface: str) -> str:
     mode = str(settings.get(normalized, "legacy") or "legacy").strip().lower()
     if mode not in ROLLOUT_MODES:
         return "legacy"
+    if (
+        T10_08_BRIDGE_RECEIPT_SHADOW_ACTIVATION
+        and normalized == "bridge"
+        and mode == "legacy"
+        and not bool(settings.get("bridge_force_legacy", False))
+    ):
+        return "shadow"
     return mode
 
 
@@ -78,10 +90,14 @@ def persistent_receipts_enabled_for_surface(
 ) -> bool:
     from .disclosure_receipts import load_receipt_config
 
-    if not bool(load_receipt_config(root)["persistent_receipts_v1"]):
-        return False
     mode = resolve_surface_receipt_rollout_mode(root, surface)
     if mode == "legacy":
+        return False
+    # T10-08 Bridge shadow: enable surface persistence without requiring global flag.
+    normalized = str(surface or "bridge").strip().lower() or "bridge"
+    if T10_08_BRIDGE_RECEIPT_SHADOW_ACTIVATION and normalized == "bridge" and mode == "shadow":
+        return True
+    if not bool(load_receipt_config(root)["persistent_receipts_v1"]):
         return False
     if mode == "enforced":
         return True

@@ -64,9 +64,10 @@ class DisclosureReceiptRolloutTestCase(unittest.TestCase):
     def tearDown(self) -> None:
         self.tempdir.cleanup()
 
-    def test_release_runtime_keeps_receipt_rollout_legacy_until_cutover(self) -> None:
+    def test_release_runtime_activates_bridge_receipt_shadow_after_t10_08(self) -> None:
+        release_root = Path(__file__).resolve().parents[1]
         release_runtime = json.loads(
-            (Path(__file__).resolve().parents[1] / "product" / "inner_world_v1" / "config" / "runtime.json").read_text(
+            (release_root / "product" / "inner_world_v1" / "config" / "runtime.json").read_text(
                 encoding="utf-8"
             )
         )
@@ -76,6 +77,25 @@ class DisclosureReceiptRolloutTestCase(unittest.TestCase):
         self.assertEqual(receipts["rollout"]["holodeck"], "legacy")
         self.assertEqual(receipts["rollout"]["feed"], "legacy")
         self.assertEqual(receipts["rollout"]["task_pack"], "legacy")
+        self.assertEqual(resolve_surface_receipt_rollout_mode(release_root, "bridge"), "shadow")
+        self.assertTrue(persistent_receipts_enabled_for_surface(release_root, "bridge"))
+        self.assertEqual(resolve_surface_receipt_rollout_mode(release_root, "holodeck"), "legacy")
+        self.assertFalse(persistent_receipts_enabled_for_surface(release_root, "holodeck"))
+        self.assertFalse(persistent_receipts_enabled_for_surface(release_root, "feed"))
+
+    def test_bridge_receipt_force_legacy_rollback(self) -> None:
+        path = self.root / "product" / "inner_world_v1" / "config" / "runtime.json"
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["disclosure"]["receipts"]["rollout"] = {
+            "bridge": "legacy",
+            "bridge_force_legacy": True,
+            "holodeck": "legacy",
+            "feed": "legacy",
+            "task_pack": "legacy",
+        }
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        self.assertEqual(resolve_surface_receipt_rollout_mode(self.root, "bridge"), "legacy")
+        self.assertFalse(persistent_receipts_enabled_for_surface(self.root, "bridge"))
 
     def test_surface_rollout_gates_persistence(self) -> None:
         self.assertTrue(persistent_receipts_enabled_for_surface(self.root, "bridge"))

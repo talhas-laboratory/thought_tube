@@ -32,17 +32,32 @@ class DisclosureRolloutTestCase(unittest.TestCase):
         path = self.root / "product" / "inner_world_v1" / "config" / "runtime.json"
         path.write_text(json.dumps(payload), encoding="utf-8")
 
-    def test_release_runtime_keeps_rollout_disabled_until_cutover(self) -> None:
+    def test_release_runtime_activates_bridge_shadow_after_t10_08(self) -> None:
+        release_root = Path(__file__).resolve().parents[1]
         release_runtime = json.loads(
-            (Path(__file__).resolve().parents[1] / "product" / "inner_world_v1" / "config" / "runtime.json").read_text(
+            (release_root / "product" / "inner_world_v1" / "config" / "runtime.json").read_text(
                 encoding="utf-8"
             )
         )
         self.assertFalse(release_runtime["bridge"].get("disclosure_service_v1"))
         self.assertFalse(release_runtime["holodeck"].get("disclosure_service_v1"))
         rollout = release_runtime["disclosure"].get("rollout", {})
+        # Config may still say legacy; resolver applies T10-08 Bridge shadow cutover.
         self.assertEqual(rollout.get("bridge"), "legacy")
         self.assertEqual(rollout.get("holodeck"), "legacy")
+        self.assertEqual(resolve_surface_rollout_mode(release_root, "bridge"), "shadow")
+        self.assertEqual(resolve_surface_rollout_mode(release_root, "holodeck"), "legacy")
+        self.assertEqual(resolve_execution_path(release_root, "bridge", cohort_key="req-t10-08"), "shadow")
+
+    def test_bridge_force_legacy_rollback_is_config_only(self) -> None:
+        self._write_runtime(
+            {
+                "bridge": {"disclosure_rollout_v1": "legacy"},
+                "disclosure": {"rollout": {"bridge": "legacy", "bridge_force_legacy": True, "holodeck": "legacy"}},
+            }
+        )
+        self.assertEqual(resolve_surface_rollout_mode(self.root, "bridge"), "legacy")
+        self.assertEqual(resolve_execution_path(self.root, "bridge", cohort_key="req-rollback"), "legacy")
 
     def test_enforced_mode_uses_shared_bridge_path(self) -> None:
         self._write_runtime(
