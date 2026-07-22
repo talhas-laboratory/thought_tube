@@ -1,6 +1,6 @@
-# UMF-PATTERN-002-EMERGENT-STATE-CRITERIA: Define emergent-state criteria and evidence gates
+# UMF-PROGRAM-SURFACES: Deliver product surfaces program
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

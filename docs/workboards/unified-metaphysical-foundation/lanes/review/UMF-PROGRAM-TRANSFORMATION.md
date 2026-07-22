@@ -1,6 +1,6 @@
-# UMF-PROGRAM-KERNEL: Deliver kernel ontology program
+# UMF-PROGRAM-TRANSFORMATION: Deliver transformation dynamics program
 
-Status: ready
+Status: review
 Owner: unassigned
 Current gate: not_required
 

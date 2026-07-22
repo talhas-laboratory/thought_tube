@@ -1,6 +1,6 @@
-# UMF-PROGRAM-BRANCH: Deliver branch reasoning program
+# UMF-PROGRAM-VOCABULARY: Deliver vocabulary governance program
 
-Status: ready
+Status: review
 Owner: unassigned
 Current gate: not_required
 

@@ -1,6 +1,6 @@
-# UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE: Add the cybernetics and regulation profile
+# UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS: Define agent environment-builder disclosure contract
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

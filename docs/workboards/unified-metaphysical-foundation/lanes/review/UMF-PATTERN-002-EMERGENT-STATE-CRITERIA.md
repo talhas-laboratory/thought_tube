@@ -1,6 +1,6 @@
-# UMF-PROGRAM-VOCABULARY: Deliver vocabulary governance program
+# UMF-PATTERN-002-EMERGENT-STATE-CRITERIA: Define emergent-state criteria and evidence gates
 
-Status: ready
+Status: review
 Owner: unassigned
 Current gate: not_required
 

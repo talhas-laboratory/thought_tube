@@ -1,6 +1,6 @@
 # UMF-PROGRAM-EXECUTION: Deliver agent grounding and execution program
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

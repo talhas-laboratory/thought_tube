@@ -1,6 +1,6 @@
-# UMF-PROGRAM-CONVERSATION: Deliver conversation and formation program
+# UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER: Model structural invariants, anti-matches, and transfer
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

@@ -1,6 +1,6 @@
 # UMF-PATTERN-002-EMERGENT-STATE-CRITERIA: Define emergent-state criteria and evidence gates
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

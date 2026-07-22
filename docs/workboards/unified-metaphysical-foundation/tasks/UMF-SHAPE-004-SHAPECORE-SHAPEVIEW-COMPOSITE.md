@@ -1,6 +1,6 @@
 # UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE: Establish ShapeCore, ShapeView, and composite shape lifecycle
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

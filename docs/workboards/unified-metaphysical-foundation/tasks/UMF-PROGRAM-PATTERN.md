@@ -1,6 +1,6 @@
 # UMF-PROGRAM-PATTERN: Deliver valence, scale, and pattern program
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

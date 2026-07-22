@@ -1,6 +1,6 @@
-# UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER: Model structural invariants, anti-matches, and transfer
+# UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE: Add the cybernetics and regulation profile
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

@@ -1,6 +1,6 @@
 # UMF-PROGRAM-SHAPE: Deliver semantic addressing and shape program
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

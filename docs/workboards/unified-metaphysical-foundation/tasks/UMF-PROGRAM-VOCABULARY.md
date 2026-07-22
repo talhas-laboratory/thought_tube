@@ -1,6 +1,6 @@
 # UMF-PROGRAM-VOCABULARY: Deliver vocabulary governance program
 
-Status: ready
+Status: review
 Owner: unassigned
 Current gate: not_required
 

@@ -1,6 +1,6 @@
 # UMF-T10-WAVE-01-SHAPE-LIFECYCLE: Wave 0-1: truthful baseline + canonical Shape lifecycle
 
-Status: ready
+Status: review
 Owner: foundation-lead
 Current gate: not_required
 
