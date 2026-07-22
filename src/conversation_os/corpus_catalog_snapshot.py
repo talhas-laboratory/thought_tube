@@ -29,15 +29,28 @@ MODULE_ID = "kernel.disclosure.corpus_catalog_snapshot"
 CONTRACT_VERSION = "1.0"
 SNAPSHOT_SCHEMA_VERSION = "1.1"
 OCEAN_READINESS_CONTRACT_VERSION = "1.0"
+INDEX_CONTRACTS_VERSION = "1.0"
 # Gap-program legacy deterministic signature inventory (candidate-only evidence).
 LEGACY_DETERMINISTIC_SIGNATURE_TARGET = 454
+
+# T10-05 replaceable hybrid index ports (catalog readiness only; no full-ocean scan).
+INDEX_PORT_IDS = (
+    "exact",
+    "lexical",
+    "semantic_address",
+    "vector",
+    "graph",
+    "structural_fingerprint",
+)
 
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "SNAPSHOT_SCHEMA_VERSION",
     "OCEAN_READINESS_CONTRACT_VERSION",
+    "INDEX_CONTRACTS_VERSION",
     "LEGACY_DETERMINISTIC_SIGNATURE_TARGET",
+    "INDEX_PORT_IDS",
     "corpus_catalog_snapshot_path",
     "compute_generation_marker",
     "publish_corpus_catalog_snapshot",
@@ -302,6 +315,7 @@ def _rebuild_metadata(
         "enricher": "corpus_catalog_snapshot.enrich_catalog_ocean_readiness",
         "snapshot_schema_version": SNAPSHOT_SCHEMA_VERSION,
         "ocean_readiness_contract_version": OCEAN_READINESS_CONTRACT_VERSION,
+        "index_contracts_version": INDEX_CONTRACTS_VERSION,
         "corpus_id": str(catalog.get("corpus_id", "") or ""),
         "corpus_revision": str(catalog.get("corpus_revision", "") or ""),
         "generation_marker": generation_marker,
@@ -318,13 +332,164 @@ def _rebuild_metadata(
     }
 
 
+def _port_revision(
+    *,
+    port_id: str,
+    generation_marker: str,
+    inventory_digest: str,
+    family_digest: str,
+) -> str:
+    payload = f"{port_id}|{generation_marker}|{inventory_digest}|{family_digest}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
+
+
+def _index_contracts(
+    catalog: Mapping[str, Any],
+    *,
+    generation_marker: str,
+    inventory: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Hybrid index port readiness (T10-05) — stale/corrupt ports abstain, never widen."""
+    capabilities = catalog.get("capabilities") if isinstance(catalog.get("capabilities"), Mapping) else {}
+    available = capabilities.get("available") if isinstance(capabilities.get("available"), Mapping) else {}
+    families = inventory.get("families") if isinstance(inventory.get("families"), Mapping) else {}
+    inventory_digest = str(inventory.get("inventory_digest", "") or "")
+    counts = catalog.get("counts") if isinstance(catalog.get("counts"), Mapping) else {}
+    indexed_record_count = int(counts.get("indexed_record_count", 0) or 0)
+    fragment_count = int(counts.get("fragment_count", 0) or 0)
+    shape = catalog.get("shape_artifacts") if isinstance(catalog.get("shape_artifacts"), Mapping) else {}
+    signature_count = int(shape.get("signature_count", 0) or 0)
+
+    def family(name: str) -> Mapping[str, Any]:
+        row = families.get(name)
+        return row if isinstance(row, Mapping) else {}
+
+    def footprint_for(*family_ids: str) -> Dict[str, Any]:
+        byte_size = 0
+        present = 0
+        for family_id in family_ids:
+            row = family(family_id)
+            if row.get("present"):
+                present += 1
+                byte_size += int(row.get("byte_size", 0) or 0)
+        return {
+            "byte_size": byte_size,
+            "family_ids": list(family_ids),
+            "families_present": present,
+            "record_count_hint": indexed_record_count if "knowledge_nodes" in family_ids else fragment_count,
+        }
+
+    # Port availability derived from existing catalog capabilities + family presence.
+    # Approximate indexes may candidate-pool only; verification stays structural/intelligence.
+    port_specs: list[tuple[str, bool, tuple[str, ...], str]] = [
+        ("exact", fragment_count > 0 and bool(family("fragments").get("present")), ("fragments", "sources"), "content_hash_and_source_ref"),
+        ("lexical", bool(available.get("lexical")) and bool(family("fragments").get("present")), ("fragments",), "chunk_lexical"),
+        (
+            "semantic_address",
+            bool(available.get("semantic_address")),
+            ("semantic_capsules",),
+            "bounded_semantic_address",
+        ),
+        ("vector", bool(available.get("embedding")), ("semantic_capsules",), "embedding_vectors"),
+        (
+            "graph",
+            bool(available.get("governed_graph")) and bool(family("knowledge_nodes").get("present")),
+            ("knowledge_nodes", "shape_graph_nodes", "shape_graph_edges"),
+            "governed_graph",
+        ),
+        (
+            "structural_fingerprint",
+            bool(available.get("structural_shape_legacy")) or signature_count > 0,
+            ("shape_signatures",),
+            "structural_shape_legacy_candidate_only",
+        ),
+    ]
+
+    ports: Dict[str, Any] = {}
+    not_ready: list[str] = []
+    for port_id, ready_signal, family_ids, implementation_hint in port_specs:
+        family_digest = "|".join(str(family(fid).get("content_digest", "") or "") for fid in family_ids)
+        missing_required = [fid for fid in family_ids if fid in {"fragments", "sources"} and not family(fid).get("present")]
+        if port_id in {"exact", "lexical"} and missing_required:
+            status = "absent"
+            abstention_reason = f"index_family_absent:{','.join(missing_required)}"
+        elif ready_signal:
+            status = "ready"
+            abstention_reason = ""
+        else:
+            status = "absent"
+            abstention_reason = f"index_port_unavailable:{port_id}"
+        if status != "ready":
+            not_ready.append(port_id)
+        revision = _port_revision(
+            port_id=port_id,
+            generation_marker=generation_marker,
+            inventory_digest=inventory_digest,
+            family_digest=family_digest,
+        )
+        ports[port_id] = {
+            "port_id": port_id,
+            "replaceable": True,
+            "status": status,
+            "abstention_reason": abstention_reason or None,
+            "widens_retrieval_when_stale": False,
+            "candidate_pool_only": port_id in {"vector", "semantic_address"},
+            "similarity_cannot_merge_or_promote": True,
+            "implementation_hint": implementation_hint,
+            "incremental_ops": {
+                "add": True,
+                "update": True,
+                "tombstone": True,
+                "side_by_side_reembed": port_id == "vector",
+                "rebuild": True,
+                "rollback": True,
+            },
+            "filters_before_evidence": ["authorization", "branch", "scope", "lifecycle", "time"],
+            "revision": revision,
+            "footprint": footprint_for(*family_ids),
+            "latency": {
+                "build_ms": None,
+                "update_ms": None,
+                "query_p50_ms": None,
+                "query_p95_ms": None,
+                "query_p99_ms": None,
+                "published": False,
+                "notes": "Latency fields reserved for measured rebuilds; unpublished means not claimed.",
+            },
+            "source_bytes": {
+                "content_addressed": True,
+                "copied_into_index": False,
+            },
+        }
+
+    # Required for normal retrieval: exact + lexical must be ready when corpus has sources.
+    source_count = int(counts.get("source_count", 0) or 0)
+    required_ports = ["exact", "lexical"] if source_count > 0 else []
+    required_not_ready = [port_id for port_id in required_ports if ports.get(port_id, {}).get("status") != "ready"]
+    return {
+        "contract_version": INDEX_CONTRACTS_VERSION,
+        "complete": True,
+        "ports": ports,
+        "required_ports": required_ports,
+        "required_not_ready": required_not_ready,
+        "optional_ports": [port_id for port_id in INDEX_PORT_IDS if port_id not in required_ports],
+        "not_ready_ports": not_ready,
+        "policy": {
+            "no_full_ocean_scan": True,
+            "stale_or_corrupt_abstain": True,
+            "similarity_alone_cannot_merge_or_promote": True,
+            "approximate_indexes_candidate_pool_only": True,
+        },
+    }
+
+
 def enrich_catalog_ocean_readiness(
     root: Path,
     catalog: Mapping[str, Any],
     *,
     generation_marker: str | None = None,
 ) -> Dict[str, Any]:
-    """Attach T10-04 ocean readiness fields; demote readiness on ambiguous placement."""
+    """Attach T10-04/05 ocean + index readiness fields; demote on fail-closed gaps."""
     enriched = dict(catalog)
     marker = generation_marker or compute_generation_marker(root)
     inventory = _family_inventory(root)
@@ -333,6 +498,7 @@ def enrich_catalog_ocean_readiness(
     legacy = _legacy_signature_policy(enriched)
     dependency_indexes = _dependency_indexes(root, generation_marker=marker, inventory=inventory)
     rebuild = _rebuild_metadata(generation_marker=marker, catalog=enriched, inventory=inventory)
+    index_contracts = _index_contracts(enriched, generation_marker=marker, inventory=inventory)
 
     ocean = {
         "contract_version": OCEAN_READINESS_CONTRACT_VERSION,
@@ -343,6 +509,7 @@ def enrich_catalog_ocean_readiness(
         "dependency_indexes": dependency_indexes,
         "seed_pilot": seed_pilot,
         "rebuild": rebuild,
+        "index_contracts": index_contracts,
     }
     enriched["ocean_readiness"] = ocean
 
@@ -355,10 +522,54 @@ def enrich_catalog_ocean_readiness(
         staleness = dict(enriched.get("staleness") or {})
         staleness["ambiguous_placement"] = True
         enriched["staleness"] = staleness
+    elif index_contracts.get("required_not_ready") and enriched.get("readiness_state") == "ready":
+        enriched["readiness_state"] = "stale"
+        enriched["retrieval_allowed"] = False
+        enriched["quality_claims_allowed"] = False
+        enriched["abstention_reason"] = "corpus_index_not_ready:" + ",".join(
+            index_contracts["required_not_ready"]
+        )
+        staleness = dict(enriched.get("staleness") or {})
+        staleness["required_indexes_not_ready"] = True
+        enriched["staleness"] = staleness
     return enriched
 
 
 def _empty_ocean_readiness(*, generation_marker: str = "", complete: bool = False) -> Dict[str, Any]:
+    empty_ports = {
+        port_id: {
+            "port_id": port_id,
+            "replaceable": True,
+            "status": "absent",
+            "abstention_reason": f"index_port_unavailable:{port_id}",
+            "widens_retrieval_when_stale": False,
+            "candidate_pool_only": port_id in {"vector", "semantic_address"},
+            "similarity_cannot_merge_or_promote": True,
+            "implementation_hint": "",
+            "incremental_ops": {
+                "add": True,
+                "update": True,
+                "tombstone": True,
+                "side_by_side_reembed": port_id == "vector",
+                "rebuild": True,
+                "rollback": True,
+            },
+            "filters_before_evidence": ["authorization", "branch", "scope", "lifecycle", "time"],
+            "revision": "",
+            "footprint": {"byte_size": 0, "family_ids": [], "families_present": 0, "record_count_hint": 0},
+            "latency": {
+                "build_ms": None,
+                "update_ms": None,
+                "query_p50_ms": None,
+                "query_p95_ms": None,
+                "query_p99_ms": None,
+                "published": False,
+                "notes": "Latency fields reserved for measured rebuilds; unpublished means not claimed.",
+            },
+            "source_bytes": {"content_addressed": True, "copied_into_index": False},
+        }
+        for port_id in INDEX_PORT_IDS
+    }
     return {
         "contract_version": OCEAN_READINESS_CONTRACT_VERSION,
         "complete": complete,
@@ -413,6 +624,21 @@ def _empty_ocean_readiness(*, generation_marker: str = "", complete: bool = Fals
             "transformation_manifest": {},
             "content_digest": "",
             "notes": "Snapshot absent or incomplete; rebuild required.",
+        },
+        "index_contracts": {
+            "contract_version": INDEX_CONTRACTS_VERSION,
+            "complete": False,
+            "ports": empty_ports,
+            "required_ports": [],
+            "required_not_ready": [],
+            "optional_ports": list(INDEX_PORT_IDS),
+            "not_ready_ports": list(INDEX_PORT_IDS),
+            "policy": {
+                "no_full_ocean_scan": True,
+                "stale_or_corrupt_abstain": True,
+                "similarity_alone_cannot_merge_or_promote": True,
+                "approximate_indexes_candidate_pool_only": True,
+            },
         },
     }
 
@@ -535,6 +761,7 @@ def _ocean_readiness_complete(catalog: Mapping[str, Any]) -> bool:
     legacy = ocean.get("legacy_signatures")
     deps = ocean.get("dependency_indexes")
     rebuild = ocean.get("rebuild")
+    indexes = ocean.get("index_contracts")
     if not isinstance(inventory, Mapping) or not inventory.get("inventory_digest"):
         return False
     if not isinstance(legacy, Mapping) or not bool(legacy.get("candidate_only")):
@@ -543,6 +770,14 @@ def _ocean_readiness_complete(catalog: Mapping[str, Any]) -> bool:
         return False
     if not isinstance(rebuild, Mapping) or not bool(rebuild.get("reproducible")):
         return False
+    if not isinstance(indexes, Mapping) or not bool(indexes.get("complete")):
+        return False
+    ports = indexes.get("ports")
+    if not isinstance(ports, Mapping):
+        return False
+    for port_id in INDEX_PORT_IDS:
+        if port_id not in ports:
+            return False
     return True
 
 

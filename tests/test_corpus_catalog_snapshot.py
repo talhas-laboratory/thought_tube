@@ -7,6 +7,8 @@ from pathlib import Path
 from unittest import mock
 
 from conversation_os.corpus_catalog_snapshot import (
+    INDEX_CONTRACTS_VERSION,
+    INDEX_PORT_IDS,
     LEGACY_DETERMINISTIC_SIGNATURE_TARGET,
     OCEAN_READINESS_CONTRACT_VERSION,
     SNAPSHOT_SCHEMA_VERSION,
@@ -267,3 +269,43 @@ class CorpusCatalogSnapshotTestCase(unittest.TestCase):
             second["ocean_readiness"]["rebuild"]["content_digest"],
         )
         self.assertEqual(first["readiness_state"], "ready")
+
+    def test_publish_attaches_index_contracts(self) -> None:
+        self._write_ready_fixture()
+        published = publish_corpus_catalog_snapshot(self.root)
+        indexes = published["catalog"]["ocean_readiness"]["index_contracts"]
+        self.assertEqual(indexes["contract_version"], INDEX_CONTRACTS_VERSION)
+        self.assertTrue(indexes["complete"])
+        self.assertTrue(indexes["policy"]["no_full_ocean_scan"])
+        self.assertTrue(indexes["policy"]["stale_or_corrupt_abstain"])
+        self.assertTrue(indexes["policy"]["similarity_alone_cannot_merge_or_promote"])
+        for port_id in INDEX_PORT_IDS:
+            self.assertIn(port_id, indexes["ports"])
+            port = indexes["ports"][port_id]
+            self.assertTrue(port["replaceable"])
+            self.assertFalse(port["widens_retrieval_when_stale"])
+            self.assertTrue(port["incremental_ops"]["tombstone"])
+            self.assertIn("authorization", port["filters_before_evidence"])
+            self.assertFalse(port["source_bytes"]["copied_into_index"])
+            self.assertFalse(port["latency"]["published"])
+        self.assertEqual(indexes["ports"]["exact"]["status"], "ready")
+        self.assertEqual(indexes["ports"]["lexical"]["status"], "ready")
+        self.assertEqual(indexes["required_not_ready"], [])
+        self.assertEqual(published["catalog"]["readiness_state"], "ready")
+
+    def test_request_path_abstains_when_index_contracts_incomplete(self) -> None:
+        self._write_ready_fixture()
+        publish_corpus_catalog_snapshot(self.root)
+        path = corpus_catalog_snapshot_path(self.root)
+        payload = read_json(path, default={}) or {}
+        catalog = dict(payload.get("catalog") or {})
+        ocean = dict(catalog.get("ocean_readiness") or {})
+        ocean.pop("index_contracts", None)
+        catalog["ocean_readiness"] = ocean
+        payload["catalog"] = catalog
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        invalidate_corpus_catalog_cache(self.root)
+
+        served = load_corpus_catalog_for_request(self.root)
+        self.assertEqual(served["abstention_reason"], "corpus_ocean_not_ready")
+        self.assertFalse(served["retrieval_allowed"])

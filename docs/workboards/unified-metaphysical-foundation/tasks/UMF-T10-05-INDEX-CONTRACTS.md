@@ -1,6 +1,6 @@
 # UMF-T10-05-INDEX-CONTRACTS: T10-05 Index / retrieval contracts
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 
