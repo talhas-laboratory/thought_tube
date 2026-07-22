@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 2673dd90a74f24b4a2b60ebfe20b9eda6c1a2892b23ee94dd3ea252d7d40b4ea -->
+<!-- canonical_revision: f036d5d3cd5285915b9a7265f7f4c54f786fe32506b23ca8f7e899bb4990cf54 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:54:06+00:00 -->
+<!-- generated_at: 2026-07-22T14:55:08+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- Focused retrieval/evidence authorization suites passed; task is in review with evidence under derived/T10-12-AUTH-PRIVACY.md.
 - T10-08 Bridge shadow slice complete.
 - T10-14 first benchmark complete.
 - T10-07 retrieval repair complete.
@@ -29,7 +30,6 @@ Select a task to receive a recommended next action.
 - Focused suites passed; task in review. Golden trace is next.
 - Focused suites passed; task in review.
 - Focused verification passed; task moved to review.
-- Repair canonical Shape authority to profile:shape
 
 ## Reasoning
 
