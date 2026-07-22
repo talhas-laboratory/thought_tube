@@ -38,8 +38,14 @@ PUBLIC_API = (
     "LocalRecordingCanonicalPort",
     "canonical_projection_from_records",
     "map_population_candidate_to_proposal",
+    "live_canonical_port",
 )
 __all__ = list(PUBLIC_API)
+
+
+def live_canonical_port(root: Path, *, bootstrap_profile: bool = True) -> FoundationCanonicalPort:
+    """Factory for the deployed apply path after human approval (T10-03)."""
+    return FoundationCanonicalPort(Path(root), bootstrap_profile=bootstrap_profile)
 
 
 class CanonicalShapePort(Protocol):
@@ -91,12 +97,29 @@ def _closed_evidence_ref(ref: Mapping[str, Any]) -> Optional[str]:
     return None
 
 
+def _coerce_relation_item(item: Any) -> Any:
+    if isinstance(item, Mapping):
+        return item
+    text = str(item or "").strip()
+    if text.startswith("{") and text.endswith("}"):
+        try:
+            import ast
+
+            parsed = ast.literal_eval(text)
+            if isinstance(parsed, Mapping):
+                return parsed
+        except (SyntaxError, ValueError):
+            return item
+    return item
+
+
 def _relation_entries(raw_relations: list[Any]) -> tuple[list[dict[str, Any]], list[str], list[str]]:
     """Split relations into closed refs vs unresolved labels. Never merge by label alone."""
     closed: list[dict[str, Any]] = []
     closed_refs: list[str] = []
     unresolved_labels: list[str] = []
-    for item in raw_relations:
+    for raw in raw_relations:
+        item = _coerce_relation_item(raw)
         if isinstance(item, Mapping):
             relation_id = str(item.get("relation_id") or item.get("id") or "").strip()
             participants = [
@@ -242,6 +265,16 @@ def map_population_candidate_to_proposal(
         {"id": rel["relation_id"], "relation_type": rel["relation_type"], "participants": rel["participant_refs"]}
         for rel in relations
     ]
+    if not edges:
+        # ShapeView contract requires non-empty edges; evidence-bound placeholder keeps closed-only semantics.
+        anchor = closed_evidence_refs[0] if closed_evidence_refs else f"unresolved:{population.candidate_id}"
+        edges = [
+            {
+                "id": f"edge:evidence:{population.candidate_id}",
+                "relation_type": "evidence_bound",
+                "participants": [anchor],
+            }
+        ]
     groups = [{"id": f"dimension:{dim}", "members": []} for dim in population.dimensions] or [
         {"id": "dimension:unspecified", "members": []}
     ]

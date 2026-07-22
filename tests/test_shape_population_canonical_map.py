@@ -186,3 +186,168 @@ def test_fail_closed_still_blocks_apply(tmp_path: Path):
     assert validation["valid"] is False
     assert receipt["applied"] is False
     assert receipt["status"] == "canonical_profile_unavailable"
+
+
+def test_post_ingest_hook_and_operator_controls(tmp_path: Path):
+    from conversation_os.shape_population.orchestrator import build_post_ingest_hook
+    from conversation_os.shape_population.storage import ShapePopulationStore
+    from conversation_os.vault_ingest import ingest_text_content
+
+    store = ShapePopulationStore(tmp_path)
+    hook = build_post_ingest_hook(tmp_path, store=store)
+    result = ingest_text_content(
+        tmp_path,
+        title="Live hook source",
+        content="A mechanism appears when boundary B holds.\n",
+        source_ref="manual://live-hook-1",
+        post_ingest_hooks=[hook],
+    )
+    assert result["source_id"]
+    assert result["post_ingest"]["receipts"][0]["ok"] is True
+    job = result["post_ingest"]["receipts"][0]["result"]
+    assert job["state"] == "queued"
+
+    store.pause_worker(reason="test_pause")
+    assert store.claim_job(lease_owner="worker-a") is None
+    store.resume_worker(reason="test_resume")
+    claimed = store.claim_job(lease_owner="worker-a")
+    assert claimed is not None
+    assert claimed["job_id"] == job["job_id"]
+    cancelled = store.cancel_job(claimed["job_id"], reason="test_cancel")
+    assert cancelled["state"] == "cancelled"
+    retried = store.retry_job(claimed["job_id"], reason="test_retry")
+    assert retried["state"] == "queued"
+
+
+def test_apply_approved_promotion_live_produces_owner_receipt(tmp_path: Path):
+    from conversation_os.shape_population.candidate_submission import submit_candidate
+    from conversation_os.shape_population.critique import submit_evaluation
+    from conversation_os.shape_population.evidence import build_evidence_packet
+    from conversation_os.shape_population.execution_context import agent_context, human_context
+    from conversation_os.shape_population.identities import (
+        CRITIC_IDENTITY,
+        EVALUATOR_IDENTITY,
+        HUMAN_APPROVER_ROLE,
+        PROPOSER_IDENTITY,
+    )
+    from conversation_os.shape_population.normalization import normalize_source
+    from conversation_os.shape_population.orchestrator import apply_approved_promotion_live
+    from conversation_os.shape_population.promotion import record_human_decision, request_promotion
+    from conversation_os.shape_population.storage import ShapePopulationStore
+
+    store = ShapePopulationStore(tmp_path)
+    normalized = normalize_source(
+        {"content": "A mechanism appears when boundary B holds.\n", "modality": "plain_text"},
+        store=store,
+    )
+    ctx_inq = agent_context(
+        PROPOSER_IDENTITY,
+        capabilities={"shape.evidence.inquire", "shape.candidate.submit"},
+    )
+    packet = build_evidence_packet(
+        {
+            "segment_ids": [seg.segment_id for seg in normalized.segments],
+            "evidence_inquiry": {"question": "shape?", "requested_by": PROPOSER_IDENTITY},
+        },
+        store=store,
+        context=ctx_inq,
+    )
+    refs = []
+    for block in packet.blocks:
+        segment = store.get_segment(block.segment_id)
+        refs.append(
+            {
+                "packet_id": packet.packet_id,
+                "block_id": block.block_id,
+                "source_id": block.source_id,
+                "segment_id": block.segment_id,
+                "char_start": block.char_start,
+                "char_end": block.char_end,
+                "text_sha256": segment["text_sha256"],
+            }
+        )
+    cand = submit_candidate(
+        {
+            "packet_id": packet.packet_id,
+            "title": "Boundary mechanism",
+            "statement": "A mechanism appears when boundary B holds.",
+            "boundary": "boundary B",
+            "mechanism": "appearance under B",
+            "dimensions": ["causality"],
+            "relations": [
+                {
+                    "relation_id": "relation:mechanism-boundary",
+                    "relation_type": "appears_when",
+                    "participant_refs": ["referent:mechanism", "referent:boundary"],
+                }
+            ],
+            "evidence_refs": refs,
+            "counter_hypotheses": ["coincidence"],
+            "uncertainty": "low",
+            "recommended_disposition": "proposed",
+            "idempotency_key": "live-cand-1",
+        },
+        store=store,
+        context=agent_context(
+            PROPOSER_IDENTITY,
+            capabilities={"shape.candidate.submit"},
+            run_id="live-1",
+            model_id="m",
+            prompt_version="p",
+        ),
+    )["candidate"]
+    evaluation = submit_evaluation(
+        {
+            "candidate_id": cand["candidate_id"],
+            "disposition": "recommended",
+            "critique": "ok",
+            "evidence_refs": refs,
+            "uncertainty": "low",
+            "relationship_findings": [],
+            "idempotency_key": "live-eval-1",
+        },
+        store=store,
+        context=agent_context(
+            CRITIC_IDENTITY,
+            capabilities={"shape.evaluation.submit", "shape.comparison.read"},
+            run_id="live-2",
+            model_id="m",
+            prompt_version="p",
+        ),
+    )["evaluation"]
+    requested = request_promotion(
+        cand["candidate_id"],
+        evaluation["evaluation_id"],
+        "ready for live apply",
+        refs,
+        store=store,
+        context=agent_context(
+            EVALUATOR_IDENTITY,
+            capabilities={"shape.promotion.request"},
+            run_id="live-3",
+            model_id="m",
+            prompt_version="p",
+        ),
+        idempotency_key="live-prom-1",
+    )
+    request_id = requested["request"]["request_id"]
+    record_human_decision(
+        request_id,
+        store=store,
+        approval_reason="approved for live foundation apply",
+        decision="approved",
+        context=human_context(HUMAN_APPROVER_ROLE, capabilities={"shape.promotion.approve"}),
+    )
+    applied = apply_approved_promotion_live(
+        request_id,
+        store=store,
+        context=human_context(
+            "shape.canonical_authority",
+            capabilities={"shape.promotion.apply", "shape.promotion.approve"},
+        ),
+        idempotency_key="live-apply-1",
+    )
+    assert applied["candidate"]["status"] == "canonical"
+    assert applied["canonical_receipt"]["applied"] is True
+    assert applied["canonical_receipt"]["owner"] == "FoundationCanonicalPort"
+    assert applied["projection"]["shape_core"]["closed_complete"] is True

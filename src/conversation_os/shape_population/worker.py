@@ -9,12 +9,17 @@ from typing import Any
 
 from conversation_os.source_content_store import SourceContentStore
 from conversation_os.shape_population.model_gateway import OpenClawModelClient, ShapeModelGateway, StubModelClient
-from conversation_os.shape_population.orchestrator import ShapePopulationOrchestrator, enqueue_after_ingest
+from conversation_os.shape_population.orchestrator import (
+    ShapePopulationOrchestrator,
+    apply_approved_promotion_live,
+    build_post_ingest_hook,
+    enqueue_after_ingest,
+)
 from conversation_os.shape_population.storage import ShapePopulationStore
 from conversation_os.storage import repo_root_from
 
 MODULE_ID = "kernel.shape_population.worker"
-CONTRACT_VERSION = "1.0.0"
+CONTRACT_VERSION = "1.1.0"
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
@@ -65,8 +70,21 @@ def run_worker(
     lease_owner: str = "shape-population-worker",
 ) -> dict[str, Any]:
     worker = build_worker(root, gateway=gateway, lease_owner=lease_owner)
+    controls = worker.store.get_operator_controls()
+    if controls.get("paused"):
+        return {
+            "processed": 0,
+            "results": [],
+            "lease_owner": lease_owner,
+            "paused": True,
+            "controls": controls,
+        }
     results: list[dict[str, Any]] = []
     for _ in range(max(0, int(limit))):
+        if worker.store.get_operator_controls().get("drain") and not results:
+            # Drain: do not start claiming once drain is set mid-loop after progress;
+            # initial claim_job already returns None when drain is set.
+            pass
         outcome = worker.run_once()
         if outcome is None:
             break
@@ -75,6 +93,7 @@ def run_worker(
         "processed": len(results),
         "results": results,
         "lease_owner": lease_owner,
+        "controls": worker.store.get_operator_controls(),
     }
 
 
@@ -92,9 +111,36 @@ def main(argv: list[str] | None = None) -> int:
     enqueue.add_argument("--source-id", required=True)
     enqueue.add_argument("--evaluate", action="store_true")
 
-    status = sub.add_parser("status", help="Inspect a job by id")
+    status = sub.add_parser("status", help="Inspect worker controls and optional job id")
     status.add_argument("--root", default="")
-    status.add_argument("--job-id", required=True)
+    status.add_argument("--job-id", default="")
+
+    pause = sub.add_parser("pause", help="Pause claiming new jobs")
+    pause.add_argument("--root", default="")
+    pause.add_argument("--reason", default="operator_pause")
+
+    resume = sub.add_parser("resume", help="Resume claiming jobs")
+    resume.add_argument("--root", default="")
+    resume.add_argument("--reason", default="operator_resume")
+
+    drain = sub.add_parser("drain", help="Drain: stop claiming new jobs")
+    drain.add_argument("--root", default="")
+    drain.add_argument("--reason", default="operator_drain")
+
+    jobs = sub.add_parser("jobs", help="List recent jobs")
+    jobs.add_argument("--root", default="")
+    jobs.add_argument("--state", default="")
+    jobs.add_argument("--limit", type=int, default=20)
+
+    cancel = sub.add_parser("cancel", help="Cancel a job")
+    cancel.add_argument("--root", default="")
+    cancel.add_argument("--job-id", required=True)
+    cancel.add_argument("--reason", default="operator_cancel")
+
+    retry = sub.add_parser("retry", help="Requeue a failed/cancelled/dead-letter job")
+    retry.add_argument("--root", default="")
+    retry.add_argument("--job-id", required=True)
+    retry.add_argument("--reason", default="operator_retry")
 
     args = parser.parse_args(argv)
     root = Path(args.root) if args.root else repo_root_from(Path.cwd())
@@ -110,20 +156,44 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     if args.command == "status":
-        job = store.get_job(args.job_id) if hasattr(store, "get_job") else None
-        if job is None and hasattr(store, "_job_from_row"):
-            with store._read_conn() as conn:  # noqa: SLF001 - CLI inspection helper
-                row = conn.execute(
-                    "SELECT * FROM population_jobs WHERE job_id = ?",
-                    (args.job_id,),
-                ).fetchone()
-            job = None if row is None else store._job_from_row(row)  # noqa: SLF001
-        print(json.dumps(job or {"error": "job_not_found", "job_id": args.job_id}, indent=2, sort_keys=True))
-        return 0 if job is not None else 1
+        payload: dict[str, Any] = {
+            "controls": store.get_operator_controls(),
+            "hook": "build_post_ingest_hook",
+            "live_apply": "apply_approved_promotion_live",
+        }
+        if args.job_id:
+            payload["job"] = store.get_job(args.job_id) or {
+                "error": "job_not_found",
+                "job_id": args.job_id,
+            }
+            print(json.dumps(payload, indent=2, sort_keys=True))
+            return 0 if payload["job"].get("job_id") else 1
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
+    if args.command == "pause":
+        print(json.dumps(store.pause_worker(reason=args.reason), indent=2, sort_keys=True))
+        return 0
+    if args.command == "resume":
+        print(json.dumps(store.resume_worker(reason=args.reason), indent=2, sort_keys=True))
+        return 0
+    if args.command == "drain":
+        print(json.dumps(store.drain_worker(reason=args.reason), indent=2, sort_keys=True))
+        return 0
+    if args.command == "jobs":
+        print(json.dumps(store.list_jobs(state=args.state, limit=args.limit), indent=2, sort_keys=True))
+        return 0
+    if args.command == "cancel":
+        print(json.dumps(store.cancel_job(args.job_id, reason=args.reason), indent=2, sort_keys=True))
+        return 0
+    if args.command == "retry":
+        print(json.dumps(store.retry_job(args.job_id, reason=args.reason), indent=2, sort_keys=True))
+        return 0
     if args.command == "worker":
         outcome = run_worker(root, limit=args.limit, lease_owner=args.lease_owner)
         print(json.dumps(outcome, indent=2, sort_keys=True))
         return 0
+    # Keep symbols referenced for operators/docs.
+    _ = (build_post_ingest_hook, apply_approved_promotion_live, StubModelClient)
     parser.error(f"unknown command: {args.command}")
     return 2
 

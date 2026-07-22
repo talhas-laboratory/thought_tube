@@ -5,7 +5,9 @@ from __future__ import annotations
 from conversation_os.shape_population.candidate_submission import proposer_tool_surface, submit_candidate
 from conversation_os.shape_population.canonical_port import (
     FailClosedCanonicalPort,
+    FoundationCanonicalPort,
     LocalRecordingCanonicalPort,
+    live_canonical_port,
 )
 from conversation_os.shape_population.comparison import find_neighbors
 from conversation_os.shape_population.contracts import (
@@ -37,7 +39,13 @@ from conversation_os.shape_population.identities import (
 )
 from conversation_os.shape_population.model_gateway import ShapeModelGateway, StubModelClient
 from conversation_os.shape_population.normalization import normalize_source
-from conversation_os.shape_population.orchestrator import ShapePopulationOrchestrator, enqueue_after_ingest
+from conversation_os.shape_population.orchestrator import (
+    ShapePopulationOrchestrator,
+    apply_approved_promotion_live,
+    build_post_ingest_hook,
+    enqueue_after_ingest,
+    load_shape_population_runtime_config,
+)
 from conversation_os.shape_population.promotion import apply_promotion, request_promotion, rollback_promotion
 from conversation_os.shape_population.storage import PopulationStore, ShapePopulationStore
 from conversation_os.shape_population.worker import build_worker, run_worker
@@ -78,8 +86,13 @@ PUBLIC_API = (
     "StubModelClient",
     "ShapePopulationOrchestrator",
     "enqueue_after_ingest",
+    "build_post_ingest_hook",
+    "apply_approved_promotion_live",
+    "load_shape_population_runtime_config",
     "FailClosedCanonicalPort",
+    "FoundationCanonicalPort",
     "LocalRecordingCanonicalPort",
+    "live_canonical_port",
     "proposer_tool_surface",
     "critic_tool_surface",
     "population_tool_surface",

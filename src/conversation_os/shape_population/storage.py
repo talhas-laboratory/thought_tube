@@ -947,6 +947,10 @@ class ShapePopulationStore:
         return self._write(write)
 
     def claim_job(self, *, lease_owner: str, lease_seconds: int = 300) -> Optional[dict[str, Any]]:
+        controls = self.get_operator_controls()
+        if controls.get("paused") or controls.get("drain"):
+            return None
+
         def write(conn: sqlite3.Connection) -> Optional[dict[str, Any]]:
             now = self.now()
             row = conn.execute(
@@ -980,6 +984,119 @@ class ShapePopulationStore:
             claimed = conn.execute("SELECT * FROM population_jobs WHERE job_id = ?", (row["job_id"],)).fetchone()
             assert claimed is not None
             return self._job_from_row(claimed)
+
+        return self._write(write)
+
+    def _operator_controls_path(self) -> Path:
+        return self.base / "operator_controls.json"
+
+    def get_operator_controls(self) -> dict[str, Any]:
+        path = self._operator_controls_path()
+        if not path.exists():
+            return {"paused": False, "drain": False, "updated_at": None}
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {"paused": False, "drain": False, "updated_at": None, "corrupt": True}
+        return {
+            "paused": bool(payload.get("paused")),
+            "drain": bool(payload.get("drain")),
+            "updated_at": payload.get("updated_at"),
+            "updated_by": payload.get("updated_by") or "",
+            "reason": payload.get("reason") or "",
+        }
+
+    def set_operator_controls(
+        self,
+        *,
+        paused: bool | None = None,
+        drain: bool | None = None,
+        updated_by: str = "",
+        reason: str = "",
+    ) -> dict[str, Any]:
+        current = self.get_operator_controls()
+        payload = {
+            "paused": current["paused"] if paused is None else bool(paused),
+            "drain": current["drain"] if drain is None else bool(drain),
+            "updated_at": self.now(),
+            "updated_by": updated_by or current.get("updated_by") or "",
+            "reason": reason or current.get("reason") or "",
+        }
+        self._operator_controls_path().write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return dict(payload)
+
+    def pause_worker(self, *, updated_by: str = "", reason: str = "operator_pause") -> dict[str, Any]:
+        return self.set_operator_controls(paused=True, updated_by=updated_by, reason=reason)
+
+    def resume_worker(self, *, updated_by: str = "", reason: str = "operator_resume") -> dict[str, Any]:
+        return self.set_operator_controls(paused=False, drain=False, updated_by=updated_by, reason=reason)
+
+    def drain_worker(self, *, updated_by: str = "", reason: str = "operator_drain") -> dict[str, Any]:
+        return self.set_operator_controls(drain=True, updated_by=updated_by, reason=reason)
+
+    def record_enqueue_failure(self, *, source_id: str, error: str) -> dict[str, Any]:
+        path = self.base / "enqueue_failures.jsonl"
+        row = {
+            "source_id": source_id,
+            "error": str(error),
+            "recorded_at": self.now(),
+        }
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(row, sort_keys=True) + "\n")
+        return row
+
+    def get_job(self, job_id: str) -> Optional[dict[str, Any]]:
+        with self._read_conn() as conn:
+            row = conn.execute("SELECT * FROM population_jobs WHERE job_id = ?", (job_id,)).fetchone()
+        return None if row is None else self._job_from_row(row)
+
+    def list_jobs(self, *, state: str = "", limit: int = 100) -> list[dict[str, Any]]:
+        query = "SELECT * FROM population_jobs"
+        params: list[Any] = []
+        if state:
+            query += " WHERE state = ?"
+            params.append(state)
+        query += " ORDER BY updated_at DESC, created_at DESC LIMIT ?"
+        params.append(max(1, int(limit)))
+        with self._read_conn() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+        return [self._job_from_row(row) for row in rows]
+
+    def cancel_job(self, job_id: str, *, reason: str = "operator_cancel") -> dict[str, Any]:
+        job = self.get_job(job_id)
+        if job is None:
+            raise RuntimeError(f"unknown population job: {job_id}")
+        if job.get("state") in TERMINAL_JOB_STATES:
+            return dict(job)
+        return self._finish_job(job_id, "cancelled", reason, {"cancelled": True, "reason": reason}, "")
+
+    def retry_job(self, job_id: str, *, reason: str = "operator_retry") -> dict[str, Any]:
+        def write(conn: sqlite3.Connection) -> dict[str, Any]:
+            row = conn.execute("SELECT * FROM population_jobs WHERE job_id = ?", (job_id,)).fetchone()
+            if row is None:
+                raise RuntimeError(f"unknown population job: {job_id}")
+            if str(row["state"]) not in {"failed", "dead_letter", "cancelled", "retryable"}:
+                raise RuntimeError(f"cannot retry job in state {row['state']}")
+            now = self.now()
+            conn.execute(
+                """
+                UPDATE population_jobs
+                SET state = 'queued',
+                    lease_owner = NULL,
+                    lease_expires_at = NULL,
+                    next_attempt_at = NULL,
+                    last_error = ?,
+                    updated_at = ?
+                WHERE job_id = ?
+                """,
+                (reason, now, job_id),
+            )
+            refreshed = conn.execute("SELECT * FROM population_jobs WHERE job_id = ?", (job_id,)).fetchone()
+            assert refreshed is not None
+            return self._job_from_row(refreshed)
 
         return self._write(write)
 
