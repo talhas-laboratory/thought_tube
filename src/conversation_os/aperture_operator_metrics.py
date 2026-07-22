@@ -56,6 +56,7 @@ PUBLIC_API = (
     "certify_baseline_snapshot",
     "load_published_baseline_snapshots",
     "load_surface_rollout_modes",
+    "build_lifecycle_observability_view",
     "compare_surfaces_by_revision",
     "build_operator_view",
     "render_operator_view_summary",
@@ -377,6 +378,97 @@ def compare_surfaces_by_revision(
             for row in comparisons
             if not bool(row.get("eligible_for_release_claims"))
         ],
+    }
+
+
+def build_lifecycle_observability_view(
+    lifecycle_events: Iterable[Mapping[str, Any]],
+    *,
+    minimum_aggregate_count: int = MINIMUM_AGGREGATE_COUNT,
+    stuck_after_seconds: int = 900,
+) -> Dict[str, Any]:
+    events = [dict(row) for row in lifecycle_events]
+    by_family: Dict[str, int] = {}
+    by_status: Dict[str, int] = {}
+    repair_paths: Dict[str, int] = {}
+    drift_signals: Dict[str, int] = {}
+    expected_abstentions = 0
+    infrastructure_failures = 0
+    stale_index_count = 0
+    stuck_count = 0
+    for row in events:
+        family = str(row.get("event_family") or row.get("family") or "unknown")
+        status = str(row.get("status") or row.get("result_status") or "unknown")
+        _increment(by_family, family)
+        _increment(by_status, status)
+        if status.startswith("abstained") or status.startswith("empty_") or bool(row.get("expected_abstention")):
+            expected_abstentions += 1
+        if status in {"infrastructure_failure", "failed", "error"} or bool(row.get("infrastructure_failure")):
+            infrastructure_failures += 1
+        if status == "stale_index" or bool(row.get("stale_index")):
+            stale_index_count += 1
+        try:
+            age_seconds = int(row.get("age_seconds", 0) or 0)
+        except (TypeError, ValueError):
+            age_seconds = 0
+        if status in {"queued", "claimed", "retryable"} and age_seconds > stuck_after_seconds:
+            stuck_count += 1
+        repair_code = str(row.get("repair_path") or row.get("repair_code") or "").strip()
+        if repair_code:
+            _increment(repair_paths, repair_code)
+        drift = row.get("drift")
+        if isinstance(drift, Mapping):
+            for key, value in drift.items():
+                if value:
+                    _increment(drift_signals, str(key))
+        elif row.get("drift_signal"):
+            _increment(drift_signals, str(row.get("drift_signal")))
+
+    alerts = {
+        "expected_abstention": {
+            "count": expected_abstentions,
+            "severity": "info" if expected_abstentions else "none",
+        },
+        "infrastructure_failure": {
+            "count": infrastructure_failures,
+            "severity": "critical" if infrastructure_failures else "none",
+        },
+        "stale_index": {
+            "count": stale_index_count,
+            "severity": "warning" if stale_index_count else "none",
+        },
+        "stuck_job": {
+            "count": stuck_count,
+            "severity": "warning" if stuck_count else "none",
+        },
+    }
+    return {
+        "schema_version": OPERATOR_VIEW_VERSION,
+        "read_only": True,
+        "mutation_paths": [],
+        "privacy_mode": "aggregate_codes_only",
+        "sensitive_fields_excluded": [
+            "source_ref",
+            "source_text",
+            "evidence_text",
+            "included_block_ids",
+            "effective_grant",
+            "principal_id",
+        ],
+        "event_count": len(events),
+        "minimum_aggregate_count": minimum_aggregate_count,
+        "by_event_family": _privacy_safe_surface_counts(by_family, minimum=minimum_aggregate_count),
+        "by_status": dict(sorted(by_status.items())),
+        "alerts": alerts,
+        "repair_paths": dict(sorted(repair_paths.items())),
+        "drift_signals": dict(sorted(drift_signals.items())),
+        "control_surface": {
+            "pause": "authorized_operator_control",
+            "drain": "authorized_operator_control",
+            "replay": "authorized_repair_control",
+            "reindex": "authorized_repair_control",
+            "rollback": "authorized_release_control",
+        },
     }
 
 

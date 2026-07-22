@@ -1,7 +1,7 @@
 # UMF-T10-16-OBSERVABILITY: T10-16 Observability
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope

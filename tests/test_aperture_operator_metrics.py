@@ -9,6 +9,7 @@ from pathlib import Path
 from conversation_os.aperture_operator_metrics import (
     MINIMUM_AGGREGATE_COUNT,
     aggregate_receipt_metrics,
+    build_lifecycle_observability_view,
     build_operator_view,
     certify_baseline_snapshot,
     compare_surfaces_by_revision,
@@ -210,6 +211,54 @@ class ApertureOperatorMetricsTestCase(unittest.TestCase):
         self.assertIn("## Surfaces", summary)
         self.assertIn("## Result statuses", summary)
         self.assertIn("## Baselines", summary)
+
+    def test_lifecycle_observability_view_is_privacy_safe(self) -> None:
+        view = build_lifecycle_observability_view(
+            [
+                {
+                    "event_family": "retrieval",
+                    "status": "abstained_dependency_not_ready",
+                    "source_ref": "fixture:hidden-source",
+                    "evidence_text": "hidden evidence",
+                    "expected_abstention": True,
+                },
+                {
+                    "event_family": "index",
+                    "status": "stale_index",
+                    "repair_path": "reindex_corpus_revision",
+                    "stale_index": True,
+                    "principal_id": "admin-secret",
+                    "drift": {"embedding": True, "policy": False},
+                },
+                {
+                    "event_family": "job",
+                    "status": "claimed",
+                    "age_seconds": 1200,
+                    "repair_path": "retry_job",
+                },
+                {
+                    "event_family": "model_run",
+                    "status": "infrastructure_failure",
+                    "repair_path": "retry_with_timeout_budget",
+                },
+            ],
+            minimum_aggregate_count=2,
+        )
+
+        self.assertTrue(view["read_only"])
+        self.assertEqual(view["mutation_paths"], [])
+        self.assertEqual(view["privacy_mode"], "aggregate_codes_only")
+        self.assertEqual(view["alerts"]["expected_abstention"]["severity"], "info")
+        self.assertEqual(view["alerts"]["infrastructure_failure"]["severity"], "critical")
+        self.assertEqual(view["alerts"]["stale_index"]["severity"], "warning")
+        self.assertEqual(view["alerts"]["stuck_job"]["severity"], "warning")
+        self.assertIn("reindex_corpus_revision", view["repair_paths"])
+        self.assertEqual(view["drift_signals"], {"embedding": 1})
+        serialized = json.dumps(view)
+        self.assertNotIn("fixture:hidden-source", serialized)
+        self.assertNotIn("hidden evidence", serialized)
+        self.assertNotIn("admin-secret", serialized)
+        self.assertIn("below_minimum_aggregate_count", serialized)
 
     def test_compare_surfaces_by_revision_without_receipts(self) -> None:
         snapshots = load_published_baseline_snapshots(Path(__file__).resolve().parents[1])
