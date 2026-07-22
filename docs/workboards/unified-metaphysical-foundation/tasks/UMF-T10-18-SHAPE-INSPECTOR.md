@@ -1,7 +1,7 @@
 # UMF-T10-18-SHAPE-INSPECTOR: T10-18 Inspectable Shapes and provenance
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope

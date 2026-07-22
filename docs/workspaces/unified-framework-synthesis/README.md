@@ -85,6 +85,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-12-AUTH-PRIVACY.md`](./derived/T10-12-AUTH-PRIVACY.md) | Wave 4 T10-12 evidence | Fail-closed Shape-aware retrieval and evidence-port authorization with audit-only denials |
 | [`derived/T10-13-CONCURRENCY.md`](./derived/T10-13-CONCURRENCY.md) | Wave 4 T10-13 evidence | Shape Population optimistic record versions, stale-writer conflicts, and idempotent human approval replay |
 | [`derived/T10-17-AGENT-HARNESS.md`](./derived/T10-17-AGENT-HARNESS.md) | Wave 4 T10-17 evidence | Minimal intent-oriented agent harness over the application SDK with typed statuses and privileged tools excluded |
+| [`derived/T10-18-SHAPE-INSPECTOR.md`](./derived/T10-18-SHAPE-INSPECTOR.md) | Wave 4 T10-18 evidence | Bounded Shape inspector separating evidence, interpretation, provenance, authority, and competing views |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

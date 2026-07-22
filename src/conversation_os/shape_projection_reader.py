@@ -8,6 +8,7 @@ from .storage import utc_now
 
 MODULE_ID = "kernel.disclosure.shape_projection_reader"
 CONTRACT_VERSION = "1.0"
+INSPECTOR_CONTRACT_VERSION = "1.0"
 CANONICAL_SHAPE_PROFILE_ID = "profile:shape"
 CANONICAL_SHAPE_PROFILE_VERSION = "1.0.0"
 LEGACY_SHAPE_PROFILE_ID = "profile:shape_and_semantic_addressing"
@@ -47,7 +48,9 @@ PUBLIC_API = (
     "ABSTENTION_CODES",
     "PROJECTION_KINDS",
     "READINESS_STATES",
+    "INSPECTOR_CONTRACT_VERSION",
     "read_shape_projections",
+    "inspect_shape_projections",
     "migration_decision",
 )
 __all__ = list(PUBLIC_API)
@@ -365,6 +368,313 @@ def _load_legacy_projections(
         "promotion_allowed": False,
         "candidate_projections": candidate_rows,
         "anti_match_projections": anti_match_rows,
+    }
+
+
+def _bounded_int(raw: Any, *, default: int, lower: int = 1, upper: int = 12) -> int:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = default
+    return max(lower, min(value, upper))
+
+
+def _simple_quality_items(attributes: Any, *, limit: int) -> List[Dict[str, Any]]:
+    if not isinstance(attributes, dict):
+        return []
+    qualities: List[Dict[str, Any]] = []
+    for key in sorted(attributes):
+        value = attributes.get(key)
+        if isinstance(value, (dict, list)):
+            rendered = f"<{value.__class__.__name__}>"
+        else:
+            rendered = value
+        qualities.append({"quality": str(key), "value": rendered})
+        if len(qualities) >= limit:
+            break
+    return qualities
+
+
+def _entity_items(signature: Dict[str, Any], *, limit: int) -> List[Dict[str, Any]]:
+    entities: List[Dict[str, Any]] = []
+    for entity in list(signature.get("entities", []) or [])[:limit]:
+        if not isinstance(entity, dict):
+            continue
+        entities.append(
+            {
+                "entity_id": str(entity.get("entity_id", "") or "").strip(),
+                "label": str(entity.get("label", "") or "").strip(),
+                "node_type": str(entity.get("node_type", "") or "").strip(),
+                "role": str(entity.get("role", "") or "").strip(),
+                "confidence": entity.get("confidence"),
+            }
+        )
+    return entities
+
+
+def _relation_items(signature: Dict[str, Any], *, limit: int) -> List[Dict[str, Any]]:
+    relations: List[Dict[str, Any]] = []
+    for relation in list(signature.get("relations", []) or [])[:limit]:
+        if not isinstance(relation, dict):
+            continue
+        relations.append(
+            {
+                "relation_id": str(relation.get("relation_id", "") or "").strip(),
+                "relation_type": str(relation.get("relation_type", "") or relation.get("edge_type", "") or relation.get("type", "") or "").strip(),
+                "source": str(relation.get("source", "") or relation.get("source_id", "") or relation.get("from", "") or "").strip(),
+                "target": str(relation.get("target", "") or relation.get("target_id", "") or relation.get("to", "") or "").strip(),
+                "confidence": relation.get("confidence"),
+            }
+        )
+    return relations
+
+
+def _feedback_items(signature: Dict[str, Any], *, limit: int) -> List[Dict[str, Any]]:
+    loops: List[Dict[str, Any]] = []
+    for loop in list(signature.get("feedback_loops", []) or [])[:limit]:
+        if not isinstance(loop, dict):
+            continue
+        loops.append(
+            {
+                "loop_id": str(loop.get("loop_id", "") or loop.get("id", "") or "").strip(),
+                "label": str(loop.get("label", "") or loop.get("name", "") or "").strip(),
+                "status": str(loop.get("status", "") or "descriptive").strip(),
+                "confidence": loop.get("confidence"),
+            }
+        )
+    return loops
+
+
+def _evidence_items(signature: Dict[str, Any], *, limit: int) -> List[Dict[str, Any]]:
+    evidence: List[Dict[str, Any]] = []
+    for span in list(signature.get("evidence_spans", []) or [])[:limit]:
+        if not isinstance(span, dict):
+            continue
+        evidence.append(
+            {
+                "source_ref": str(span.get("source_ref", "") or "").strip(),
+                "chunk_id": str(span.get("chunk_id", "") or "").strip(),
+                "kind": str(span.get("kind", "") or "").strip(),
+                "text": str(span.get("text", "") or "").strip(),
+            }
+        )
+    return evidence
+
+
+def _candidate_view_items(signature: Dict[str, Any], *, limit: int) -> List[Dict[str, Any]]:
+    views: List[Dict[str, Any]] = []
+    for candidate in list(signature.get("candidate_shapes", []) or [])[:limit]:
+        if not isinstance(candidate, dict):
+            continue
+        views.append(
+            {
+                "view_kind": "candidate_shape",
+                "shape_name": str(candidate.get("shape_name", "") or "").strip(),
+                "rationale": str(candidate.get("rationale", "") or "").strip(),
+                "confidence": candidate.get("confidence"),
+                "status": "candidate",
+            }
+        )
+    return views
+
+
+def _anti_match_view_items(anti_matches: Iterable[Dict[str, Any]], *, limit: int) -> List[Dict[str, Any]]:
+    views: List[Dict[str, Any]] = []
+    for row in list(anti_matches or [])[:limit]:
+        if not isinstance(row, dict):
+            continue
+        views.append(
+            {
+                "view_kind": "anti_match",
+                "shape_name": str(row.get("shape_name", "") or "").strip(),
+                "anchor_meta_id": str(row.get("anchor_meta_id", "") or "").strip(),
+                "candidate_meta_id": str(row.get("candidate_meta_id", "") or "").strip(),
+                "penalty": row.get("anti_match_penalty"),
+                "status": "rejected_match",
+            }
+        )
+    return views
+
+
+def _inspect_legacy_candidate(
+    projection: Dict[str, Any],
+    signature: Dict[str, Any],
+    *,
+    anti_matches: Iterable[Dict[str, Any]],
+    max_entities: int,
+    max_qualities: int,
+    max_evidence_spans: int,
+    max_competing_views: int,
+) -> Dict[str, Any]:
+    candidate_views = _candidate_view_items(signature, limit=max_competing_views)
+    competing_views = candidate_views + _anti_match_view_items(
+        anti_matches,
+        limit=max(0, max_competing_views - len(candidate_views)),
+    )
+    return {
+        "projection_id": projection.get("projection_id", ""),
+        "kind": projection.get("kind", "candidate"),
+        "candidate_status": projection.get("maturity_status", "candidate"),
+        "canonical_status": "legacy_candidate_only",
+        "authority": {
+            "profile_id": CANONICAL_SHAPE_PROFILE_ID,
+            "legacy_profile_id": LEGACY_SHAPE_PROFILE_ID,
+            "promotion_allowed": False,
+            "adapter_version": LEGACY_ADAPTER_VERSION,
+        },
+        "scope": {
+            "branch_id": projection.get("branch_id") or None,
+            "scope_id": projection.get("scope_id") or None,
+            "boundary": projection.get("system_boundary") or None,
+            "scale": projection.get("scale") or None,
+            "abstraction_contract": projection.get("abstraction_contract") or None,
+        },
+        "entities": _entity_items(signature, limit=max_entities),
+        "qualities": _simple_quality_items(signature.get("attributes"), limit=max_qualities),
+        "relations": _relation_items(signature, limit=max_entities),
+        "feedback": _feedback_items(signature, limit=max_entities),
+        "evidence": _evidence_items(signature, limit=max_evidence_spans),
+        "interpretation": {
+            "title": str(signature.get("title", "") or "").strip(),
+            "summary": str(signature.get("summary", "") or "").strip(),
+            "observer_lens": str(signature.get("observer_lens", "") or "").strip(),
+            "candidate_shapes": candidate_views,
+            "confidence": signature.get("confidence"),
+            "lifecycle": {
+                "projection_status": projection.get("legacy_signature_status", "provisional"),
+                "maturity_status": projection.get("maturity_status", "candidate"),
+            },
+        },
+        "competing_views": competing_views,
+        "provenance": {
+            "source_ref": projection.get("source_ref") or None,
+            "source_anchor_id": dict(projection.get("provenance", {}) or {}).get("source_anchor_id"),
+            "content_hash": dict(projection.get("provenance", {}) or {}).get("content_hash"),
+            "evidence_span_count": len(list(signature.get("evidence_spans", []) or [])),
+        },
+    }
+
+
+def inspect_shape_projections(
+    root: Path,
+    *,
+    projection_ids: Optional[Iterable[str]] = None,
+    branch_id: str = "",
+    scope_id: str = "",
+    source_refs: Optional[Iterable[str]] = None,
+    max_projections: int = 3,
+    max_entities: int = 8,
+    max_qualities: int = 12,
+    max_evidence_spans: int = 3,
+    max_competing_views: int = 4,
+    authorized: bool = True,
+    bootstrap: bool = False,
+) -> Dict[str, Any]:
+    """Return a bounded, human-inspectable Shape view without dumping the ocean."""
+    projection_limit = _bounded_int(max_projections, default=3, upper=6)
+    entity_limit = _bounded_int(max_entities, default=8, upper=16)
+    quality_limit = _bounded_int(max_qualities, default=12, upper=24)
+    evidence_limit = _bounded_int(max_evidence_spans, default=3, upper=8)
+    competing_limit = _bounded_int(max_competing_views, default=4, upper=8)
+    selected_ids = {str(item).strip() for item in list(projection_ids or []) if str(item).strip()}
+
+    base = read_shape_projections(
+        root,
+        branch_id=branch_id,
+        scope_id=scope_id,
+        source_refs=source_refs,
+        include_legacy=True,
+        include_anti_match=True,
+        authorized=authorized,
+        bootstrap=bootstrap,
+    )
+    if not authorized:
+        return {
+            "schema_version": INSPECTOR_CONTRACT_VERSION,
+            "contract_id": "ShapeInspector",
+            "status": "unauthorized",
+            "bounded": True,
+            "inspected": [],
+            "readiness_state": base["readiness_state"],
+            "abstention_reason": base["abstention_reason"],
+            "limits": {
+                "max_projections": projection_limit,
+                "max_entities": entity_limit,
+                "max_qualities": quality_limit,
+                "max_evidence_spans": evidence_limit,
+                "max_competing_views": competing_limit,
+            },
+            "generated_at": utc_now(),
+        }
+
+    try:
+        from .meta_layer import load_shape_signatures
+
+        signatures = {
+            str(signature.get("signature_id", "") or "").strip(): signature
+            for signature in load_shape_signatures(root)
+        }
+    except _OPERATIONAL_ERRORS as exc:
+        return {
+            "schema_version": INSPECTOR_CONTRACT_VERSION,
+            "contract_id": "ShapeInspector",
+            "status": "unexpected_failure",
+            "bounded": True,
+            "inspected": [],
+            "errors": [exc.__class__.__name__, str(exc)],
+            "generated_at": utc_now(),
+        }
+
+    candidates = list(base["legacy"]["candidate_projections"])
+    if selected_ids:
+        candidates = [row for row in candidates if str(row.get("projection_id", "") or "").strip() in selected_ids]
+    candidates = candidates[:projection_limit]
+
+    anti_matches = list(base["legacy"]["anti_match_projections"])[:competing_limit]
+    inspected: List[Dict[str, Any]] = []
+    for projection in candidates:
+        signature_id = str(projection.get("projection_id", "") or "").strip()
+        signature = signatures.get(signature_id, {})
+        inspected.append(
+            _inspect_legacy_candidate(
+                projection,
+                signature,
+                anti_matches=anti_matches,
+                max_entities=entity_limit,
+                max_qualities=quality_limit,
+                max_evidence_spans=evidence_limit,
+                max_competing_views=competing_limit,
+            )
+        )
+
+    status = "ok" if inspected else ("empty" if base["retrieval_allowed"] else "abstained")
+    return {
+        "schema_version": INSPECTOR_CONTRACT_VERSION,
+        "contract_id": "ShapeInspector",
+        "status": status,
+        "bounded": True,
+        "readiness_state": base["readiness_state"],
+        "filters": {
+            "projection_ids": sorted(selected_ids),
+            "branch_id": str(branch_id or "").strip() or None,
+            "scope_id": str(scope_id or "").strip() or None,
+            "source_refs": sorted({str(item).strip() for item in list(source_refs or []) if str(item).strip()}),
+        },
+        "limits": {
+            "max_projections": projection_limit,
+            "max_entities": entity_limit,
+            "max_qualities": quality_limit,
+            "max_evidence_spans": evidence_limit,
+            "max_competing_views": competing_limit,
+        },
+        "inspected_count": len(inspected),
+        "inspected": inspected,
+        "omitted": {
+            "candidate_projections": max(0, len(base["legacy"]["candidate_projections"]) - len(candidates)),
+            "anti_match_views": max(0, len(base["legacy"]["anti_match_projections"]) - len(anti_matches)),
+            "full_ocean_rendered": False,
+        },
+        "generated_at": utc_now(),
     }
 
 

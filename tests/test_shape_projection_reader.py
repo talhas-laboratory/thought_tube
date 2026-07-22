@@ -22,6 +22,7 @@ from conversation_os.shape_projection_reader import (
     LEGACY_RETIREMENT_DATE,
     LEGACY_SHAPE_PROFILE_ID,
     MIGRATION_DECISION_ID,
+    inspect_shape_projections,
     migration_decision,
     read_shape_projections,
 )
@@ -279,6 +280,86 @@ class ShapeProjectionReaderTestCase(unittest.TestCase):
         self.assertIn(LEGACY_SHAPE_PROFILE_ID, decision["retirement_trigger"])
         self.assertEqual(CANONICAL_SHAPE_PROFILE_VERSION, SHAPE_PROFILE_VERSION)
         self.assertTrue(set(ABSTENTION_CODES))
+
+    def test_shape_inspector_separates_evidence_from_interpretation(self) -> None:
+        source_ref = "fixture:inspector-shape"
+        ingest_text_content(
+            self.root,
+            title="inspector-shape",
+            content="# User\n\nInspector fixture.\n",
+            source_ref=source_ref,
+            source_type="chat_converter_conversation",
+            metadata={"branch_id": "branch-inspect", "scope_id": "scope-inspect"},
+        )
+        self._write_signature(
+            signature_id="signature-inspect",
+            source_ref=source_ref,
+            system_boundary="Bounded inspector boundary",
+        )
+
+        payload = inspect_shape_projections(
+            self.root,
+            projection_ids=["signature-inspect"],
+            branch_id="branch-inspect",
+            scope_id="scope-inspect",
+            source_refs=[source_ref],
+            max_projections=1,
+            max_evidence_spans=1,
+        )
+
+        self.assertEqual(payload["contract_id"], "ShapeInspector")
+        self.assertEqual(payload["status"], "ok")
+        self.assertTrue(payload["bounded"])
+        self.assertFalse(payload["omitted"]["full_ocean_rendered"])
+        self.assertEqual(payload["inspected_count"], 1)
+        inspected = payload["inspected"][0]
+        self.assertEqual(inspected["projection_id"], "signature-inspect")
+        self.assertEqual(inspected["candidate_status"], "candidate")
+        self.assertEqual(inspected["canonical_status"], "legacy_candidate_only")
+        self.assertEqual(inspected["entities"][0]["label"], "Receiver")
+        self.assertEqual(inspected["qualities"][0]["quality"], "scale")
+        self.assertEqual(len(inspected["evidence"]), 1)
+        self.assertEqual(inspected["evidence"][0]["source_ref"], source_ref)
+        self.assertEqual(inspected["interpretation"]["candidate_shapes"][0]["shape_name"], "Route Confusion Through Blocked Transition")
+        self.assertIn("source_ref", inspected["provenance"])
+
+    def test_shape_inspector_includes_competing_antimatch_views(self) -> None:
+        self._write_signature(
+            signature_id="signature-competing",
+            source_ref="fixture:inspector-competing",
+            system_boundary="Competing boundary",
+        )
+        meta_layer_module.record_shape_feedback(
+            self.root,
+            scope="project",
+            scope_key="scope-competing",
+            shape_name="Rejected Similarity",
+            shape_definition="False analogy.",
+            feedback_type="rejected",
+            rejected_candidate_id="meta-rejected",
+            anchor_meta_id="meta-anchor",
+            anti_match_penalty=0.4,
+        )
+
+        payload = inspect_shape_projections(self.root, projection_ids=["signature-competing"])
+
+        views = payload["inspected"][0]["competing_views"]
+        self.assertTrue(any(view["view_kind"] == "candidate_shape" for view in views))
+        self.assertTrue(any(view["view_kind"] == "anti_match" for view in views))
+        self.assertFalse(payload["inspected"][0]["authority"]["promotion_allowed"])
+
+    def test_shape_inspector_unauthorized_returns_typed_empty_payload(self) -> None:
+        self._write_signature(
+            signature_id="signature-denied",
+            source_ref="fixture:inspector-denied",
+            system_boundary="Denied boundary",
+        )
+
+        payload = inspect_shape_projections(self.root, authorized=False)
+
+        self.assertEqual(payload["status"], "unauthorized")
+        self.assertEqual(payload["inspected"], [])
+        self.assertTrue(payload["bounded"])
 
 
 if __name__ == "__main__":

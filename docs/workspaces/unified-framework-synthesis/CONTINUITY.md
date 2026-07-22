@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 91fc859e383d3175260c4f0406eb53e48da1b82f5b2565abc7f24658ea6f079c -->
+<!-- canonical_revision: b4d4d802ec0d48f0eca37223c1c706497b698d05c296b1cf4a4cc71982132ef8 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T15:09:46+00:00 -->
+<!-- generated_at: 2026-07-22T15:13:18+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- T10-18 first slice committed-ready: focused tests passed and task moved to review.
 - T10-17 first slice committed-ready: focused test passed and task moved to review.
 - Implementation committed and pushed at be212c332a1cc476ce0ed322174c93e7a0bc946f; residuals remain for broader partition/worker-crash/rollback/retraction slices.
 - Focused retrieval/evidence authorization suites passed; task is in review with evidence under derived/T10-12-AUTH-PRIVACY.md.
@@ -29,10 +30,10 @@ Select a task to receive a recommended next action.
 - T10-05 index contracts implemented and verified.
 - T10-04 implementation and verification complete.
 - Hermetic golden pytest passed; evidence pack published.
-- Focused suites passed; task in review. Golden trace is next.
 
 ## Reasoning
 
+- T10-18 first Shape inspector slice
 - T10-17 first agent harness slice
 - T10-13 first concurrency slice
 - T10-12 first slice on retrieval/evidence ports
@@ -46,6 +47,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- pytest tests/test_shape_projection_reader.py
 - pytest tests/test_metaphysical_kernel_application_sdk.py
 - pytest tests/test_shape_population*.py
 - pytest tests/test_disclosure_service_bridge_parity.py tests/test_disclosure_contracts.py tests/test_disclosure_receipts.py
@@ -57,4 +59,3 @@ Select a task to receive a recommended next action.
 - tests/test_corpus_catalog_snapshot.py
 - tests/test_corpus_catalog_snapshot.py
 - tests/test_corpus_catalog_snapshot.py
-- pytest tests/test_shape_population_golden_trace.py
