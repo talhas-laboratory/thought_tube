@@ -21,9 +21,26 @@ from conversation_os.metaphysical_kernel_runtime import (
 
 MODULE_ID = "kernel.metaphysical.application_sdk"
 CONTRACT_VERSION = "1.1.0"
+AGENT_HARNESS_CONTRACT_VERSION = "1.0.0"
 
 WORLD_STUDIO_APPLICATION_ID = "app:world_studio"
 WORKSPACE_CURATOR_APPLICATION_ID = "app:workspace_curator"
+
+AGENT_HARNESS_READ_INTENTS = (
+    "orient",
+    "retrieve_bounded_evidence",
+    "inspect_provenance",
+)
+AGENT_HARNESS_WRITE_INTENTS = (
+    "propose_interpretation",
+    "request_review",
+)
+AGENT_HARNESS_FORBIDDEN_INTENTS = (
+    "authorization_admin",
+    "delete",
+    "deploy_policy",
+    "promote",
+)
 
 
 @dataclass
@@ -54,6 +71,27 @@ class SdkMutationResult:
     abstained: bool = False
     reason: str = ""
     projection: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class AgentHarnessResponse:
+    intent: str
+    ok: bool
+    status_type: str
+    status: str
+    summary: str
+    stable_ids: Dict[str, str] = field(default_factory=dict)
+    branch_id: str = ""
+    scope_id: str = ""
+    candidate_status: str = ""
+    canonical_status: str = ""
+    provenance_inspection: str = ""
+    continuation: Dict[str, Any] = field(default_factory=dict)
+    payload: Dict[str, Any] = field(default_factory=dict)
+    errors: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -452,6 +490,273 @@ class FoundationApplicationSdk:
         )
 
 
+class AgentHarness:
+    """Intent-oriented, least-privilege adapter over the application SDK."""
+
+    def __init__(self, sdk: FoundationApplicationSdk) -> None:
+        self.sdk = sdk
+
+    def handle_intent(self, intent: str, payload: Optional[Mapping[str, Any]] = None) -> AgentHarnessResponse:
+        normalized = str(intent or "").strip()
+        data = dict(payload or {})
+        if normalized in AGENT_HARNESS_FORBIDDEN_INTENTS:
+            return self._error(
+                normalized,
+                "privileged_operation_not_available",
+                "Privileged administration, deletion, policy deployment, and promotion stay outside the agent harness.",
+            )
+        if normalized == "orient":
+            return self.orient(root_record_ids=_string_list(data.get("root_record_ids")), max_depth=_bounded_depth(data.get("max_depth"), default=1))
+        if normalized in {"retrieve", "retrieve_bounded_evidence"}:
+            return self.retrieve_bounded_evidence(root_record_ids=_string_list(data.get("root_record_ids")), max_depth=_bounded_depth(data.get("max_depth"), default=2))
+        if normalized == "inspect_provenance":
+            return self.inspect_provenance(start_record_id=str(data.get("start_record_id", "") or ""))
+        if normalized == "propose_interpretation":
+            return self.propose_interpretation(
+                predicate=str(data.get("predicate", "") or ""),
+                arguments=_string_list(data.get("arguments")),
+                provenance_id=str(data.get("provenance_id", "") or ""),
+            )
+        if normalized == "request_review":
+            return self.request_review(
+                record_id=str(data.get("record_id", "") or ""),
+                reason=str(data.get("reason", "") or ""),
+                provenance_id=str(data.get("provenance_id", "") or ""),
+            )
+        return self._error(normalized or "unknown", "invalid_intent", "Unsupported agent harness intent.")
+
+    def orient(self, *, root_record_ids: Optional[List[str]] = None, max_depth: int = 1) -> AgentHarnessResponse:
+        bundle = self.sdk.runtime.current_bundle()
+        payload: Dict[str, Any] = {
+            "contract_version": AGENT_HARNESS_CONTRACT_VERSION,
+            "application_id": self.sdk.context.application_id,
+            "actor": self.sdk.context.actor,
+            "profile_id": self.sdk.context.profile_id,
+            "profile_version": self.sdk.context.profile_version,
+            "context_budget": self.sdk.context.context_budget,
+            "capabilities": {
+                "read_intents": list(AGENT_HARNESS_READ_INTENTS),
+                "write_intents": list(AGENT_HARNESS_WRITE_INTENTS),
+                "forbidden_intents": list(AGENT_HARNESS_FORBIDDEN_INTENTS),
+            },
+            "record_counts": {
+                key: len(value)
+                for key, value in bundle.items()
+                if isinstance(value, list)
+            },
+        }
+        continuation: Dict[str, Any] = {"next_intents": ["retrieve_bounded_evidence", "inspect_provenance"]}
+        if root_record_ids:
+            view = self.sdk.build_bounded_view(root_record_ids=root_record_ids, max_depth=max_depth)
+            if view.abstained or not view.success:
+                return self._from_sdk_result("orient", view, summary="Orientation bounded view unavailable.")
+            payload["bounded_view"] = view.projection
+            continuation["deeper_view"] = {
+                "intent": "retrieve_bounded_evidence",
+                "payload": {"root_record_ids": list(root_record_ids), "max_depth": max_depth + 1},
+            }
+        return self._ok(
+            "orient",
+            "oriented",
+            "Harness orientation is bounded to application context, branch, scope, and declared capabilities.",
+            stable_ids={
+                "application_id": self.sdk.context.application_id,
+                "branch_id": self.sdk.context.branch_id,
+                "scope_id": self.sdk.context.scope_id,
+                "profile_id": self.sdk.context.profile_id,
+            },
+            candidate_status="not_applicable",
+            canonical_status="context_only",
+            provenance_inspection="available_via_inspect_provenance",
+            payload=payload,
+            continuation=continuation,
+        )
+
+    def retrieve_bounded_evidence(self, *, root_record_ids: List[str], max_depth: int = 2) -> AgentHarnessResponse:
+        if not root_record_ids:
+            return self._error("retrieve_bounded_evidence", "invalid_request", "root_record_ids are required.")
+        result = self.sdk.build_bounded_view(root_record_ids=root_record_ids, max_depth=max_depth)
+        return self._from_sdk_result(
+            "retrieve_bounded_evidence",
+            result,
+            summary="Bounded evidence view returned for declared roots.",
+            stable_ids={"root_record_ids": ",".join(root_record_ids)},
+            candidate_status="candidate_or_canonical_per_node",
+            canonical_status="bounded_projection",
+            provenance_inspection="inspect_provenance",
+            continuation={
+                "deeper_view": {
+                    "intent": "retrieve_bounded_evidence",
+                    "payload": {"root_record_ids": list(root_record_ids), "max_depth": max_depth + 1},
+                }
+            },
+        )
+
+    def inspect_provenance(self, *, start_record_id: str) -> AgentHarnessResponse:
+        if not start_record_id.strip():
+            return self._error("inspect_provenance", "invalid_request", "start_record_id is required.")
+        result = self.sdk.trace_provenance(start_record_id=start_record_id.strip())
+        complete = bool(result.projection.get("complete"))
+        return self._from_sdk_result(
+            "inspect_provenance",
+            result,
+            summary="Provenance trace inspected from selected record to source fragments.",
+            stable_ids={"start_record_id": start_record_id.strip()},
+            candidate_status="not_applicable",
+            canonical_status="canonical_trace" if complete else "incomplete_trace",
+            provenance_inspection="complete" if complete else "incomplete",
+        )
+
+    def propose_interpretation(
+        self,
+        *,
+        predicate: str,
+        arguments: List[str],
+        provenance_id: str,
+    ) -> AgentHarnessResponse:
+        if not predicate.strip() or not arguments or not provenance_id.strip():
+            return self._error("propose_interpretation", "invalid_request", "predicate, arguments, and provenance_id are required.")
+        result = self.sdk.assert_claim(
+            predicate=predicate.strip(),
+            arguments=arguments,
+            provenance_id=provenance_id.strip(),
+        )
+        return self._from_sdk_result(
+            "propose_interpretation",
+            result,
+            summary="Interpretation recorded as a candidate Claim; no State or promotion was created.",
+            candidate_status="candidate_claim",
+            canonical_status="not_promoted",
+            provenance_inspection="inspect_provenance",
+            continuation={"next_intents": ["inspect_provenance", "request_review"]},
+        )
+
+    def request_review(self, *, record_id: str, reason: str, provenance_id: str) -> AgentHarnessResponse:
+        if not record_id.strip() or not reason.strip() or not provenance_id.strip():
+            return self._error("request_review", "invalid_request", "record_id, reason, and provenance_id are required.")
+        result = self.sdk.assert_claim(
+            predicate="review_requested",
+            arguments=[record_id.strip(), reason.strip()],
+            provenance_id=provenance_id.strip(),
+        )
+        return self._from_sdk_result(
+            "request_review",
+            result,
+            summary="Review request recorded as a governed candidate event; evidence remains unchanged.",
+            stable_ids={"review_subject_id": record_id.strip()},
+            candidate_status="review_requested",
+            canonical_status="not_promoted",
+            provenance_inspection="inspect_provenance",
+        )
+
+    def _from_sdk_result(
+        self,
+        intent: str,
+        result: SdkMutationResult,
+        *,
+        summary: str,
+        stable_ids: Optional[Dict[str, str]] = None,
+        candidate_status: str = "",
+        canonical_status: str = "",
+        provenance_inspection: str = "",
+        continuation: Optional[Dict[str, Any]] = None,
+    ) -> AgentHarnessResponse:
+        ids = dict(stable_ids or {})
+        ids.update({key: str(value) for key, value in result.record_ids.items() if value})
+        if result.provenance_id:
+            ids["provenance_id"] = result.provenance_id
+        if result.abstained or not result.success:
+            return self._error(
+                intent,
+                result.reason or "sdk_operation_failed",
+                summary,
+                stable_ids=ids,
+                payload=result.to_dict(),
+                errors=list(result.validation_errors),
+            )
+        return self._ok(
+            intent,
+            "ok",
+            summary,
+            stable_ids=ids,
+            candidate_status=candidate_status,
+            canonical_status=canonical_status,
+            provenance_inspection=provenance_inspection,
+            payload=result.to_dict(),
+            continuation=dict(continuation or {}),
+        )
+
+    def _ok(
+        self,
+        intent: str,
+        status: str,
+        summary: str,
+        *,
+        stable_ids: Optional[Dict[str, str]] = None,
+        candidate_status: str = "",
+        canonical_status: str = "",
+        provenance_inspection: str = "",
+        payload: Optional[Dict[str, Any]] = None,
+        continuation: Optional[Dict[str, Any]] = None,
+    ) -> AgentHarnessResponse:
+        return AgentHarnessResponse(
+            intent=intent,
+            ok=True,
+            status_type="ok",
+            status=status,
+            summary=summary,
+            stable_ids=dict(stable_ids or {}),
+            branch_id=self.sdk.context.branch_id,
+            scope_id=self.sdk.context.scope_id,
+            candidate_status=candidate_status,
+            canonical_status=canonical_status,
+            provenance_inspection=provenance_inspection,
+            payload=dict(payload or {}),
+            continuation=dict(continuation or {}),
+        )
+
+    def _error(
+        self,
+        intent: str,
+        status: str,
+        summary: str,
+        *,
+        stable_ids: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        errors: Optional[List[str]] = None,
+    ) -> AgentHarnessResponse:
+        return AgentHarnessResponse(
+            intent=intent,
+            ok=False,
+            status_type="error",
+            status=status,
+            summary=summary,
+            stable_ids=dict(stable_ids or {}),
+            branch_id=self.sdk.context.branch_id,
+            scope_id=self.sdk.context.scope_id,
+            payload=dict(payload or {}),
+            errors=list(errors or []),
+        )
+
+
+def _string_list(raw: Any) -> List[str]:
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        return [raw.strip()] if raw.strip() else []
+    if isinstance(raw, list):
+        return [str(item).strip() for item in raw if str(item).strip()]
+    return [str(raw).strip()] if str(raw).strip() else []
+
+
+def _bounded_depth(raw: Any, *, default: int) -> int:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = default
+    return max(1, min(value, 4))
+
+
 def world_studio_capture_scene(
     sdk: FoundationApplicationSdk,
     *,
@@ -560,7 +865,13 @@ __all__ = [
     "WORKSPACE_CURATOR_APPLICATION_ID",
     "ApplicationContext",
     "SdkMutationResult",
+    "AgentHarnessResponse",
+    "AgentHarness",
     "FoundationApplicationSdk",
     "world_studio_capture_scene",
     "workspace_curator_capture_insight",
+    "AGENT_HARNESS_CONTRACT_VERSION",
+    "AGENT_HARNESS_READ_INTENTS",
+    "AGENT_HARNESS_WRITE_INTENTS",
+    "AGENT_HARNESS_FORBIDDEN_INTENTS",
 ]

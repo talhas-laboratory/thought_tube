@@ -1,7 +1,7 @@
 # UMF-T10-17-AGENT-HARNESS: T10-17 Coherent agent harness
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope
