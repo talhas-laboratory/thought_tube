@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 4d1e26cbcd3bcf7caeee8dc019844155b1b032c0c5a69be066396fbb6634ed61 -->
+<!-- canonical_revision: 491deca720bab0f8699df39b6b1477d8393abc34affcd9a031d4dde09ca455da -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T11:47:27+00:00 -->
+<!-- generated_at: 2026-07-22T11:55:13+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -27,6 +27,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- t10-00-same-checkout-suites
 - role_assignment_contracts
 - composition_profile_contracts_after_merge
 - composition_profile_contracts

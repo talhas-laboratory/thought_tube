@@ -1,6 +1,6 @@
 # UMF-T10-00-INTEGRATION-BASELINE: T10-00: Establish one integration and release baseline
 
-Status: ready
+Status: review
 Owner: foundation/release
 Current gate: not_required
 
@@ -11,16 +11,16 @@ Make “implemented” mean one checkout. Import aperture modules from remediati
 ## Claimed paths
 
 - `src/conversation_os/release_management.py`
-- `docs/workspaces/unified-framework-synthesis/derived/T10-00-RECONCILIATION-MATRIX.md` (to create)
-- Import/merge targets:
+- `docs/workspaces/unified-framework-synthesis/derived/T10-00-RECONCILIATION-MATRIX.md`
+- Imported on this branch:
   - `src/conversation_os/candidate_admission.py`
   - `src/conversation_os/disclosure_budget_allocator.py`
   - `src/conversation_os/orient_first_compose.py`
   - `src/conversation_os/shape_projection_reader.py`
   - `src/conversation_os/shape_population/`
 - Source remotes:
-  - `origin/cursor/shape-intelligence-remediation-pass`
-  - `origin/codex/shape-population-production-hardening`
+  - `origin/cursor/shape-intelligence-remediation-pass` @ `0c8f367`
+  - `origin/codex/shape-population-production-hardening` @ `82a1c35`
 
 ## Implementation steps
 
@@ -45,8 +45,20 @@ Make “implemented” mean one checkout. Import aperture modules from remediati
 
 ## Verification Evidence
 
-- Not recorded in this projection yet.
+- Live verify `t10-00-same-checkout-suites` = pass @ commit `00931c94cabd7afb22a1c9ac8ab3510cd6922dca`
+- Population suite: 59 passed
+- Foundation/release smoke: 22 passed
+- Aperture focused gate: `green=True`
+- Decision `decision-d2a3fbf3438c`: baseline established on `cursor/t10-wave-01-tasks-a790`
+- `runtime.json` union: disclosure rollout remains `legacy`/off; `agents.shape_population` present
+
+## Residual risks
+
+- `shape_projection_reader` still uses legacy `profile:shape_and_semantic_addressing` → T10-01
+- Module manifests / hermetic debt for imported modules → T10-19
+- Disclosure flags intentionally off → T10-08
 
 ## Handoff Notes
 
-- Current local checkout lacks aperture admission modules and `shape_population/`; they exist only on remotes until this task lands.
+- Next Wave 0 sibling: claim `UMF-T10-19-RELEASE-DISCIPLINE`
+- Then unlock T10-01 Shape authority cutover
