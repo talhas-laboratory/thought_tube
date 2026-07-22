@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 06609405ad50a43cf2e6681e959bb16ade4c038ef298f3b065d13d39864c1739 -->
+<!-- canonical_revision: 0a2d7a212708ee6602237784d87cc4d282dd20cc9aeba0b3765550a39487e01f -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-15T06:23:25+00:00 -->
+<!-- generated_at: 2026-07-22T07:22:03+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -14,7 +14,7 @@ Select a task to receive a recommended next action.
 
 - id: ``
 - status: ``
-- title: 
+- title: _none_
 
 ## Recent runs
 
@@ -26,6 +26,11 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- role_assignment_contracts
+- composition_profile_contracts_after_merge
+- composition_profile_contracts
+- quality_instance_profile_contracts_after_merge
+- quality_instance_profile_contracts
 - foundation_phase1_review
 - foundation_phase1_review
 - foundation_phase1_review
