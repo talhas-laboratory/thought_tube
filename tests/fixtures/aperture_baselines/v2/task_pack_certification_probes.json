@@ -1,0 +1,71 @@
+{
+  "schema_version": "2.0",
+  "baseline_suite_id": "chat_converter_seed_v2_task_pack_certification",
+  "parent_suite_id": "chat_converter_seed_v2_shape_certification",
+  "fixture_revision": "cae-task-pack-cert-v2-2026-07-20",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "thresholds": {
+    "positive_overlap_rate": 1.0,
+    "bridge_parity_rate": 1.0,
+    "negative_zero_block_rate": 1.0,
+    "narrative_preservation_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "latency_ms_p95": 750,
+    "max_catalog_lookup_ms": 50,
+    "max_bytes_resolved": 65536
+  },
+  "probes": [
+    {
+      "probe_id": "positive-bounded-evidence-overlap",
+      "category": "positive",
+      "request": "research progressive disclosure",
+      "domain_overlays": ["research"],
+      "preferred_source_slug": "research-insight",
+      "expected_verdict": "pass"
+    },
+    {
+      "probe_id": "bridge-parity-research-query",
+      "category": "bridge_parity",
+      "request": "research progressive disclosure",
+      "domain_overlays": ["research"],
+      "expected_verdict": "pass"
+    },
+    {
+      "probe_id": "negative-unrelated-no-filler",
+      "category": "negative",
+      "request": "quantum entanglement topology",
+      "expected_verdict": "no_hits"
+    },
+    {
+      "probe_id": "narrative-preservation-with-evidence",
+      "category": "narrative_preservation",
+      "request": "research progressive disclosure",
+      "domain_overlays": ["research"],
+      "task_id": "task-cert-001",
+      "expect_bounded_evidence": true,
+      "expected_verdict": "pass"
+    },
+    {
+      "probe_id": "narrative-preservation-empty-evidence",
+      "category": "narrative_preservation",
+      "request": "quantum entanglement topology",
+      "task_id": "task-cert-002",
+      "expect_bounded_evidence": false,
+      "expected_verdict": "pass"
+    },
+    {
+      "probe_id": "abstention-missing-catalog-snapshot",
+      "category": "abstention",
+      "request": "research progressive disclosure",
+      "expected_verdict": "pass"
+    },
+    {
+      "probe_id": "resource-latency-and-catalog",
+      "category": "resource",
+      "request": "research progressive disclosure",
+      "domain_overlays": ["research"],
+      "iterations": 3
+    }
+  ]
+}

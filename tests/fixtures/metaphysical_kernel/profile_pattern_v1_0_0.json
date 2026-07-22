@@ -1,0 +1,48 @@
+{
+  "profile_id": "profile:pattern",
+  "profile_version": "1.0.0",
+  "kernel_records_used": ["referent", "scope", "relation_instance", "provenance", "model_branch", "branch_membership"],
+  "profile_record_types": ["pattern", "anti_match", "transfer_assessment"],
+  "profile_dependencies": ["profile:shape"],
+  "invariants": [
+    "patterns_require_declared_shape_cores",
+    "patterns_forbid_shape_merges",
+    "anti_matches_record_rejection_basis",
+    "transfer_assessments_are_explicit"
+  ],
+  "steward": "service:profile_registry",
+  "description": "A Pattern profile fixture: abstractions are grounded in ShapeCore refs and never merge source Shapes automatically.",
+  "pattern": {
+    "record_type": "pattern",
+    "id": "pattern:regulated-resilience",
+    "name": "Regulated resilience",
+    "shape_core_refs": ["core:forest", "core:mycorrhizal-network"],
+    "abstraction_contract": "Compare role-relation organization and feedback semantics only; do not collapse source Shapes.",
+    "required_invariants": ["patterns_forbid_shape_merges"],
+    "validation_status": "candidate",
+    "merge_shapes_forbidden": true,
+    "branch_id": "branch:observed",
+    "scope_id": "scope:forest",
+    "provenance_id": "provenance:pattern-fixture"
+  },
+  "anti_match": {
+    "record_type": "anti_match",
+    "id": "anti_match:forest-market",
+    "candidate_a": "shape:forest-regulation",
+    "candidate_b": "shape:market-correction",
+    "apparent_similarity": "Both exhibit corrective feedback around a target range.",
+    "rejection_reasons": ["Different authority basis", "Different material boundary"],
+    "evaluator_ref": "agent:profile-registry-test",
+    "provenance_id": "provenance:pattern-fixture"
+  },
+  "transfer_assessment": {
+    "record_type": "transfer_assessment",
+    "id": "transfer:forest-to-market",
+    "pattern_id": "pattern:regulated-resilience",
+    "source_shape_ref": "shape:forest-regulation",
+    "target_shape_ref": "shape:market-correction",
+    "transferability": "partial",
+    "mechanism_notes": "Feedback vocabulary transfers, but boundary and authority mechanisms must remain distinct.",
+    "provenance_id": "provenance:pattern-fixture"
+  }
+}

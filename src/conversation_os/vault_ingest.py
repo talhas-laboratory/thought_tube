@@ -3,11 +3,14 @@ from __future__ import annotations
 import hashlib
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Sequence, Tuple
 
 from .models import ChunkRecord, SourceRegistryEntry
 from .runtime_layout import product_runtime_dir
+from .source_content_store import SourceContentStore
 from .storage import ensure_dir, read_jsonl, utc_now, write_jsonl
+
+PostIngestHook = Callable[..., Any]
 
 
 MODULE_ID = "kernel.ingest.vault_ingest"
@@ -565,6 +568,48 @@ def _build_source_and_chunk_entries(
     return registry_entry, chunk_entries
 
 
+def _run_post_ingest_hooks(
+    root: Path,
+    *,
+    source_id: str,
+    hooks: Sequence[PostIngestHook] | None,
+) -> Dict[str, Any]:
+    """Invoke generic post-ingest adapters. Failures are recorded, never raised."""
+    receipts: List[Dict[str, Any]] = []
+    for index, hook in enumerate(hooks or ()):
+        try:
+            result = hook(root, source_id=source_id)
+            receipts.append(
+                {
+                    "hook_index": index,
+                    "ok": True,
+                    "result": result if isinstance(result, dict) else {"value": result},
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 - ingest must remain successful
+            receipts.append(
+                {
+                    "hook_index": index,
+                    "ok": False,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            )
+    return {"hook_count": len(hooks or ()), "receipts": receipts}
+
+
+def _persist_original_source_bytes(root: Path, content: str, *, content_hash: str) -> str:
+    """Store exact ingested bytes once under their content hash (lossless knowledge-ocean ownership)."""
+
+    raw = content.encode("utf-8")
+    digest = SourceContentStore(root).put_bytes(raw)
+    expected = str(content_hash or "").strip().lower()
+    if expected and digest != expected:
+        raise ValueError(
+            f"source content store digest mismatch: stored={digest} expected={expected}"
+        )
+    return digest
+
+
 def ingest_text_content(
     root: Path,
     *,
@@ -575,6 +620,7 @@ def ingest_text_content(
     source_family: str | None = None,
     sensitivity_tier: str | None = None,
     metadata: Dict | None = None,
+    post_ingest_hooks: Sequence[PostIngestHook] | None = None,
 ) -> Dict:
     source_rows = load_source_registry_raw(root)
     chunk_rows = load_chunk_index_raw(root)
@@ -588,15 +634,25 @@ def ingest_text_content(
         metadata=metadata,
     )
     source_id = registry_entry["source_id"]
+    content_digest = _persist_original_source_bytes(
+        root,
+        content,
+        content_hash=str(registry_entry.get("content_hash") or ""),
+    )
+    registry_entry["content_pointer"] = f"sha256:{content_digest}"
     source_rows = _replace_by_key(source_rows, "source_id", {source_id}, [registry_entry])
     chunk_rows = _replace_by_key(chunk_rows, "source_id", {source_id}, chunk_entries)
     write_vault_files(root, source_rows, chunk_rows)
+    # Generic async adapters only — no Shape-specific branching here.
+    post_ingest = _run_post_ingest_hooks(root, source_id=source_id, hooks=post_ingest_hooks)
     return {
         "source_id": source_id,
+        "content_hash": content_digest,
         "seeded_count": len(chunk_entries),
         "total_count": len(chunk_rows),
         "source_registry_path": str(_source_registry_path(root)),
         "chunk_index_path": str(_chunk_index_path(root)),
+        "post_ingest": post_ingest,
     }
 
 
@@ -617,6 +673,12 @@ def ingest_text_items_batch(root: Path, items: List[Dict]) -> Dict:
             sensitivity_tier=item.get("sensitivity_tier"),
             metadata=item.get("metadata"),
         )
+        digest = _persist_original_source_bytes(
+            root,
+            str(item["content"]),
+            content_hash=str(registry_entry.get("content_hash") or ""),
+        )
+        registry_entry["content_pointer"] = f"sha256:{digest}"
         source_ids.add(registry_entry["source_id"])
         registry_entries.append(registry_entry)
         chunk_entries.extend(built_chunks)

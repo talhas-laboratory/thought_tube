@@ -2,6 +2,23 @@
 
 Durable decisions only. Keep entries short and cite the source when possible.
 
+## 2026-07-17 — Orient / Grant / Evidence / Receipt
+
+Decision: selective disclosure hardens under a four-layer law — orient, grant, evidence, receipt — coordinated in workspace `cognitive-aperture-exceptional`.
+
+Reason: research and runtime evaluation show that fat packets and fail-open retrieval recreate context rot; exceptional aperture requires thin orientation, authorized opens, high-SNR evidence, and audit receipts without suppression leaks.
+
+Implications:
+
+- Execution prompts must not include suppressed/omitted membership content.
+- Bounded/strict retrieval should fail empty without positive match.
+- `token_budget` and distinct envelope modes are enforceable requirements.
+- Surfaces should converge on one disclose kernel rather than parallel scorers.
+- Inner World structure is not claimed to be identical to LLM residual-stream geometry.
+
+Status: `accepted`  
+Source: `docs/workspaces/cognitive-aperture-exceptional/derived/ADR-001-orient-grant-evidence-receipt.md`
+
 ## 2026-06-26 — Create Product Spine
 
 Decision: create `docs/product/semantic-operating-layer/` as the coordination spine for bridge-adjacent product systems.

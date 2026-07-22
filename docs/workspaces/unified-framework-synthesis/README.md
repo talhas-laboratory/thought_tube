@@ -38,6 +38,7 @@ cat docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-met
 cat docs/workspaces/unified-framework-synthesis/derived/handoff.md
 cat docs/workspaces/unified-framework-synthesis/derived/foundation-build-plan.md
 cat docs/workspaces/unified-framework-synthesis/derived/program-workspace-hierarchy-plan.md
+cat docs/workspaces/unified-framework-synthesis/derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md
 
 # 4. Published continuity projection (after sync)
 cat docs/workspaces/unified-framework-synthesis/CONTINUITY.md
@@ -70,6 +71,36 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md`](./sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md) | **Canonical** | Kernel, profiles, applications, invariants, lifecycles, architecture, build order, tests, and migration |
 | [`derived/foundation-build-plan.md`](./derived/foundation-build-plan.md) | Active execution bridge | Converts the normative paper into bounded implementation work |
 | [`derived/program-workspace-hierarchy-plan.md`](./derived/program-workspace-hierarchy-plan.md) | Proposed program operating model | Defines the parent workspace, nine child programs, workboards, dependencies, gates, rollup, and rollout |
+| [`derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md`](./derived/TEN_OUT_OF_TEN_GAP_PROGRAM.md) | Current system-level gap authority | Defines the integration, population, retrieval, safety, benchmark, operations, and release work required for a ten-out-of-ten system candidate |
+| [`derived/T10-00-RECONCILIATION-MATRIX.md`](./derived/T10-00-RECONCILIATION-MATRIX.md) | Wave 0 integration authority | Declares merge spine, Population import, overlap dispositions, and same-checkout verification |
+| [`derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md`](./derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md) | Accepted Wave 0 ADR | Deprecates legacy `profile:shape_and_semantic_addressing` in favor of `profile:shape` |
+| [`derived/T10-WAVE-01-GOLDEN-TRACE.md`](./derived/T10-WAVE-01-GOLDEN-TRACE.md) | Wave 1 exit evidence | Archives the hermetic ingest→canonical-apply→retrieve (+rollback) golden production trace |
+| [`derived/T10-04-CORPUS-OCEAN-READINESS.md`](./derived/T10-04-CORPUS-OCEAN-READINESS.md) | Wave 2 T10-04 evidence | CorpusCatalog ocean readiness: family digests, ambiguous-placement fail-closed, legacy candidate-only, dependency indexes |
+| [`derived/T10-05-INDEX-CONTRACTS.md`](./derived/T10-05-INDEX-CONTRACTS.md) | Wave 2 T10-05 evidence | Hybrid index port readiness on CorpusCatalog: replaceable ports, fail-closed required indexes, no full-ocean scan |
+| [`derived/T10-09-TEMPORAL-REVISION.md`](./derived/T10-09-TEMPORAL-REVISION.md) | Wave 2 T10-09 evidence | Content-addressed corpus epoch, stale projection rules, and contradiction surfacing |
+| [`derived/T10-06-PATTERN-ANTIMATCH.md`](./derived/T10-06-PATTERN-ANTIMATCH.md) | Wave 3 T10-06 evidence | Pattern derivation + separated candidate/membership/AntiMatch/transfer records; merge forbidden |
+| [`derived/T10-07-SHAPE-RETRIEVAL.md`](./derived/T10-07-SHAPE-RETRIEVAL.md) | Wave 3 T10-07 evidence | Typed shape_retrieval always present; focused audit failures green |
+| [`derived/T10-14-FIRST-COMPARATIVE-BENCHMARK.md`](./derived/T10-14-FIRST-COMPARATIVE-BENCHMARK.md) | Wave 3 T10-14 evidence | First structural-vs-lexical/vector comparative benchmark; thresholds locked pre-eval |
+| [`derived/T10-08-DISCLOSURE-ACTIVATION.md`](./derived/T10-08-DISCLOSURE-ACTIVATION.md) | Wave 4 T10-08 evidence | Bridge-only disclosure/receipt shadow activation with config-only rollback |
+| [`derived/T10-12-AUTH-PRIVACY.md`](./derived/T10-12-AUTH-PRIVACY.md) | Wave 4 T10-12 evidence | Fail-closed Shape-aware retrieval and evidence-port authorization with audit-only denials |
+| [`derived/T10-13-CONCURRENCY.md`](./derived/T10-13-CONCURRENCY.md) | Wave 4 T10-13 evidence | Shape Population optimistic record versions, stale-writer conflicts, and idempotent human approval replay |
+| [`derived/T10-17-AGENT-HARNESS.md`](./derived/T10-17-AGENT-HARNESS.md) | Wave 4 T10-17 evidence | Minimal intent-oriented agent harness over the application SDK with typed statuses and privileged tools excluded |
+| [`derived/T10-18-SHAPE-INSPECTOR.md`](./derived/T10-18-SHAPE-INSPECTOR.md) | Wave 4 T10-18 evidence | Bounded Shape inspector separating evidence, interpretation, provenance, authority, and competing views |
+| [`derived/T10-10-CYBERNETIC-COMPILE.md`](./derived/T10-10-CYBERNETIC-COMPILE.md) | Wave 5 T10-10 evidence | Minimal executable cybernetic compilation into deterministic IR with abstention and no runtime side effects |
+| [`derived/T10-11-OUTCOME-LEARNING.md`](./derived/T10-11-OUTCOME-LEARNING.md) | Wave 5 T10-11 evidence | Offline outcome-learning policy proposals with safety/minority regression blocks and no runtime mutation |
+| [`derived/T10-15-SCALE-RECOVERY.md`](./derived/T10-15-SCALE-RECOVERY.md) | Wave 5 T10-15 evidence | Shape Population recovery-readiness drill report with RPO/RTO, lineage/access blockers, and no unproven scale claim |
+| [`derived/T10-16-OBSERVABILITY.md`](./derived/T10-16-OBSERVABILITY.md) | Wave 5 T10-16 evidence | Privacy-safe lifecycle observability summary with distinct abstention, stale-index, stuck-job, drift, and infra-failure signals |
+| [`derived/T10-14-FINAL-BENCHMARK.md`](./derived/T10-14-FINAL-BENCHMARK.md) | Wave 5 T10-14 evidence | Final benchmark report reruns Wave 3 metrics and publishes explicit residual gaps without full-certification claims |
+| [`derived/UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE.md`](./derived/UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE.md) | Shape program leaf | Composite ShapeCore/ShapeView/DimensionalShape lifecycle contract validation |
+| [`derived/UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER.md`](./derived/UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER.md) | Pattern program leaf | `profile:pattern` with Pattern/AntiMatch/transfer contracts |
+| [`derived/UMF-PATTERN-002-EMERGENT-STATE-CRITERIA.md`](./derived/UMF-PATTERN-002-EMERGENT-STATE-CRITERIA.md) | Pattern program leaf | EmergentState grounding, scale transition, evidence, and uncertainty gates |
+| [`derived/UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE.md`](./derived/UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE.md) | Transform program leaf | Cybernetics profile plus Shape/Claim qualifier checks on compile bundles |
+| [`derived/UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS.md`](./derived/UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS.md) | Execution program leaf | EnvironmentSpecPacket agent environment-builder disclosure contract |
+| [`derived/UMF-PROGRAM-KERNEL.md`](./derived/UMF-PROGRAM-KERNEL.md) | Program evidence | Kernel ontology first delivery already present |
+| [`derived/UMF-PROGRAM-BRANCH.md`](./derived/UMF-PROGRAM-BRANCH.md) | Program evidence | Branch reasoning first delivery already present |
+| [`derived/UMF-PROGRAM-VOCABULARY.md`](./derived/UMF-PROGRAM-VOCABULARY.md) | Program evidence | Vocabulary governance first delivery already present |
+| [`derived/UMF-PROGRAM-CONVERSATION.md`](./derived/UMF-PROGRAM-CONVERSATION.md) | Program evidence | Conversation/formation substrate first delivery already present |
+| [`derived/UMF-PROGRAM-SURFACES.md`](./derived/UMF-PROGRAM-SURFACES.md) | Program evidence | Product surfaces first delivery already present |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

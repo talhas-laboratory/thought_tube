@@ -1,0 +1,64 @@
+{
+  "schema_version": "2.0",
+  "baseline_suite_id": "chat_converter_seed_v2_feed_certification",
+  "parent_suite_id": "chat_converter_seed_v1_service",
+  "fixture_revision": "cae-feed-cert-v2-2026-07-20",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "thresholds": {
+    "positive_precision_rate": 1.0,
+    "bridge_parity_rate": 1.0,
+    "negative_abstention_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "receipt_persistence_rate": 1.0,
+    "provenance_preservation_rate": 1.0,
+    "latency_ms_p95": 750,
+    "max_catalog_lookup_ms": 50,
+    "max_bytes_resolved": 65536
+  },
+  "probes": [
+    {
+      "probe_id": "positive-research-evidence-pairs",
+      "category": "positive",
+      "domain_overlays": ["research"],
+      "preferred_source_slug": "research-insight",
+      "expected_verdict": "pass",
+      "limit": 4
+    },
+    {
+      "probe_id": "bridge-parity-research-domain",
+      "category": "bridge_parity",
+      "domain_overlays": ["research"],
+      "expected_verdict": "pass",
+      "limit": 4
+    },
+    {
+      "probe_id": "negative-unrelated-domain",
+      "category": "negative",
+      "domain_overlays": ["interstellar basket weaving archaeology"],
+      "expected_verdict": "no_pairs",
+      "limit": 4
+    },
+    {
+      "probe_id": "abstention-missing-catalog",
+      "category": "abstention",
+      "abstention_mode": "missing_catalog",
+      "domain_overlays": ["research"],
+      "expected_verdict": "abstained",
+      "limit": 4
+    },
+    {
+      "probe_id": "receipt-persistent-feed-rollout",
+      "category": "receipt",
+      "domain_overlays": ["research"],
+      "expected_verdict": "pass",
+      "limit": 2
+    },
+    {
+      "probe_id": "resource-latency-and-catalog",
+      "category": "resource",
+      "domain_overlays": ["research"],
+      "iterations": 3
+    }
+  ]
+}

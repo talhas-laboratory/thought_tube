@@ -20,6 +20,7 @@ PUBLIC_API = (
     "load_runtime_pipeline_config",
     "update_runtime_pipeline_component",
     "get_runtime_pipeline_status",
+    "get_corpus_pipeline_signals",
     "write_runtime_pipeline_last_run",
     "execute_runtime_pipeline",
 )
@@ -293,6 +294,33 @@ def get_runtime_pipeline_status(root: Path) -> Dict[str, Any]:
             "execution_order": last_run.get("execution_order", []),
         }
     return config | {"last_run": last_run, "summary": summary}
+
+
+def get_corpus_pipeline_signals(root: Path) -> Dict[str, Any]:
+    """Compact pipeline signals for CorpusCatalog readiness (CAE-013)."""
+    status = get_runtime_pipeline_status(root)
+    last_run = status.get("last_run")
+    summary = status.get("summary") or {}
+    if not isinstance(last_run, dict):
+        return {
+            "pipeline_present": False,
+            "run_status": None,
+            "interrupted": False,
+            "stale_running_state": False,
+            "last_completed_stage": None,
+            "active_stage": None,
+        }
+    run_status = summary.get("run_status") or last_run.get("run_status")
+    stale_running_state = bool(last_run.get("stale_running_state"))
+    interrupted = run_status == "interrupted" or stale_running_state
+    return {
+        "pipeline_present": True,
+        "run_status": run_status,
+        "interrupted": interrupted,
+        "stale_running_state": stale_running_state,
+        "last_completed_stage": summary.get("last_completed_stage"),
+        "active_stage": summary.get("active_stage"),
+    }
 
 
 def write_runtime_pipeline_last_run(root: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -734,6 +762,10 @@ def execute_runtime_pipeline(
             active_component_id=None,
             options=options,
         )
+        if run_status in {"completed", "completed_with_warnings"}:
+            from .corpus_catalog_snapshot import publish_corpus_catalog_snapshot
+
+            publish_corpus_catalog_snapshot(root)
         return {
             "config": loaded,
             "last_run": last_run,

@@ -1,0 +1,22 @@
+{
+  "fixture_id": "profile-composition-v1-0-0",
+  "profile_id": "profile:composition",
+  "profile_version": "1.0.0",
+  "purpose": "Represent bounded whole-constituent composition at a declared resolution without inferring causation, ownership, or role.",
+  "kernel_records_used": ["referent", "scope", "relation_instance", "provenance", "model_branch", "branch_membership"],
+  "profile_record_types": ["system_boundary", "composition_assertion"],
+  "profile_dependencies": ["profile:quality_instance"],
+  "invariants": ["composition_assertion_is_bounded", "system_boundary_preserves_identity_rule"],
+  "steward": "service:profile_registry",
+  "system_boundaries": [
+    {"record_type": "system_boundary", "id": "boundary:forest-ecosystem", "whole_referent_id": "referent:forest-ecosystem", "boundary_rule": "functional", "identity_rule": "whole_preserved", "scale": "ecosystem", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation"},
+    {"record_type": "system_boundary", "id": "boundary:mycorrhizal-network", "whole_referent_id": "referent:mycorrhizal-network", "boundary_rule": "material", "identity_rule": "whole_preserved", "scale": "subsystem", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation"}
+  ],
+  "composition_assertions": [
+    {"record_type": "composition_assertion", "id": "composition:forest-tree", "whole_referent_id": "referent:forest-ecosystem", "constituent_referent_id": "referent:oak-tree", "composition_kind": "material_part", "boundary_id": "boundary:forest-ecosystem", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation", "relation_instance_id": "relation:forest-tree"},
+    {"record_type": "composition_assertion", "id": "composition:forest-mycorrhiza", "whole_referent_id": "referent:forest-ecosystem", "constituent_referent_id": "referent:mycorrhizal-network", "composition_kind": "functional_component", "boundary_id": "boundary:forest-ecosystem", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation", "relation_instance_id": "relation:forest-mycorrhiza", "source_quality_instance_id": "quality-instance:immune-response-observed"},
+    {"record_type": "composition_assertion", "id": "composition:forest-cooperative", "whole_referent_id": "referent:forest-ecosystem", "constituent_referent_id": "referent:forest-stewards-cooperative", "composition_kind": "membership", "boundary_id": "boundary:forest-ecosystem", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation", "relation_instance_id": "relation:forest-cooperative"},
+    {"record_type": "composition_assertion", "id": "composition:forest-stewardship-practice", "whole_referent_id": "referent:forest-ecosystem", "constituent_referent_id": "referent:stewardship-practice", "composition_kind": "social_constitution", "boundary_id": "boundary:forest-ecosystem", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation", "relation_instance_id": "relation:forest-stewardship-practice"},
+    {"record_type": "composition_assertion", "id": "composition:mycorrhiza-hypha", "whole_referent_id": "referent:mycorrhizal-network", "constituent_referent_id": "referent:hyphal-cluster", "composition_kind": "material_part", "boundary_id": "boundary:mycorrhizal-network", "scope_id": "scope:seasonal-forest", "branch_id": "branch:field-observation", "provenance_id": "provenance:field-observation", "relation_instance_id": "relation:mycorrhiza-hypha"}
+  ]
+}

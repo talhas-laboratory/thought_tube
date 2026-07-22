@@ -7,10 +7,30 @@ from pathlib import Path
 
 from conversation_os.metaphysical_kernel import KernelRecordEnvelope, ProfileDefinition
 from conversation_os.metaphysical_kernel_profile_registry import (
+    COMPOSITION_PROFILE_ID,
     FIELD_FORMATION_PROFILE_ID,
+    PATTERN_PROFILE_ID,
     ProfileRegistry,
     ProfileRegistryError,
+    QUALITY_INSTANCE_PROFILE_ID,
     build_field_formation_profile_v1,
+    compile_cybernetic_bundle_to_ir,
+    validate_quality_instance_contract,
+    validate_quality_refinement_contract,
+    validate_composition_bundle_contract,
+    validate_composition_assertion_contract,
+    validate_system_boundary_contract,
+    validate_role_assignment_contract,
+    validate_influence_assessment_contract,
+    validate_role_influence_bundle_contract,
+    validate_shape_contract,
+    validate_shape_lifecycle_bundle,
+    validate_pattern_contract,
+    validate_anti_match_contract,
+    validate_transfer_assessment_contract,
+    validate_emergent_state_contract,
+    validate_cybernetic_contract,
+    validate_cybernetic_bundle_contract,
 )
 from conversation_os.metaphysical_kernel_runtime import FoundationRuntime, run_vertical_slice
 
@@ -223,6 +243,379 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         self.assertEqual(profile.profile_id, metadata["profile_id"])
         self.assertEqual(profile.profile_version, metadata["profile_version"])
         self.assertEqual(profile.profile_record_types, metadata["profile_record_types"])
+
+    def test_bootstrap_registers_quality_instance_profile(self) -> None:
+        profile = self.registry.bootstrap_quality_instance_profile()
+        self.assertEqual(profile["profile_id"], QUALITY_INSTANCE_PROFILE_ID)
+        self.assertEqual(profile["profile_record_types"], ["quality_instance", "quality_refinement"])
+        self.assertIn("relation_instance", profile["kernel_records_used"])
+        self.assertNotIn("type_definition", profile["kernel_records_used"])
+
+    def test_quality_instance_contract_requires_grounded_basis(self) -> None:
+        valid = {
+            "record_type": "quality_instance",
+            "id": "quality-instance:clarity",
+            "bearer_referent_id": "referent:organism",
+            "quality_definition_id": "type:clarity",
+            "scope_id": "scope:present",
+            "branch_id": "branch:main",
+            "provenance_id": "provenance:observation",
+            "basis_kind": "claim",
+            "basis_record_id": "claim:clarity",
+        }
+        self.assertEqual(validate_quality_instance_contract(valid), [])
+        invalid = dict(valid)
+        invalid["basis_kind"] = "value"
+        invalid["bearer_referent_id"] = ""
+        errors = validate_quality_instance_contract(invalid)
+        self.assertTrue(any("basis_kind" in error for error in errors))
+        self.assertTrue(any("bearer_referent_id" in error for error in errors))
+
+    def test_optional_quality_refinement_contract_preserves_lineage(self) -> None:
+        refinement = {
+            "record_type": "quality_refinement",
+            "id": "quality-refinement:clarity-to-subsystem",
+            "source_quality_instance_id": "quality-instance:clarity",
+            "relation_instance_id": "relation:refines-to",
+            "relation_type": "refines_to",
+            "reified_referent_id": "referent:clarity-subsystem",
+        }
+        self.assertEqual(validate_quality_refinement_contract(refinement), [])
+        broken = dict(refinement)
+        broken["relation_instance_id"] = ""
+        self.assertTrue(any("relation_instance_id" in error for error in validate_quality_refinement_contract(broken)))
+
+    def test_quality_instance_fixture_matches_contracts(self) -> None:
+        metadata = json.loads(
+            (FIXTURES_DIR / "profile_quality_instance_v1_0_0.json").read_text(encoding="utf-8")
+        )
+        profile = self.registry.bootstrap_quality_instance_profile()
+        for key in (
+            "profile_id",
+            "profile_version",
+            "kernel_records_used",
+            "profile_record_types",
+            "profile_dependencies",
+            "invariants",
+            "steward",
+        ):
+            self.assertEqual(profile[key], metadata[key])
+        instances = metadata["quality_instances"]
+        self.assertEqual(len(instances), 2)
+        self.assertEqual(instances[0]["quality_definition_id"], instances[1]["quality_definition_id"])
+        self.assertNotEqual(instances[0]["scope_id"], instances[1]["scope_id"])
+        self.assertNotEqual(instances[0]["branch_id"], instances[1]["branch_id"])
+        self.assertNotEqual(instances[0]["basis_kind"], instances[1]["basis_kind"])
+        for instance in instances:
+            self.assertEqual(validate_quality_instance_contract(instance), [])
+        self.assertEqual(validate_quality_refinement_contract(metadata["quality_refinement"]), [])
+
+    def test_bootstrap_registers_composition_profile_after_quality_profile(self) -> None:
+        profile = self.registry.bootstrap_composition_profile()
+        self.assertEqual(profile["profile_id"], COMPOSITION_PROFILE_ID)
+        self.assertEqual(profile["profile_record_types"], ["system_boundary", "composition_assertion"])
+        self.assertEqual(profile["profile_dependencies"], [QUALITY_INSTANCE_PROFILE_ID])
+        self.assertIsNotNone(self.registry.get_profile(QUALITY_INSTANCE_PROFILE_ID))
+
+    def test_composition_contract_requires_bounded_non_self_relation(self) -> None:
+        boundary = {
+            "record_type": "system_boundary",
+            "id": "boundary:forest-functional",
+            "whole_referent_id": "referent:forest",
+            "boundary_rule": "functional",
+            "identity_rule": "whole_preserved",
+            "scale": "ecosystem",
+            "scope_id": "scope:seasonal-forest",
+            "branch_id": "branch:field-observation",
+            "provenance_id": "provenance:field-observation",
+        }
+        assertion = {
+            "record_type": "composition_assertion",
+            "id": "composition:forest-mycorrhiza",
+            "whole_referent_id": "referent:forest",
+            "constituent_referent_id": "referent:mycorrhizal-network",
+            "composition_kind": "functional_component",
+            "boundary_id": boundary["id"],
+            "scope_id": boundary["scope_id"],
+            "branch_id": boundary["branch_id"],
+            "provenance_id": boundary["provenance_id"],
+            "relation_instance_id": "relation:forest-mycorrhiza",
+            "source_quality_instance_id": "quality-instance:immune-response-observed",
+        }
+        self.assertEqual(validate_system_boundary_contract(boundary), [])
+        self.assertEqual(validate_composition_assertion_contract(assertion), [])
+        invalid = dict(assertion)
+        invalid["constituent_referent_id"] = invalid["whole_referent_id"]
+        self.assertTrue(any("own constituent" in error for error in validate_composition_assertion_contract(invalid)))
+
+    def test_composition_fixture_supports_multiple_kinds_and_recursive_systemhood(self) -> None:
+        metadata = json.loads(
+            (FIXTURES_DIR / "profile_composition_v1_0_0.json").read_text(encoding="utf-8")
+        )
+        profile = self.registry.bootstrap_composition_profile()
+        for key in ("profile_id", "profile_version", "kernel_records_used", "profile_record_types", "profile_dependencies", "invariants", "steward"):
+            self.assertEqual(profile[key], metadata[key])
+        for boundary in metadata["system_boundaries"]:
+            self.assertEqual(validate_system_boundary_contract(boundary), [])
+        for assertion in metadata["composition_assertions"]:
+            self.assertEqual(validate_composition_assertion_contract(assertion), [])
+        self.assertEqual(
+            validate_composition_bundle_contract(
+                metadata["system_boundaries"], metadata["composition_assertions"]
+            ),
+            [],
+        )
+        self.assertEqual(
+            {assertion["composition_kind"] for assertion in metadata["composition_assertions"]},
+            {"material_part", "functional_component", "membership", "social_constitution"},
+        )
+        self.assertTrue(any(boundary["whole_referent_id"] == "referent:mycorrhizal-network" for boundary in metadata["system_boundaries"]))
+        self.assertTrue(any(assertion.get("source_quality_instance_id") for assertion in metadata["composition_assertions"]))
+
+    def test_composition_bundle_rejects_cycles_and_boundary_mismatches(self) -> None:
+        boundaries = [
+            {
+                "record_type": "system_boundary", "id": "boundary:a", "whole_referent_id": "referent:a",
+                "boundary_rule": "functional", "identity_rule": "whole_preserved", "scale": "system",
+                "scope_id": "scope:one", "branch_id": "branch:one", "provenance_id": "provenance:one",
+            },
+            {
+                "record_type": "system_boundary", "id": "boundary:b", "whole_referent_id": "referent:b",
+                "boundary_rule": "functional", "identity_rule": "whole_preserved", "scale": "subsystem",
+                "scope_id": "scope:one", "branch_id": "branch:one", "provenance_id": "provenance:one",
+            },
+        ]
+        assertions = [
+            {
+                "record_type": "composition_assertion", "id": "composition:a-b", "whole_referent_id": "referent:a",
+                "constituent_referent_id": "referent:b", "composition_kind": "functional_component",
+                "boundary_id": "boundary:a", "scope_id": "scope:one", "branch_id": "branch:one",
+                "provenance_id": "provenance:one", "relation_instance_id": "relation:a-b",
+            },
+            {
+                "record_type": "composition_assertion", "id": "composition:b-a", "whole_referent_id": "referent:b",
+                "constituent_referent_id": "referent:a", "composition_kind": "functional_component",
+                "boundary_id": "boundary:b", "scope_id": "scope:wrong", "branch_id": "branch:one",
+                "provenance_id": "provenance:one", "relation_instance_id": "relation:b-a",
+            },
+        ]
+        errors = validate_composition_bundle_contract(boundaries, assertions)
+        self.assertTrue(any("cycle" in error for error in errors))
+        self.assertTrue(any("scope" in error for error in errors))
+
+    def test_role_and_weighted_influence_contracts(self) -> None:
+        role = {"record_type":"role_assignment","id":"role:network","participant_ref":"referent:network","host_ref":"referent:forest","role_type":"regulator","mechanism":"nutrient-signaling","scope_id":"scope:forest","temporal_scope":"seasonal","branch_id":"branch:observed","provenance_id":"provenance:field"}
+        assessment = {"record_type":"influence_assessment","id":"influence:network","role_assignment_id":"role:network","target_ref":"quality:resilience","direction":"stabilizes","mechanism":"nutrient-signaling","assessment_basis":"estimated","uncertainty":"interval","confidence":0.8,"scope_id":"scope:forest","temporal_scope":"seasonal","branch_id":"branch:observed","provenance_id":"provenance:field","magnitude":0.4,"magnitude_scale":"normalized","magnitude_unit":"unitless"}
+        self.assertEqual(validate_role_assignment_contract(role), [])
+        self.assertEqual(validate_influence_assessment_contract(assessment), [])
+        self.assertEqual(validate_role_influence_bundle_contract([role], [assessment]), [])
+        broken = dict(assessment); broken["magnitude_unit"] = ""
+        self.assertTrue(any("magnitude_unit" in e for e in validate_influence_assessment_contract(broken)))
+
+    def test_role_fixture_preserves_identity_across_time_and_scope(self) -> None:
+        fixture = json.loads((FIXTURES_DIR / "profile_role_assignment_v1_0_0.json").read_text())
+        roles = fixture["role_assignments"]
+        self.assertEqual(roles[0]["participant_ref"], roles[1]["participant_ref"])
+        self.assertEqual(roles[0]["host_ref"], roles[1]["host_ref"])
+        self.assertNotEqual(roles[0]["scope_id"], roles[1]["scope_id"])
+        self.assertNotEqual(roles[0]["temporal_scope"], roles[1]["temporal_scope"])
+        self.assertEqual(validate_role_influence_bundle_contract(roles, fixture["influence_assessments"]), [])
+
+    def test_shape_contract_includes_relations_projection_and_signature(self) -> None:
+        core={"record_type":"shape_core","id":"core","focal_ref":"referent:forest","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov","relation_refs":["rel:one"]}
+        view={"record_type":"shape_view","id":"view","shape_core_id":"core","semantic_address":{"dimension":"functional"},"abstraction_contract":"roles only","relation_refs":["rel:one"],"projection":{"nodes":["forest"],"edges":["rel:one"],"groups":["forest"]},"comparison_signature":{"role_relation_summary":["regulator->stabilizes"]}}
+        record={"record_type":"shape_record","id":"record","shape_core_id":"core","shape_view_id":"view","input_refs":["role:one"],"derivation_method":"manual","provenance_id":"prov","reproducibility":"interpretative"}
+        dimensional={"record_type":"dimensional_shape","id":"dimensional:functional","shape_core_id":"core","dimension_id":"dimension:functional","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov"}
+        composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["dimensional:functional"],"coupling_refs":["rel:one"],"boundary_ref":"boundary:forest","scale":"ecosystem","temporal_scope":"seasonal","branch_id":"branch:one","provenance_id":"prov","coupling_specs":[{"coupling_ref":"rel:one","coupling_kind":"regulatory"}]}
+        for payload,kind in ((core,"shape_core"),(view,"shape_view"),(record,"shape_record"),(dimensional,"dimensional_shape"),(composite,"composite_shape")):
+            self.assertEqual(validate_shape_contract(payload,kind), [])
+        self.assertEqual(
+            validate_shape_lifecycle_bundle([core], [view], [record], [composite], dimensional_shapes=[dimensional]),
+            [],
+        )
+
+    def test_shape_lifecycle_bundle_rejects_missing_refs_and_empty_couplings(self) -> None:
+        core={"record_type":"shape_core","id":"core","focal_ref":"referent:forest","scope_id":"scope:forest","branch_id":"branch:one","provenance_id":"prov","relation_refs":["rel:one"]}
+        view={"record_type":"shape_view","id":"view","shape_core_id":"core","semantic_address":{"dimension":"functional"},"abstraction_contract":"roles only","relation_refs":["rel:one"],"projection":{"nodes":["forest"],"edges":["rel:one"],"groups":["forest"]},"comparison_signature":{"role_relation_summary":["regulator->stabilizes"]}}
+        record={"record_type":"shape_record","id":"record","shape_core_id":"core","shape_view_id":"view","input_refs":["role:one"],"derivation_method":"manual","provenance_id":"prov","reproducibility":"interpretative"}
+        composite={"record_type":"composite_shape","id":"composite","dimensional_shape_refs":["dimensional:missing"],"coupling_refs":[],"boundary_ref":"boundary:forest","scale":"ecosystem","temporal_scope":"seasonal","branch_id":"branch:one","provenance_id":"prov","coupling_specs":[{"coupling_ref":"rel:one","coupling_kind":"causal"}]}
+        errors = validate_shape_lifecycle_bundle([core], [view], [record], [composite], dimensional_shapes=[])
+        self.assertTrue(any("coupling_refs" in error for error in errors))
+        self.assertTrue(any("unknown shape_record" in error for error in errors))
+        self.assertTrue(any("coupling_kind" in error for error in errors))
+
+    def test_pattern_profile_fixture_matches_builtin_profile(self) -> None:
+        fixture = json.loads((FIXTURES_DIR / "profile_pattern_v1_0_0.json").read_text())
+        profile = self.registry.bootstrap_pattern_profile()
+        for key in ("profile_id", "profile_version", "kernel_records_used", "profile_record_types", "profile_dependencies", "invariants", "steward"):
+            self.assertEqual(profile[key], fixture[key])
+        self.assertEqual(profile["profile_id"], PATTERN_PROFILE_ID)
+        self.assertIsNotNone(self.registry.get_profile("profile:shape"))
+        self.assertEqual(validate_pattern_contract(fixture["pattern"]), [])
+        self.assertEqual(validate_anti_match_contract(fixture["anti_match"]), [])
+        self.assertEqual(validate_transfer_assessment_contract(fixture["transfer_assessment"]), [])
+
+    def test_pattern_contracts_reject_auto_merge_empty_reasons_and_bad_transferability(self) -> None:
+        pattern = {"record_type":"pattern","id":"pattern:forest-regulation","name":"Regulated resilience","shape_core_refs":["core:forest"],"abstraction_contract":"roles and feedback only","required_invariants":[],"validation_status":"candidate","branch_id":"branch:observed","scope_id":"scope:forest","provenance_id":"prov","merge_shapes_forbidden":False}
+        self.assertTrue(any("merge_shapes_forbidden" in error for error in validate_pattern_contract(pattern)))
+        anti = {"record_type":"anti_match","id":"anti:forest-market","candidate_a":"shape:forest","candidate_b":"shape:market","apparent_similarity":"both self-adjust","rejection_reasons":[],"evaluator_ref":"agent:test","provenance_id":"prov"}
+        self.assertTrue(any("rejection_reasons" in error for error in validate_anti_match_contract(anti)))
+        transfer = {"record_type":"transfer_assessment","id":"transfer:bad","pattern_id":"pattern:forest-regulation","source_shape_ref":"shape:forest","target_shape_ref":"shape:market","transferability":"automatic","mechanism_notes":"not justified","provenance_id":"prov"}
+        self.assertTrue(any("transferability" in error for error in validate_transfer_assessment_contract(transfer)))
+
+    def test_emergent_state_contract_requires_grounding_and_reduction_status(self) -> None:
+        emergent = {"record_type":"emergent_state","id":"emergent:canopy-resilience","emergent_type":"resilience","grounded_in":["shape:forest","shape:network"],"scale_transition":"network-to-ecosystem","emergence_rule":"stabilization across coupled feedback loops","evidence_refs":["evidence:field"],"uncertainty":"medium","reduction_status":"partially_reducible","scope_id":"scope:forest","branch_id":"branch:observed","provenance_id":"prov"}
+        self.assertEqual(validate_emergent_state_contract(emergent), [])
+        broken = dict(emergent)
+        broken["grounded_in"] = []
+        broken["reduction_status"] = "reduced"
+        errors = validate_emergent_state_contract(broken)
+        self.assertTrue(any("grounded_in" in error for error in errors))
+        self.assertTrue(any("reduction_status" in error for error in errors))
+
+    def _cybernetic_records(self) -> list[dict]:
+        context = {"scope_id": "scope:forest", "temporal_scope": "seasonal", "branch_id": "branch:observed", "provenance_id": "provenance:field"}
+        return [
+            {"record_type": "state_variable", "id": "variable:resilience", "target_ref": "quality:resilience", "value_type": "number", "value_domain": "normalized_index", "unit": "index", "observation_basis": "canopy-survey", "sampling_interval": "P7D", "epistemic_status": "estimated", "lower_bound": 0.0, "upper_bound": 1.0, **context},
+            {"record_type": "signal", "id": "signal:nutrient", "source_ref": "referent:network", "target_ref": "variable:resilience", "payload_type": "nutrient_access", "payload_unit": "index", "mechanism": "mycorrhizal_transfer", "delay": "P1D", "epistemic_status": "hypothesized", **context},
+            {"record_type": "setpoint", "id": "setpoint:resilience", "variable_ref": "variable:resilience", "target_range": "[0.6,1.0]", "priority": 1, **context},
+            {"record_type": "regulator", "id": "regulator:network", "controller_ref": "referent:network", "observed_variable_refs": ["variable:resilience"], "action_channel_refs": ["signal:nutrient"], "setpoint_refs": ["setpoint:resilience"], "policy_ref": "policy:local-response", "authority_scope": "scope:forest", **context},
+            {"record_type": "feedback_loop", "id": "loop:resource-compensation", "variable_refs": ["variable:resilience"], "signal_refs": ["signal:nutrient"], "regulator_refs": ["regulator:network"], "polarity": "negative", "mechanism": "resource compensation", "constraint_ref": "constraint:water", "oscillation_risk": "medium", **context},
+            {"record_type": "disturbance", "id": "disturbance:drought", "target_variable_refs": ["variable:resilience"], "mechanism": "water deficit", "magnitude_basis": "rainfall anomaly", **context},
+            {"record_type": "viability_condition", "id": "viability:resilience", "variable_ref": "variable:resilience", "threshold_or_range": "[0.4,1.0]", "recovery_condition": "three consecutive adequate-water intervals", "failure_interpretation": "loss of canopy function", **context},
+            {"record_type": "dynamic_model_extension", "id": "extension:resilience", "shape_ref": "shape:forest-regulation", "input_variable_refs": ["variable:resilience"], "output_variable_refs": ["variable:resilience"], "timing_model_ref": "timing:daily", "uncertainty_model_ref": "uncertainty:interval", "execution_status": "approved", "equation_refs": ["equation:one"], "update_rule_refs": ["rule:one"], "compiler_ref": "compiler:future", "validation_ref": "validation:scenario-set", "approval_ref": "approval:human", "provenance_id": "provenance:field"},
+        ]
+
+    def test_cybernetics_bundle_describes_closed_regulation_without_simulating(self) -> None:
+        rows = self._cybernetic_records()
+        for row in rows:
+            self.assertEqual(validate_cybernetic_contract(row, row["record_type"]), [])
+        self.assertEqual(validate_cybernetic_bundle_contract(rows), [])
+
+    def test_cybernetics_fixture_matches_registered_contract(self) -> None:
+        fixture = json.loads((FIXTURES_DIR / "profile_cybernetics_v1_0_0.json").read_text())
+        profile = self.registry.bootstrap_cybernetics_profile()
+        for key in ("profile_id", "profile_version", "kernel_records_used", "profile_record_types", "profile_dependencies", "invariants", "steward"):
+            self.assertEqual(profile[key], fixture[key])
+
+    def test_cybernetics_bundle_rejects_open_loops_unit_conflicts_and_unapproved_execution(self) -> None:
+        rows = self._cybernetic_records()
+        rows[1]["payload_unit"] = "mg"
+        rows[1]["delay"] = "-1"
+        rows[3]["action_channel_refs"] = ["signal:missing"]
+        rows[-1].pop("approval_ref")
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("delay" in error for error in errors))
+        self.assertTrue(any("unknown signal" in error for error in errors))
+        self.assertTrue(any("closed observation-action" in error for error in errors))
+        self.assertTrue(any("approval_ref" in error for error in errors))
+
+    def test_cybernetics_bundle_rejects_context_drift_and_conflicting_setpoints(self) -> None:
+        rows = self._cybernetic_records()
+        second_setpoint = dict(rows[2])
+        second_setpoint["id"] = "setpoint:resilience-conflict"
+        second_setpoint["target_range"] = "[0.1,0.3]"
+        rows.append(second_setpoint)
+        rows[1]["branch_id"] = "branch:simulated"
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("branch_id conflicts" in error for error in errors))
+        self.assertTrue(any("setpoints conflict" in error for error in errors))
+
+    def test_cybernetics_bundle_reports_invalid_setpoint_priority_without_crashing(self) -> None:
+        rows = self._cybernetic_records()
+        rows[2]["priority"] = "urgent"
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("priority" in error for error in errors))
+
+    def test_cybernetics_bundle_rejects_regulator_context_drift_from_observation_and_goal(self) -> None:
+        rows = self._cybernetic_records()
+        rows[3]["branch_id"] = "branch:simulated"
+        errors = validate_cybernetic_bundle_contract(rows)
+        self.assertTrue(any("regulator:network branch_id conflicts with state_variable" in error for error in errors))
+        self.assertTrue(any("regulator:network branch_id conflicts with setpoint" in error for error in errors))
+
+    def test_cybernetics_bundle_checks_shape_and_claim_qualifiers_when_provided(self) -> None:
+        rows = self._cybernetic_records()
+        rows[0]["claim_ref"] = "claim:resilience"
+        shape = {"id":"shape:forest-regulation","scope_id":"scope:forest","branch_id":"branch:observed"}
+        claim = {"id":"claim:resilience","epistemic_status":"asserted"}
+        self.assertEqual(validate_cybernetic_bundle_contract(rows, shape_records=[shape], claim_records=[claim]), [])
+
+        unknown_shape_rows = self._cybernetic_records()
+        unknown_shape_rows[-1]["shape_ref"] = "shape:missing"
+        errors = validate_cybernetic_bundle_contract(unknown_shape_rows, shape_records=[shape])
+        self.assertTrue(any("unknown shape_ref" in error for error in errors))
+
+        drift_shape = dict(shape)
+        drift_shape["branch_id"] = "branch:simulated"
+        errors = validate_cybernetic_bundle_contract(rows, shape_records=[drift_shape], claim_records=[claim])
+        self.assertTrue(any("branch_id conflicts with shape" in error for error in errors))
+
+        errors = validate_cybernetic_bundle_contract(rows, shape_records=[shape], claim_records=[{"id":"claim:other","epistemic_status":"asserted"}])
+        self.assertTrue(any("unknown claim_ref" in error for error in errors))
+
+    def test_compile_cybernetic_bundle_to_executable_ir_is_deterministic_and_pure(self) -> None:
+        rows = self._cybernetic_records()
+        before = json.loads(json.dumps(rows, sort_keys=True))
+
+        result = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+            source_branch="branch:observed",
+            source_scope="scope:forest",
+            question="How should the forest resilience loop be executed?",
+        )
+        repeated = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+            source_branch="branch:observed",
+            source_scope="scope:forest",
+            question="How should the forest resilience loop be executed?",
+        )
+
+        self.assertEqual(rows, before)
+        self.assertEqual(result.to_dict(), repeated.to_dict())
+        self.assertEqual(result.status, "compiled")
+        ir = result.executable_model_ir
+        self.assertEqual(ir["compilation_status"], "executable")
+        self.assertEqual(ir["source_branch"], "branch:observed")
+        self.assertEqual(ir["source_scope"], "scope:forest")
+        self.assertFalse(ir["side_effects_allowed"])
+        self.assertTrue(ir["execution_allowed"])
+        self.assertEqual(ir["variables"][0]["id"], "variable:resilience")
+        self.assertEqual(ir["transition_rules"][0]["effects"][0]["operation"], "set")
+        self.assertEqual(ir["transition_rules"][0]["source_mechanism"], "loop:resource-compensation")
+        self.assertEqual(ir["provenance"]["compiler_ref"], "compiler:cybernetic-profile-v1")
+
+    def test_compile_cybernetic_bundle_abstains_without_compiled_extension(self) -> None:
+        rows = [
+            row
+            for row in self._cybernetic_records()
+            if row["record_type"] != "dynamic_model_extension"
+        ]
+
+        result = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+        )
+
+        self.assertEqual(result.status, "abstained")
+        self.assertEqual(result.executable_model_ir, {})
+        self.assertTrue(any("dynamic_model_extension" in item for item in result.unresolved_requirements))
+
+    def test_compiled_cybernetic_ir_does_not_authorize_unapproved_execution(self) -> None:
+        rows = self._cybernetic_records()
+        rows[-1]["execution_status"] = "compiled"
+        rows[-1].pop("approval_ref")
+
+        result = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+        )
+
+        self.assertEqual(result.status, "compiled")
+        self.assertEqual(result.executable_model_ir["compilation_status"], "executable")
+        self.assertFalse(result.executable_model_ir["execution_allowed"])
 
 
 if __name__ == "__main__":

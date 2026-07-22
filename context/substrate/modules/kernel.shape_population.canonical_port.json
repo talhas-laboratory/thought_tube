@@ -1,0 +1,35 @@
+{
+  "module_id": "kernel.shape_population.canonical_port",
+  "path": "src/conversation_os/shape_population/canonical_port.py",
+  "layer": "kernel",
+  "owner": "CanonicalShapePort for human-approved promotion apply/rollback.",
+  "purpose": "CanonicalShapePort for human-approved promotion apply/rollback.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [],
+  "contains": [
+    "CanonicalShapePort for human-approved promotion apply/rollback."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_governance.py"
+  ]
+}

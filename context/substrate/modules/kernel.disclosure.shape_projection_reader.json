@@ -1,0 +1,18 @@
+{
+  "module_id": "kernel.disclosure.shape_projection_reader",
+  "path": "src/conversation_os/shape_projection_reader.py",
+  "layer": "kernel",
+  "owner": "Canonical Shape projection read boundary for aperture and population comparison.",
+  "purpose": "Read Shape projections from the registered canonical profile or legacy candidate sources without promoting.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": ["read_shape_projections", "migration_decision"],
+  "contains": ["shape projection reads", "typed abstentions", "legacy retention decision"],
+  "depends_on": ["kernel.foundation.storage", "kernel.metaphysical.profile_registry", "kernel.metaphysical.runtime"],
+  "feeds_into": ["kernel.shape_population", "surface.inner_world.product_inner_world"],
+  "inputs": ["root path", "query"],
+  "outputs": ["shape projections"],
+  "state_owned": [],
+  "surfaces_using": ["inner_world_v1"],
+  "test_targets": ["tests/test_shape_projection_reader.py", "tests/test_shape_authority.py"]
+}

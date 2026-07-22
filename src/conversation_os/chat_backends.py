@@ -8,9 +8,10 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping
 
 from .cost_tracker import estimate_token_count, record_actual_cost
+from .disclosure_contracts import validate_model_bound_payload
 
 
 MODULE_ID = "kernel.runtime.chat_backends"
@@ -911,6 +912,9 @@ def trim_context_bundle(bundle: Dict[str, Any], policy: Dict[str, Any] | None = 
         "session_envelope": dict(bundle.get("session_envelope", {}) or {}),
         "frame_spec": dict(bundle.get("frame_spec", {}) or {}),
         "frame_bundle": dict(bundle.get("frame_bundle", {}) or {}),
+        "execution_audit_isolation_v1": bool(bundle.get("execution_audit_isolation_v1", True)),
+        "orient_first_compose_v1": bool(bundle.get("orient_first_compose_v1", False)),
+        "active_state_snapshot": dict(bundle.get("active_state_snapshot", {}) or {}),
     }
     if "session" in layers:
         trimmed["session_local"] = list(bundle.get("session_local", []) or [])
@@ -939,7 +943,34 @@ def _format_provenance_lines(source_refs: List[str]) -> str:
     return "\n".join(f"- {value}" for value in refs[:6])
 
 
+def _execution_audit_isolation_enabled(trimmed_bundle: Mapping[str, Any]) -> bool:
+    return bool(trimmed_bundle.get("execution_audit_isolation_v1", True))
+
+
+def _enforce_model_bound_isolation(trimmed_bundle: Mapping[str, Any]) -> None:
+    frame_bundle = dict(trimmed_bundle.get("frame_bundle", {}) or {})
+    if frame_bundle:
+        validate_model_bound_payload(frame_bundle, label="FrameBundle")
+    frame_audit = trimmed_bundle.get("frame_audit")
+    if isinstance(frame_audit, dict) and frame_audit:
+        validate_model_bound_payload(frame_audit, label="FrameAudit")
+
+
 def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Dict[str, Any], user_text: str) -> str:
+    isolation_enabled = _execution_audit_isolation_enabled(trimmed_bundle)
+    if isolation_enabled:
+        _enforce_model_bound_isolation(trimmed_bundle)
+
+    if trimmed_bundle.get("orient_first_compose_v1"):
+        from .orient_first_compose import ORIENTATION_MAX_CHARS, compose_orient_first_message
+
+        return compose_orient_first_message(
+            control_packet,
+            trimmed_bundle,
+            user_text,
+            orientation_max_chars=int(trimmed_bundle.get("orientation_max_chars", ORIENTATION_MAX_CHARS) or ORIENTATION_MAX_CHARS),
+        )
+
     policy = dict(control_packet.get("context_policy", {}) or {})
     layers = list(trimmed_bundle.get("bundle_layers", []) or [])
     constraints = [str(value) for value in control_packet.get("steering_constraints", []) or [] if str(value).strip()]
@@ -982,13 +1013,10 @@ def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Di
 
     constraint_block = "\n".join(f"- {item}" for item in constraints) if constraints else "- Stay inside disclosed context."
     frame_included_block = _format_frame_block_lines(list(frame_bundle.get("included_blocks", []) or []))
-    frame_suppressed_block = _format_frame_block_lines(list(frame_bundle.get("suppressed_blocks", []) or []))
     provenance_block = _format_provenance_lines(
         list((frame_bundle.get("provenance_summary", {}) or {}).get("source_refs", []) or [])
     )
-
-    return "\n".join(
-        [
+    message_parts = [
             "Inner World bridge execution request.",
             "Answer the user inside the control packet bounds below.",
             "",
@@ -1010,9 +1038,18 @@ def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Di
             "",
             "Included frame blocks:",
             frame_included_block,
-            "",
-            "Suppressed frame blocks:",
-            frame_suppressed_block,
+        ]
+    if not isolation_enabled:
+        frame_suppressed_block = _format_frame_block_lines(list(frame_bundle.get("suppressed_blocks", []) or []))
+        message_parts.extend(
+            [
+                "",
+                "Suppressed frame blocks:",
+                frame_suppressed_block,
+            ]
+        )
+    message_parts.extend(
+        [
             "",
             "Frame provenance:",
             provenance_block,
@@ -1039,6 +1076,7 @@ def compose_execution_message(control_packet: Dict[str, Any], trimmed_bundle: Di
             "- End with one concrete next move.",
         ]
     )
+    return "\n".join(message_parts)
 
 
 def request_bridge_execution_reply(

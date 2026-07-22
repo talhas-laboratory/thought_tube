@@ -7,19 +7,54 @@
 | `TASK-003-implement-phase-1-foundation-vertical-slice` | review | unassigned | Implement Phase 1 foundation vertical slice | not_required |
 | `TASK-004-build-profile-registry-and-conformance` | review | unassigned | Build profile registry and conformance | not_required |
 | `TASK-005-prove-application-sdk-with-two-consumers` | review | unassigned | Prove application SDK with two consumers | not_required |
-| `UMF-PROGRAM-BRANCH` | ready | unassigned | Deliver branch reasoning program | not_required |
-| `UMF-PROGRAM-CONVERSATION` | backlog | unassigned | Deliver conversation and formation program | not_required |
-| `UMF-PROGRAM-EXECUTION` | backlog | unassigned | Deliver agent grounding and execution program | not_required |
-| `UMF-PROGRAM-KERNEL` | ready | unassigned | Deliver kernel ontology program | not_required |
-| `UMF-PROGRAM-PATTERN` | backlog | unassigned | Deliver valence, scale, and pattern program | not_required |
-| `UMF-PROGRAM-SHAPE` | backlog | unassigned | Deliver semantic addressing and shape program | not_required |
-| `UMF-PROGRAM-SURFACES` | backlog | unassigned | Deliver product surfaces program | not_required |
-| `UMF-PROGRAM-TRANSFORMATION` | backlog | unassigned | Deliver transformation dynamics program | not_required |
-| `UMF-PROGRAM-VOCABULARY` | ready | unassigned | Deliver vocabulary governance program | not_required |
+| `UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS` | review | unassigned | Define agent environment-builder disclosure contract | not_required |
+| `UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE` | review | unassigned | Add the cybernetics and regulation profile | not_required |
+| `UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER` | review | unassigned | Model structural invariants, anti-matches, and transfer | not_required |
+| `UMF-PATTERN-002-EMERGENT-STATE-CRITERIA` | review | unassigned | Define emergent-state criteria and evidence gates | not_required |
+| `UMF-PROGRAM-BRANCH` | review | unassigned | Deliver branch reasoning program | not_required |
+| `UMF-PROGRAM-CONVERSATION` | review | unassigned | Deliver conversation and formation program | not_required |
+| `UMF-PROGRAM-EXECUTION` | review | unassigned | Deliver agent grounding and execution program | not_required |
+| `UMF-PROGRAM-KERNEL` | review | unassigned | Deliver kernel ontology program | not_required |
+| `UMF-PROGRAM-PATTERN` | review | unassigned | Deliver valence, scale, and pattern program | not_required |
+| `UMF-PROGRAM-SHAPE` | review | unassigned | Deliver semantic addressing and shape program | not_required |
+| `UMF-PROGRAM-SURFACES` | review | unassigned | Deliver product surfaces program | not_required |
+| `UMF-PROGRAM-TRANSFORMATION` | review | unassigned | Deliver transformation dynamics program | not_required |
+| `UMF-PROGRAM-VOCABULARY` | review | unassigned | Deliver vocabulary governance program | not_required |
+| `UMF-SHAPE-001-QUALITY-INSTANCE-REFINEMENT` | done | unassigned | Model QualityInstance and refinement lineage | not_required |
+| `UMF-SHAPE-002-COMPOSITION-RECURSIVE-SYSTEMHOOD` | done | unassigned | Model composition, boundaries, and recursive systemhood | not_required |
+| `UMF-SHAPE-003-ROLE-ASSIGNMENT-INFLUENCE` | review | unassigned | Model contextual roles and influence | not_required |
+| `UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE` | review | unassigned | Establish ShapeCore, ShapeView, and composite shape lifecycle | not_required |
+| `UMF-T10-00-INTEGRATION-BASELINE` | review | foundation/release | T10-00: Establish one integration and release baseline | not_required |
+| `UMF-T10-01-SHAPE-AUTHORITY` | review | shape-profile | T10-01: Repair canonical Shape authority and identity | not_required |
+| `UMF-T10-02-POPULATION-CANONICAL-MAP` | review | population+shape | T10-02: Map Population output into canonical Shape records | not_required |
+| `UMF-T10-03-LIVE-SHAPE-POPULATION` | review | population | T10-03: Integrate and operate live Shape Population | not_required |
+| `UMF-T10-04-CORPUS-OCEAN` | review | unassigned | T10-04 CorpusCatalog ocean readiness | not_required |
+| `UMF-T10-05-INDEX-CONTRACTS` | review | unassigned | T10-05 Index / retrieval contracts | not_required |
+| `UMF-T10-06-PATTERN-ANTIMATCH` | review | unassigned | T10-06 Pattern, AntiMatch, and transfer reasoning | not_required |
+| `UMF-T10-07-SHAPE-RETRIEVAL` | review | unassigned | T10-07 Shape-aware retrieval repair | not_required |
+| `UMF-T10-08-DISCLOSURE-ACTIVATION` | review | unassigned | T10-08 Safe disclosure/state activation | not_required |
+| `UMF-T10-09-TEMPORAL-REVISION` | review | unassigned | T10-09 Temporal / revision model | not_required |
+| `UMF-T10-10-CYBERNETIC-COMPILE` | review | unassigned | T10-10 Cybernetic Compile | not_required |
+| `UMF-T10-11-OUTCOME-LEARNING` | review | cursor-cloud-a790 | T10-11 Outcome Learning | not_required |
+| `UMF-T10-12-AUTH-PRIVACY` | review | cursor-cloud-a790 | T10-12 Authorization privacy poisoning | not_required |
+| `UMF-T10-13-CONCURRENCY` | review | cursor-cloud-a790 | T10-13 Multi-agent concurrency conflicts | not_required |
+| `UMF-T10-14-FINAL-BENCHMARK` | review | cursor-cloud-a790 | T10-14 Final Benchmark | not_required |
+| `UMF-T10-14-FIRST-BENCHMARK` | review | unassigned | T10-14 First comparative quality benchmark | not_required |
+| `UMF-T10-15-SCALE-RECOVERY` | review | cursor-cloud-a790 | T10-15 Scale Recovery | not_required |
+| `UMF-T10-16-OBSERVABILITY` | review | cursor-cloud-a790 | T10-16 Observability | not_required |
+| `UMF-T10-17-AGENT-HARNESS` | review | cursor-cloud-a790 | T10-17 Coherent agent harness | not_required |
+| `UMF-T10-18-SHAPE-INSPECTOR` | review | cursor-cloud-a790 | T10-18 Inspectable Shapes and provenance | not_required |
+| `UMF-T10-19-RELEASE-DISCIPLINE` | review | engineering | T10-19: Close repo and release-discipline debt for Wave 0 modules | not_required |
+| `UMF-T10-WAVE-01-GOLDEN-TRACE` | review | foundation-lead | Wave 1 exit: golden source-to-Shape production trace | not_required |
+| `UMF-T10-WAVE-01-SHAPE-LIFECYCLE` | review | foundation-lead | Wave 0-1: truthful baseline + canonical Shape lifecycle | not_required |
+| `UMF-T10-WAVE-02-CORPUS-OCEAN` | review | foundation-lead | Wave 2: governed corpus ocean, indexes, and revision | not_required |
+| `UMF-T10-WAVE-03-STRUCTURAL-INTEL` | review | unassigned | Wave 3: Pattern/AntiMatch, retrieval repair, first benchmark | not_required |
+| `UMF-T10-WAVE-04-SAFE-AGENT-USE` | review | cursor-cloud-a790 | Wave 4: safe disclosure activation and agent harness | not_required |
+| `UMF-T10-WAVE-05-DYNAMICS-PROOF` | review | cursor-cloud-a790 | Wave 5 Dynamics Proof | not_required |
 
 Status values: `backlog`, `ready`, `in-progress`, `review`, `blocked`, `done`.
 A task may enter `done` only when every required gate in `GATES.md` has evidence.
 
-Live workspace task statuses: `TASK-001-lock-kernel-contracts-and-lifecycles`=review, `TASK-002-build-historical-and-current-migration-fixtures`=review, `TASK-003-implement-phase-1-foundation-vertical-slice`=review, `TASK-004-build-profile-registry-and-conformance`=review, `TASK-005-prove-application-sdk-with-two-consumers`=review, `UMF-PROGRAM-BRANCH`=ready, `UMF-PROGRAM-CONVERSATION`=backlog, `UMF-PROGRAM-EXECUTION`=backlog, `UMF-PROGRAM-KERNEL`=ready, `UMF-PROGRAM-PATTERN`=backlog, `UMF-PROGRAM-SHAPE`=backlog, `UMF-PROGRAM-SURFACES`=backlog, `UMF-PROGRAM-TRANSFORMATION`=backlog, `UMF-PROGRAM-VOCABULARY`=ready. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
+Live workspace task statuses: `TASK-001-lock-kernel-contracts-and-lifecycles`=review, `TASK-002-build-historical-and-current-migration-fixtures`=review, `TASK-003-implement-phase-1-foundation-vertical-slice`=review, `TASK-004-build-profile-registry-and-conformance`=review, `TASK-005-prove-application-sdk-with-two-consumers`=review, `UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS`=review, `UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE`=review, `UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER`=review, `UMF-PATTERN-002-EMERGENT-STATE-CRITERIA`=review, `UMF-PROGRAM-BRANCH`=review, `UMF-PROGRAM-CONVERSATION`=review, `UMF-PROGRAM-EXECUTION`=review, `UMF-PROGRAM-KERNEL`=review, `UMF-PROGRAM-PATTERN`=review, `UMF-PROGRAM-SHAPE`=review, `UMF-PROGRAM-SURFACES`=review, `UMF-PROGRAM-TRANSFORMATION`=review, `UMF-PROGRAM-VOCABULARY`=review, `UMF-SHAPE-001-QUALITY-INSTANCE-REFINEMENT`=done, `UMF-SHAPE-002-COMPOSITION-RECURSIVE-SYSTEMHOOD`=done, `UMF-SHAPE-003-ROLE-ASSIGNMENT-INFLUENCE`=review, `UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE`=review, `UMF-T10-00-INTEGRATION-BASELINE`=review, `UMF-T10-01-SHAPE-AUTHORITY`=review, `UMF-T10-02-POPULATION-CANONICAL-MAP`=review, `UMF-T10-03-LIVE-SHAPE-POPULATION`=review, `UMF-T10-04-CORPUS-OCEAN`=review, `UMF-T10-05-INDEX-CONTRACTS`=review, `UMF-T10-06-PATTERN-ANTIMATCH`=review, `UMF-T10-07-SHAPE-RETRIEVAL`=review, `UMF-T10-08-DISCLOSURE-ACTIVATION`=review, `UMF-T10-09-TEMPORAL-REVISION`=review, `UMF-T10-10-CYBERNETIC-COMPILE`=review, `UMF-T10-11-OUTCOME-LEARNING`=review, `UMF-T10-12-AUTH-PRIVACY`=review, `UMF-T10-13-CONCURRENCY`=review, `UMF-T10-14-FINAL-BENCHMARK`=review, `UMF-T10-14-FIRST-BENCHMARK`=review, `UMF-T10-15-SCALE-RECOVERY`=review, `UMF-T10-16-OBSERVABILITY`=review, `UMF-T10-17-AGENT-HARNESS`=review, `UMF-T10-18-SHAPE-INSPECTOR`=review, `UMF-T10-19-RELEASE-DISCIPLINE`=review, `UMF-T10-WAVE-01-GOLDEN-TRACE`=review, `UMF-T10-WAVE-01-SHAPE-LIFECYCLE`=review, `UMF-T10-WAVE-02-CORPUS-OCEAN`=review, `UMF-T10-WAVE-03-STRUCTURAL-INTEL`=review, `UMF-T10-WAVE-04-SAFE-AGENT-USE`=review, `UMF-T10-WAVE-05-DYNAMICS-PROOF`=review. No open blockers in the live workspace. Git projections were refreshed from live coordination state.
 
 **Local agent start:** [`LOCAL-AGENT-BOOT.md`](./LOCAL-AGENT-BOOT.md)

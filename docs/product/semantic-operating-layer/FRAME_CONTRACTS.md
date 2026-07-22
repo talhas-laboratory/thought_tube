@@ -28,11 +28,38 @@ The core rule is separation of concerns:
 - `ContextPolicy` controls disclosure to execution.
 - `SessionEnvelope` controls session boundaries, memory behavior, and learning side effects.
 
+### Disclosure law (2026-07-17)
+
+Program workspace: `cognitive-aperture-exceptional` (`ADR-001`).
+
+Treat four jobs as distinct:
+
+1. **Orient** — thin state/posture prose places the model.
+2. **Grant** — layers, refs, budgets, envelope mode (`ContextPolicy` + envelope).
+3. **Evidence** — high-SNR material actually opened under the grant.
+4. **Receipt** — audit/handoff record (packet / `FrameBundle` / control snapshot).
+
+Execution prompts may include orientation, thin steering constraints, and evidence only.  
+Omitted or suppressed membership details belong on audit/inspect surfaces, not in the execution prompt.  
+Bounded/strict retrieval should fail empty when there is no positive match.
+
 ## Relationship To Existing Bridge Objects
 
 `ControlPacket` remains the execution handoff.
 
-`FrameSpec`, `FrameBundle`, and `SessionEnvelope` sit before execution:
+Target assembly order (normative for exceptional hardening):
+
+```text
+ReasoningRequest
+  -> ActiveState / orientation
+  -> FrameSpec (grant/selectors; may be preview in v1)
+  -> DisclosureGrant / ContextPolicy + SessionEnvelope
+  -> Evidence assembly (retrieval + layer trim + token budget)
+  -> ControlPacket + FrameBundle receipt
+  -> execution (orientation + evidence only)
+```
+
+Historical v1 sketch (still partially true in code):
 
 ```text
 ReasoningRequest
@@ -49,6 +76,7 @@ In v1:
 - `FrameSpec` may be preview-only.
 - `FrameBundle` may be materialized only for inspection/testing.
 - `SessionEnvelope` may initially compile into existing `depth_mode`, retrieval budgets, and learning guards.
+- Hardening work must close gaps where code retrieves before orientation or leaks suppressed blocks into execution.
 
 ## FrameSpec
 

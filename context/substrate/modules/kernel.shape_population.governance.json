@@ -1,0 +1,43 @@
+{
+  "module_id": "kernel.shape_population.governance",
+  "path": "src/conversation_os/shape_population/governance.py",
+  "layer": "kernel",
+  "owner": "Atomic validate/persist/receipt for candidates and evaluations.",
+  "purpose": "Atomic validate/persist/receipt for candidates and evaluations.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "validate_candidate",
+    "persist_candidate",
+    "record_population_receipt",
+    "atomic_submit_candidate",
+    "atomic_submit_evaluation"
+  ],
+  "contains": [
+    "Atomic validate/persist/receipt for candidates and evaluations."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_governance.py"
+  ]
+}

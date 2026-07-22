@@ -6,10 +6,14 @@ import shutil
 import unittest
 from pathlib import Path
 
+import pytest
+
 from conversation_os.bridge_controller import load_bridge_config
 from conversation_os.reasoning_bridge import classify_turn
 from conversation_os.reasoning_runtime import run_reasoning
 from conversation_os.models import ReasoningRequest
+
+pytestmark = pytest.mark.live
 
 
 def _openclaw_available() -> bool:

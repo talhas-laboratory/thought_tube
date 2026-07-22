@@ -262,6 +262,14 @@ def build_task_pack(
     )
     payload = pack.to_dict()
     payload["handoff_validation"] = handoff_validation
+    from .task_pack_disclosure_adapter import enrich_task_pack_with_bounded_evidence
+
+    payload = enrich_task_pack_with_bounded_evidence(
+        root,
+        payload,
+        request=request,
+        domain_overlays=domain_overlays,
+    )
     write_json(task_packs_dir(root) / f"{task_id}.json", payload)
     md = [
         f"# Task Pack — {task_id}",
@@ -349,6 +357,21 @@ def build_task_pack(
         ]
     )
     md.extend([f"- {item}" for item in next_actions])
+    bounded_evidence = payload.get("bounded_evidence", {}) or {}
+    evidence_blocks = list(bounded_evidence.get("blocks", []) or [])
+    if evidence_blocks:
+        md.extend(
+            [
+                "",
+                "## Bounded Evidence (optional)",
+                "",
+                f"- result_status: {bounded_evidence.get('result_status', '')}",
+                f"- count: {bounded_evidence.get('count', 0)}",
+                "",
+            ]
+        )
+        for block in evidence_blocks:
+            md.append(f"- `{block.get('source_ref', '')}`: {block.get('label', '')}")
     write_markdown(task_packs_dir(root) / f"{task_id}.md", "\n".join(md))
     return payload
 

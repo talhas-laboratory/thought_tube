@@ -1,0 +1,42 @@
+{
+  "module_id": "kernel.shape_population.contracts",
+  "path": "src/conversation_os/shape_population/contracts.py",
+  "layer": "kernel",
+  "owner": "Shared Shape population schemas and record invariants.",
+  "purpose": "Shared Shape population schemas and record invariants.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "CANDIDATE_STATUSES",
+    "COMPARISON_RELATIONS",
+    "CandidatePayload",
+    "EvidencePacket"
+  ],
+  "contains": [
+    "Shared Shape population schemas and record invariants."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_governance.py"
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "module_id": "kernel.disclosure.shape_certification_harness",
+  "path": "src/conversation_os/shape_certification_harness.py",
+  "layer": "kernel",
+  "owner": "Wave 0 imported aperture/disclosure module for `src/conversation_os/shape_certification_harness.py`.",
+  "purpose": "Certify Shape-aware retrieval behavior against corpus-backed probes.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "CERTIFICATION_SUITE_ID",
+    "HARNESS_VERSION",
+    "CERTIFICATION_THRESHOLDS",
+    "seed_certification_corpus",
+    "evaluate_retrieval_probe",
+    "evaluate_anti_match_probe",
+    "evaluate_resource_probe",
+    "run_shape_certification_suite",
+    "check_certification_thresholds",
+    "guard_known_failure_probes",
+    "render_certification_summary"
+  ],
+  "contains": [
+    "CERTIFICATION_SUITE_ID",
+    "HARNESS_VERSION",
+    "CERTIFICATION_THRESHOLDS",
+    "seed_certification_corpus",
+    "evaluate_retrieval_probe",
+    "evaluate_anti_match_probe",
+    "evaluate_resource_probe",
+    "run_shape_certification_suite",
+    "check_certification_thresholds",
+    "guard_known_failure_probes",
+    "render_certification_summary"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "runtime config",
+    "grant",
+    "candidates"
+  ],
+  "outputs": [
+    "disclosure decisions",
+    "receipts",
+    "certification reports"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1",
+    "bridge",
+    "holodeck"
+  ],
+  "test_targets": [
+    "tests/test_shape_certification_harness.py"
+  ],
+  "notes": "Manifest added by UMF-T10-19-RELEASE-DISCIPLINE after T10-00 integration import."
+}

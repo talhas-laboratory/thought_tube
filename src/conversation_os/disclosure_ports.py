@@ -1,0 +1,328 @@
+"""Storage-independent ports for the disclosure service (CAE-005A / ADR-002)."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Callable, Dict, Mapping, Protocol, runtime_checkable
+
+
+MODULE_ID = "kernel.disclosure.ports"
+CONTRACT_VERSION = "1.0"
+
+PUBLIC_API = (
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "CorpusCatalogPort",
+    "CandidateSearchPort",
+    "ShapeProjectionReaderPort",
+    "BoundedViewEpistemicPort",
+    "EvidenceResolverPort",
+    "ReceiptSinkPort",
+    "DisclosurePorts",
+    "InnerWorldDisclosurePorts",
+    "build_inner_world_ports",
+)
+__all__ = list(PUBLIC_API)
+
+
+@runtime_checkable
+class CorpusCatalogPort(Protocol):
+    def build_corpus_catalog(self, root: Path, *, corpus_id: str = "local_runtime") -> Dict[str, Any]: ...
+
+
+@runtime_checkable
+class CandidateSearchPort(Protocol):
+    def build_retrieval_bundle(
+        self,
+        root: Path,
+        query: str,
+        *,
+        limit: int = 10,
+        neighbor_limit: int = 6,
+        include_cross_pond: bool = False,
+        envelope_mode: str = "open",
+        explicit_pins: list[str] | None = None,
+    ) -> Dict[str, Any]: ...
+
+
+@runtime_checkable
+class ShapeProjectionReaderPort(Protocol):
+    def read_shape_projections(
+        self,
+        root: Path,
+        *,
+        branch_id: str = "",
+        scope_id: str = "",
+        source_refs: list[str] | None = None,
+        include_legacy: bool = True,
+        include_anti_match: bool = True,
+    ) -> Dict[str, Any]: ...
+
+
+@runtime_checkable
+class BoundedViewEpistemicPort(Protocol):
+    def collect_bounded_view_evidence(
+        self,
+        root: Path,
+        effective_grant: Mapping[str, Any],
+        *,
+        root_record_ids: list[str] | None = None,
+    ) -> Dict[str, Any]: ...
+
+
+@runtime_checkable
+class EvidenceResolverPort(Protocol):
+    def resolve_frame_blocks(
+        self,
+        root: Path,
+        *,
+        included_blocks: list[Dict[str, Any]],
+        effective_grant: Mapping[str, Any],
+    ) -> Dict[str, Any]: ...
+
+
+@runtime_checkable
+class ReceiptSinkPort(Protocol):
+    def record_disclosure_receipt(
+        self,
+        root: Path,
+        *,
+        request_id: str,
+        result_status: str,
+        effective_grant: Mapping[str, Any],
+        budget_ledger: Mapping[str, Any] | None = None,
+        frame_audit: Mapping[str, Any] | None = None,
+        metrics: Mapping[str, Any] | None = None,
+        frame_bundle: Mapping[str, Any] | None = None,
+        corpus_catalog: Mapping[str, Any] | None = None,
+        retrieval_bundle: Mapping[str, Any] | None = None,
+        surface: str = "bridge",
+        workspace_id: str = "",
+    ) -> Dict[str, Any]: ...
+
+
+@dataclass(frozen=True)
+class DisclosurePorts:
+    catalog: CorpusCatalogPort
+    candidate_search: CandidateSearchPort
+    shape_reader: ShapeProjectionReaderPort
+    bounded_view: BoundedViewEpistemicPort
+    evidence_resolver: EvidenceResolverPort
+    receipt_sink: ReceiptSinkPort
+
+
+class _InnerWorldCorpusCatalog:
+    def build_corpus_catalog(self, root: Path, *, corpus_id: str = "local_runtime") -> Dict[str, Any]:
+        from .corpus_catalog_snapshot import load_corpus_catalog_for_request
+
+        return load_corpus_catalog_for_request(root, corpus_id=corpus_id)
+
+
+class _InnerWorldCandidateSearch:
+    def build_retrieval_bundle(
+        self,
+        root: Path,
+        query: str,
+        *,
+        limit: int = 10,
+        neighbor_limit: int = 6,
+        include_cross_pond: bool = False,
+        envelope_mode: str = "open",
+        explicit_pins: list[str] | None = None,
+    ) -> Dict[str, Any]:
+        from .knowledge_layer import build_retrieval_bundle
+
+        return build_retrieval_bundle(
+            root,
+            query,
+            limit=limit,
+            neighbor_limit=neighbor_limit,
+            include_cross_pond=include_cross_pond,
+            envelope_mode=envelope_mode,
+            explicit_pins=explicit_pins,
+        )
+
+
+class _InnerWorldShapeReader:
+    def read_shape_projections(
+        self,
+        root: Path,
+        *,
+        branch_id: str = "",
+        scope_id: str = "",
+        source_refs: list[str] | None = None,
+        include_legacy: bool = True,
+        include_anti_match: bool = True,
+    ) -> Dict[str, Any]:
+        from .shape_projection_reader import read_shape_projections
+
+        return read_shape_projections(
+            root,
+            branch_id=branch_id,
+            scope_id=scope_id,
+            source_refs=source_refs,
+            include_legacy=include_legacy,
+            include_anti_match=include_anti_match,
+        )
+
+
+class _InnerWorldBoundedViewEpistemic:
+    def collect_bounded_view_evidence(
+        self,
+        root: Path,
+        effective_grant: Mapping[str, Any],
+        *,
+        root_record_ids: list[str] | None = None,
+    ) -> Dict[str, Any]:
+        from .bounded_view_disclosure_adapter import collect_bounded_view_evidence
+
+        return collect_bounded_view_evidence(
+            root,
+            effective_grant,
+            root_record_ids=root_record_ids,
+        )
+
+
+class _InnerWorldEvidenceResolver:
+    def resolve_frame_blocks(
+        self,
+        root: Path,
+        *,
+        included_blocks: list[Dict[str, Any]],
+        effective_grant: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        from .shape_candidate_retrieval import CAP_EVIDENCE_RESOLVE, authorize_shape_aware_access
+
+        provenance = dict(effective_grant.get("provenance", {}) or {})
+        ref_scope_refs: list[str] = []
+        for block in included_blocks:
+            if not isinstance(block.get("evidence_ref", {}), Mapping):
+                continue
+            evidence_ref = dict(block.get("evidence_ref", {}) or {})
+            for key in ("source_ref", "source_id", "fragment_id"):
+                value = str(evidence_ref.get(key, "") or "").strip()
+                if value:
+                    ref_scope_refs.append(value)
+                    break
+        authorization = authorize_shape_aware_access(
+            authorization=dict(effective_grant.get("authorization", {}) or {}),
+            effective_grant=effective_grant,
+            required_capability=CAP_EVIDENCE_RESOLVE,
+            branch_id=str(provenance.get("branch_id", "") or ""),
+            scope_id=str(provenance.get("scope_id", "") or ""),
+            source_refs=ref_scope_refs,
+            require_ref_grant=True,
+        )
+        if not authorization["allowed"]:
+            return {
+                "resolved_blocks": [],
+                "resolution_audit": {
+                    "enabled": True,
+                    "authorization": authorization,
+                    "omitted": [
+                        {
+                            "block_id": str(block.get("block_id", "") or ""),
+                            "reason_code": "authorization_denied",
+                            "reason": "Evidence resolution denied by authorization policy",
+                        }
+                        for block in included_blocks
+                    ],
+                    "bytes_resolved": 0,
+                    "lookup_count": 0,
+                },
+            }
+        from .evidence_resolver import resolve_frame_blocks
+
+        return resolve_frame_blocks(
+            root,
+            included_blocks=included_blocks,
+            effective_grant=effective_grant,
+        )
+
+
+class _InMemoryReceiptSink:
+    def __init__(self) -> None:
+        self.records: list[Dict[str, Any]] = []
+
+    def record_disclosure_receipt(
+        self,
+        root: Path,
+        *,
+        request_id: str,
+        result_status: str,
+        effective_grant: Mapping[str, Any],
+        budget_ledger: Mapping[str, Any] | None = None,
+        frame_audit: Mapping[str, Any] | None = None,
+        metrics: Mapping[str, Any] | None = None,
+        frame_bundle: Mapping[str, Any] | None = None,
+        corpus_catalog: Mapping[str, Any] | None = None,
+        retrieval_bundle: Mapping[str, Any] | None = None,
+        surface: str = "bridge",
+        workspace_id: str = "",
+    ) -> Dict[str, Any]:
+        _ = root, frame_bundle, corpus_catalog, retrieval_bundle, surface, workspace_id
+        record = {
+            "request_id": request_id,
+            "result_status": result_status,
+            "effective_grant": dict(effective_grant),
+            "budget_ledger": dict(budget_ledger or {}),
+            "frame_audit_id": str((frame_audit or {}).get("audit_id", "") or ""),
+            "metrics": dict(metrics or {}),
+        }
+        self.records.append(record)
+        return record
+
+
+class _DefaultReceiptSink:
+    def __init__(self) -> None:
+        self.records: list[Dict[str, Any]] = []
+
+    def record_disclosure_receipt(
+        self,
+        root: Path,
+        *,
+        request_id: str,
+        result_status: str,
+        effective_grant: Mapping[str, Any],
+        budget_ledger: Mapping[str, Any] | None = None,
+        frame_audit: Mapping[str, Any] | None = None,
+        metrics: Mapping[str, Any] | None = None,
+        frame_bundle: Mapping[str, Any] | None = None,
+        corpus_catalog: Mapping[str, Any] | None = None,
+        retrieval_bundle: Mapping[str, Any] | None = None,
+        surface: str = "bridge",
+        workspace_id: str = "",
+    ) -> Dict[str, Any]:
+        from .disclosure_receipts import record_disclosure_receipt
+
+        receipt = record_disclosure_receipt(
+            root,
+            request_id=request_id,
+            result_status=result_status,
+            effective_grant=effective_grant,
+            budget_ledger=budget_ledger,
+            frame_audit=frame_audit,
+            metrics=metrics,
+            frame_bundle=frame_bundle,
+            corpus_catalog=corpus_catalog,
+            retrieval_bundle=retrieval_bundle,
+            surface=surface,
+            workspace_id=workspace_id,
+        )
+        self.records.append(receipt)
+        return receipt
+
+
+def build_inner_world_ports(*, receipt_sink: ReceiptSinkPort | None = None) -> DisclosurePorts:
+    return DisclosurePorts(
+        catalog=_InnerWorldCorpusCatalog(),
+        candidate_search=_InnerWorldCandidateSearch(),
+        shape_reader=_InnerWorldShapeReader(),
+        bounded_view=_InnerWorldBoundedViewEpistemic(),
+        evidence_resolver=_InnerWorldEvidenceResolver(),
+        receipt_sink=receipt_sink or _DefaultReceiptSink(),
+    )
+
+
+InnerWorldDisclosurePorts = build_inner_world_ports

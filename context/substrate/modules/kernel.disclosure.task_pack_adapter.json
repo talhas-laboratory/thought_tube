@@ -1,0 +1,49 @@
+{
+  "module_id": "kernel.disclosure.task_pack_adapter",
+  "path": "src/conversation_os/task_pack_disclosure_adapter.py",
+  "layer": "kernel",
+  "owner": "Wave 0 imported aperture/disclosure module for `src/conversation_os/task_pack_disclosure_adapter.py`.",
+  "purpose": "Adapt task-pack surfaces onto the shared disclosure service.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "load_task_pack_disclosure_config",
+    "task_pack_disclosure_service_enabled",
+    "build_task_pack_evidence_query",
+    "map_retrieval_bundle_to_evidence_blocks",
+    "collect_task_pack_evidence",
+    "enrich_task_pack_with_bounded_evidence"
+  ],
+  "contains": [
+    "load_task_pack_disclosure_config",
+    "task_pack_disclosure_service_enabled",
+    "build_task_pack_evidence_query",
+    "map_retrieval_bundle_to_evidence_blocks",
+    "collect_task_pack_evidence",
+    "enrich_task_pack_with_bounded_evidence"
+  ],
+  "depends_on": [
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "surface.inner_world.product_inner_world"
+  ],
+  "inputs": [
+    "runtime config",
+    "grant",
+    "candidates"
+  ],
+  "outputs": [
+    "disclosure decisions",
+    "receipts",
+    "certification reports"
+  ],
+  "state_owned": [],
+  "surfaces_using": [
+    "inner_world_v1",
+    "bridge",
+    "holodeck"
+  ],
+  "test_targets": [],
+  "notes": "Manifest added by UMF-T10-19-RELEASE-DISCIPLINE after T10-00 integration import."
+}

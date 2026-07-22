@@ -6,6 +6,7 @@ Agent-facing continuity artifacts for long Cursor threads that may be context-co
 
 | Session ID | Workspace | Task pack ID | Transcript | Branch / PR |
 |------------|-----------|--------------|------------|-------------|
+| `cursor-cognitive-aperture-exceptional-24c7` | [**AGENT_BOOT**](../workspaces/cognitive-aperture-exceptional/AGENT_BOOT.md) | gap map + Holodeck task-pack `cognitive-aperture-agent-boot` | [continuity transcript](./cursor-cognitive-aperture-exceptional-2026-07-17.md) · [synthesis](../workspaces/cognitive-aperture-exceptional/analyses/2026-07-17-thread-synthesis.md) | PR [#32](https://github.com/talhas-laboratory/thought_tube/pull/32) |
 | `cursor-unified-framework-synthesis-4f48` | [**full workspace**](../workspaces/unified-framework-synthesis/README.md) | `unified-framework-continuity-4f48` | [thread + analyses](../workspaces/unified-framework-synthesis/continuity/thread-transcript.md) | PR [#7](https://github.com/talhas-laboratory/thought_tube/pull/7) |
 | `cursor-mtsf-activation-thread-4f48` | — | `mtsf-activation-continuity-4f48` | [cursor-mtsf-activation-thread-2026-07-07.md](./cursor-mtsf-activation-thread-2026-07-07.md) | PR [#3](https://github.com/talhas-laboratory/thought_tube/pull/3), [#4](https://github.com/talhas-laboratory/thought_tube/pull/4) |
 
