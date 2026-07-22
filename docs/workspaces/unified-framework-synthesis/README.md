@@ -91,6 +91,16 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-15-SCALE-RECOVERY.md`](./derived/T10-15-SCALE-RECOVERY.md) | Wave 5 T10-15 evidence | Shape Population recovery-readiness drill report with RPO/RTO, lineage/access blockers, and no unproven scale claim |
 | [`derived/T10-16-OBSERVABILITY.md`](./derived/T10-16-OBSERVABILITY.md) | Wave 5 T10-16 evidence | Privacy-safe lifecycle observability summary with distinct abstention, stale-index, stuck-job, drift, and infra-failure signals |
 | [`derived/T10-14-FINAL-BENCHMARK.md`](./derived/T10-14-FINAL-BENCHMARK.md) | Wave 5 T10-14 evidence | Final benchmark report reruns Wave 3 metrics and publishes explicit residual gaps without full-certification claims |
+| [`derived/UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE.md`](./derived/UMF-SHAPE-004-SHAPECORE-SHAPEVIEW-COMPOSITE.md) | Shape program leaf | Composite ShapeCore/ShapeView/DimensionalShape lifecycle contract validation |
+| [`derived/UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER.md`](./derived/UMF-PATTERN-001-INVARIANTS-ANTIMATCH-TRANSFER.md) | Pattern program leaf | `profile:pattern` with Pattern/AntiMatch/transfer contracts |
+| [`derived/UMF-PATTERN-002-EMERGENT-STATE-CRITERIA.md`](./derived/UMF-PATTERN-002-EMERGENT-STATE-CRITERIA.md) | Pattern program leaf | EmergentState grounding, scale transition, evidence, and uncertainty gates |
+| [`derived/UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE.md`](./derived/UMF-DYNAMICS-001-CYBERNETIC-REGULATION-PROFILE.md) | Transform program leaf | Cybernetics profile plus Shape/Claim qualifier checks on compile bundles |
+| [`derived/UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS.md`](./derived/UMF-AGENT-001-ENVIRONMENT-SPEC-PACKETS.md) | Execution program leaf | EnvironmentSpecPacket agent environment-builder disclosure contract |
+| [`derived/UMF-PROGRAM-KERNEL.md`](./derived/UMF-PROGRAM-KERNEL.md) | Program evidence | Kernel ontology first delivery already present |
+| [`derived/UMF-PROGRAM-BRANCH.md`](./derived/UMF-PROGRAM-BRANCH.md) | Program evidence | Branch reasoning first delivery already present |
+| [`derived/UMF-PROGRAM-VOCABULARY.md`](./derived/UMF-PROGRAM-VOCABULARY.md) | Program evidence | Vocabulary governance first delivery already present |
+| [`derived/UMF-PROGRAM-CONVERSATION.md`](./derived/UMF-PROGRAM-CONVERSATION.md) | Program evidence | Conversation/formation substrate first delivery already present |
+| [`derived/UMF-PROGRAM-SURFACES.md`](./derived/UMF-PROGRAM-SURFACES.md) | Program evidence | Product surfaces first delivery already present |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources
