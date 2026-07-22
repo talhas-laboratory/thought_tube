@@ -41,6 +41,14 @@ FIRST_COMPARATIVE_THRESHOLDS = {
     "positive_pair_recovery_rate": 0.80,
     "min_pair_count": 4,
 }
+OUTCOME_LEARNING_POLICY_VERSION = "2026-07-22.t10-11.first"
+OUTCOME_LEARNING_SIGNAL_KINDS = (
+    "outcome",
+    "user_preference",
+    "reviewer_judgment",
+    "task_success",
+    "factual_validation",
+)
 
 PUBLIC_API = (
     "MODULE_ID",
@@ -53,6 +61,8 @@ PUBLIC_API = (
     "FIRST_COMPARATIVE_BENCHMARK_ID",
     "FIRST_COMPARATIVE_BENCHMARK_REVISION",
     "FIRST_COMPARATIVE_THRESHOLDS",
+    "OUTCOME_LEARNING_POLICY_VERSION",
+    "OUTCOME_LEARNING_SIGNAL_KINDS",
     "ShapeQuery",
     "ShapeCandidateDecision",
     "AntiMatchDecision",
@@ -77,6 +87,7 @@ PUBLIC_API = (
     "build_shape_aware_retrieval_bundle",
     "held_out_first_comparative_cases",
     "score_comparative_pair",
+    "derive_outcome_learning_policy_proposals",
     "run_first_comparative_benchmark",
     "check_first_comparative_thresholds",
 )
@@ -1161,6 +1172,139 @@ def build_shape_aware_retrieval_bundle(
         typed["readiness_state"] = str(shape_context.get("readiness_state", "") or typed["readiness_state"])
     bundle["shape_retrieval"] = typed
     return bundle
+
+
+def _bounded_score(value: Any, *, default: float = 0.5) -> float:
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        score = default
+    return round(max(0.0, min(1.0, score)), 4)
+
+
+def _event_outcome_score(event: Mapping[str, Any]) -> float:
+    if "score" in event:
+        return _bounded_score(event.get("score"))
+    if isinstance(event.get("passed"), bool):
+        return 1.0 if event.get("passed") else 0.0
+    status = str(event.get("result_status") or event.get("outcome") or "").strip().lower()
+    if status in {"success", "pass", "passed", "accepted", "useful", "task_success", "correct"}:
+        return 1.0
+    if status in {"failure", "fail", "failed", "rejected", "unsafe", "regression", "incorrect"}:
+        return 0.0
+    return 0.5
+
+
+def _policy_input_refs(event: Mapping[str, Any]) -> Dict[str, List[str]]:
+    attribution = dict(event.get("attribution") or {})
+    keys = (
+        "evidence_block_id",
+        "match_id",
+        "shape_match_id",
+        "disclosure_choice",
+        "prompt_revision",
+        "tool_version",
+        "model_version",
+        "policy_id",
+    )
+    refs: Dict[str, List[str]] = {}
+    for key in keys:
+        raw = attribution.get(key, event.get(key))
+        values = raw if isinstance(raw, list) else [raw]
+        normalized = sorted({str(value).strip() for value in values if str(value).strip()})
+        if normalized:
+            refs[key] = normalized[:8]
+    return refs
+
+
+def derive_outcome_learning_policy_proposals(
+    events: Sequence[Mapping[str, Any]],
+    *,
+    policy_id: str = "shape_retrieval_policy",
+    control_success_rate: float = 0.0,
+    minimum_events: int = 3,
+) -> Dict[str, Any]:
+    """Convert offline outcome observations into review-only policy proposals."""
+
+    rows: List[Dict[str, Any]] = []
+    by_kind: Dict[str, int] = {kind: 0 for kind in OUTCOME_LEARNING_SIGNAL_KINDS}
+    attributed_inputs: Dict[str, Set[str]] = {}
+    safety_regression_ids: List[str] = []
+    minority_regression_ids: List[str] = []
+    for index, event in enumerate(events):
+        kind = str(event.get("event_kind") or event.get("kind") or "outcome").strip().lower()
+        if kind not in OUTCOME_LEARNING_SIGNAL_KINDS:
+            kind = "outcome"
+        event_id = str(event.get("event_id") or f"outcome-{index + 1}")
+        score = _event_outcome_score(event)
+        by_kind[kind] = int(by_kind.get(kind, 0) or 0) + 1
+        policy_inputs = _policy_input_refs(event)
+        for key, values in policy_inputs.items():
+            attributed_inputs.setdefault(key, set()).update(values)
+        if kind == "factual_validation" and score < 1.0:
+            safety_regression_ids.append(event_id)
+        if bool(event.get("minority_view")) and score < max(0.5, control_success_rate):
+            minority_regression_ids.append(event_id)
+        rows.append(
+            {
+                "event_id": event_id,
+                "event_kind": kind,
+                "score": score,
+                "policy_inputs": {key: list(values) for key, values in policy_inputs.items()},
+                "held_out": bool(event.get("held_out", True)),
+                "minority_view": bool(event.get("minority_view", False)),
+            }
+        )
+
+    event_count = len(rows)
+    success_rate = round(sum(float(row["score"]) for row in rows) / event_count, 4) if rows else 0.0
+    control_rate = _bounded_score(control_success_rate, default=0.0)
+    improvement_over_control = round(success_rate - control_rate, 4)
+    blocked_reasons: List[str] = []
+    if event_count < max(1, int(minimum_events)):
+        blocked_reasons.append("minimum_events_not_met")
+    if safety_regression_ids:
+        blocked_reasons.append("safety_regression_detected")
+    if minority_regression_ids:
+        blocked_reasons.append("minority_regression_detected")
+
+    proposal_kind = "no_policy_change"
+    if improvement_over_control > 0 and not blocked_reasons:
+        proposal_kind = "candidate_ranking_policy_adjustment"
+    elif safety_regression_ids:
+        proposal_kind = "tighten_safety_or_antimatch_thresholds"
+
+    proposal = {
+        "proposal_id": f"{policy_id}:{OUTCOME_LEARNING_POLICY_VERSION}:{proposal_kind}",
+        "proposal_kind": proposal_kind,
+        "policy_id": policy_id,
+        "policy_version": OUTCOME_LEARNING_POLICY_VERSION,
+        "source_outcome_ids": [row["event_id"] for row in rows],
+        "affected_policy_inputs": {key: sorted(values)[:12] for key, values in sorted(attributed_inputs.items())},
+        "eligible_for_review_promotion": bool(proposal_kind != "no_policy_change" and not blocked_reasons),
+        "blocked_reasons": blocked_reasons,
+        "required_gates": ["offline_replay", "human_review", "canary", "rollback_plan"],
+    }
+    return {
+        "schema_version": "1.0",
+        "contract_id": "OutcomeLearningPolicyProposal",
+        "policy_id": policy_id,
+        "policy_version": OUTCOME_LEARNING_POLICY_VERSION,
+        "event_count": event_count,
+        "signal_kind_counts": by_kind,
+        "success_rate": success_rate,
+        "control_success_rate": control_rate,
+        "improvement_over_control": improvement_over_control,
+        "safety_regression_ids": safety_regression_ids,
+        "minority_regression_ids": minority_regression_ids,
+        "events": rows,
+        "proposals": [proposal],
+        "mutates_sources": False,
+        "mutates_shape_identity": False,
+        "mutates_approval_history": False,
+        "mutates_runtime_policy": False,
+        "rollback_scope": "policy_only",
+    }
 
 
 def held_out_first_comparative_cases() -> List[Dict[str, Any]]:

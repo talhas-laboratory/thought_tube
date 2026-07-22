@@ -499,6 +499,73 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
             self.assertTrue(case["merge_shapes_forbidden"])
             self.assertTrue(case["explanation"]["holds_where"] or case["explanation"]["breaks_where"])
 
+    def test_outcome_learning_proposes_policy_only_review_candidate(self) -> None:
+        from conversation_os.shape_candidate_retrieval import derive_outcome_learning_policy_proposals
+
+        report = derive_outcome_learning_policy_proposals(
+            [
+                {
+                    "event_id": "outcome-1",
+                    "event_kind": "task_success",
+                    "score": 1.0,
+                    "attribution": {
+                        "shape_match_id": "match-structural-1",
+                        "evidence_block_id": "evidence-1",
+                        "disclosure_choice": "bounded_shape_bundle",
+                        "prompt_revision": "prompt-v1",
+                        "tool_version": "shape-tool-v1",
+                        "model_version": "model-v1",
+                    },
+                },
+                {
+                    "event_id": "outcome-2",
+                    "event_kind": "reviewer_judgment",
+                    "result_status": "accepted",
+                    "attribution": {"shape_match_id": "match-structural-1"},
+                },
+                {
+                    "event_id": "outcome-3",
+                    "event_kind": "factual_validation",
+                    "passed": True,
+                    "attribution": {"evidence_block_id": "evidence-2"},
+                },
+            ],
+            control_success_rate=0.5,
+        )
+
+        self.assertEqual(report["contract_id"], "OutcomeLearningPolicyProposal")
+        self.assertFalse(report["mutates_sources"])
+        self.assertFalse(report["mutates_shape_identity"])
+        self.assertFalse(report["mutates_approval_history"])
+        self.assertFalse(report["mutates_runtime_policy"])
+        self.assertEqual(report["rollback_scope"], "policy_only")
+        proposal = report["proposals"][0]
+        self.assertEqual(proposal["proposal_kind"], "candidate_ranking_policy_adjustment")
+        self.assertTrue(proposal["eligible_for_review_promotion"])
+        self.assertEqual(proposal["blocked_reasons"], [])
+        self.assertIn("offline_replay", proposal["required_gates"])
+        self.assertIn("shape_match_id", proposal["affected_policy_inputs"])
+
+    def test_outcome_learning_blocks_safety_and_minority_regression(self) -> None:
+        from conversation_os.shape_candidate_retrieval import derive_outcome_learning_policy_proposals
+
+        report = derive_outcome_learning_policy_proposals(
+            [
+                {"event_id": "good", "event_kind": "task_success", "score": 1.0},
+                {"event_id": "unsafe", "event_kind": "factual_validation", "score": 0.0},
+                {"event_id": "minority", "event_kind": "user_preference", "score": 0.25, "minority_view": True},
+            ],
+            control_success_rate=0.7,
+        )
+
+        proposal = report["proposals"][0]
+        self.assertFalse(proposal["eligible_for_review_promotion"])
+        self.assertEqual(report["safety_regression_ids"], ["unsafe"])
+        self.assertEqual(report["minority_regression_ids"], ["minority"])
+        self.assertIn("safety_regression_detected", proposal["blocked_reasons"])
+        self.assertIn("minority_regression_detected", proposal["blocked_reasons"])
+        self.assertEqual(proposal["proposal_kind"], "tighten_safety_or_antimatch_thresholds")
+
 
 if __name__ == "__main__":
     unittest.main()

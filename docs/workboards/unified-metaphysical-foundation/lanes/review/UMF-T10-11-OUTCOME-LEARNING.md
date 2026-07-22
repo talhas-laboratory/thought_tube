@@ -1,7 +1,7 @@
 # UMF-T10-11-OUTCOME-LEARNING: T10-11 Outcome Learning
 
-Status: backlog
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope
