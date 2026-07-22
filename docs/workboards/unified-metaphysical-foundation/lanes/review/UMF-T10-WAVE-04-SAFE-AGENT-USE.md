@@ -1,7 +1,7 @@
 # UMF-T10-WAVE-04-SAFE-AGENT-USE: Wave 4: safe disclosure activation and agent harness
 
-Status: in-progress
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope
