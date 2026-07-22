@@ -7,8 +7,12 @@ from pathlib import Path
 from unittest import mock
 
 from conversation_os.corpus_catalog_snapshot import (
+    LEGACY_DETERMINISTIC_SIGNATURE_TARGET,
+    OCEAN_READINESS_CONTRACT_VERSION,
+    SNAPSHOT_SCHEMA_VERSION,
     compute_generation_marker,
     corpus_catalog_snapshot_path,
+    enrich_catalog_ocean_readiness,
     invalidate_corpus_catalog_cache,
     load_corpus_catalog_for_request,
     publish_corpus_catalog_snapshot,
@@ -182,3 +186,84 @@ class CorpusCatalogSnapshotTestCase(unittest.TestCase):
         direct = build_corpus_catalog(self.root)
         published = publish_corpus_catalog_snapshot(self.root)
         self.assertEqual(direct["readiness_state"], published["catalog"]["readiness_state"])
+
+    def test_publish_attaches_ocean_readiness_contract(self) -> None:
+        self._write_ready_fixture()
+        published = publish_corpus_catalog_snapshot(self.root)
+        self.assertEqual(published["schema_version"], SNAPSHOT_SCHEMA_VERSION)
+        ocean = published["catalog"]["ocean_readiness"]
+        self.assertEqual(ocean["contract_version"], OCEAN_READINESS_CONTRACT_VERSION)
+        self.assertTrue(ocean["complete"])
+        self.assertTrue(ocean["family_inventory"]["inventory_digest"])
+        self.assertIn("sources", ocean["family_inventory"]["families"])
+        self.assertFalse(ocean["ambiguous_placement"]["review_required"])
+        self.assertEqual(ocean["ambiguous_placement"]["policy"], "do_not_invent_branch_or_scope")
+        self.assertTrue(ocean["legacy_signatures"]["candidate_only"])
+        self.assertTrue(ocean["legacy_signatures"]["promotion_forbidden"])
+        self.assertEqual(
+            ocean["legacy_signatures"]["target_inventory_count"],
+            LEGACY_DETERMINISTIC_SIGNATURE_TARGET,
+        )
+        self.assertTrue(ocean["dependency_indexes"]["indexed"])
+        self.assertTrue(ocean["dependency_indexes"]["withdrawal"]["edges"])
+        self.assertEqual(ocean["seed_pilot"]["pilot_id"], "chat_converter_seed_v1")
+        self.assertTrue(ocean["rebuild"]["reproducible"])
+        self.assertTrue(ocean["rebuild"]["content_digest"])
+
+        served = load_corpus_catalog_for_request(self.root)
+        self.assertTrue(served["ocean_readiness"]["complete"])
+        self.assertEqual(served["readiness_state"], "ready")
+
+    def test_ambiguous_branch_scope_fails_closed_without_inventing(self) -> None:
+        ingest_text_content(
+            self.root,
+            title="ambiguous-placement",
+            content="# User\n\nMissing branch and scope on purpose.\n",
+            source_ref="fixture:ambiguous",
+            source_type="chat_converter_conversation",
+        )
+        data_dir = product_runtime_dir(self.root, "inner_world_v1", "data")
+        write_jsonl(
+            data_dir / "knowledge_nodes.jsonl",
+            [{"node_id": "kn-ambiguous", "label": "fixture", "source_refs": ["fixture:ambiguous"]}],
+        )
+        published = publish_corpus_catalog_snapshot(self.root)
+        catalog = published["catalog"]
+        self.assertEqual(catalog["readiness_state"], "stale")
+        self.assertEqual(catalog["abstention_reason"], "corpus_ocean_ambiguous_placement")
+        self.assertFalse(catalog["retrieval_allowed"])
+        ambiguous = catalog["ocean_readiness"]["ambiguous_placement"]
+        self.assertTrue(ambiguous["review_required"])
+        self.assertIn("ambiguous_source_branch", ambiguous["reasons"])
+        self.assertIn("ambiguous_source_scope", ambiguous["reasons"])
+        self.assertEqual(ambiguous["routing"], "review_queue")
+        # Enrichment must not invent branch/scope onto the catalog coverage.
+        self.assertLess(catalog["coverage"]["branch_coverage"], 1.0)
+        self.assertLess(catalog["coverage"]["scope_coverage"], 1.0)
+
+    def test_request_path_abstains_when_ocean_readiness_incomplete(self) -> None:
+        self._write_ready_fixture()
+        publish_corpus_catalog_snapshot(self.root)
+        path = corpus_catalog_snapshot_path(self.root)
+        payload = read_json(path, default={}) or {}
+        catalog = dict(payload.get("catalog") or {})
+        catalog.pop("ocean_readiness", None)
+        payload["catalog"] = catalog
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        invalidate_corpus_catalog_cache(self.root)
+
+        served = load_corpus_catalog_for_request(self.root)
+        self.assertEqual(served["abstention_reason"], "corpus_ocean_not_ready")
+        self.assertFalse(served["retrieval_allowed"])
+        self.assertFalse(served["ocean_readiness"]["complete"])
+
+    def test_enrich_helper_is_idempotent_for_ready_catalog(self) -> None:
+        self._write_ready_fixture()
+        base = build_corpus_catalog(self.root)
+        first = enrich_catalog_ocean_readiness(self.root, base)
+        second = enrich_catalog_ocean_readiness(self.root, first)
+        self.assertEqual(
+            first["ocean_readiness"]["rebuild"]["content_digest"],
+            second["ocean_readiness"]["rebuild"]["content_digest"],
+        )
+        self.assertEqual(first["readiness_state"], "ready")

@@ -75,6 +75,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-00-RECONCILIATION-MATRIX.md`](./derived/T10-00-RECONCILIATION-MATRIX.md) | Wave 0 integration authority | Declares merge spine, Population import, overlap dispositions, and same-checkout verification |
 | [`derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md`](./derived/ADR-SHAPE-PROFILE-ID-DEPRECATION.md) | Accepted Wave 0 ADR | Deprecates legacy `profile:shape_and_semantic_addressing` in favor of `profile:shape` |
 | [`derived/T10-WAVE-01-GOLDEN-TRACE.md`](./derived/T10-WAVE-01-GOLDEN-TRACE.md) | Wave 1 exit evidence | Archives the hermetic ingest→canonical-apply→retrieve (+rollback) golden production trace |
+| [`derived/T10-04-CORPUS-OCEAN-READINESS.md`](./derived/T10-04-CORPUS-OCEAN-READINESS.md) | Wave 2 T10-04 evidence | CorpusCatalog ocean readiness: family digests, ambiguous-placement fail-closed, legacy candidate-only, dependency indexes |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources
