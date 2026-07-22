@@ -12,6 +12,7 @@ from conversation_os.corpus_catalog_snapshot import (
     LEGACY_DETERMINISTIC_SIGNATURE_TARGET,
     OCEAN_READINESS_CONTRACT_VERSION,
     SNAPSHOT_SCHEMA_VERSION,
+    TEMPORAL_REVISION_CONTRACT_VERSION,
     compute_generation_marker,
     corpus_catalog_snapshot_path,
     enrich_catalog_ocean_readiness,
@@ -301,6 +302,51 @@ class CorpusCatalogSnapshotTestCase(unittest.TestCase):
         catalog = dict(payload.get("catalog") or {})
         ocean = dict(catalog.get("ocean_readiness") or {})
         ocean.pop("index_contracts", None)
+        catalog["ocean_readiness"] = ocean
+        payload["catalog"] = catalog
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        invalidate_corpus_catalog_cache(self.root)
+
+        served = load_corpus_catalog_for_request(self.root)
+        self.assertEqual(served["abstention_reason"], "corpus_ocean_not_ready")
+        self.assertFalse(served["retrieval_allowed"])
+
+    def test_publish_attaches_temporal_revision_contract(self) -> None:
+        self._write_ready_fixture()
+        first = publish_corpus_catalog_snapshot(self.root)
+        temporal = first["catalog"]["ocean_readiness"]["temporal_revision"]
+        self.assertEqual(temporal["contract_version"], TEMPORAL_REVISION_CONTRACT_VERSION)
+        self.assertTrue(temporal["complete"])
+        self.assertTrue(temporal["revision_identity"]["revision_id"])
+        self.assertTrue(temporal["revision_identity"]["no_silent_time_defaults"])
+        self.assertEqual(temporal["revision_identity"]["kind"], "content_addressed")
+        self.assertTrue(temporal["corpus_epoch"]["epoch_id"])
+        self.assertIn("source_withdrawal", temporal["corpus_epoch"]["advances_on"])
+        self.assertIn("snapshot_rebuild", temporal["corpus_epoch"]["advances_on"])
+        self.assertTrue(temporal["stale_projection_rules"])
+        self.assertEqual(
+            temporal["contradictions"]["resolution_policy"],
+            "surface_explicitly_do_not_auto_reconcile",
+        )
+        epoch_before = temporal["corpus_epoch"]["epoch_id"]
+
+        data_dir = product_runtime_dir(self.root, "inner_world_v1", "data")
+        sources = read_jsonl(data_dir / "source_registry.jsonl")
+        sources.append(dict(sources[0], source_id="source-epoch-advance", source_ref="fixture:epoch"))
+        write_jsonl(data_dir / "source_registry.jsonl", sources)
+        invalidate_corpus_catalog_cache(self.root)
+        second = publish_corpus_catalog_snapshot(self.root)
+        epoch_after = second["catalog"]["ocean_readiness"]["temporal_revision"]["corpus_epoch"]["epoch_id"]
+        self.assertNotEqual(epoch_before, epoch_after)
+
+    def test_request_path_abstains_when_temporal_revision_incomplete(self) -> None:
+        self._write_ready_fixture()
+        publish_corpus_catalog_snapshot(self.root)
+        path = corpus_catalog_snapshot_path(self.root)
+        payload = read_json(path, default={}) or {}
+        catalog = dict(payload.get("catalog") or {})
+        ocean = dict(catalog.get("ocean_readiness") or {})
+        ocean.pop("temporal_revision", None)
         catalog["ocean_readiness"] = ocean
         payload["catalog"] = catalog
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

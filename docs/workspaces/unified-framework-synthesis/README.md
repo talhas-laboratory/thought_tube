@@ -77,6 +77,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-WAVE-01-GOLDEN-TRACE.md`](./derived/T10-WAVE-01-GOLDEN-TRACE.md) | Wave 1 exit evidence | Archives the hermetic ingest→canonical-apply→retrieve (+rollback) golden production trace |
 | [`derived/T10-04-CORPUS-OCEAN-READINESS.md`](./derived/T10-04-CORPUS-OCEAN-READINESS.md) | Wave 2 T10-04 evidence | CorpusCatalog ocean readiness: family digests, ambiguous-placement fail-closed, legacy candidate-only, dependency indexes |
 | [`derived/T10-05-INDEX-CONTRACTS.md`](./derived/T10-05-INDEX-CONTRACTS.md) | Wave 2 T10-05 evidence | Hybrid index port readiness on CorpusCatalog: replaceable ports, fail-closed required indexes, no full-ocean scan |
+| [`derived/T10-09-TEMPORAL-REVISION.md`](./derived/T10-09-TEMPORAL-REVISION.md) | Wave 2 T10-09 evidence | Content-addressed corpus epoch, stale projection rules, and contradiction surfacing |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

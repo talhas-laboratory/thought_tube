@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: baf29cb8b9755094f07224efcfcaa13eedba8d700faccba69545dfcb9e3386ce -->
+<!-- canonical_revision: de616a7513b148d14bf4047bd9d99098206259536caa46ebbebd4196f1cbbf36 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:09:11+00:00 -->
+<!-- generated_at: 2026-07-22T14:11:12+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- T10-09 temporal/revision complete.
 - T10-05 index contracts implemented and verified.
 - T10-04 implementation and verification complete.
 - Hermetic golden pytest passed; evidence pack published.
@@ -43,6 +44,7 @@ Select a task to receive a recommended next action.
 
 - tests/test_corpus_catalog_snapshot.py
 - tests/test_corpus_catalog_snapshot.py
+- tests/test_corpus_catalog_snapshot.py
 - pytest tests/test_shape_population_golden_trace.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_promotion.py tests/test_shape_population_remediation_lifecycle.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_canonical_port.py tests/test_shape_population_promotion.py
@@ -52,4 +54,3 @@ Select a task to receive a recommended next action.
 - role_assignment_contracts
 - composition_profile_contracts_after_merge
 - composition_profile_contracts
-- quality_instance_profile_contracts_after_merge

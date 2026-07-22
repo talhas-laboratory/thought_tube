@@ -1,6 +1,6 @@
 # UMF-T10-09-TEMPORAL-REVISION: T10-09 Temporal / revision model
 
-Status: backlog
+Status: review
 Owner: unassigned
 Current gate: not_required
 

@@ -1,6 +1,6 @@
 # UMF-T10-WAVE-02-CORPUS-OCEAN: Wave 2: governed corpus ocean, indexes, and revision
 
-Status: ready
+Status: review
 Owner: foundation-lead
 Current gate: not_required
 

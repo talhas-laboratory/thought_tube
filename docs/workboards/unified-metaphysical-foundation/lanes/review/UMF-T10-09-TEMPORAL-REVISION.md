@@ -1,7 +1,7 @@
-# UMF-T10-WAVE-02-CORPUS-OCEAN: Wave 2: governed corpus ocean, indexes, and revision
+# UMF-T10-09-TEMPORAL-REVISION: T10-09 Temporal / revision model
 
-Status: ready
-Owner: foundation-lead
+Status: review
+Owner: unassigned
 Current gate: not_required
 
 ## Scope

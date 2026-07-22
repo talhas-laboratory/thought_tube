@@ -30,6 +30,7 @@ CONTRACT_VERSION = "1.0"
 SNAPSHOT_SCHEMA_VERSION = "1.1"
 OCEAN_READINESS_CONTRACT_VERSION = "1.0"
 INDEX_CONTRACTS_VERSION = "1.0"
+TEMPORAL_REVISION_CONTRACT_VERSION = "1.0"
 # Gap-program legacy deterministic signature inventory (candidate-only evidence).
 LEGACY_DETERMINISTIC_SIGNATURE_TARGET = 454
 
@@ -49,6 +50,7 @@ PUBLIC_API = (
     "SNAPSHOT_SCHEMA_VERSION",
     "OCEAN_READINESS_CONTRACT_VERSION",
     "INDEX_CONTRACTS_VERSION",
+    "TEMPORAL_REVISION_CONTRACT_VERSION",
     "LEGACY_DETERMINISTIC_SIGNATURE_TARGET",
     "INDEX_PORT_IDS",
     "corpus_catalog_snapshot_path",
@@ -316,6 +318,7 @@ def _rebuild_metadata(
         "snapshot_schema_version": SNAPSHOT_SCHEMA_VERSION,
         "ocean_readiness_contract_version": OCEAN_READINESS_CONTRACT_VERSION,
         "index_contracts_version": INDEX_CONTRACTS_VERSION,
+        "temporal_revision_contract_version": TEMPORAL_REVISION_CONTRACT_VERSION,
         "corpus_id": str(catalog.get("corpus_id", "") or ""),
         "corpus_revision": str(catalog.get("corpus_revision", "") or ""),
         "generation_marker": generation_marker,
@@ -483,13 +486,110 @@ def _index_contracts(
     }
 
 
+def _temporal_revision(
+    catalog: Mapping[str, Any],
+    *,
+    generation_marker: str,
+    inventory: Mapping[str, Any],
+    index_contracts: Mapping[str, Any],
+    ambiguous: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """T10-09 temporal/revision semantics for corpus ocean + indexes."""
+    corpus_revision = str(catalog.get("corpus_revision", "") or "")
+    inventory_digest = str(inventory.get("inventory_digest", "") or "")
+    identity_material = {
+        "corpus_id": str(catalog.get("corpus_id", "") or ""),
+        "corpus_revision": corpus_revision,
+        "generation_marker": generation_marker,
+        "inventory_digest": inventory_digest,
+    }
+    revision_id = hashlib.sha256(
+        json.dumps(identity_material, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    epoch_id = revision_id[:16]
+    staleness = catalog.get("staleness") if isinstance(catalog.get("staleness"), Mapping) else {}
+    contradiction_flags: list[str] = []
+    if bool(staleness.get("seed_mismatch")):
+        contradiction_flags.append("seed_corpus_revision_mismatch")
+    if bool(staleness.get("pending_rederive")):
+        contradiction_flags.append("pending_rederive")
+    if bool(staleness.get("interrupted")):
+        contradiction_flags.append("runtime_pipeline_interrupted")
+    if bool(ambiguous.get("review_required")):
+        contradiction_flags.append("ambiguous_branch_or_scope")
+    if list(index_contracts.get("required_not_ready") or []):
+        contradiction_flags.append("required_indexes_not_ready")
+
+    return {
+        "contract_version": TEMPORAL_REVISION_CONTRACT_VERSION,
+        "complete": True,
+        "revision_identity": {
+            "revision_id": revision_id,
+            "corpus_revision": corpus_revision,
+            "generation_marker": generation_marker,
+            "inventory_digest": inventory_digest,
+            "kind": "content_addressed",
+            "no_silent_time_defaults": True,
+        },
+        "corpus_epoch": {
+            "epoch_id": epoch_id,
+            "advances_on": [
+                "source_withdrawal",
+                "fragment_withdrawal",
+                "permission_change",
+                "correction",
+                "snapshot_rebuild",
+                "index_rebuild",
+            ],
+            "advance_signal": "generation_marker_or_corpus_revision_change",
+            "notes": (
+                "Epoch is content-addressed from corpus revision + watched-index marker + "
+                "family inventory digest. Withdrawals and rebuilds that change those inputs "
+                "advance the epoch; request paths serving a prior marker abstain as stale."
+            ),
+        },
+        "stale_projection_rules": [
+            {
+                "rule_id": "snapshot_marker_mismatch",
+                "effect": "abstain",
+                "abstention_reason": "corpus_catalog_snapshot_stale",
+            },
+            {
+                "rule_id": "ocean_block_incomplete",
+                "effect": "abstain",
+                "abstention_reason": "corpus_ocean_not_ready",
+            },
+            {
+                "rule_id": "ambiguous_placement",
+                "effect": "abstain",
+                "abstention_reason": "corpus_ocean_ambiguous_placement",
+            },
+            {
+                "rule_id": "required_indexes_not_ready",
+                "effect": "abstain",
+                "abstention_reason": "corpus_index_not_ready",
+            },
+            {
+                "rule_id": "source_removal_dependent_only",
+                "effect": "stale_dependents",
+                "policy": "source_removal_stales_all_and_only_dependent_projections",
+            },
+        ],
+        "contradictions": {
+            "open": contradiction_flags,
+            "resolution_policy": "surface_explicitly_do_not_auto_reconcile",
+            "blocks_quality_claims": bool(contradiction_flags),
+        },
+    }
+
+
 def enrich_catalog_ocean_readiness(
     root: Path,
     catalog: Mapping[str, Any],
     *,
     generation_marker: str | None = None,
 ) -> Dict[str, Any]:
-    """Attach T10-04/05 ocean + index readiness fields; demote on fail-closed gaps."""
+    """Attach T10-04/05/09 ocean, index, and temporal readiness; demote on fail-closed gaps."""
     enriched = dict(catalog)
     marker = generation_marker or compute_generation_marker(root)
     inventory = _family_inventory(root)
@@ -499,6 +599,13 @@ def enrich_catalog_ocean_readiness(
     dependency_indexes = _dependency_indexes(root, generation_marker=marker, inventory=inventory)
     rebuild = _rebuild_metadata(generation_marker=marker, catalog=enriched, inventory=inventory)
     index_contracts = _index_contracts(enriched, generation_marker=marker, inventory=inventory)
+    temporal_revision = _temporal_revision(
+        enriched,
+        generation_marker=marker,
+        inventory=inventory,
+        index_contracts=index_contracts,
+        ambiguous=ambiguous,
+    )
 
     ocean = {
         "contract_version": OCEAN_READINESS_CONTRACT_VERSION,
@@ -510,6 +617,7 @@ def enrich_catalog_ocean_readiness(
         "seed_pilot": seed_pilot,
         "rebuild": rebuild,
         "index_contracts": index_contracts,
+        "temporal_revision": temporal_revision,
     }
     enriched["ocean_readiness"] = ocean
 
@@ -638,6 +746,37 @@ def _empty_ocean_readiness(*, generation_marker: str = "", complete: bool = Fals
                 "stale_or_corrupt_abstain": True,
                 "similarity_alone_cannot_merge_or_promote": True,
                 "approximate_indexes_candidate_pool_only": True,
+            },
+        },
+        "temporal_revision": {
+            "contract_version": TEMPORAL_REVISION_CONTRACT_VERSION,
+            "complete": False,
+            "revision_identity": {
+                "revision_id": "",
+                "corpus_revision": "",
+                "generation_marker": generation_marker,
+                "inventory_digest": "",
+                "kind": "content_addressed",
+                "no_silent_time_defaults": True,
+            },
+            "corpus_epoch": {
+                "epoch_id": "",
+                "advances_on": [
+                    "source_withdrawal",
+                    "fragment_withdrawal",
+                    "permission_change",
+                    "correction",
+                    "snapshot_rebuild",
+                    "index_rebuild",
+                ],
+                "advance_signal": "generation_marker_or_corpus_revision_change",
+                "notes": "Epoch advances when withdrawal/rebuild changes revision inputs.",
+            },
+            "stale_projection_rules": [],
+            "contradictions": {
+                "open": [],
+                "resolution_policy": "surface_explicitly_do_not_auto_reconcile",
+                "blocks_quality_claims": False,
             },
         },
     }
@@ -778,6 +917,17 @@ def _ocean_readiness_complete(catalog: Mapping[str, Any]) -> bool:
     for port_id in INDEX_PORT_IDS:
         if port_id not in ports:
             return False
+    temporal = ocean.get("temporal_revision")
+    if not isinstance(temporal, Mapping) or not bool(temporal.get("complete")):
+        return False
+    revision_identity = temporal.get("revision_identity")
+    corpus_epoch = temporal.get("corpus_epoch")
+    if not isinstance(revision_identity, Mapping) or not revision_identity.get("revision_id"):
+        return False
+    if not isinstance(corpus_epoch, Mapping) or not corpus_epoch.get("epoch_id"):
+        return False
+    if not list(temporal.get("stale_projection_rules") or []):
+        return False
     return True
 
 
