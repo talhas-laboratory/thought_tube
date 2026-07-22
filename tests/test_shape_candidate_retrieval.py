@@ -275,6 +275,137 @@ class ShapeCandidateRetrievalTestCase(unittest.TestCase):
         self.assertEqual(projection["scope_id"], "scope-shape-001")
         self.assertEqual(projection["scale"], "local_interaction")
 
+    def test_derive_pattern_from_declared_shape_population(self) -> None:
+        from conversation_os.shape_candidate_retrieval import derive_pattern_from_shapes
+
+        left = {
+            "shape_id": "shape:forest-network",
+            "title": "Mycorrhizal nutrient network",
+            "summary": "Shared resource routing under receiver capacity limits",
+            "system_boundary": "forest plot",
+            "entities": [
+                {"role": "limited_receiver_capacity", "label": "Tree"},
+                {"role": "distributor", "label": "Fungal network"},
+            ],
+            "attributes": {"scale": "local_interaction"},
+            "mechanism": "mycorrhizal_transfer",
+        }
+        right = {
+            "shape_id": "shape:signal-dilution",
+            "title": "Signal dilution through accumulation",
+            "summary": "Useful elements accumulate faster than hierarchy can coordinate",
+            "system_boundary": "cognitive layer",
+            "entities": [
+                {"role": "limited_receiver_capacity", "label": "Receiver"},
+                {"role": "distributor", "label": "Queue"},
+            ],
+            "attributes": {"scale": "local_interaction"},
+            "mechanism": "attention_queue",
+        }
+        pattern = derive_pattern_from_shapes(
+            [left, right],
+            pattern_id="pattern:receiver-overload",
+            branch_id="branch-shape-001",
+            scope_id="scope-shape-001",
+        )
+        self.assertEqual(pattern["pattern_id"], "pattern:receiver-overload")
+        self.assertTrue(pattern["merge_shapes_forbidden"])
+        self.assertEqual(
+            set(pattern["shape_population_refs"]),
+            {"shape:forest-network", "shape:signal-dilution"},
+        )
+        self.assertTrue(any(item["role"] == "limited_receiver_capacity" for item in pattern["role_mappings"]))
+        self.assertTrue(pattern["invariants"])
+        self.assertIn("shape_identity_merge", pattern["transfer_limits"])
+
+    def test_classify_recovers_low_vocab_structural_pair_and_rejects_lexical_distractor(self) -> None:
+        from conversation_os.shape_candidate_retrieval import (
+            classify_shape_pair,
+            derive_pattern_from_shapes,
+            revise_anti_match_record,
+        )
+
+        structural_a = {
+            "shape_id": "shape:ecosystem-routing",
+            "title": "Nutrient routing under scarcity",
+            "summary": "Distributor reallocates under receiver limits",
+            "entities": [{"role": "limited_receiver_capacity"}, {"role": "distributor"}],
+            "system_boundary": "plot",
+            "attributes": {"scale": "local_interaction"},
+            "mechanism": "biological_transfer",
+        }
+        structural_b = {
+            "shape_id": "shape:inbox-overflow",
+            "title": "Attention queue saturation",
+            "summary": "Coordinator fails when inputs accumulate beyond hierarchy",
+            "entities": [{"role": "limited_receiver_capacity"}, {"role": "distributor"}],
+            "system_boundary": "workspace",
+            "attributes": {"scale": "local_interaction"},
+            "mechanism": "attention_queue",
+        }
+        lexical_distractor = {
+            "shape_id": "shape:signal-noise-lab",
+            "title": "Signal dilution through accumulation",
+            "summary": "Signal dilution through accumulation hierarchy confusion",
+            "entities": [{"role": "sensor"}, {"role": "amplifier"}],
+            "system_boundary": "lab bench",
+            "attributes": {"scale": "instrument"},
+            "mechanism": "electrical_noise",
+        }
+
+        pattern = derive_pattern_from_shapes(
+            [structural_a, structural_b],
+            pattern_id="pattern:receiver-capacity",
+            branch_id="branch-a",
+            scope_id="scope-a",
+        )
+        transfer = classify_shape_pair(
+            structural_a,
+            structural_b,
+            pattern=pattern,
+            branch_id="branch-a",
+            scope_id="scope-a",
+        )
+        self.assertIn(transfer["record_kind"], {"candidate_match", "transfer_hypothesis", "validated_membership"})
+        self.assertTrue(transfer["merge_shapes_forbidden"])
+        self.assertLess(transfer["vocabulary_overlap"], 0.55)
+        self.assertIn("shared_roles", transfer["holds_where"])
+        self.assertTrue(transfer["revisable"])
+
+        anti = classify_shape_pair(
+            structural_b,
+            lexical_distractor,
+            pattern=pattern,
+            branch_id="branch-a",
+            scope_id="scope-a",
+        )
+        self.assertEqual(anti["record_kind"], "anti_match")
+        self.assertIn("anti_match_projection", anti)
+        self.assertEqual(anti["anti_match_projection"]["branch_id"], "branch-a")
+        self.assertEqual(anti["anti_match_projection"]["scope_id"], "scope-a")
+
+        revised = revise_anti_match_record(
+            anti,
+            disposition="withdrawn",
+            reason="human_override_after_review",
+            branch_id="branch-a",
+            scope_id="scope-a",
+        )
+        self.assertEqual(revised["disposition"], "withdrawn")
+        self.assertEqual(revised["reason"], "human_override_after_review")
+        self.assertTrue(revised["merge_shapes_forbidden"])
+        self.assertEqual(revised["anti_match_projection"]["disposition"], "withdrawn")
+
+    def test_pattern_never_allows_shape_merge_flag(self) -> None:
+        from conversation_os.shape_candidate_retrieval import PatternRecord
+
+        with self.assertRaises(ValueError):
+            PatternRecord(
+                pattern_id="pattern:bad",
+                shape_population_refs=["shape:a", "shape:b"],
+                merge_shapes_forbidden=False,
+            ).to_dict()
+
 
 if __name__ == "__main__":
     unittest.main()

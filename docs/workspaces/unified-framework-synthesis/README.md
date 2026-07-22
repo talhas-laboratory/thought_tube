@@ -78,6 +78,7 @@ The full program catalog and deferred children are declared in [`manifest.json`]
 | [`derived/T10-04-CORPUS-OCEAN-READINESS.md`](./derived/T10-04-CORPUS-OCEAN-READINESS.md) | Wave 2 T10-04 evidence | CorpusCatalog ocean readiness: family digests, ambiguous-placement fail-closed, legacy candidate-only, dependency indexes |
 | [`derived/T10-05-INDEX-CONTRACTS.md`](./derived/T10-05-INDEX-CONTRACTS.md) | Wave 2 T10-05 evidence | Hybrid index port readiness on CorpusCatalog: replaceable ports, fail-closed required indexes, no full-ocean scan |
 | [`derived/T10-09-TEMPORAL-REVISION.md`](./derived/T10-09-TEMPORAL-REVISION.md) | Wave 2 T10-09 evidence | Content-addressed corpus epoch, stale projection rules, and contradiction surfacing |
+| [`derived/T10-06-PATTERN-ANTIMATCH.md`](./derived/T10-06-PATTERN-ANTIMATCH.md) | Wave 3 T10-06 evidence | Pattern derivation + separated candidate/membership/AntiMatch/transfer records; merge forbidden |
 | [`continuity/task-pack.md`](./continuity/task-pack.md) | Active handoff | Supplies the next focused implementation context |
 
 ## Historical framework sources

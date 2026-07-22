@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: de616a7513b148d14bf4047bd9d99098206259536caa46ebbebd4196f1cbbf36 -->
+<!-- canonical_revision: 1274e7dc04436ac58a87e7b44aba588e67d11594dbe575eda4652bb940a4788c -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T14:11:12+00:00 -->
+<!-- generated_at: 2026-07-22T14:24:34+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- T10-06 Pattern/AntiMatch typing complete; residual retrieval bundle failures handed to T10-07.
 - T10-09 temporal/revision complete.
 - T10-05 index contracts implemented and verified.
 - T10-04 implementation and verification complete.
@@ -29,10 +30,10 @@ Select a task to receive a recommended next action.
 - T10-19 in review; Wave 0 complete enough to unlock T10-01.
 - T10-00 baseline in review with suite evidence; handoff to T10-19 and reviewers.
 - Wave 0-1 task set created; handing off for projection publish and T10-00 start.
-- Task created in live backlog; projections published for handoff.
 
 ## Reasoning
 
+- T10-06 Pattern records on retrieval owner
 - T10-05 index contracts on CorpusCatalog
 - T10-04 implementation decision
 - Wave 1 golden ingest-to-retrieve (+rollback) trace archived and hermetic test passes.
@@ -42,6 +43,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- tests/test_shape_candidate_retrieval.py -k pattern
 - tests/test_corpus_catalog_snapshot.py
 - tests/test_corpus_catalog_snapshot.py
 - tests/test_corpus_catalog_snapshot.py
@@ -53,4 +55,3 @@ Select a task to receive a recommended next action.
 - t10-00-same-checkout-suites
 - role_assignment_contracts
 - composition_profile_contracts_after_merge
-- composition_profile_contracts

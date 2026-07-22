@@ -1,27 +1,47 @@
-"""Bounded Shape-candidate retrieval for disclosure admission (R-001, R-002)."""
+"""Bounded Shape-candidate retrieval for disclosure admission (R-001, R-002).
+
+T10-06: Pattern derivation and typed Pattern/AntiMatch/transfer records live on
+this owner so structural intelligence stays fail-closed and never merges Shapes
+merely because they instantiate a Pattern.
+"""
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Set
 
-from .storage import read_json
+from .storage import read_json, utc_now
 from .vault_ingest import tokenize
 
 
 MODULE_ID = "kernel.disclosure.shape_candidate_retrieval"
 CONTRACT_VERSION = "1.0"
+PATTERN_REASONING_CONTRACT_VERSION = "1.0"
 STRUCTURAL_ADMISSION_THRESHOLD = 0.4
 HARD_REJECT_ANTI_MATCH_PENALTY = 0.5
+PATTERN_RECORD_KINDS = (
+    "candidate_match",
+    "validated_membership",
+    "anti_match",
+    "transfer_hypothesis",
+    "rejected_analogy",
+)
 
 PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
+    "PATTERN_REASONING_CONTRACT_VERSION",
     "STRUCTURAL_ADMISSION_THRESHOLD",
+    "PATTERN_RECORD_KINDS",
     "ShapeQuery",
     "ShapeCandidateDecision",
     "AntiMatchDecision",
+    "InvariantAssessment",
+    "PatternRecord",
+    "PatternReasoningRecord",
     "load_shape_retrieval_config",
     "shape_candidate_search_enabled",
     "shape_anti_match_enforcement_enabled",
@@ -32,6 +52,9 @@ PUBLIC_API = (
     "enrich_capsule_admission_with_shape",
     "apply_shape_ranking_adjustment",
     "retrieve_after_canonical_apply",
+    "derive_pattern_from_shapes",
+    "classify_shape_pair",
+    "revise_anti_match_record",
 )
 __all__ = list(PUBLIC_API)
 
@@ -60,6 +83,108 @@ class AntiMatchDecision:
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class InvariantAssessment:
+    invariant_id: str
+    status: str  # preserved | violated | unknown
+    evidence_refs: List[str] = field(default_factory=list)
+    abstraction_contract: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        if self.status not in {"preserved", "violated", "unknown"}:
+            raise ValueError(f"invalid invariant status: {self.status}")
+        return asdict(self)
+
+
+@dataclass
+class PatternRecord:
+    """Derived abstraction over a declared Shape population (never authoritative merge)."""
+
+    pattern_id: str
+    shape_population_refs: List[str]
+    role_mappings: List[Dict[str, Any]] = field(default_factory=list)
+    invariants: List[InvariantAssessment] = field(default_factory=list)
+    abstracted_values: List[str] = field(default_factory=list)
+    boundary_correspondences: List[Dict[str, Any]] = field(default_factory=list)
+    scale_correspondences: List[Dict[str, Any]] = field(default_factory=list)
+    mechanism_differences: List[str] = field(default_factory=list)
+    transfer_limits: List[str] = field(default_factory=list)
+    branch_id: str = ""
+    scope_id: str = ""
+    merge_shapes_forbidden: bool = True
+    contract_version: str = PATTERN_REASONING_CONTRACT_VERSION
+
+    def to_dict(self) -> Dict[str, Any]:
+        if not self.shape_population_refs:
+            raise ValueError("Pattern requires declared shape_population_refs")
+        if not self.merge_shapes_forbidden:
+            raise ValueError("Patterns must keep merge_shapes_forbidden=True")
+        return {
+            "contract_id": "PatternRecord",
+            "contract_version": self.contract_version,
+            "pattern_id": self.pattern_id,
+            "shape_population_refs": list(self.shape_population_refs),
+            "role_mappings": [dict(item) for item in self.role_mappings],
+            "invariants": [item.to_dict() for item in self.invariants],
+            "abstracted_values": list(self.abstracted_values),
+            "boundary_correspondences": [dict(item) for item in self.boundary_correspondences],
+            "scale_correspondences": [dict(item) for item in self.scale_correspondences],
+            "mechanism_differences": list(self.mechanism_differences),
+            "transfer_limits": list(self.transfer_limits),
+            "branch_id": self.branch_id,
+            "scope_id": self.scope_id,
+            "merge_shapes_forbidden": True,
+            "note": "Pattern is a derived abstraction; instantiating Shapes must not be merged from Pattern alone.",
+        }
+
+
+@dataclass
+class PatternReasoningRecord:
+    """One of the separated Pattern reasoning record kinds."""
+
+    record_kind: str
+    record_id: str
+    left_shape_ref: str
+    right_shape_ref: str
+    pattern_id: str = ""
+    branch_id: str = ""
+    scope_id: str = ""
+    holds_where: List[str] = field(default_factory=list)
+    breaks_where: List[str] = field(default_factory=list)
+    abstracts: List[str] = field(default_factory=list)
+    evidence_refs: List[str] = field(default_factory=list)
+    revisable: bool = True
+    disposition: str = "active"  # active | revised | withdrawn
+    reason: str = ""
+    merge_shapes_forbidden: bool = True
+    contract_version: str = PATTERN_REASONING_CONTRACT_VERSION
+
+    def to_dict(self) -> Dict[str, Any]:
+        if self.record_kind not in PATTERN_RECORD_KINDS:
+            raise ValueError(f"invalid pattern record kind: {self.record_kind}")
+        if not self.merge_shapes_forbidden:
+            raise ValueError("Pattern reasoning records must keep merge_shapes_forbidden=True")
+        return {
+            "contract_id": "PatternReasoningRecord",
+            "contract_version": self.contract_version,
+            "record_kind": self.record_kind,
+            "record_id": self.record_id,
+            "left_shape_ref": self.left_shape_ref,
+            "right_shape_ref": self.right_shape_ref,
+            "pattern_id": self.pattern_id,
+            "branch_id": self.branch_id,
+            "scope_id": self.scope_id,
+            "holds_where": list(self.holds_where),
+            "breaks_where": list(self.breaks_where),
+            "abstracts": list(self.abstracts),
+            "evidence_refs": list(self.evidence_refs),
+            "revisable": bool(self.revisable),
+            "disposition": self.disposition,
+            "reason": self.reason,
+            "merge_shapes_forbidden": True,
+        }
 
 
 @dataclass
@@ -420,3 +545,334 @@ def retrieve_after_canonical_apply(
         "query": shape_query.to_dict(),
         "retrieval_ok": str(read_back.get("status") or "") in {"available", "stale"},
     }
+
+
+def _shape_ref(shape: Mapping[str, Any], *, fallback_prefix: str) -> str:
+    for key in ("shape_id", "canonical_id", "projection_id", "signature_id", "id", "meta_id"):
+        value = str(shape.get(key, "") or "").strip()
+        if value:
+            return value
+    title = str(shape.get("title") or shape.get("shape_name") or shape.get("label") or "").strip()
+    if title:
+        digest = hashlib.sha256(title.encode("utf-8")).hexdigest()[:12]
+        return f"{fallback_prefix}:{digest}"
+    raise ValueError("shape population member requires an identity ref")
+
+
+def _shape_roles(shape: Mapping[str, Any]) -> List[str]:
+    roles: list[str] = []
+    for entity in list(shape.get("entities") or []):
+        if not isinstance(entity, Mapping):
+            continue
+        role = str(entity.get("role") or entity.get("node_type") or entity.get("label") or "").strip()
+        if role:
+            roles.append(role)
+    for role in list(shape.get("roles") or []):
+        text = str(role or "").strip()
+        if text:
+            roles.append(text)
+    return roles
+
+
+def _shape_token_set(shape: Mapping[str, Any]) -> Set[str]:
+    pieces = [
+        str(shape.get("title") or ""),
+        str(shape.get("summary") or ""),
+        str(shape.get("statement") or ""),
+        str(shape.get("system_boundary") or shape.get("boundary") or ""),
+        str(shape.get("mechanism") or ""),
+        " ".join(_shape_roles(shape)),
+        " ".join(str(item) for item in (shape.get("dimensions") or [])),
+    ]
+    for candidate in list(shape.get("candidate_shapes") or []):
+        if isinstance(candidate, Mapping):
+            pieces.append(str(candidate.get("shape_name") or ""))
+            pieces.append(str(candidate.get("rationale") or ""))
+    return set(tokenize(" ".join(pieces)))
+
+
+def _overlap_ratio(left: Set[str], right: Set[str]) -> float:
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
+def derive_pattern_from_shapes(
+    shapes: Sequence[Mapping[str, Any]],
+    *,
+    pattern_id: str = "",
+    branch_id: str = "",
+    scope_id: str = "",
+    required_invariants: Sequence[str] | None = None,
+) -> Dict[str, Any]:
+    """Derive a Pattern over a declared Shape population.
+
+    Patterns are abstractions only: merge_shapes_forbidden remains True.
+    """
+    members = [dict(shape) for shape in shapes if isinstance(shape, Mapping)]
+    if len(members) < 2:
+        raise ValueError("Pattern derivation requires at least two declared Shape population members")
+
+    refs = [_shape_ref(shape, fallback_prefix="shape") for shape in members]
+    role_sets = [set(_shape_roles(shape)) for shape in members]
+    shared_roles = set.intersection(*role_sets) if role_sets and all(role_sets) else set()
+    role_mappings = [
+        {
+            "role": role,
+            "shape_refs": refs,
+            "status": "preserved",
+        }
+        for role in sorted(shared_roles)
+    ]
+
+    token_sets = [_shape_token_set(shape) for shape in members]
+    shared_tokens = set.intersection(*token_sets) if token_sets else set()
+    abstracted_values = sorted(token for token in shared_tokens if len(token) > 3)[:24]
+
+    boundaries = [
+        str(shape.get("system_boundary") or shape.get("boundary") or "").strip() for shape in members
+    ]
+    boundary_correspondences = []
+    if all(boundaries):
+        boundary_correspondences.append(
+            {
+                "kind": "boundary",
+                "values": boundaries,
+                "status": "corresponds" if len(set(boundaries)) == 1 else "analogous",
+            }
+        )
+
+    scales = [str((shape.get("attributes") or {}).get("scale") or shape.get("scale") or "").strip() for shape in members]
+    scale_correspondences = []
+    if any(scales):
+        scale_correspondences.append(
+            {
+                "kind": "scale",
+                "values": scales,
+                "status": "preserved" if len({value for value in scales if value}) <= 1 else "mismatched",
+            }
+        )
+
+    mechanisms = [str(shape.get("mechanism") or "").strip() for shape in members if str(shape.get("mechanism") or "").strip()]
+    mechanism_differences = sorted({value for value in mechanisms}) if len(set(mechanisms)) > 1 else []
+
+    invariant_ids = [str(item).strip() for item in list(required_invariants or ["shared_roles", "shared_structure"]) if str(item).strip()]
+    invariants: list[InvariantAssessment] = []
+    for invariant_id in invariant_ids:
+        if invariant_id == "shared_roles":
+            status = "preserved" if shared_roles else "unknown"
+            contract = "Roles present on every declared Shape population member."
+        elif invariant_id == "shared_structure":
+            status = "preserved" if abstracted_values else "unknown"
+            contract = "Non-trivial shared structural tokens across the declared population."
+        else:
+            status = "unknown"
+            contract = f"Explicit evidence required for invariant `{invariant_id}`."
+        invariants.append(
+            InvariantAssessment(
+                invariant_id=invariant_id,
+                status=status,
+                evidence_refs=list(refs),
+                abstraction_contract=contract,
+            )
+        )
+
+    transfer_limits = [
+        "literal_vocabulary_identity",
+        "shape_identity_merge",
+    ]
+    if mechanism_differences:
+        transfer_limits.append("mechanism_identity")
+    if scale_correspondences and scale_correspondences[0].get("status") == "mismatched":
+        transfer_limits.append("scale_identity")
+
+    digest_material = {
+        "refs": refs,
+        "roles": sorted(shared_roles),
+        "abstracted": abstracted_values,
+        "branch_id": branch_id,
+        "scope_id": scope_id,
+    }
+    auto_id = hashlib.sha256(
+        json.dumps(digest_material, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:16]
+    pattern = PatternRecord(
+        pattern_id=str(pattern_id or f"pattern:{auto_id}").strip() or f"pattern:{auto_id}",
+        shape_population_refs=refs,
+        role_mappings=role_mappings,
+        invariants=invariants,
+        abstracted_values=abstracted_values,
+        boundary_correspondences=boundary_correspondences,
+        scale_correspondences=scale_correspondences,
+        mechanism_differences=mechanism_differences,
+        transfer_limits=transfer_limits,
+        branch_id=str(branch_id or "").strip(),
+        scope_id=str(scope_id or "").strip(),
+        merge_shapes_forbidden=True,
+    )
+    payload = pattern.to_dict()
+    payload["generated_at"] = utc_now()
+    return payload
+
+
+def classify_shape_pair(
+    left: Mapping[str, Any],
+    right: Mapping[str, Any],
+    *,
+    pattern: Mapping[str, Any] | None = None,
+    branch_id: str = "",
+    scope_id: str = "",
+    anti_match_penalty: float | None = None,
+    vocabulary_overlap_ceiling: float = 0.35,
+) -> Dict[str, Any]:
+    """Classify a Shape pair into one separated Pattern reasoning record kind.
+
+    Never merges Shapes. Preserves rejected analogies as first-class records.
+    """
+    left_ref = _shape_ref(left, fallback_prefix="left")
+    right_ref = _shape_ref(right, fallback_prefix="right")
+    left_tokens = _shape_token_set(left)
+    right_tokens = _shape_token_set(right)
+    vocab_overlap = _overlap_ratio(left_tokens, right_tokens)
+    left_roles = set(_shape_roles(left))
+    right_roles = set(_shape_roles(right))
+    shared_roles = sorted(left_roles & right_roles)
+    missing_roles = sorted((left_roles | right_roles) - (left_roles & right_roles))
+
+    left_boundary = str(left.get("system_boundary") or left.get("boundary") or "").strip()
+    right_boundary = str(right.get("system_boundary") or right.get("boundary") or "").strip()
+    left_scale = str((left.get("attributes") or {}).get("scale") or left.get("scale") or "").strip()
+    right_scale = str((right.get("attributes") or {}).get("scale") or right.get("scale") or "").strip()
+    left_mechanism = str(left.get("mechanism") or "").strip()
+    right_mechanism = str(right.get("mechanism") or "").strip()
+
+    holds_where: list[str] = []
+    breaks_where: list[str] = []
+    abstracts: list[str] = []
+    if shared_roles:
+        holds_where.append("shared_roles")
+        abstracts.extend(shared_roles)
+    if left_boundary and right_boundary and left_boundary == right_boundary:
+        holds_where.append("boundary_identity")
+    elif left_boundary and right_boundary:
+        holds_where.append("boundary_analogy")
+        abstracts.append("boundary")
+    if left_scale and right_scale and left_scale != right_scale:
+        breaks_where.append("scale_mismatch")
+    if left_mechanism and right_mechanism and left_mechanism != right_mechanism:
+        breaks_where.append("mechanism_mismatch")
+    if missing_roles:
+        breaks_where.append("role_mismatch")
+
+    pattern_id = str((pattern or {}).get("pattern_id", "") or "")
+    pattern_refs = {
+        str(item).strip()
+        for item in list((pattern or {}).get("shape_population_refs") or [])
+        if str(item).strip()
+    }
+    in_declared_population = bool(pattern_refs) and {left_ref, right_ref}.issubset(pattern_refs)
+
+    # Structural compatibility prefers shared roles/structure over vocabulary.
+    structural_positive = bool(shared_roles) or (
+        vocab_overlap < vocabulary_overlap_ceiling and bool(left_tokens & right_tokens)
+    )
+    hard_incompatible = bool({"scale_mismatch", "mechanism_mismatch", "role_mismatch"} & set(breaks_where)) and not shared_roles
+
+    if hard_incompatible or (vocab_overlap >= 0.55 and not shared_roles):
+        record_kind = "anti_match" if hard_incompatible or vocab_overlap >= 0.55 else "rejected_analogy"
+        if vocab_overlap >= 0.55 and not shared_roles:
+            record_kind = "anti_match"
+            breaks_where.append("lexical_similarity_without_structure")
+        reason = "structurally_incompatible"
+        if anti_match_penalty is None:
+            anti_match_penalty = HARD_REJECT_ANTI_MATCH_PENALTY if record_kind == "anti_match" else 0.25
+    elif in_declared_population and shared_roles and not breaks_where:
+        record_kind = "validated_membership"
+        reason = "validated_pattern_membership"
+        anti_match_penalty = None
+    elif structural_positive and vocab_overlap <= vocabulary_overlap_ceiling:
+        record_kind = "transfer_hypothesis" if breaks_where else "candidate_match"
+        reason = "low_vocabulary_structural_correspondence"
+        anti_match_penalty = None
+    elif structural_positive:
+        record_kind = "candidate_match"
+        reason = "structural_candidate"
+        anti_match_penalty = None
+    else:
+        record_kind = "rejected_analogy"
+        reason = "insufficient_structure"
+        anti_match_penalty = None
+        breaks_where.append("insufficient_shared_structure")
+
+    record_id = hashlib.sha256(
+        f"{record_kind}|{left_ref}|{right_ref}|{pattern_id}|{branch_id}|{scope_id}".encode("utf-8")
+    ).hexdigest()[:20]
+    record = PatternReasoningRecord(
+        record_kind=record_kind,
+        record_id=f"{record_kind}:{record_id}",
+        left_shape_ref=left_ref,
+        right_shape_ref=right_ref,
+        pattern_id=pattern_id,
+        branch_id=str(branch_id or "").strip(),
+        scope_id=str(scope_id or "").strip(),
+        holds_where=holds_where,
+        breaks_where=breaks_where,
+        abstracts=sorted(set(abstracts)),
+        evidence_refs=[left_ref, right_ref],
+        revisable=True,
+        disposition="active",
+        reason=reason,
+        merge_shapes_forbidden=True,
+    )
+    payload = record.to_dict()
+    payload["vocabulary_overlap"] = round(vocab_overlap, 4)
+    payload["shared_roles"] = shared_roles
+    payload["anti_match_penalty"] = anti_match_penalty
+    payload["generated_at"] = utc_now()
+    # Compatibility projection for evaluate_anti_match consumers.
+    if record_kind == "anti_match":
+        payload["anti_match_projection"] = {
+            "projection_id": payload["record_id"],
+            "candidate_meta_id": right_ref,
+            "anchor_meta_id": left_ref,
+            "branch_id": payload["branch_id"],
+            "scope_id": payload["scope_id"],
+            "anti_match_penalty": float(anti_match_penalty or HARD_REJECT_ANTI_MATCH_PENALTY),
+            "revisable": True,
+            "disposition": "active",
+        }
+    return payload
+
+
+def revise_anti_match_record(
+    record: Mapping[str, Any],
+    *,
+    disposition: str,
+    reason: str,
+    branch_id: str | None = None,
+    scope_id: str | None = None,
+) -> Dict[str, Any]:
+    """Revise a branch/scope-aware AntiMatch (or rejected analogy) without deleting history."""
+    kind = str(record.get("record_kind", "") or "")
+    if kind not in {"anti_match", "rejected_analogy"}:
+        raise ValueError("only anti_match or rejected_analogy records are revisable through this helper")
+    if disposition not in {"active", "revised", "withdrawn"}:
+        raise ValueError(f"invalid disposition: {disposition}")
+    if not bool(record.get("revisable", True)):
+        raise ValueError("record is marked not revisable")
+    revised = dict(record)
+    revised["disposition"] = disposition
+    revised["reason"] = str(reason or "").strip() or revised.get("reason", "")
+    if branch_id is not None:
+        revised["branch_id"] = str(branch_id or "").strip()
+    if scope_id is not None:
+        revised["scope_id"] = str(scope_id or "").strip()
+    revised["revised_at"] = utc_now()
+    revised["merge_shapes_forbidden"] = True
+    projection = dict(revised.get("anti_match_projection") or {})
+    if projection:
+        projection["disposition"] = disposition
+        projection["branch_id"] = revised.get("branch_id", "")
+        projection["scope_id"] = revised.get("scope_id", "")
+        revised["anti_match_projection"] = projection
+    return revised
