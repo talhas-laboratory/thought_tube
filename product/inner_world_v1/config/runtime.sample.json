@@ -83,5 +83,13 @@
     "allow_production_deploy": false,
     "require_explicit_approval": true,
     "agent_config_path": "product/inner_world_v1/config/agent_configs/inner_space_meta.json"
+  },
+  "agents": {
+    "shape_population": {
+      "proposer": "shape_population_proposer",
+      "critic": "shape_population_critic",
+      "synthesizer": "shape_population_synthesizer",
+      "evaluator": "shape_population_evaluator"
+    }
   }
 }

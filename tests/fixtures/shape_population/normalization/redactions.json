@@ -1,0 +1,11 @@
+{
+  "redactions": [
+    {
+      "span": [
+        0,
+        5
+      ],
+      "reason": "pii"
+    }
+  ]
+}

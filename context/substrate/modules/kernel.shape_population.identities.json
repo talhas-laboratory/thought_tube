@@ -1,0 +1,42 @@
+{
+  "module_id": "kernel.shape_population.identities",
+  "path": "src/conversation_os/shape_population/identities.py",
+  "layer": "kernel",
+  "owner": "Least-privilege OpenClaw proposer/critic/synthesizer identity contracts.",
+  "purpose": "Least-privilege OpenClaw proposer/critic/synthesizer identity contracts.",
+  "status": "active",
+  "version": "1.0.0",
+  "public_api": [
+    "MODULE_ID",
+    "CONTRACT_VERSION",
+    "PROPOSER_IDENTITY",
+    "CRITIC_IDENTITY",
+    "SYNTHESIZER_IDENTITY",
+    "population_tool_surface"
+  ],
+  "contains": [
+    "Least-privilege OpenClaw proposer/critic/synthesizer identity contracts."
+  ],
+  "depends_on": [
+    "kernel.shape_population",
+    "kernel.foundation.storage"
+  ],
+  "feeds_into": [
+    "kernel.shape_population"
+  ],
+  "inputs": [
+    "population requests"
+  ],
+  "outputs": [
+    "population records"
+  ],
+  "state_owned": [
+    "product/inner_world_v1/data/shape_population"
+  ],
+  "surfaces_using": [
+    "inner_world_v1"
+  ],
+  "test_targets": [
+    "tests/test_shape_population_governance.py"
+  ]
+}
