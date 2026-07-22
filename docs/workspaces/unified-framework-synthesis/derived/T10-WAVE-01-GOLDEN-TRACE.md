@@ -19,6 +19,7 @@ ingest -> normalize -> inquiry -> evidence -> propose -> critique
 |---|---|
 | Branch | `cursor/t10-wave-01-tasks-a790` |
 | Pre-trace HEAD | `4fa5334f5fa6cd1617040376282a7bc3840d1a34` |
+| Evidence commit | `99aac4395f079c67beb1cb1e09675891652ee24d` |
 | Workspace | `unified-framework-synthesis` |
 
 ## Verification command
