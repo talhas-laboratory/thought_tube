@@ -36,6 +36,8 @@ SHAPE_PROFILE_ID = "profile:shape"
 SHAPE_PROFILE_VERSION = "1.0.0"
 CYBERNETICS_PROFILE_ID = "profile:cybernetics"
 CYBERNETICS_PROFILE_VERSION = "1.0.0"
+CYBERNETIC_COMPILER_ID = "compiler:cybernetic-profile-v1"
+EXECUTABLE_CYBERNETIC_IR_VERSION = "1.0.0"
 
 PROFILE_INVARIANT_CHECKS = {
     "no_claim_without_branch_membership": "Every claim must have matching BranchMembership",
@@ -136,6 +138,24 @@ class CompositionAssertionContract:
     provenance_id: str
     relation_instance_id: str
     source_quality_instance_id: str = ""
+
+
+@dataclass(frozen=True)
+class CyberneticCompilationResult:
+    """Pure compilation output; it never executes or mutates source records."""
+
+    compilation_id: str
+    status: str
+    profile_id: str
+    profile_version: str
+    compiler_ref: str
+    source_record_ids: List[str] = field(default_factory=list)
+    executable_model_ir: Dict[str, Any] = field(default_factory=dict)
+    unresolved_requirements: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
 
 
 def validate_role_assignment_contract(payload: Mapping[str, Any]) -> List[str]:
@@ -425,6 +445,370 @@ def validate_cybernetic_bundle_contract(records: Sequence[Mapping[str, Any]]) ->
             errors.append(f"setpoints conflict for variable {key[0]} at priority {key[-1]}")
         setpoint_index[key] = target_range
     return sorted(set(errors))
+
+
+def compile_cybernetic_bundle_to_ir(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    compilation_id: str,
+    source_branch: str = "",
+    source_scope: str = "",
+    intended_runtime: str = "rule_engine",
+    question: str = "",
+    provenance_id: str = "",
+) -> CyberneticCompilationResult:
+    """Compile one selected cybernetics bundle into an inspectable executable IR.
+
+    The compiler only uses the records passed in by the caller.  It does not
+    search the wider record universe, approve execution, or update runtime state.
+    """
+    copied_records = [dict(record) for record in records]
+    source_record_ids = sorted(str(record.get("id", "")) for record in copied_records if record.get("id"))
+    validation_errors = validate_cybernetic_bundle_contract(copied_records)
+    if not copied_records:
+        validation_errors.append("no cybernetic records selected for compilation")
+    if validation_errors:
+        return _cybernetic_compilation_abstention(
+            compilation_id,
+            source_record_ids,
+            sorted(set(validation_errors)),
+        )
+
+    by_type = _index_cybernetic_records(copied_records)
+    extensions = sorted(
+        by_type.get("dynamic_model_extension", {}).values(),
+        key=lambda item: str(item.get("id", "")),
+    )
+    executable_extensions = [
+        extension
+        for extension in extensions
+        if extension.get("execution_status") in {"compiled", "approved"}
+    ]
+    if not executable_extensions:
+        return _cybernetic_compilation_abstention(
+            compilation_id,
+            source_record_ids,
+            ["dynamic_model_extension with compiled or approved execution_status is required"],
+        )
+
+    if intended_runtime not in {"rule_engine", "discrete_event", "system_dynamics"}:
+        return _cybernetic_compilation_abstention(
+            compilation_id,
+            source_record_ids,
+            [f"unsupported runtime adapter: {intended_runtime}"],
+        )
+
+    first_context = copied_records[0]
+    branch = source_branch or str(first_context.get("branch_id", ""))
+    scope = source_scope or str(first_context.get("scope_id", ""))
+    provenance = provenance_id or str(executable_extensions[0].get("provenance_id", ""))
+    variables = [
+        _compile_cybernetic_variable(record)
+        for record in sorted(by_type.get("state_variable", {}).values(), key=lambda item: str(item.get("id", "")))
+    ]
+    state_spaces = [
+        _compile_cybernetic_state_space(record)
+        for record in sorted(by_type.get("state_variable", {}).values(), key=lambda item: str(item.get("id", "")))
+    ]
+    mechanisms = [
+        _compile_cybernetic_mechanism(record)
+        for record in sorted(by_type.get("feedback_loop", {}).values(), key=lambda item: str(item.get("id", "")))
+    ]
+    transition_rules = _compile_cybernetic_transition_rules(by_type)
+    execution_allowed = any(str(extension.get("execution_status", "")) == "approved" for extension in executable_extensions)
+    executable_model_ir = {
+        "ir_version": EXECUTABLE_CYBERNETIC_IR_VERSION,
+        "id": compilation_id,
+        "source_branch": branch,
+        "source_scope": scope,
+        "source_records": source_record_ids,
+        "intended_runtime": intended_runtime,
+        "question": question,
+        "entities_and_agents": sorted(_cybernetic_entity_refs(copied_records)),
+        "variables": variables,
+        "state_spaces": state_spaces,
+        "events_and_actions": [],
+        "mechanisms": mechanisms,
+        "transition_rules": transition_rules,
+        "constraints": _compile_cybernetic_constraints(by_type),
+        "resources": [],
+        "observation_functions": _compile_cybernetic_observations(by_type),
+        "policies": _compile_cybernetic_policies(by_type),
+        "time_model": _compile_cybernetic_time_model(by_type),
+        "probability_model": {"kind": "not_declared", "requires_runtime_distribution": False},
+        "outputs": _compile_cybernetic_outputs(by_type),
+        "assumptions": _compile_cybernetic_assumptions(executable_extensions),
+        "unresolved_requirements": [],
+        "validation_results": [
+            {"check": "cybernetic_bundle_contract", "passed": True, "errors": []},
+            {"check": "bounded_selection_only", "passed": True, "source_record_count": len(source_record_ids)},
+            {"check": "runtime_side_effects", "passed": True, "side_effects_allowed": False},
+        ],
+        "compilation_status": "executable",
+        "execution_allowed": execution_allowed,
+        "side_effects_allowed": False,
+        "provenance": {
+            "provenance_id": provenance,
+            "compiler_ref": CYBERNETIC_COMPILER_ID,
+            "source_extension_refs": [str(extension.get("id", "")) for extension in executable_extensions],
+        },
+    }
+    return CyberneticCompilationResult(
+        compilation_id=compilation_id,
+        status="compiled",
+        profile_id=CYBERNETICS_PROFILE_ID,
+        profile_version=CYBERNETICS_PROFILE_VERSION,
+        compiler_ref=CYBERNETIC_COMPILER_ID,
+        source_record_ids=source_record_ids,
+        executable_model_ir=executable_model_ir,
+    )
+
+
+def _cybernetic_compilation_abstention(
+    compilation_id: str,
+    source_record_ids: Sequence[str],
+    unresolved_requirements: Sequence[str],
+) -> CyberneticCompilationResult:
+    return CyberneticCompilationResult(
+        compilation_id=compilation_id,
+        status="abstained",
+        profile_id=CYBERNETICS_PROFILE_ID,
+        profile_version=CYBERNETICS_PROFILE_VERSION,
+        compiler_ref=CYBERNETIC_COMPILER_ID,
+        source_record_ids=list(source_record_ids),
+        unresolved_requirements=list(unresolved_requirements),
+        errors=list(unresolved_requirements),
+    )
+
+
+def _index_cybernetic_records(records: Sequence[Mapping[str, Any]]) -> Dict[str, Dict[str, Mapping[str, Any]]]:
+    by_type: Dict[str, Dict[str, Mapping[str, Any]]] = {}
+    for record in records:
+        by_type.setdefault(str(record.get("record_type", "")), {})[str(record.get("id", ""))] = record
+    return by_type
+
+
+def _compile_cybernetic_variable(record: Mapping[str, Any]) -> Dict[str, Any]:
+    return {
+        "id": str(record.get("id", "")),
+        "owner_ref": str(record.get("target_ref", "")),
+        "source_state_type": str(record.get("value_domain", "")),
+        "data_type": _cybernetic_data_type(str(record.get("value_type", ""))),
+        "domain": _cybernetic_domain(record),
+        "unit": str(record.get("unit", "")),
+        "observability": str(record.get("observation_basis", "")),
+        "initial_value_source": str(record.get("observation_basis", "")),
+        "uncertainty": {"epistemic_status": str(record.get("epistemic_status", ""))},
+    }
+
+
+def _cybernetic_data_type(value_type: str) -> str:
+    return {
+        "number": "Real",
+        "integer": "Integer",
+        "boolean": "Boolean",
+        "enum": "Enum",
+    }.get(value_type, value_type or "Unknown")
+
+
+def _cybernetic_domain(record: Mapping[str, Any]) -> Any:
+    if "lower_bound" in record and "upper_bound" in record:
+        return [record["lower_bound"], record["upper_bound"]]
+    return str(record.get("value_domain", ""))
+
+
+def _compile_cybernetic_state_space(record: Mapping[str, Any]) -> Dict[str, Any]:
+    constraints: List[Dict[str, Any]] = []
+    if "lower_bound" in record and "upper_bound" in record:
+        constraints.append(
+            {
+                "kind": "bounded_range",
+                "variable_ref": str(record.get("id", "")),
+                "lower_bound": record["lower_bound"],
+                "upper_bound": record["upper_bound"],
+            }
+        )
+    return {
+        "id": f"state_space:{record.get('id', '')}",
+        "variable_ref": str(record.get("id", "")),
+        "domain": _cybernetic_domain(record),
+        "constraints": constraints,
+    }
+
+
+def _compile_cybernetic_mechanism(record: Mapping[str, Any]) -> Dict[str, Any]:
+    return {
+        "id": str(record.get("id", "")),
+        "mechanism": str(record.get("mechanism", "")),
+        "participants": sorted(
+            str(item)
+            for item in [
+                *record.get("variable_refs", []),
+                *record.get("signal_refs", []),
+                *record.get("regulator_refs", []),
+            ]
+        ),
+        "polarity": str(record.get("polarity", "")),
+        "constraint_ref": str(record.get("constraint_ref", "")),
+        "oscillation_risk": str(record.get("oscillation_risk", "unknown")),
+    }
+
+
+def _compile_cybernetic_transition_rules(by_type: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> List[Dict[str, Any]]:
+    signals = by_type.get("signal", {})
+    regulators = by_type.get("regulator", {})
+    loops = by_type.get("feedback_loop", {})
+    setpoints = by_type.get("setpoint", {})
+    rules: List[Dict[str, Any]] = []
+    for signal_id, signal in sorted(signals.items()):
+        owner_regulators = [
+            regulator
+            for regulator in regulators.values()
+            if signal_id in set(str(item) for item in regulator.get("action_channel_refs", []))
+        ]
+        if not owner_regulators:
+            continue
+        loop_refs = sorted(
+            loop_id
+            for loop_id, loop in loops.items()
+            if signal_id in set(str(item) for item in loop.get("signal_refs", []))
+        )
+        setpoint_refs = sorted(
+            str(item)
+            for regulator in owner_regulators
+            for item in regulator.get("setpoint_refs", [])
+            if str(item) in setpoints
+        )
+        priority_values = [
+            int(setpoints[ref].get("priority", 0))
+            for ref in setpoint_refs
+            if isinstance(setpoints[ref].get("priority"), int)
+        ]
+        rules.append(
+            {
+                "id": f"rule:{signal_id}",
+                "trigger": {"signal_ref": signal_id, "source_ref": str(signal.get("source_ref", ""))},
+                "guard": {
+                    "authority_scopes": sorted(str(regulator.get("authority_scope", "")) for regulator in owner_regulators),
+                    "setpoint_refs": setpoint_refs,
+                },
+                "effects": [
+                    {
+                        "operation": "set",
+                        "variable_ref": str(signal.get("target_ref", "")),
+                        "source_signal_ref": signal_id,
+                    }
+                ],
+                "delay": signal.get("delay"),
+                "probability": "deterministic",
+                "priority": min(priority_values) if priority_values else 0,
+                "conflict_policy": "priority_then_stable_id",
+                "source_mechanism": loop_refs[0] if loop_refs else "",
+                "provenance": str(signal.get("provenance_id", "")),
+            }
+        )
+    return rules
+
+
+def _compile_cybernetic_constraints(by_type: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> List[Dict[str, Any]]:
+    constraints: List[Dict[str, Any]] = []
+    for setpoint in sorted(by_type.get("setpoint", {}).values(), key=lambda item: str(item.get("id", ""))):
+        constraints.append(
+            {
+                "id": str(setpoint.get("id", "")),
+                "kind": "setpoint",
+                "variable_ref": str(setpoint.get("variable_ref", "")),
+                "target_range": str(setpoint.get("target_range", "")),
+                "priority": setpoint.get("priority"),
+            }
+        )
+    for condition in sorted(by_type.get("viability_condition", {}).values(), key=lambda item: str(item.get("id", ""))):
+        constraints.append(
+            {
+                "id": str(condition.get("id", "")),
+                "kind": "viability_condition",
+                "variable_ref": str(condition.get("variable_ref", "")),
+                "threshold_or_range": str(condition.get("threshold_or_range", "")),
+                "recovery_condition": str(condition.get("recovery_condition", "")),
+                "failure_interpretation": str(condition.get("failure_interpretation", "")),
+            }
+        )
+    return constraints
+
+
+def _compile_cybernetic_observations(by_type: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": f"observe:{record.get('id', '')}",
+            "variable_ref": str(record.get("id", "")),
+            "basis": str(record.get("observation_basis", "")),
+            "sampling_interval": str(record.get("sampling_interval", "")),
+        }
+        for record in sorted(by_type.get("state_variable", {}).values(), key=lambda item: str(item.get("id", "")))
+    ]
+
+
+def _compile_cybernetic_policies(by_type: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": str(record.get("policy_ref", "")),
+            "regulator_ref": str(record.get("id", "")),
+            "authority_scope": str(record.get("authority_scope", "")),
+        }
+        for record in sorted(by_type.get("regulator", {}).values(), key=lambda item: str(item.get("id", "")))
+    ]
+
+
+def _compile_cybernetic_time_model(by_type: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> Dict[str, Any]:
+    intervals = sorted(
+        str(record.get("sampling_interval", ""))
+        for record in by_type.get("state_variable", {}).values()
+        if record.get("sampling_interval")
+    )
+    delays = sorted(str(record.get("delay", "")) for record in by_type.get("signal", {}).values() if record.get("delay") is not None)
+    return {
+        "kind": "discrete",
+        "resolution": intervals[0] if intervals else "unspecified",
+        "ordering": "stable_id",
+        "delays": delays,
+    }
+
+
+def _compile_cybernetic_outputs(by_type: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": f"output:{record.get('id', '')}",
+            "variable_ref": str(record.get("id", "")),
+            "epistemic_status": str(record.get("epistemic_status", "")),
+        }
+        for record in sorted(by_type.get("state_variable", {}).values(), key=lambda item: str(item.get("id", "")))
+    ]
+
+
+def _compile_cybernetic_assumptions(extensions: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
+    assumptions: List[Dict[str, Any]] = []
+    for extension in extensions:
+        assumptions.append(
+            {
+                "extension_ref": str(extension.get("id", "")),
+                "timing_model_ref": str(extension.get("timing_model_ref", "")),
+                "uncertainty_model_ref": str(extension.get("uncertainty_model_ref", "")),
+                "equation_refs": list(extension.get("equation_refs", [])),
+                "update_rule_refs": list(extension.get("update_rule_refs", [])),
+                "validation_ref": str(extension.get("validation_ref", "")),
+            }
+        )
+    return assumptions
+
+
+def _cybernetic_entity_refs(records: Sequence[Mapping[str, Any]]) -> Set[str]:
+    refs: Set[str] = set()
+    for record in records:
+        for field_name in ("target_ref", "source_ref", "controller_ref", "shape_ref"):
+            value = str(record.get(field_name, ""))
+            if value:
+                refs.add(value)
+    return refs
 
 
 def _require_same_context(errors: List[str], left: Mapping[str, Any], right: Optional[Mapping[str, Any]], left_label: str, right_label: str) -> None:
@@ -1134,6 +1518,8 @@ __all__ = [
     "SHAPE_PROFILE_VERSION",
     "CYBERNETICS_PROFILE_ID",
     "CYBERNETICS_PROFILE_VERSION",
+    "CYBERNETIC_COMPILER_ID",
+    "EXECUTABLE_CYBERNETIC_IR_VERSION",
     "ProfileRegistryError",
     "ApplicationProfileBinding",
     "ProfileUpgradeReport",
@@ -1141,6 +1527,7 @@ __all__ = [
     "QualityRefinementContract",
     "SystemBoundaryContract",
     "CompositionAssertionContract",
+    "CyberneticCompilationResult",
     "ProfileRegistry",
     "build_field_formation_profile_v1",
     "build_quality_instance_profile_v1",
@@ -1159,6 +1546,7 @@ __all__ = [
     "validate_shape_contract",
     "validate_cybernetic_contract",
     "validate_cybernetic_bundle_contract",
+    "compile_cybernetic_bundle_to_ir",
     "parse_semver",
     "compare_semver",
     "load_profile_definition",

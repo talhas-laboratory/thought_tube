@@ -13,6 +13,7 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     ProfileRegistryError,
     QUALITY_INSTANCE_PROFILE_ID,
     build_field_formation_profile_v1,
+    compile_cybernetic_bundle_to_ir,
     validate_quality_instance_contract,
     validate_quality_refinement_contract,
     validate_composition_bundle_contract,
@@ -482,6 +483,69 @@ class MetaphysicalKernelProfileRegistryTestCase(unittest.TestCase):
         errors = validate_cybernetic_bundle_contract(rows)
         self.assertTrue(any("regulator:network branch_id conflicts with state_variable" in error for error in errors))
         self.assertTrue(any("regulator:network branch_id conflicts with setpoint" in error for error in errors))
+
+    def test_compile_cybernetic_bundle_to_executable_ir_is_deterministic_and_pure(self) -> None:
+        rows = self._cybernetic_records()
+        before = json.loads(json.dumps(rows, sort_keys=True))
+
+        result = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+            source_branch="branch:observed",
+            source_scope="scope:forest",
+            question="How should the forest resilience loop be executed?",
+        )
+        repeated = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+            source_branch="branch:observed",
+            source_scope="scope:forest",
+            question="How should the forest resilience loop be executed?",
+        )
+
+        self.assertEqual(rows, before)
+        self.assertEqual(result.to_dict(), repeated.to_dict())
+        self.assertEqual(result.status, "compiled")
+        ir = result.executable_model_ir
+        self.assertEqual(ir["compilation_status"], "executable")
+        self.assertEqual(ir["source_branch"], "branch:observed")
+        self.assertEqual(ir["source_scope"], "scope:forest")
+        self.assertFalse(ir["side_effects_allowed"])
+        self.assertTrue(ir["execution_allowed"])
+        self.assertEqual(ir["variables"][0]["id"], "variable:resilience")
+        self.assertEqual(ir["transition_rules"][0]["effects"][0]["operation"], "set")
+        self.assertEqual(ir["transition_rules"][0]["source_mechanism"], "loop:resource-compensation")
+        self.assertEqual(ir["provenance"]["compiler_ref"], "compiler:cybernetic-profile-v1")
+
+    def test_compile_cybernetic_bundle_abstains_without_compiled_extension(self) -> None:
+        rows = [
+            row
+            for row in self._cybernetic_records()
+            if row["record_type"] != "dynamic_model_extension"
+        ]
+
+        result = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+        )
+
+        self.assertEqual(result.status, "abstained")
+        self.assertEqual(result.executable_model_ir, {})
+        self.assertTrue(any("dynamic_model_extension" in item for item in result.unresolved_requirements))
+
+    def test_compiled_cybernetic_ir_does_not_authorize_unapproved_execution(self) -> None:
+        rows = self._cybernetic_records()
+        rows[-1]["execution_status"] = "compiled"
+        rows[-1].pop("approval_ref")
+
+        result = compile_cybernetic_bundle_to_ir(
+            rows,
+            compilation_id="compile:forest-resilience",
+        )
+
+        self.assertEqual(result.status, "compiled")
+        self.assertEqual(result.executable_model_ir["compilation_status"], "executable")
+        self.assertFalse(result.executable_model_ir["execution_allowed"])
 
 
 if __name__ == "__main__":

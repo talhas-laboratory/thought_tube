@@ -1,6 +1,6 @@
 # UMF-T10-10-CYBERNETIC-COMPILE: T10-10 Cybernetic Compile
 
-Status: ready
+Status: review
 Owner: unassigned
 Current gate: not_required
 

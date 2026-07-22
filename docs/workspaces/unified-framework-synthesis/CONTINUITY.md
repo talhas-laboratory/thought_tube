@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: efac835acc76aa75a2ffa76272c16883a14cda13b307a324749a0d28428c0bca -->
+<!-- canonical_revision: 8556f8caf402c2d000092d1cb4606d15d7821aba1a5042d3c5e0eb971d91fd27 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T15:17:24+00:00 -->
+<!-- generated_at: 2026-07-22T15:21:05+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- T10-10 moved to review with verification evidence and residuals documented.
 - Wave 4 parent moved to review after T10-17 and T10-18 reached review.
 - T10-18 first slice committed-ready: focused tests passed and task moved to review.
 - T10-17 first slice committed-ready: focused test passed and task moved to review.
@@ -29,10 +30,10 @@ Select a task to receive a recommended next action.
 - T10-06 Pattern/AntiMatch typing complete; residual retrieval bundle failures handed to T10-07.
 - T10-09 temporal/revision complete.
 - T10-05 index contracts implemented and verified.
-- T10-04 implementation and verification complete.
 
 ## Reasoning
 
+- T10-10 first executable cybernetic compile slice
 - Wave 4 parent review run closed
 - Wave 4 parent ready for review
 - T10-18 first Shape inspector slice
@@ -44,10 +45,11 @@ Select a task to receive a recommended next action.
 - T10-04 implementation decision
 - Wave 1 golden ingest-to-retrieve (+rollback) trace archived and hermetic test passes.
 - Live path uses build_post_ingest_hook + apply_approved_promotion_live; promotion.py default remains FailClosed.
-- Versioned CanonicalShapeProposal + FoundationCanonicalPort apply closed refs only; label-only stays unresolved.
 
 ## Verification
 
+- python3 -m compileall -q src/conversation_os/metaphysical_kernel_profile_registry.py
+- pytest tests/test_metaphysical_kernel_profile_registry.py
 - pytest tests/test_metaphysical_kernel_application_sdk.py tests/test_shape_projection_reader.py
 - pytest tests/test_shape_projection_reader.py
 - pytest tests/test_metaphysical_kernel_application_sdk.py
@@ -58,5 +60,3 @@ Select a task to receive a recommended next action.
 - tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py
 - tests/test_shape_candidate_retrieval.py -k pattern
-- tests/test_corpus_catalog_snapshot.py
-- tests/test_corpus_catalog_snapshot.py
