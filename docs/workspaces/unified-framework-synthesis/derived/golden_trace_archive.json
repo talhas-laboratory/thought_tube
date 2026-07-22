@@ -1,0 +1,75 @@
+{
+  "archive_path": "/tmp/tmp8oso5v_v/product/inner_world_v1/data/shape_population/golden_trace.json",
+  "generated_at": "2026-07-22T13:36:06+00:00",
+  "ids": {
+    "approval_id": "appr-4c3a775a88b1",
+    "candidate_id": "cand-759279a77d52",
+    "canonical_id": "canonical:cand-759279a77d52",
+    "critique_evaluation_id": "eval-c4d014f9e905",
+    "ingest_job_id": "job-baaed9b5bd45",
+    "owner_version": 1,
+    "packet_id": "pkt-85fc69a7cbcac6f09558",
+    "promotion_request_id": "prom-e37f3f9eb0f6",
+    "shape_core_id": "shape-core:cand-759279a77d52",
+    "shape_source_id": "f52e4f37c861700d68cdc47cca0e573a",
+    "shape_view_id": "shape-view:cand-759279a77d52:population_candidate",
+    "synthesis_evaluation_id": "eval-84378157b17d",
+    "vault_source_id": "source-7ab3134c8c70"
+  },
+  "pipeline": [
+    "ingest",
+    "normalize",
+    "inquiry",
+    "evidence",
+    "propose",
+    "critique",
+    "synthesize",
+    "evaluate",
+    "human_approve",
+    "canonical_apply",
+    "retrieve",
+    "rollback"
+  ],
+  "provenance": {
+    "content_fingerprint": "c5d5a70af76d5878b9a354ce77ddc31104308c46147f3b1b51c1680ae6b1c5f5",
+    "evidence_refs": [
+      {
+        "block_id": "blk-6d1cf1d6328350b43744",
+        "char_end": 86,
+        "char_start": 0,
+        "packet_id": "pkt-85fc69a7cbcac6f09558",
+        "segment_id": "bab479e2c66562d71212d60161d2fec2",
+        "source_id": "f52e4f37c861700d68cdc47cca0e573a",
+        "text_sha256": "d54bd67c90f3ef320afab883e1108ac902cf68baa8b70682bc971b7502b18588"
+      },
+      {
+        "block_id": "blk-2a19a192e14b5ff5402d",
+        "char_end": 152,
+        "char_start": 86,
+        "packet_id": "pkt-85fc69a7cbcac6f09558",
+        "segment_id": "3256982982ad68b0c8d5008cbc3a7714",
+        "source_id": "f52e4f37c861700d68cdc47cca0e573a",
+        "text_sha256": "15d136e5f451dbfabd3b90f6b0add820fe4d2e3523da17a296013a3368ba2c87"
+      }
+    ],
+    "projection_fingerprint": "474c457736134fbe0c1fad285de1c50b4af868f1368deefea1fadc8bedb13f9c"
+  },
+  "receipts": {
+    "canonical_applied": true,
+    "canonical_owner": "FoundationCanonicalPort",
+    "ingest_ok": true,
+    "post_rollback_status": "stale",
+    "retrieve_ok": true,
+    "retrieve_status": "available",
+    "rollback_stale": true
+  },
+  "trace_id": "wave01-golden-source-to-shape",
+  "versions": {
+    "candidate_schema": "1.0.0",
+    "model_id": "mock",
+    "profile_id": "profile:shape",
+    "profile_version": "1.0.0",
+    "prompt_version": "golden-1.0",
+    "proposal_schema": "1.0.0"
+  }
+}

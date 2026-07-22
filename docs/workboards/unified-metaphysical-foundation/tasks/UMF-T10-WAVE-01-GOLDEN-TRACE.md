@@ -1,6 +1,6 @@
 # UMF-T10-WAVE-01-GOLDEN-TRACE: Wave 1 exit: golden source-to-Shape production trace
 
-Status: backlog
+Status: review
 Owner: foundation-lead
 Current gate: not_required
 
@@ -34,8 +34,13 @@ Plus provenance explanation and correction/rollback.
 
 ## Verification Evidence
 
-- Not recorded in this projection yet.
+- `pytest tests/test_shape_population_golden_trace.py` → **1 passed**
+- Evidence pack: `docs/workspaces/unified-framework-synthesis/derived/T10-WAVE-01-GOLDEN-TRACE.md`
+- Sample archive: `docs/workspaces/unified-framework-synthesis/derived/golden_trace_archive.json`
+- Pre-trace HEAD: `4fa5334f5fa6cd1617040376282a7bc3840d1a34`
 
 ## Handoff Notes
 
-- This is the shortest decisive milestone from the ten-out-of-ten gap program.
+- Full mock pipeline: ingest → normalize → inquiry/evidence → propose → critique → synthesize → evaluate → human approve → FoundationCanonicalPort apply → retrieve → rollback/stale
+- OpenClaw canary not run here; hermetic golden path is Wave 1 exit evidence
+- Wave parent `UMF-T10-WAVE-01-SHAPE-LIFECYCLE` remains `ready` (API rejected ready→review); children are in review

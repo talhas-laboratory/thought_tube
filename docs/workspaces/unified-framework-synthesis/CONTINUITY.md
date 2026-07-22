@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: 3fded347f34f2c7c123325bdc1bb0eaa5b2f1ee03073ce296609443781a25640 -->
+<!-- canonical_revision: e88b1473c91d87446990d18eff388954357e3efb4da5cb9416f511332d91284e -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T13:34:07+00:00 -->
+<!-- generated_at: 2026-07-22T13:36:29+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- Hermetic golden pytest passed; evidence pack published.
 - Focused suites passed; task in review. Golden trace is next.
 - Focused suites passed; task in review.
 - Focused verification passed; task moved to review.
@@ -29,12 +30,14 @@ Select a task to receive a recommended next action.
 
 ## Reasoning
 
+- Wave 1 golden ingest-to-retrieve (+rollback) trace archived and hermetic test passes.
 - Live path uses build_post_ingest_hook + apply_approved_promotion_live; promotion.py default remains FailClosed.
 - Versioned CanonicalShapeProposal + FoundationCanonicalPort apply closed refs only; label-only stays unresolved.
 - Canonical Shape authority is profile:shape on FoundationRuntime; legacy id is candidate-only until 2026-08-22.
 
 ## Verification
 
+- pytest tests/test_shape_population_golden_trace.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_promotion.py tests/test_shape_population_remediation_lifecycle.py
 - pytest tests/test_shape_population_canonical_map.py tests/test_shape_population_canonical_port.py tests/test_shape_population_promotion.py
 - pytest tests/test_shape_projection_reader.py tests/test_shape_authority.py tests/test_shape_population_canonical_port.py tests/test_metaphysical_kernel_application_sdk.py
@@ -45,5 +48,4 @@ Select a task to receive a recommended next action.
 - composition_profile_contracts
 - quality_instance_profile_contracts_after_merge
 - quality_instance_profile_contracts
-- foundation_phase1_review
 - foundation_phase1_review

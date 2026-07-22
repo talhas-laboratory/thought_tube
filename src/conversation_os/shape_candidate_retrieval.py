@@ -31,6 +31,7 @@ PUBLIC_API = (
     "evaluate_anti_match",
     "enrich_capsule_admission_with_shape",
     "apply_shape_ranking_adjustment",
+    "retrieve_after_canonical_apply",
 )
 __all__ = list(PUBLIC_API)
 
@@ -376,3 +377,46 @@ def apply_shape_ranking_adjustment(score: float, shape_decision: Mapping[str, An
         penalty = float(anti_match.get("penalty", 0.0) or 0.0)
         return round(max(0.0, score - penalty * 100.0), 3)
     return score
+
+
+def retrieve_after_canonical_apply(
+    root: Path,
+    *,
+    canonical_id: str,
+    query_text: str,
+    branch_id: str = "",
+    scope_id: str = "",
+    source_refs: Optional[Sequence[str]] = None,
+) -> Dict[str, Any]:
+    """Close a golden production trace by reading back the owner receipt and Shape context.
+
+    This is the retrieve step of:
+    ingest -> ... -> human approve -> canonical apply -> retrieve
+    """
+    from conversation_os.shape_population.canonical_port import FoundationCanonicalPort
+    from conversation_os.shape_population.execution_context import CAP_PROMOTION_APPLY, service_context
+
+    context = service_context("golden.trace.retrieve", capabilities=(CAP_PROMOTION_APPLY,))
+    port = FoundationCanonicalPort(Path(root), bootstrap_profile=True)
+    read_back = port.read_back(canonical_id, context=context)
+    shape_query = build_shape_query(
+        query_text,
+        branch_id=branch_id,
+        scope_id=scope_id,
+        source_refs=list(source_refs or []),
+    )
+    shape_context = read_shape_retrieval_context(Path(root), shape_query)
+    projection = dict(read_back.get("projection") or {})
+    return {
+        "contract_id": "GoldenTraceRetrieve",
+        "schema_version": CONTRACT_VERSION,
+        "canonical_id": canonical_id,
+        "read_back_status": read_back.get("status"),
+        "owner_version": read_back.get("owner_version"),
+        "shape_core_id": (projection.get("shape_core") or {}).get("id"),
+        "shape_view_id": (projection.get("shape_view") or {}).get("id"),
+        "profile_id": projection.get("profile_id"),
+        "shape_retrieval": shape_context,
+        "query": shape_query.to_dict(),
+        "retrieval_ok": str(read_back.get("status") or "") in {"available", "stale"},
+    }
