@@ -8,9 +8,20 @@ from .storage import utc_now
 
 MODULE_ID = "kernel.disclosure.shape_projection_reader"
 CONTRACT_VERSION = "1.0"
-CANONICAL_SHAPE_PROFILE_ID = "profile:shape_and_semantic_addressing"
+CANONICAL_SHAPE_PROFILE_ID = "profile:shape"
+CANONICAL_SHAPE_PROFILE_VERSION = "1.0.0"
+LEGACY_SHAPE_PROFILE_ID = "profile:shape_and_semantic_addressing"
 LEGACY_ADAPTER_VERSION = "1.0"
+LEGACY_RETIREMENT_DATE = "2026-08-22"
 MIGRATION_DECISION_ID = "CAE-014-legacy-retained-until-canonical-profile"
+ABSTENTION_CODES = (
+    "absent",
+    "incompatible",
+    "corrupt",
+    "unauthorized",
+    "empty",
+    "unexpected_failure",
+)
 PROJECTION_KINDS = (
     "candidate",
     "promoted",
@@ -28,8 +39,12 @@ PUBLIC_API = (
     "MODULE_ID",
     "CONTRACT_VERSION",
     "CANONICAL_SHAPE_PROFILE_ID",
+    "CANONICAL_SHAPE_PROFILE_VERSION",
+    "LEGACY_SHAPE_PROFILE_ID",
     "LEGACY_ADAPTER_VERSION",
+    "LEGACY_RETIREMENT_DATE",
     "MIGRATION_DECISION_ID",
+    "ABSTENTION_CODES",
     "PROJECTION_KINDS",
     "READINESS_STATES",
     "read_shape_projections",
@@ -37,9 +52,9 @@ PUBLIC_API = (
 )
 __all__ = list(PUBLIC_API)
 
-_CANONICAL_UNAVAILABLE_REASON = (
-    "profile:shape_and_semantic_addressing not registered in Phase 1; canonical records preserved"
-)
+# Operational failures only. Programming defects (AttributeError, TypeError,
+# NameError, ImportError, etc.) must propagate to fail release gates.
+_OPERATIONAL_ERRORS = (OSError, ValueError, KeyError, RuntimeError)
 
 
 def migration_decision() -> Dict[str, Any]:
@@ -47,48 +62,148 @@ def migration_decision() -> Dict[str, Any]:
         "decision_id": MIGRATION_DECISION_ID,
         "status": "accepted",
         "legacy_adapter_version": LEGACY_ADAPTER_VERSION,
+        "canonical_profile_id": CANONICAL_SHAPE_PROFILE_ID,
+        "legacy_profile_id": LEGACY_SHAPE_PROFILE_ID,
+        "retirement_date": LEGACY_RETIREMENT_DATE,
         "summary": (
-            "Legacy meta_layer Shape signatures remain a provisional candidate source until the "
-            "UMF Shape and Semantic Addressing profile registers. The aperture reads them only "
-            "through this adapter, never promotes them, and does not create a third Shape store."
+            "Legacy meta_layer Shape signatures remain a provisional candidate source. "
+            f"Canonical authority is {CANONICAL_SHAPE_PROFILE_ID}. The legacy id "
+            f"{LEGACY_SHAPE_PROFILE_ID} is candidate-only until retirement on "
+            f"{LEGACY_RETIREMENT_DATE} once adapter conformance passes and no production "
+            "caller requires the old id. The aperture never promotes legacy rows."
         ),
         "retirement_trigger": (
-            "profile:shape_and_semantic_addressing registered and adapter conformance passes"
+            f"{CANONICAL_SHAPE_PROFILE_ID} registered with adapter conformance; "
+            f"retire {LEGACY_SHAPE_PROFILE_ID} adapter after {LEGACY_RETIREMENT_DATE} "
+            "when no production caller requires the old id"
         ),
         "promotion_allowed": False,
     }
 
 
-def _canonical_profile_status(root: Path) -> Dict[str, Any]:
-    try:
-        from .metaphysical_kernel_profile_registry import ProfileRegistry
-        from .metaphysical_kernel_runtime import MetaphysicalKernelRuntime
+def _status_payload(
+    *,
+    available: bool,
+    abstention_code: Optional[str],
+    abstention_reason: Optional[str],
+    profile_version: Optional[str] = None,
+    projections: Optional[List[Dict[str, Any]]] = None,
+    errors: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    return {
+        "profile_id": CANONICAL_SHAPE_PROFILE_ID,
+        "profile_version": profile_version,
+        "expected_profile_version": CANONICAL_SHAPE_PROFILE_VERSION,
+        "available": available,
+        "abstention_code": abstention_code,
+        "abstention_reason": abstention_reason,
+        "projections": list(projections or []),
+        "errors": list(errors or []),
+    }
 
-        runtime = MetaphysicalKernelRuntime(root)
-        profile = ProfileRegistry(runtime).get_profile(CANONICAL_SHAPE_PROFILE_ID)
+
+def _versions_compatible(registered: str, requested: str) -> bool:
+    from .metaphysical_kernel_profile_registry import parse_semver
+
+    registered_parts = parse_semver(registered)
+    requested_parts = parse_semver(requested)
+    return registered_parts[0] == requested_parts[0]
+
+
+def _canonical_profile_status(
+    root: Path,
+    *,
+    authorized: bool = True,
+    profile_version: Optional[str] = None,
+    bootstrap: bool = False,
+) -> Dict[str, Any]:
+    if not authorized:
+        return _status_payload(
+            available=False,
+            abstention_code="unauthorized",
+            abstention_reason="shape projection read unauthorized for caller",
+        )
+
+    try:
+        from .metaphysical_kernel_contracts import validate_profile_definition
+        from .metaphysical_kernel_profile_registry import ProfileRegistry
+        from .metaphysical_kernel_runtime import FoundationRuntime
+
+        runtime = FoundationRuntime(root)
+        registry = ProfileRegistry(runtime)
+        if bootstrap and registry.get_profile(CANONICAL_SHAPE_PROFILE_ID) is None:
+            registry.bootstrap_shape_profile()
+
+        requested_version = str(profile_version or CANONICAL_SHAPE_PROFILE_VERSION).strip()
+        profile = registry.get_profile(
+            CANONICAL_SHAPE_PROFILE_ID,
+            version=requested_version if profile_version else None,
+        )
         if profile is None:
-            return {
-                "profile_id": CANONICAL_SHAPE_PROFILE_ID,
-                "profile_version": None,
-                "available": False,
-                "abstention_reason": _CANONICAL_UNAVAILABLE_REASON,
-                "projections": [],
-            }
-        return {
-            "profile_id": profile.profile_id,
-            "profile_version": profile.profile_version,
-            "available": True,
-            "abstention_reason": None,
-            "projections": [],
-        }
-    except Exception:
-        return {
-            "profile_id": CANONICAL_SHAPE_PROFILE_ID,
-            "profile_version": None,
-            "available": False,
-            "abstention_reason": _CANONICAL_UNAVAILABLE_REASON,
-            "projections": [],
-        }
+            if profile_version:
+                any_version = registry.get_profile(CANONICAL_SHAPE_PROFILE_ID)
+                if any_version is not None:
+                    return _status_payload(
+                        available=False,
+                        abstention_code="incompatible",
+                        abstention_reason=(
+                            f"incompatible:{CANONICAL_SHAPE_PROFILE_ID}@{requested_version} "
+                            f"unavailable; registered {any_version.profile_version}"
+                        ),
+                        profile_version=any_version.profile_version,
+                        errors=[f"requested_version_unavailable:{requested_version}"],
+                    )
+            return _status_payload(
+                available=False,
+                abstention_code="absent",
+                abstention_reason=f"{CANONICAL_SHAPE_PROFILE_ID} not registered",
+            )
+
+        if not _versions_compatible(profile.profile_version, requested_version):
+            return _status_payload(
+                available=False,
+                abstention_code="incompatible",
+                abstention_reason=(
+                    f"{CANONICAL_SHAPE_PROFILE_ID}@{profile.profile_version} incompatible with "
+                    f"requested {requested_version}"
+                ),
+                profile_version=profile.profile_version,
+                errors=[f"major_version_mismatch:{profile.profile_version}:{requested_version}"],
+            )
+
+        validation_errors = validate_profile_definition(profile)
+        if validation_errors:
+            return _status_payload(
+                available=False,
+                abstention_code="corrupt",
+                abstention_reason=f"{CANONICAL_SHAPE_PROFILE_ID} failed profile validation",
+                profile_version=profile.profile_version,
+                errors=list(validation_errors),
+            )
+
+        projections: List[Dict[str, Any]] = []
+        if not projections:
+            return _status_payload(
+                available=True,
+                abstention_code="empty",
+                abstention_reason="canonical shape projections empty for query",
+                profile_version=profile.profile_version,
+                projections=projections,
+            )
+        return _status_payload(
+            available=True,
+            abstention_code=None,
+            abstention_reason=None,
+            profile_version=profile.profile_version,
+            projections=projections,
+        )
+    except _OPERATIONAL_ERRORS as exc:
+        return _status_payload(
+            available=False,
+            abstention_code="unexpected_failure",
+            abstention_reason=f"operational failure reading {CANONICAL_SHAPE_PROFILE_ID}: {exc}",
+            errors=[exc.__class__.__name__, str(exc)],
+        )
 
 
 def _source_metadata_by_ref(root: Path) -> Dict[str, Dict[str, Any]]:
@@ -165,6 +280,7 @@ def _legacy_candidate_projection(
             "source_anchor_id": str(signature.get("source_anchor_id", "") or "").strip() or None,
         },
         "legacy_signature_status": stored_status or "provisional",
+        "legacy_profile_id": LEGACY_SHAPE_PROFILE_ID,
         "adapter_version": LEGACY_ADAPTER_VERSION,
     }
 
@@ -184,6 +300,7 @@ def _legacy_anti_match_projection(row: Dict[str, Any], record: Dict[str, Any]) -
         "anchor_meta_id": str(record.get("anchor_meta_id", "") or "").strip(),
         "candidate_meta_id": str(record.get("candidate_meta_id", "") or "").strip(),
         "anti_match_penalty": float(record.get("anti_match_penalty", 0.0) or 0.0),
+        "legacy_profile_id": LEGACY_SHAPE_PROFILE_ID,
         "adapter_version": LEGACY_ADAPTER_VERSION,
     }
 
@@ -244,6 +361,7 @@ def _load_legacy_projections(
 
     return {
         "adapter_version": LEGACY_ADAPTER_VERSION,
+        "legacy_profile_id": LEGACY_SHAPE_PROFILE_ID,
         "promotion_allowed": False,
         "candidate_projections": candidate_rows,
         "anti_match_projections": anti_match_rows,
@@ -258,14 +376,23 @@ def read_shape_projections(
     source_refs: Optional[Iterable[str]] = None,
     include_legacy: bool = True,
     include_anti_match: bool = True,
+    authorized: bool = True,
+    profile_version: Optional[str] = None,
+    bootstrap: bool = False,
 ) -> Dict[str, Any]:
     """Read branch/scope-bound Shape projections for aperture disclosure.
 
-    Canonical profile reads abstain when the UMF Shape profile is unavailable.
-    Legacy meta_layer signatures are exposed only as explicit candidates with
-    provenance; the aperture cannot promote Shape or Pattern status here.
+    Canonical reads use FoundationRuntime + ProfileRegistry for profile:shape.
+    Typed abstentions distinguish absent, incompatible, corrupt, unauthorized,
+    empty, and unexpected operational failure. Programming defects propagate.
+    Legacy meta_layer signatures are candidate-only and never promoted.
     """
-    canonical = _canonical_profile_status(root)
+    canonical = _canonical_profile_status(
+        root,
+        authorized=authorized,
+        profile_version=profile_version,
+        bootstrap=bootstrap,
+    )
     legacy = (
         _load_legacy_projections(
             root,
@@ -277,6 +404,7 @@ def read_shape_projections(
         if include_legacy
         else {
             "adapter_version": LEGACY_ADAPTER_VERSION,
+            "legacy_profile_id": LEGACY_SHAPE_PROFILE_ID,
             "promotion_allowed": False,
             "candidate_projections": [],
             "anti_match_projections": [],
@@ -287,7 +415,7 @@ def read_shape_projections(
     if canonical["available"]:
         readiness_state = "available"
         retrieval_allowed = True
-        abstention_reason = None
+        abstention_reason = canonical["abstention_reason"] if canonical["abstention_code"] == "empty" else None
     elif has_legacy:
         readiness_state = "legacy_only"
         retrieval_allowed = True
@@ -302,6 +430,7 @@ def read_shape_projections(
         "contract_id": "ShapeProjectionReader",
         "readiness_state": readiness_state,
         "retrieval_allowed": retrieval_allowed,
+        "abstention_code": canonical.get("abstention_code"),
         "abstention_reason": abstention_reason,
         "canonical": canonical,
         "legacy": legacy,
@@ -311,6 +440,9 @@ def read_shape_projections(
             "source_refs": sorted({str(item).strip() for item in list(source_refs or []) if str(item).strip()}),
             "include_legacy": include_legacy,
             "include_anti_match": include_anti_match,
+            "authorized": authorized,
+            "profile_version": str(profile_version or "").strip() or None,
+            "bootstrap": bootstrap,
         },
         "migration_decision": migration_decision(),
         "generated_at": utc_now(),

@@ -146,6 +146,8 @@ class MetaphysicalKernelApplicationSdkTestCase(unittest.TestCase):
         )
         shape = sdk.derive_shape(anchor_claim_id=claim.record_ids["claim_id"])
         self.assertTrue(shape.abstained)
+        self.assertIn("profile:shape", shape.reason)
+        self.assertNotIn("profile:shape_and_semantic_addressing", shape.reason)
         self.assertEqual(sdk.runtime.validate_current_bundle(), [])
 
     def test_sdk_mutations_return_compensating_operations(self) -> None:

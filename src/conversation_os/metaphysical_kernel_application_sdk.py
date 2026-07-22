@@ -11,6 +11,8 @@ from conversation_os.metaphysical_kernel_profile_registry import (
     FIELD_FORMATION_PROFILE_ID,
     FIELD_FORMATION_PROFILE_VERSION,
     ProfileRegistry,
+    SHAPE_PROFILE_ID,
+    SHAPE_PROFILE_VERSION,
 )
 from conversation_os.metaphysical_kernel_runtime import (
     BoundedViewQuery,
@@ -352,9 +354,23 @@ class FoundationApplicationSdk:
         denied = self._authorize(operation)
         if denied:
             return denied
+        if not str(anchor_claim_id or "").strip():
+            return self._abstain(operation, "absent:anchor_claim_id_required")
+        self.registry.bootstrap_shape_profile()
+        profile = self.registry.get_profile(SHAPE_PROFILE_ID)
+        if profile is None:
+            return self._abstain(
+                operation,
+                f"absent:{SHAPE_PROFILE_ID} not registered; canonical records preserved",
+            )
+        # Readiness is established under profile:shape; canonical ShapeRecord
+        # materialization remains deferred to the Population mapping path (T10-02).
         return self._abstain(
             operation,
-            "profile:shape_and_semantic_addressing not registered in Phase 1; canonical records preserved",
+            (
+                f"empty:{SHAPE_PROFILE_ID}@{profile.profile_version or SHAPE_PROFILE_VERSION} "
+                "ready; shape_record derivation deferred pending canonical mapping"
+            ),
         )
 
     def build_bounded_view(self, *, root_record_ids: List[str], max_depth: int = 3) -> SdkMutationResult:

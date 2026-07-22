@@ -3,13 +3,24 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import conversation_os.meta_layer as meta_layer_module
 import conversation_os.models as models_module
+from conversation_os.metaphysical_kernel_profile_registry import (
+    SHAPE_PROFILE_ID,
+    SHAPE_PROFILE_VERSION,
+    ProfileRegistry,
+)
+from conversation_os.metaphysical_kernel_runtime import FoundationRuntime
 from conversation_os.shape_projection_reader import (
+    ABSTENTION_CODES,
     CANONICAL_SHAPE_PROFILE_ID,
+    CANONICAL_SHAPE_PROFILE_VERSION,
     CONTRACT_VERSION,
     LEGACY_ADAPTER_VERSION,
+    LEGACY_RETIREMENT_DATE,
+    LEGACY_SHAPE_PROFILE_ID,
     MIGRATION_DECISION_ID,
     migration_decision,
     read_shape_projections,
@@ -32,6 +43,9 @@ class ShapeProjectionReaderTestCase(unittest.TestCase):
         path = self.root / "product" / "inner_world_v1" / "data"
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    def _bootstrap_shape(self) -> None:
+        ProfileRegistry(FoundationRuntime(self.root)).bootstrap_shape_profile()
 
     def _write_signature(self, *, signature_id: str, source_ref: str, system_boundary: str) -> dict:
         evidence = models_module.EvidenceSpan(
@@ -76,17 +90,81 @@ class ShapeProjectionReaderTestCase(unittest.TestCase):
         write_jsonl(self._legacy_data_dir() / "shape_signatures.jsonl", [signature])
         return signature
 
-    def test_canonical_profile_unavailable_abstains_without_legacy(self) -> None:
+    def test_canonical_profile_absent_abstains_without_legacy(self) -> None:
         payload = read_shape_projections(self.root)
 
         self.assertEqual(payload["schema_version"], CONTRACT_VERSION)
+        self.assertEqual(CANONICAL_SHAPE_PROFILE_ID, SHAPE_PROFILE_ID)
         self.assertFalse(payload["canonical"]["available"])
         self.assertEqual(payload["canonical"]["profile_id"], CANONICAL_SHAPE_PROFILE_ID)
+        self.assertEqual(payload["canonical"]["abstention_code"], "absent")
+        self.assertEqual(payload["abstention_code"], "absent")
         self.assertFalse(payload["retrieval_allowed"])
         self.assertIn(payload["readiness_state"], {"unavailable", "abstained"})
         self.assertIn("not registered", str(payload["abstention_reason"]))
         self.assertFalse(payload["legacy"]["promotion_allowed"])
         self.assertEqual(payload["migration_decision"]["decision_id"], MIGRATION_DECISION_ID)
+
+    def test_bootstrapped_profile_is_available_and_empty(self) -> None:
+        payload = read_shape_projections(self.root, bootstrap=True, include_legacy=False)
+
+        self.assertTrue(payload["canonical"]["available"])
+        self.assertEqual(payload["canonical"]["profile_id"], CANONICAL_SHAPE_PROFILE_ID)
+        self.assertEqual(payload["canonical"]["profile_version"], SHAPE_PROFILE_VERSION)
+        self.assertEqual(payload["canonical"]["abstention_code"], "empty")
+        self.assertEqual(payload["readiness_state"], "available")
+        self.assertTrue(payload["retrieval_allowed"])
+        self.assertEqual(payload["canonical"]["projections"], [])
+
+    def test_unauthorized_read_is_typed(self) -> None:
+        payload = read_shape_projections(self.root, authorized=False, bootstrap=True)
+
+        self.assertFalse(payload["canonical"]["available"])
+        self.assertEqual(payload["canonical"]["abstention_code"], "unauthorized")
+        self.assertEqual(payload["abstention_code"], "unauthorized")
+
+    def test_incompatible_version_is_typed(self) -> None:
+        self._bootstrap_shape()
+        payload = read_shape_projections(self.root, profile_version="9.0.0", include_legacy=False)
+
+        self.assertFalse(payload["canonical"]["available"])
+        self.assertEqual(payload["canonical"]["abstention_code"], "incompatible")
+        self.assertIn("incompatible", str(payload["canonical"]["abstention_reason"]))
+
+    def test_corrupt_profile_is_typed(self) -> None:
+        self._bootstrap_shape()
+
+        def _corrupt(_profile):
+            return ["synthetic_corruption"]
+
+        with mock.patch(
+            "conversation_os.metaphysical_kernel_contracts.validate_profile_definition",
+            side_effect=_corrupt,
+        ):
+            payload = read_shape_projections(self.root, include_legacy=False)
+
+        self.assertFalse(payload["canonical"]["available"])
+        self.assertEqual(payload["canonical"]["abstention_code"], "corrupt")
+        self.assertIn("synthetic_corruption", payload["canonical"]["errors"])
+
+    def test_programming_error_is_not_masked_as_unavailable(self) -> None:
+        with mock.patch(
+            "conversation_os.metaphysical_kernel_runtime.FoundationRuntime",
+            side_effect=AttributeError("synthetic programming defect"),
+        ):
+            with self.assertRaises(AttributeError):
+                read_shape_projections(self.root, include_legacy=False)
+
+    def test_operational_failure_is_typed_unexpected_failure(self) -> None:
+        with mock.patch(
+            "conversation_os.metaphysical_kernel_runtime.FoundationRuntime",
+            side_effect=OSError("synthetic disk failure"),
+        ):
+            payload = read_shape_projections(self.root, include_legacy=False)
+
+        self.assertFalse(payload["canonical"]["available"])
+        self.assertEqual(payload["canonical"]["abstention_code"], "unexpected_failure")
+        self.assertIn("OSError", payload["canonical"]["errors"])
 
     def test_legacy_candidate_preserves_branch_scope_boundary_and_provenance(self) -> None:
         source_ref = "fixture:cae014-shape"
@@ -129,6 +207,7 @@ class ShapeProjectionReaderTestCase(unittest.TestCase):
         self.assertEqual(candidate["branch_id"], "branch-cae014-fixture")
         self.assertEqual(candidate["scope_id"], "scope-stage-a")
         self.assertEqual(candidate["system_boundary"], boundary)
+        self.assertEqual(candidate["legacy_profile_id"], LEGACY_SHAPE_PROFILE_ID)
         self.assertIn("structural_interpretation", candidate["abstraction_contract"])
         self.assertEqual(candidate["scale"], "local_interaction")
         self.assertGreaterEqual(len(candidate["evidence_spans"]), 1)
@@ -163,6 +242,7 @@ class ShapeProjectionReaderTestCase(unittest.TestCase):
         self.assertEqual(anti_match["anchor_meta_id"], "meta-anchor-1")
         self.assertEqual(anti_match["candidate_meta_id"], "meta-maze-1")
         self.assertGreater(anti_match["anti_match_penalty"], 0.0)
+        self.assertEqual(anti_match["legacy_profile_id"], LEGACY_SHAPE_PROFILE_ID)
 
     def test_branch_scope_filter_excludes_out_of_scope_candidates(self) -> None:
         source_ref = "fixture:cae014-filter"
@@ -192,7 +272,13 @@ class ShapeProjectionReaderTestCase(unittest.TestCase):
 
         self.assertEqual(decision["decision_id"], MIGRATION_DECISION_ID)
         self.assertFalse(decision["promotion_allowed"])
-        self.assertIn("profile:shape_and_semantic_addressing", decision["retirement_trigger"])
+        self.assertEqual(decision["canonical_profile_id"], CANONICAL_SHAPE_PROFILE_ID)
+        self.assertEqual(decision["legacy_profile_id"], LEGACY_SHAPE_PROFILE_ID)
+        self.assertEqual(decision["retirement_date"], LEGACY_RETIREMENT_DATE)
+        self.assertIn(CANONICAL_SHAPE_PROFILE_ID, decision["retirement_trigger"])
+        self.assertIn(LEGACY_SHAPE_PROFILE_ID, decision["retirement_trigger"])
+        self.assertEqual(CANONICAL_SHAPE_PROFILE_VERSION, SHAPE_PROFILE_VERSION)
+        self.assertTrue(set(ABSTENTION_CODES))
 
 
 if __name__ == "__main__":

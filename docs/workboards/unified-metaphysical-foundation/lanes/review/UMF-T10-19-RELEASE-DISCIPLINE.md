@@ -11,8 +11,6 @@ For every module touched by T10-00 imports, restore release honesty: manifests, 
 ## Claimed paths
 
 - `context/substrate/modules/kernel.disclosure.*.json` (27 new manifests)
-- `src/conversation_os/codebase_overview.py` (used via freshness gate)
-- `src/conversation_os/engineering_guard.py` (existing stale/missing enforcement)
 - `src/conversation_os/release_management.py` (`evaluate_codebase_freshness_gate`)
 - `src/conversation_os/aperture_release_gate.py` (truthful focused-suite summary parsing)
 - `pytest.ini` (live/hermetic markers)
@@ -34,11 +32,12 @@ For every module touched by T10-00 imports, restore release honesty: manifests, 
 - Aperture focused gate: green, 132 passed
 - Release/aperture unit tests: 11 passed
 - Live marker: `tests/test_agent_bridge_live.py` marked `live`; hermetic guidance `pytest -m "not live"`
+- Decision `decision-529f1ade217b`
 
 ## Residual risks
 
 - Some non-focused admission tests (`test_fail_empty_admission.py`) can fail without a materialised corpus catalog snapshot; Wave 2 T10-04/T10-07 own corpus readiness. Focused aperture suite remains the Wave 0 release bar.
-- Generated overview artifacts are gitignored in some environments; operators must run `repo-overview refresh` before release claims.
+- Generated overview artifacts may be absent in fresh clones until `repo-overview refresh`.
 
 ## Handoff Notes
 
