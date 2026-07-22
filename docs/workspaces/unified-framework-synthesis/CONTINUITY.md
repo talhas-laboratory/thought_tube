@@ -1,8 +1,8 @@
 <!-- generated: workspace continuity export; canonical store remains authoritative -->
 <!-- workspace_id: unified-framework-synthesis -->
-<!-- canonical_revision: d5bb024d7454e7ca26cb72c18726cfedd6bb4f0f2bdb6394d4a790466ad29e11 -->
+<!-- canonical_revision: 8313d37015bcefb7b860c89b9d7bb7fbb8e366d00c23b5e408139d66851733a5 -->
 <!-- repository_source_revision: 162184b8b04fce8cf6dbd46ef78969ebf8b2410d -->
-<!-- generated_at: 2026-07-22T15:33:30+00:00 -->
+<!-- generated_at: 2026-07-22T15:34:22+00:00 -->
 
 # Workspace continuity: unified-framework-synthesis
 
@@ -18,6 +18,7 @@ Select a task to receive a recommended next action.
 
 ## Recent runs
 
+- Parent review transition complete after combined verification.
 - Implemented, verified, evidenced, and moved to review.
 - Implemented, verified, evidenced, and moved to review.
 - Implemented, verified, evidenced, and moved to review.
@@ -29,7 +30,6 @@ Select a task to receive a recommended next action.
 - Implementation committed and pushed at be212c332a1cc476ce0ed322174c93e7a0bc946f; residuals remain for broader partition/worker-crash/rollback/retraction slices.
 - Focused retrieval/evidence authorization suites passed; task is in review with evidence under derived/T10-12-AUTH-PRIVACY.md.
 - T10-08 Bridge shadow slice complete.
-- T10-14 first benchmark complete.
 
 ## Reasoning
 
@@ -48,6 +48,7 @@ Select a task to receive a recommended next action.
 
 ## Verification
 
+- pytest tests/test_shape_candidate_retrieval.py tests/test_shape_population_golden_trace.py tests/test_aperture_operator_metrics.py -q
 - pytest tests/test_shape_candidate_retrieval.py -q
 - pytest tests/test_aperture_operator_metrics.py -q
 - pytest tests/test_shape_population_golden_trace.py -q
@@ -59,4 +60,3 @@ Select a task to receive a recommended next action.
 - pytest tests/test_metaphysical_kernel_application_sdk.py
 - pytest tests/test_shape_population*.py
 - pytest tests/test_disclosure_service_bridge_parity.py tests/test_disclosure_contracts.py tests/test_disclosure_receipts.py
-- pytest tests/test_shape_candidate_retrieval.py tests/test_evidence_resolver.py

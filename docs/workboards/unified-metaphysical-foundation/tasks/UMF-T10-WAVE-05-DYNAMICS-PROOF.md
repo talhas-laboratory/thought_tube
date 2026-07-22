@@ -1,7 +1,7 @@
 # UMF-T10-WAVE-05-DYNAMICS-PROOF: Wave 5 Dynamics Proof
 
-Status: ready
-Owner: unassigned
+Status: review
+Owner: cursor-cloud-a790
 Current gate: not_required
 
 ## Scope
