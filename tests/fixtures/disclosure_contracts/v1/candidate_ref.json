@@ -1,0 +1,16 @@
+{
+  "contract_version": "1.0",
+  "candidate_id": "cand-cae015-001",
+  "kind": "shape_candidate",
+  "source_ref": "fixture:cae015-pin",
+  "projection_id": "signature-cae015-fixture",
+  "branch_id": "branch-main",
+  "scope_id": "scope-stage-a",
+  "maturity": "candidate",
+  "admission_signals": ["explicit_pin", "structural_shape_legacy"],
+  "ranking_features": {
+    "lexical": 0.12,
+    "structural": 0.81
+  },
+  "provenance_ref": "prov-cae015-candidate"
+}

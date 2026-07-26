@@ -62,8 +62,63 @@ PUBLIC_API = (
     "apply_prune_candidates",
     "get_chunk_status",
     "get_library_status",
+    "build_corpus_catalog",
+    "CORPUS_CATALOG_CONTRACT_VERSION",
+    "CORPUS_READINESS_STATES",
+    "CHAT_CONVERTER_SEED_CORPUS_ID",
+    "CHAT_CONVERTER_SEED_CORPUS_REVISION",
 )
 __all__ = list(PUBLIC_API)
+
+# Versioned CorpusCatalog readiness contract (CAE-013 / ADR-002 G-1).
+CORPUS_CATALOG_CONTRACT_VERSION = "1.0"
+CORPUS_READINESS_STATES = (
+    "ready",
+    "empty_valid",
+    "stale",
+    "interrupted",
+    "unsupported",
+)
+CHAT_CONVERTER_SEED_CORPUS_ID = "cognitive_aperture_chat_converter_v1"
+# Documented source SHA-256 checksums from CHAT_CONVERTER_SEED_CORPUS_V1.md.
+# Used as revision evidence only; production source text is never committed here.
+CHAT_CONVERTER_SEED_SOURCE_CHECKSUMS = (
+    "cfb038710216a77d2c266801804dc169a77e0c2fcdf8ce77e6e0b6bc5c04b11a",
+    "4b420c265818db17529d2cd39980973a28d7e51329eb3d1358576fcf7d37fce8",
+    "8171d069e8df1f4c93650991daf69b07d896f3ff5aa8e2444e359782e1faa837",
+    "82ffa4d906cd1500257998d5bb352cfa22316b4455e9cced333839d49b4f3674",
+    "7ef537fe99ce8ce085fc763bc6931a346f13e7d4df6bbf34006488b386968031",
+    "8abc8fb28a52c1845e5ddd4ec2f4a33f333fcf52cfac2ecb02a135949dfe9db4",
+    "2d465d34598f3602f4878b0d4a9d380bf3a9fbd270ef91847c10969eda2fd6c5",
+    "df831738ebaa397640b6f3ef7161663cb021f3cdb3430477ee96349d3c7b18b5",
+    "426d6673f39d0dc3f88d062593787ab4fe46ef7b890fca260cf250abe6697f74",
+    "d8a341a5f0224f32a9c823e1172912bdd6988c06131a9a098d9403856714342a",
+    "1f615549d171b3bc4ea809c607467c0e585a9ba919189ad8de1dd53cf4eae0c2",
+    "5341d33b4d91acba4dc9b9b8be7bbb8445ebe4bf0d1c621ba3424e8ffeff719d",
+    "480d07a5cea8be496c764a7c88e27c9c8d571047938b66518dca993d37aeb5e9",
+    "3a4d5fac3c04693bcfe8ae8dc39fbd855993bf84dad9649f15705aa6dce23c32",
+    "8da19893024a38492dbb5216f794c55da73544c0ab7c3950be1d8cec103af98e",
+    "d46502ee8ee566d931dddfbf0b7a20d3e2c36f59ebba4541a4d900b4c675bc47",
+    "98bde1132653fe937b7ba225c9ea53fc96b690312edf0c010b150d9b932f7a16",
+    "696846984fb2e73039fe8a9dcac51f23e772f0b2e2f0dae6739b374c483a314c",
+    "bec1b8cea81d5cf4a57b36780fa8b1931a5039bfd383e6782ff0bbd4b581ccaf",
+    "975a5943ce57b16f0d2118bb375fcec62f02d0ba9071b62b1bc6ce9eeff29bae",
+)
+CHAT_CONVERTER_SEED_SOURCE_COUNT = 20
+CHAT_CONVERTER_SEED_FRAGMENT_COUNT = 6611
+CHAT_CONVERTER_SEED_CORPUS_REVISION = hashlib.sha256(
+    ("\n".join(sorted(CHAT_CONVERTER_SEED_SOURCE_CHECKSUMS)) + "\n").encode("utf-8")
+).hexdigest()
+_KNOWN_CORPUS_IDS = frozenset({CHAT_CONVERTER_SEED_CORPUS_ID, "local_runtime", ""})
+_CANDIDATE_SEARCH_CAPABILITY_IDS = (
+    "lexical",
+    "alias",
+    "governed_graph",
+    "structural_shape_legacy",
+    "embedding",
+    "semantic_address",
+    "explicit_pin",
+)
 
 
 DEFAULT_TEXT_GLOBS = ["*.md", "*.markdown", "*.txt", "*.json"]
@@ -4746,6 +4801,224 @@ def apply_prune_candidates(
     }
 
 
+def _metadata_mapping(row: Dict[str, Any]) -> Dict[str, Any]:
+    metadata = row.get("metadata")
+    return dict(metadata) if isinstance(metadata, dict) else {}
+
+
+def _row_branch_id(row: Dict[str, Any]) -> str:
+    metadata = _metadata_mapping(row)
+    for key in ("branch_id", "branch", "model_branch"):
+        value = str(row.get(key) or metadata.get(key) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _row_scope_id(row: Dict[str, Any]) -> str:
+    metadata = _metadata_mapping(row)
+    for key in ("scope_id", "scope", "scope_key"):
+        value = str(row.get(key) or metadata.get(key) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _coverage_ratio(covered: int, total: int) -> float:
+    if total <= 0:
+        return 1.0
+    return round(covered / total, 6)
+
+
+def _compute_corpus_revision(sources: List[Dict[str, Any]]) -> str:
+    if not sources:
+        return "empty"
+    lines = [
+        f"{str(row.get('source_id', '') or '').strip()}:{str(row.get('content_hash', '') or '').strip()}"
+        for row in sorted(sources, key=lambda item: str(item.get("source_id", "") or ""))
+    ]
+    return hashlib.sha256(("\n".join(lines) + "\n").encode("utf-8")).hexdigest()
+
+
+def _embedding_index_present(root: Path) -> bool:
+    data_dir = _data_dir(root)
+    for path in (
+        data_dir / "embeddings.jsonl",
+        data_dir / "embedding_index.jsonl",
+        data_dir / "vector_index.json",
+    ):
+        if path.exists():
+            return True
+    return False
+
+
+def _indexed_record_count(root: Path) -> int:
+    from .knowledge_layer import load_knowledge_nodes, load_semantic_capsules
+
+    return len(load_knowledge_nodes(root)) + len(load_semantic_capsules(root))
+
+
+def build_corpus_catalog(
+    root: Path,
+    *,
+    corpus_id: str | None = None,
+    required_capabilities: Iterable[str] | None = None,
+) -> Dict[str, Any]:
+    """Build a versioned CorpusCatalog readiness report for aperture Stage A.
+
+    Missing or stale dependencies produce an explicit not-ready/abstention result
+    and never broaden retrieval.
+    """
+    from .runtime_pipeline import get_corpus_pipeline_signals
+    from .vault_ingest import load_chunk_index_raw, load_source_registry_raw
+
+    requested_corpus_id = str(corpus_id or "local_runtime").strip() or "local_runtime"
+    required = [str(item).strip() for item in list(required_capabilities or []) if str(item).strip()]
+    sources = load_source_registry_raw(root)
+    fragments = load_chunk_index_raw(root)
+    governance = load_library_governance(root)
+    shape_summary = _shape_summary_from_current_state(root)
+    pipeline = get_corpus_pipeline_signals(root)
+    indexed_record_count = _indexed_record_count(root)
+
+    source_count = len(sources)
+    fragment_count = len(fragments)
+    provenance_covered = sum(
+        1
+        for row in sources
+        if str(row.get("content_hash", "") or "").strip() and str(row.get("source_ref", "") or "").strip()
+    )
+    fragment_provenance_covered = sum(
+        1
+        for row in fragments
+        if str(row.get("source_ref", "") or "").strip() and str(row.get("source_id", "") or "").strip()
+    )
+    branch_covered = sum(1 for row in sources if _row_branch_id(row))
+    scope_covered = sum(1 for row in sources if _row_scope_id(row))
+    fragment_branch_covered = sum(1 for row in fragments if _row_branch_id(row))
+    fragment_scope_covered = sum(1 for row in fragments if _row_scope_id(row))
+
+    provenance_coverage = _coverage_ratio(provenance_covered, source_count)
+    fragment_provenance_coverage = _coverage_ratio(fragment_provenance_covered, fragment_count)
+    branch_coverage = _coverage_ratio(branch_covered, source_count)
+    scope_coverage = _coverage_ratio(scope_covered, source_count)
+    shape_signature_count = int(shape_summary.get("signature_count", 0) or 0)
+    shape_coverage = _coverage_ratio(min(shape_signature_count, source_count), source_count)
+
+    corpus_revision = _compute_corpus_revision(sources)
+    if (
+        requested_corpus_id == CHAT_CONVERTER_SEED_CORPUS_ID
+        and source_count == CHAT_CONVERTER_SEED_SOURCE_COUNT
+        and {str(row.get("content_hash", "") or "").strip() for row in sources}
+        == set(CHAT_CONVERTER_SEED_SOURCE_CHECKSUMS)
+    ):
+        corpus_revision = CHAT_CONVERTER_SEED_CORPUS_REVISION
+
+    capabilities = {
+        "lexical": fragment_count > 0,
+        "alias": False,
+        "governed_graph": indexed_record_count > 0,
+        "structural_shape_legacy": shape_signature_count > 0,
+        "embedding": _embedding_index_present(root),
+        "semantic_address": False,
+        "explicit_pin": True,
+    }
+    supported_capabilities = [key for key in _CANDIDATE_SEARCH_CAPABILITY_IDS if capabilities.get(key)]
+    unsupported_required = [key for key in required if key not in supported_capabilities]
+
+    pending_rederive = governance.get("pending_rederive")
+    pending_rederive_present = bool(pending_rederive)
+    seed_mismatch = False
+    if requested_corpus_id == CHAT_CONVERTER_SEED_CORPUS_ID and source_count > 0:
+        seed_mismatch = (
+            source_count != CHAT_CONVERTER_SEED_SOURCE_COUNT
+            or fragment_count != CHAT_CONVERTER_SEED_FRAGMENT_COUNT
+            or corpus_revision != CHAT_CONVERTER_SEED_CORPUS_REVISION
+        )
+
+    abstention_reason = ""
+    readiness_state = "ready"
+    if requested_corpus_id not in _KNOWN_CORPUS_IDS:
+        readiness_state = "unsupported"
+        abstention_reason = f"unknown_corpus_id:{requested_corpus_id}"
+    elif unsupported_required:
+        readiness_state = "unsupported"
+        abstention_reason = "unsupported_capabilities:" + ",".join(unsupported_required)
+    elif pipeline.get("interrupted"):
+        readiness_state = "interrupted"
+        abstention_reason = "runtime_pipeline_interrupted"
+    elif pending_rederive_present or seed_mismatch or (
+        source_count > 0 and provenance_coverage < 1.0
+    ):
+        readiness_state = "stale"
+        if pending_rederive_present:
+            abstention_reason = "pending_rederive"
+        elif seed_mismatch:
+            abstention_reason = "seed_corpus_revision_mismatch"
+        else:
+            abstention_reason = "incomplete_provenance_coverage"
+    elif source_count == 0:
+        readiness_state = "empty_valid"
+        abstention_reason = "empty_corpus_no_retrieval"
+    elif fragment_count == 0 or not capabilities["lexical"]:
+        readiness_state = "stale"
+        abstention_reason = "fragments_not_indexed"
+    else:
+        readiness_state = "ready"
+        abstention_reason = ""
+
+    retrieval_allowed = readiness_state == "ready"
+    catalog = {
+        "schema_version": CORPUS_CATALOG_CONTRACT_VERSION,
+        "contract_id": "CorpusCatalog",
+        "corpus_id": requested_corpus_id,
+        "corpus_revision": corpus_revision,
+        "readiness_state": readiness_state,
+        "retrieval_allowed": retrieval_allowed,
+        "quality_claims_allowed": retrieval_allowed,
+        "abstention_reason": abstention_reason or None,
+        "counts": {
+            "source_count": source_count,
+            "fragment_count": fragment_count,
+            "indexed_record_count": indexed_record_count,
+        },
+        "coverage": {
+            "provenance_coverage": provenance_coverage,
+            "fragment_provenance_coverage": fragment_provenance_coverage,
+            "branch_coverage": branch_coverage,
+            "scope_coverage": scope_coverage,
+            "shape_coverage": shape_coverage,
+            "fragment_branch_coverage": _coverage_ratio(fragment_branch_covered, fragment_count),
+            "fragment_scope_coverage": _coverage_ratio(fragment_scope_covered, fragment_count),
+        },
+        "shape_artifacts": shape_summary,
+        "capabilities": {
+            "supported": supported_capabilities,
+            "available": capabilities,
+            "required": required,
+            "unsupported_required": unsupported_required,
+        },
+        "pipeline": pipeline,
+        "staleness": {
+            "pending_rederive": pending_rederive_present,
+            "seed_mismatch": seed_mismatch,
+            "interrupted": bool(pipeline.get("interrupted")),
+        },
+        "reference_corpora": {
+            CHAT_CONVERTER_SEED_CORPUS_ID: {
+                "corpus_id": CHAT_CONVERTER_SEED_CORPUS_ID,
+                "corpus_revision": CHAT_CONVERTER_SEED_CORPUS_REVISION,
+                "source_count": CHAT_CONVERTER_SEED_SOURCE_COUNT,
+                "fragment_count": CHAT_CONVERTER_SEED_FRAGMENT_COUNT,
+                "evidence_ref": "docs/workspaces/cognitive-aperture-exceptional/derived/CHAT_CONVERTER_SEED_CORPUS_V1.md",
+                "notes": "Checksum/revision evidence only; production source text is not stored in this contract.",
+            }
+        },
+        "generated_at": utc_now(),
+    }
+    return catalog
+
+
 def get_library_status(root: Path) -> Dict[str, Any]:
     config = load_library_tracker_config(root)
     state = _load_library_tracker_state(root)
@@ -4759,6 +5032,7 @@ def get_library_status(root: Path) -> Dict[str, Any]:
     governed_chunks = resolve_governed_chunk_rows(root, raw_chunks, governance=governance)
     dimension_profiles = load_chunk_dimension_profiles(root, refresh=False)
     shape_summary = _shape_summary_from_current_state(root)
+    corpus_catalog = build_corpus_catalog(root)
     status_counts = Counter(row["governance_status"] for row in governed_sources)
     semantic_role_counts = Counter(row["semantic_role"] for row in governed_sources)
     chunk_status_counts = Counter(row["governance_status"] for row in governed_chunks)
@@ -4821,6 +5095,7 @@ def get_library_status(root: Path) -> Dict[str, Any]:
             ),
         },
         "shape_artifacts": shape_summary,
+        "corpus_catalog": corpus_catalog,
         "chunk_counts": {
             "raw_chunk_count": len(raw_chunks),
             "governed_chunk_count": len(governed_chunks),

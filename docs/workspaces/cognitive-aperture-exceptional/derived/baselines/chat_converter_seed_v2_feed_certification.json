@@ -1,0 +1,115 @@
+{
+  "schema_version": "2.0",
+  "baseline_suite_id": "chat_converter_seed_v2_feed_certification",
+  "parent_suite_id": "chat_converter_seed_v1_service",
+  "fixture_revision": "cae-feed-cert-v2-2026-07-20",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "recorded_at": "2026-07-20T14:47:04+00:00",
+  "harness_version": "2.0",
+  "aperture_harness_version": "1.0",
+  "generation_marker": "ef6d6fc51d9c68b45885e9a7bacc62f3",
+  "thresholds": {
+    "positive_precision_rate": 1.0,
+    "bridge_parity_rate": 1.0,
+    "negative_abstention_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "receipt_persistence_rate": 1.0,
+    "provenance_preservation_rate": 1.0,
+    "latency_ms_p95": 750,
+    "max_catalog_lookup_ms": 50,
+    "max_bytes_resolved": 65536
+  },
+  "metrics": {
+    "positive_precision_rate": 1.0,
+    "bridge_parity_rate": 1.0,
+    "negative_abstention_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "receipt_persistence_rate": 1.0,
+    "provenance_preservation_rate": 1.0,
+    "latency_ms_p95": 2.128,
+    "catalog_lookup_ms_p95": 0.179,
+    "max_bytes_resolved": 174
+  },
+  "summary": {
+    "probe_count": 6,
+    "pass_count": 5,
+    "known_failure_count": 0,
+    "service_certified": true,
+    "notes": "Corpus-backed Feed certification v2; bridge parity and provenance verified against chat_converter seed fixtures"
+  },
+  "threshold_check": {
+    "passed": true,
+    "checks": {
+      "positive_precision_rate": true,
+      "bridge_parity_rate": true,
+      "negative_abstention_rate": true,
+      "abstention_correctness_rate": true,
+      "receipt_persistence_rate": true,
+      "provenance_preservation_rate": true,
+      "latency_ms_p95": true,
+      "max_catalog_lookup_ms": true,
+      "max_bytes_resolved": true
+    }
+  },
+  "observed_results": [
+    {
+      "probe_id": "positive-research-evidence-pairs",
+      "category": "positive",
+      "verdict": "pass",
+      "pair_count": 1,
+      "source_slugs": [
+        "research-insight"
+      ],
+      "preferred_source_slug": "research-insight",
+      "has_provenance": true,
+      "result_status": "disclosed"
+    },
+    {
+      "probe_id": "bridge-parity-research-domain",
+      "category": "bridge_parity",
+      "verdict": "pass",
+      "pair_count": 1,
+      "parity_ok": true,
+      "bridge_source_refs": [
+        "fixture:research-insight.md"
+      ],
+      "feed_source_refs": [
+        "fixture:research-insight.md"
+      ],
+      "pair_source_refs": [
+        "fixture:research-insight.md"
+      ]
+    },
+    {
+      "probe_id": "negative-unrelated-domain",
+      "category": "negative",
+      "verdict": "no_pairs",
+      "pair_count": 0,
+      "source_slugs": [],
+      "result_status": "empty_no_positive_match"
+    },
+    {
+      "probe_id": "abstention-missing-catalog",
+      "category": "abstention",
+      "verdict": "pass",
+      "pair_count": 0,
+      "result_status": "abstained_stale_index"
+    },
+    {
+      "probe_id": "receipt-persistent-feed-rollout",
+      "category": "receipt",
+      "verdict": "pass",
+      "pair_count": 1,
+      "receipt_persisted": true
+    },
+    {
+      "probe_id": "resource-latency-and-catalog",
+      "category": "resource",
+      "verdict": "pass",
+      "latency_ms_p95": 2.128,
+      "catalog_lookup_ms_p95": 0.179,
+      "max_bytes_resolved": 174
+    }
+  ]
+}

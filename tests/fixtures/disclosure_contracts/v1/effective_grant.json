@@ -1,0 +1,28 @@
+{
+  "contract_version": "1.0",
+  "grant_id": "grant-req-cae015",
+  "request_id": "req-cae015-aperture",
+  "envelope": "bounded",
+  "effective_layers": ["session", "workspace", "explicit_pin"],
+  "effective_refs": ["fixture:cae015-pin"],
+  "dimensions": ["lexical", "structural_shape_legacy"],
+  "shape_maturity": "candidate",
+  "cross_ocean": false,
+  "token_budget": 1200,
+  "persistence_mode": "gated",
+  "explicit_pins": ["fixture:cae015-pin"],
+  "narrowing_reasons": [
+    {
+      "code": "explicit_deny",
+      "field": "effective_layers",
+      "requested": ["session", "workspace", "user", "explicit_pin"],
+      "effective": ["session", "workspace", "explicit_pin"],
+      "reason": "Explicit denials always win"
+    }
+  ],
+  "deny_precedence_applied": true,
+  "requested_grant_ref": "grant-req-cae015",
+  "provenance": {
+    "normalized_at": "2026-07-19T15:00:00+00:00"
+  }
+}

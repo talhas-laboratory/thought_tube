@@ -1,0 +1,10 @@
+{
+  "profile_id": "profile:cybernetics",
+  "profile_version": "1.0.0",
+  "kernel_records_used": ["referent", "scope", "relation_instance", "provenance", "model_branch", "branch_membership"],
+  "profile_record_types": ["state_variable", "signal", "setpoint", "regulator", "feedback_loop", "disturbance", "viability_condition", "dynamic_model_extension"],
+  "profile_dependencies": ["profile:shape"],
+  "invariants": ["feedback_requires_mechanism_and_scope", "regulation_requires_closed_references", "viability_requires_recovery_and_failure_semantics", "dynamic_values_preserve_epistemic_status", "execution_extensions_require_explicit_compilation"],
+  "steward": "service:profile_registry",
+  "description": "A contract fixture: it specifies a bounded feedback system but does not execute or prove a dynamics model."
+}

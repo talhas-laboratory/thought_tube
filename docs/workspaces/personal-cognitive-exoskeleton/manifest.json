@@ -1,0 +1,45 @@
+{
+  "workspace_id": "personal-cognitive-exoskeleton",
+  "label": "Personal Cognitive Exoskeleton",
+  "status": "active",
+  "maturation_stage": "lens_and_architecture",
+  "goal": "Define a governed personal cognitive exoskeleton that models an individual's observable reasoning system as a dynamic, evidence-bound graph and turns it into bounded, inspectable assistance.",
+  "purpose": "Preserve and develop the reasoning-system, personal agency, and creative-transduction lens without treating it as a claim to reproduce a person's hidden cognition or identity.",
+  "success_condition": "A fresh agent can define, implement, and evaluate a Personal Reasoning System Profile and its first bounded applications without confusing the graph with a personality diagnosis, a generic prompt persona, or an autonomous decision-maker.",
+  "artifact_roots": [
+    "docs/workspaces/personal-cognitive-exoskeleton/",
+    "docs/workboards/personal-cognitive-exoskeleton/",
+    "docs/workspaces/unified-framework-synthesis/",
+    "docs/guides/worldbuilding-studio-agent-workflow.md",
+    "src/conversation_os/personal_interface.py",
+    "src/conversation_os/worldbuilding_studio.py"
+  ],
+  "external_dependencies": [
+    "Unified Framework kernel, Shape, Pattern, Agent, Conversation, and Cybernetics profiles",
+    "governed knowledge-ocean retrieval and source provenance",
+    "OpenClaw or equivalent bounded intelligence/tool harness",
+    "user-controlled privacy, consent, and durable learning governance"
+  ],
+  "objectives": [
+    "Define PersonalReasoningSystem as a bounded composite entity with stable topology, changing state, history, and active task views.",
+    "Define how incoming information becomes a candidate percept, affects a bounded active graph, and contributes to a decision episode.",
+    "Define a Creative Transduction Profile for research, inspiration appraisal, Shape abstraction, transformation, and world-bound re-instantiation.",
+    "Establish fidelity, alterity, provenance, privacy, and delegation safeguards.",
+    "Specify evaluation that tests useful reasoning support rather than surface imitation."
+  ],
+  "scope_out": [
+    "Claims to infer hidden cognition, personality, subconscious state, or a person's true identity.",
+    "A universal theory of human cognition or a replacement for user judgment.",
+    "Unreviewed high-stakes decisions or broad autonomous actions.",
+    "Kernel redesign; this is a governed profile and application runtime over existing primitives.",
+    "Treating a creator's sources, culture, or prior work as unbounded material for imitation."
+  ],
+  "domains": ["personal-reasoning", "agents", "shapes", "cybernetics", "creative-work", "governance"],
+  "semantic_authority": "docs/workspaces/unified-framework-synthesis/sources/thought-tube-unified-metaphysical-modeling-framework-v1.1.md",
+  "parent_workspace_id": "unified-framework-synthesis",
+  "holodeck_workspace_id": "personal-cognitive-exoskeleton",
+  "workboard": "docs/workboards/personal-cognitive-exoskeleton/README.md",
+  "continuity_projection": "docs/workspaces/personal-cognitive-exoskeleton/CONTINUITY.md",
+  "sync_contract": "docs/workspaces/personal-cognitive-exoskeleton/derived/sync-contract.md",
+  "created_at": "2026-07-21"
+}

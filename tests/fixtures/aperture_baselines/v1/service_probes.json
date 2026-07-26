@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "baseline_suite_id": "chat_converter_seed_v1_service",
+  "parent_suite_id": "chat_converter_seed_v1",
+  "corpus_id": "cognitive_aperture_chat_converter_v1",
+  "corpus_revision": "db340a77323741710f5f2a9512123271505c13880a3f72ac4c3e11c19fc4ccad",
+  "thresholds": {
+    "structural_beats_distractor_rate": 1.0,
+    "anti_match_block_rate": 1.0,
+    "candidate_upgrade_rate": 0.0,
+    "adapter_parity_rate": 1.0,
+    "latency_ms_p50": 250,
+    "latency_ms_p95": 750,
+    "max_bytes_resolved": 65536,
+    "max_expansion_count": 12
+  },
+  "probes": [
+    {
+      "probe_id": "structural-agent-memory-ranking",
+      "category": "ranking",
+      "query": "recursive self-model agent memory mapping mind",
+      "preferred_source_slug": "mapping-the-mind-for-agentic-systems",
+      "distractor_source_slug": "understanding-the-nature-of-thought",
+      "expected_verdict": "pass"
+    },
+    {
+      "probe_id": "near-neighbour-distractor-harm",
+      "category": "distractor",
+      "query": "biological cognition agent memory",
+      "preferred_source_slug": "mapping-the-mind-for-agentic-systems",
+      "distractor_source_slug": "understanding-the-nature-of-thought",
+      "expected_verdict": "known_failure",
+      "notes": "Near-neighbour distractor preserved from CAE-006A"
+    },
+    {
+      "probe_id": "shape-anti-match-no-promotion",
+      "category": "shape",
+      "query": "recursive self-model agent memory",
+      "require_anti_match_present": true,
+      "seed_shape_legacy": true
+    },
+    {
+      "probe_id": "bridge-holodeck-retrieval-parity",
+      "category": "parity",
+      "query": "recursive self-model agent memory mapping mind"
+    },
+    {
+      "probe_id": "disclosure-path-performance",
+      "category": "performance",
+      "query": "recursive self-model agent memory",
+      "iterations": 3
+    }
+  ]
+}
